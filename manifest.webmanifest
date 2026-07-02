@@ -1,0 +1,14 @@
+{
+  "name": "Heremay Smart Campus",
+  "short_name": "Heremay",
+  "description": "Heremay 智慧校園巡堂系統",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f7f2e8",
+  "theme_color": "#1f4d3a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png"}
+  ]
+}
