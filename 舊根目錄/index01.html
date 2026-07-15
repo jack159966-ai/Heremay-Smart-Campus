@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>和美智慧校園｜巡堂系統 V0.3</title>
+  <style>
+    :root {
+      --green: #2f7d5c;
+      --green-2: #64a77d;
+      --light-green: #eaf6ef;
+      --gold: #d5a84c;
+      --gold-2: #f5df9e;
+      --text: #263238;
+      --muted: #607d8b;
+      --danger: #c62828;
+      --bg: #f7faf8;
+      --card: #ffffff;
+      --border: #d9e6df;
+      --shadow: 0 8px 22px rgba(30, 80, 50, .08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Microsoft JhengHei", "Noto Sans TC", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,.22), transparent 30%),
+        linear-gradient(135deg, var(--green), var(--green-2));
+      color: white;
+      padding: 24px 18px 26px;
+      text-align: center;
+    }
+    .brand { display: flex; justify-content: center; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .castle-logo {
+      width: 74px;
+      height: 74px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.18);
+      padding: 8px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.28);
+    }
+    header h1 { margin: 0; font-size: 29px; letter-spacing: 1px; }
+    header p { margin: 6px 0 0; opacity: .95; }
+    main { max-width: 1080px; margin: 0 auto; padding: 18px; }
+    .topnav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+    .card, .category {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .card h2, .card h3, .category h3 { margin-top: 0; }
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      background: var(--green);
+      color: white;
+      margin: 5px 4px 5px 0;
+      font-weight: 700;
+      font-family: inherit;
+    }
+    .btn:hover { filter: brightness(.96); }
+    .btn.secondary { background: #78909c; }
+    .btn.gold { background: var(--gold); color: #2d240c; }
+    .btn.danger { background: var(--danger); }
+    .btn.light { background: var(--light-green); color: var(--green); border: 1px solid var(--border); }
+    .btn.small { font-size: 14px; padding: 8px 10px; border-radius: 11px; }
+    select, input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 16px;
+      margin: 6px 0 12px;
+      font-family: inherit;
+      background: white;
+    }
+    textarea { min-height: 88px; }
+    label { font-weight: 700; color: #365247; }
+    .hidden { display: none !important; }
+    .muted { color: var(--muted); font-size: 14px; line-height: 1.6; }
+    .status-pill {
+      display: inline-block;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: var(--light-green);
+      color: var(--green);
+      font-weight: 700;
+      margin: 4px 4px 4px 0;
+    }
+    .category { margin: 12px 0; box-shadow: none; }
+    .category h3 { color: var(--green); }
+    .check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 12px;
+      margin: 5px 0;
+      background: #fbfdfb;
+      border: 1px solid #edf4ef;
+    }
+    .check-row input { width: 22px; height: 22px; margin: 0; flex: 0 0 auto; }
+    .check-row label { cursor: pointer; line-height: 1.45; font-weight: 500; color: var(--text); }
+    .record {
+      border-left: 5px solid var(--green);
+      padding: 12px;
+      background: #fff;
+      border-radius: 12px;
+      margin: 10px 0;
+      border-top: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .record.defect { border-left-color: var(--danger); }
+    .notice {
+      background: #fff8e1;
+      border: 1px solid #ffe0a3;
+      color: #5d4300;
+      border-radius: 14px;
+      padding: 12px;
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+    .setting-item, .class-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin: 8px 0;
+      background: #fff;
+    }
+    .class-item.disabled, .setting-item.disabled { opacity: .55; background: #f3f6f4; }
+    .item-actions { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+    .section-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+    .route-preview {
+      background: var(--light-green);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      line-height: 1.9;
+    }
+    @media (max-width: 700px) {
+      header h1 { font-size: 23px; }
+      .castle-logo { width: 62px; height: 62px; }
+      .btn { width: 100%; }
+      .btn.small { width: auto; }
+      .setting-item, .class-item { grid-template-columns: 1fr; }
+      .item-actions { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <svg class="castle-logo" viewBox="0 0 120 120" aria-label="和美城堡 Logo" role="img">
+        <rect x="18" y="48" width="84" height="54" rx="10" fill="#f8e7a6" stroke="#ffffff" stroke-width="4"/>
+        <rect x="29" y="34" width="18" height="28" rx="4" fill="#f8e7a6" stroke="#ffffff" stroke-width="4"/>
+        <rect x="51" y="26" width="18" height="36" rx="4" fill="#f8e7a6" stroke="#ffffff" stroke-width="4"/>
+        <rect x="73" y="34" width="18" height="28" rx="4" fill="#f8e7a6" stroke="#ffffff" stroke-width="4"/>
+        <path d="M29 34 L38 22 L47 34 Z" fill="#d5a84c" stroke="#ffffff" stroke-width="4"/>
+        <path d="M51 26 L60 12 L69 26 Z" fill="#d5a84c" stroke="#ffffff" stroke-width="4"/>
+        <path d="M73 34 L82 22 L91 34 Z" fill="#d5a84c" stroke="#ffffff" stroke-width="4"/>
+        <rect x="52" y="72" width="16" height="30" rx="8" fill="#2f7d5c"/>
+        <circle cx="38" cy="72" r="5" fill="#2f7d5c"/>
+        <circle cx="82" cy="72" r="5" fill="#2f7d5c"/>
+      </svg>
+      <div>
+        <h1>和美智慧校園</h1>
+        <p>Heremay Smart Campus｜巡堂系統 V0.3</p>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="topnav">
+      <button class="btn light" onclick="showPage('home')">🏠 首頁</button>
+      <button class="btn light" onclick="showPage('patrol')">🚶 開始巡堂</button>
+      <button class="btn light" onclick="showPage('classes')">🏫 班級管理</button>
+      <button class="btn light" onclick="showPage('settings')">⚙️ 巡堂項目管理</button>
+    </div>
+
+    <section id="homePage" class="page">
+      <div class="grid">
+        <div class="card">
+          <h2>今日巡堂概況</h2>
+          <p><span class="status-pill" id="todayCount">今日 0 筆紀錄</span></p>
+          <p class="muted">V0.3 已加入班級管理與巡堂順序調整。資料先保存在這台電腦的瀏覽器中，方便測試。</p>
+          <button class="btn" onclick="showPage('patrol')">開始巡堂</button>
+        </div>
+        <div class="card">
+          <h2>目前巡堂路線</h2>
+          <div class="route-preview" id="routePreview"></div>
+          <p class="muted">可到「班級管理」調整順序，巡堂下拉選單會同步更新。</p>
+        </div>
+        <div class="card">
+          <h2>設計原則</h2>
+          <p>資料可以調整，功能保持穩定。</p>
+          <p class="muted">班級、巡堂路線、巡堂類別與缺失項目，都不寫死在程式裡。</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <h2>巡堂紀錄</h2>
+        <div id="recordList"></div>
+      </div>
+    </section>
+
+    <section id="patrolPage" class="page hidden">
+      <div class="card">
+        <h2>開始巡堂</h2>
+        <label>巡堂時段</label>
+        <select id="patrolSession">
+          <option>上午巡堂</option>
+          <option>下午巡堂</option>
+        </select>
+        <label>班級</label>
+        <select id="className"></select>
+        <p class="muted">班級清單會依照「班級管理」中的啟用狀態與排序顯示。</p>
+        <button class="btn" onclick="saveNormal()">✅ 正常</button>
+        <button class="btn gold" onclick="toggleDefect(true)">⚠️ 有缺失</button>
+      </div>
+
+      <div id="defectPanel" class="card hidden" style="margin-top:14px;">
+        <h2>選擇缺失項目</h2>
+        <div class="notice">可複選。巡堂項目可在「巡堂項目管理」中自行修改、停用或新增。</div>
+        <div id="defectChecklist"></div>
+        <label>補充備註（可不填）</label>
+        <textarea id="note" placeholder="例如：美勞材料未收納、教具未歸位……"></textarea>
+        <button class="btn danger" onclick="saveDefect()">儲存缺失紀錄</button>
+        <button class="btn secondary" onclick="toggleDefect(false)">取消</button>
+      </div>
+    </section>
+
+    <section id="classesPage" class="page hidden">
+      <div class="card">
+        <div class="section-title">
+          <div>
+            <h2>班級管理</h2>
+            <p class="muted">可以新增、修改、停用班級，也可以用「上移／下移」調整巡堂順序。</p>
+          </div>
+          <button class="btn gold" onclick="addClass()">➕ 新增班級</button>
+        </div>
+        <div id="classList"></div>
+        <button class="btn secondary" onclick="resetClasses()">還原預設班級</button>
+      </div>
+    </section>
+
+    <section id="settingsPage" class="page hidden">
+      <div class="card">
+        <h2>巡堂項目管理</h2>
+        <p class="muted">停用後，巡堂時就不會出現；歷史紀錄不受影響。</p>
+        <div id="settingsList"></div>
+        <button class="btn gold" onclick="addCategory()">➕ 新增類別</button>
+        <button class="btn secondary" onclick="resetDefaults()">還原預設項目</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function uid() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return 'id_' + Date.now() + '_' + Math.random().toString(16).slice(2);
+    }
+
+    const DEFAULT_CLASSES = [
+      { id: uid(), name: '向日葵班', enabled: true },
+      { id: uid(), name: '玫瑰班', enabled: true },
+      { id: uid(), name: '百合班', enabled: true },
+      { id: uid(), name: '櫻花班', enabled: true },
+      { id: uid(), name: '海豚班', enabled: true },
+      { id: uid(), name: '企鵝班', enabled: true }
+    ];
+
+    const DEFAULT_CATEGORIES = [
+      {
+        id: uid(), name: '課程實施類', enabled: true,
+        items: [
+          { id: uid(), text: '教學內容應符合幼兒發展', enabled: true },
+          { id: uid(), text: '教學方法應運用合宜', enabled: true },
+          { id: uid(), text: '老師應鼓勵幼兒積極參與', enabled: true },
+          { id: uid(), text: '師生互動氛圍良好', enabled: true },
+          { id: uid(), text: '老師言語應溫和、動作輕柔', enabled: true }
+        ]
+      },
+      {
+        id: uid(), name: '班級經營類', enabled: true,
+        items: [
+          { id: uid(), text: '應依作息表確實操作', enabled: true },
+          { id: uid(), text: '應確實收拾並落實執行', enabled: true },
+          { id: uid(), text: '應隨時留意幼兒狀況', enabled: true },
+          { id: uid(), text: '應以正向鼓勵方式引導幼兒', enabled: true },
+          { id: uid(), text: '應以正向策略調整幼兒負向行為', enabled: true }
+        ]
+      },
+      {
+        id: uid(), name: '環境規劃類', enabled: true,
+        items: [
+          { id: uid(), text: '教室規劃動線應合宜且安全', enabled: true },
+          { id: uid(), text: '活動室光線應充足、通風良好', enabled: true },
+          { id: uid(), text: '教／玩具應安全、適齡及適性', enabled: true },
+          { id: uid(), text: '情境布置應與教學相呼應，以師生共構為主', enabled: true },
+          { id: uid(), text: '物品應收納整潔，教室環境應整潔衛生', enabled: true }
+        ]
+      }
+    ];
+
+    let classes = load('heremay_classes', DEFAULT_CLASSES);
+    let categories = load('heremay_patrol_categories', DEFAULT_CATEGORIES);
+    let records = load('heremay_patrol_records', []);
+
+    function load(key, fallback) {
+      const saved = localStorage.getItem(key);
+      try { return saved ? JSON.parse(saved) : structuredClone(fallback); }
+      catch { return structuredClone(fallback); }
+    }
+    function save(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(el => el.classList.add('hidden'));
+      document.getElementById(page + 'Page').classList.remove('hidden');
+      renderAll();
+    }
+
+    function activeClasses() { return classes.filter(c => c.enabled); }
+
+    function renderClassSelect() {
+      const select = document.getElementById('className');
+      const current = select.value;
+      const active = activeClasses();
+      select.innerHTML = active.length
+        ? active.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('')
+        : '<option value="">尚未啟用班級</option>';
+      if (active.some(c => c.name === current)) select.value = current;
+    }
+
+    function renderRoutePreview() {
+      const active = activeClasses();
+      document.getElementById('routePreview').innerHTML = active.length
+        ? active.map((c, i) => `${i + 1}. ${escapeHtml(c.name)}`).join('<br>')
+        : '<span class="muted">尚未啟用班級，請到班級管理新增或啟用。</span>';
+    }
+
+    function renderClassList() {
+      const list = document.getElementById('classList');
+      list.innerHTML = classes.map((c, index) => `
+        <div class="class-item ${c.enabled ? '' : 'disabled'}">
+          <div>
+            <label>班級名稱</label>
+            <input value="${escapeHtml(c.name)}" onchange="editClassName(${index}, this.value)">
+            <span class="muted">巡堂順序：${index + 1}｜狀態：${c.enabled ? '啟用' : '停用'}</span>
+          </div>
+          <div class="item-actions">
+            <button class="btn small light" onclick="moveClass(${index}, -1)" ${index === 0 ? 'disabled' : ''}>上移</button>
+            <button class="btn small light" onclick="moveClass(${index}, 1)" ${index === classes.length - 1 ? 'disabled' : ''}>下移</button>
+            <button class="btn small ${c.enabled ? 'secondary' : 'gold'}" onclick="toggleClass(${index})">${c.enabled ? '停用' : '啟用'}</button>
+            <button class="btn small danger" onclick="deleteClass(${index})">刪除</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function addClass() {
+      const name = prompt('請輸入新的班級名稱');
+      if (!name || !name.trim()) return;
+      classes.push({ id: uid(), name: name.trim(), enabled: true });
+      save('heremay_classes', classes); renderAll();
+    }
+    function editClassName(index, value) {
+      const text = value.trim(); if (!text) { renderAll(); return; }
+      classes[index].name = text; save('heremay_classes', classes); renderAll();
+    }
+    function toggleClass(index) {
+      classes[index].enabled = !classes[index].enabled;
+      save('heremay_classes', classes); renderAll();
+    }
+    function moveClass(index, direction) {
+      const target = index + direction;
+      if (target < 0 || target >= classes.length) return;
+      [classes[index], classes[target]] = [classes[target], classes[index]];
+      save('heremay_classes', classes); renderAll();
+    }
+    function deleteClass(index) {
+      if (!confirm('確定要刪除這個班級嗎？歷史巡堂紀錄仍會保留原班級名稱。')) return;
+      classes.splice(index, 1); save('heremay_classes', classes); renderAll();
+    }
+    function resetClasses() {
+      if (!confirm('確定要還原預設班級嗎？目前班級設定會被覆蓋，但巡堂紀錄會保留。')) return;
+      classes = structuredClone(DEFAULT_CLASSES); save('heremay_classes', classes); renderAll();
+    }
+
+    function toggleDefect(show) {
+      document.getElementById('defectPanel').classList.toggle('hidden', !show);
+      if (show) renderChecklist();
+    }
+
+    function renderChecklist() {
+      const box = document.getElementById('defectChecklist');
+      box.innerHTML = '';
+      categories.filter(c => c.enabled).forEach(cat => {
+        const activeItems = cat.items.filter(i => i.enabled);
+        if (!activeItems.length) return;
+        const div = document.createElement('div');
+        div.className = 'category';
+        div.innerHTML = `<h3>${escapeHtml(cat.name)}</h3>`;
+        activeItems.forEach(item => {
+          const row = document.createElement('div');
+          row.className = 'check-row';
+          row.innerHTML = `
+            <input type="checkbox" class="defectCheck" data-category="${escapeHtml(cat.name)}" data-text="${escapeHtml(item.text)}" id="chk_${item.id}">
+            <label for="chk_${item.id}">${escapeHtml(item.text)}</label>
+          `;
+          div.appendChild(row);
+        });
+        box.appendChild(div);
+      });
+    }
+
+    function saveNormal() {
+      if (!ensureClassSelected()) return;
+      const rec = baseRecord('正常'); rec.defects = [];
+      records.unshift(rec); save('heremay_patrol_records', records);
+      alert('已儲存：本班巡堂正常'); renderAll(); showPage('home');
+    }
+
+    function saveDefect() {
+      if (!ensureClassSelected()) return;
+      const checked = [...document.querySelectorAll('.defectCheck:checked')].map(el => ({ category: el.dataset.category, text: el.dataset.text }));
+      if (!checked.length) { alert('請至少選擇一個缺失項目。'); return; }
+      const rec = baseRecord('有缺失');
+      rec.defects = checked; rec.note = document.getElementById('note').value.trim();
+      records.unshift(rec); save('heremay_patrol_records', records);
+      document.getElementById('note').value = ''; toggleDefect(false);
+      alert('已儲存缺失紀錄'); renderAll(); showPage('home');
+    }
+
+    function ensureClassSelected() {
+      if (!document.getElementById('className').value) {
+        alert('目前沒有可巡堂的班級，請先到班級管理新增或啟用班級。');
+        return false;
+      }
+      return true;
+    }
+
+    function baseRecord(status) {
+      return { id: uid(), date: new Date().toLocaleString('zh-TW'), session: document.getElementById('patrolSession').value, className: document.getElementById('className').value, status, note: '' };
+    }
+
+    function renderRecords() {
+      const list = document.getElementById('recordList');
+      const today = new Date().toLocaleDateString('zh-TW');
+      const todayRecords = records.filter(r => r.date.includes(today));
+      document.getElementById('todayCount').textContent = `今日 ${todayRecords.length} 筆紀錄`;
+      if (!records.length) { list.innerHTML = '<p class="muted">目前尚無巡堂紀錄。</p>'; return; }
+      list.innerHTML = records.slice(0, 20).map(r => `
+        <div class="record ${r.status === '有缺失' ? 'defect' : ''}">
+          <strong>${escapeHtml(r.className)}</strong>｜${escapeHtml(r.session)}｜${escapeHtml(r.status)}<br>
+          <span class="muted">${escapeHtml(r.date)}</span>
+          ${r.defects && r.defects.length ? `<ul>${r.defects.map(d => `<li>${escapeHtml(d.category)}－${escapeHtml(d.text)}</li>`).join('')}</ul>` : ''}
+          ${r.note ? `<p>備註：${escapeHtml(r.note)}</p>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function renderSettings() {
+      const list = document.getElementById('settingsList');
+      list.innerHTML = categories.map((cat, catIndex) => `
+        <div class="category ${cat.enabled ? '' : 'disabled'}">
+          <div class="setting-item">
+            <div>
+              <label>類別名稱</label>
+              <input value="${escapeHtml(cat.name)}" onchange="editCategoryName(${catIndex}, this.value)">
+            </div>
+            <div class="item-actions">
+              <button class="btn small light" onclick="moveCategory(${catIndex}, -1)" ${catIndex === 0 ? 'disabled' : ''}>上移</button>
+              <button class="btn small light" onclick="moveCategory(${catIndex}, 1)" ${catIndex === categories.length - 1 ? 'disabled' : ''}>下移</button>
+              <button class="btn small ${cat.enabled ? 'secondary' : 'gold'}" onclick="toggleCategory(${catIndex})">${cat.enabled ? '停用類別' : '啟用類別'}</button>
+            </div>
+          </div>
+          <h3>${escapeHtml(cat.name)}</h3>
+          ${cat.items.map((item, itemIndex) => `
+            <div class="setting-item ${item.enabled ? '' : 'disabled'}">
+              <input value="${escapeHtml(item.text)}" onchange="editItemText(${catIndex}, ${itemIndex}, this.value)">
+              <div class="item-actions">
+                <button class="btn small light" onclick="moveItem(${catIndex}, ${itemIndex}, -1)" ${itemIndex === 0 ? 'disabled' : ''}>上移</button>
+                <button class="btn small light" onclick="moveItem(${catIndex}, ${itemIndex}, 1)" ${itemIndex === cat.items.length - 1 ? 'disabled' : ''}>下移</button>
+                <button class="btn small ${item.enabled ? 'secondary' : 'gold'}" onclick="toggleItem(${catIndex}, ${itemIndex})">${item.enabled ? '停用' : '啟用'}</button>
+              </div>
+            </div>
+          `).join('')}
+          <button class="btn light" onclick="addItem(${catIndex})">➕ 新增項目</button>
+        </div>
+      `).join('');
+    }
+
+    function editCategoryName(catIndex, value) { if (value.trim()) categories[catIndex].name = value.trim(); save('heremay_patrol_categories', categories); renderAll(); }
+    function toggleCategory(catIndex) { categories[catIndex].enabled = !categories[catIndex].enabled; save('heremay_patrol_categories', categories); renderAll(); }
+    function moveCategory(index, direction) { const target = index + direction; if (target < 0 || target >= categories.length) return; [categories[index], categories[target]] = [categories[target], categories[index]]; save('heremay_patrol_categories', categories); renderAll(); }
+    function editItemText(catIndex, itemIndex, value) { if (value.trim()) categories[catIndex].items[itemIndex].text = value.trim(); save('heremay_patrol_categories', categories); renderAll(); }
+    function toggleItem(catIndex, itemIndex) { categories[catIndex].items[itemIndex].enabled = !categories[catIndex].items[itemIndex].enabled; save('heremay_patrol_categories', categories); renderAll(); }
+    function moveItem(catIndex, itemIndex, direction) { const items = categories[catIndex].items; const target = itemIndex + direction; if (target < 0 || target >= items.length) return; [items[itemIndex], items[target]] = [items[target], items[itemIndex]]; save('heremay_patrol_categories', categories); renderAll(); }
+    function addItem(catIndex) { const text = prompt('請輸入新的缺失項目'); if (!text || !text.trim()) return; categories[catIndex].items.push({ id: uid(), text: text.trim(), enabled: true }); save('heremay_patrol_categories', categories); renderAll(); }
+    function addCategory() { const name = prompt('請輸入新的巡堂類別名稱'); if (!name || !name.trim()) return; categories.push({ id: uid(), name: name.trim(), enabled: true, items: [] }); save('heremay_patrol_categories', categories); renderAll(); }
+    function resetDefaults() { if (!confirm('確定要還原預設巡堂項目嗎？目前修改的項目會被覆蓋，但巡堂紀錄會保留。')) return; categories = structuredClone(DEFAULT_CATEGORIES); save('heremay_patrol_categories', categories); renderAll(); }
+
+    function escapeHtml(str) { return String(str).replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[s])); }
+
+    function renderAll() {
+      renderClassSelect(); renderRoutePreview(); renderClassList(); renderRecords(); renderChecklist(); renderSettings();
+    }
+    renderAll();
+  </script>
+</body>
+</html>
