@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Heremay Smart Campus｜Home V1.0</title>
+  <style>
+    :root{
+      --green:#2f7d5c;
+      --green2:#5fa77c;
+      --mint:#eaf6ef;
+      --cream:#fffaf0;
+      --gold:#d5a84c;
+      --text:#20342d;
+      --muted:#6b7f77;
+      --card:#ffffff;
+      --border:#dce9e1;
+      --shadow:0 16px 36px rgba(35,90,62,.10);
+      --radius:26px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Microsoft JhengHei","Noto Sans TC",Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(213,168,76,.16), transparent 32%),
+        linear-gradient(180deg,#f6fbf8 0%,#eef7f2 100%);
+      min-height:100vh;
+    }
+    .wrap{max-width:1180px;margin:0 auto;padding:22px 18px 40px;}
+    .hero{
+      background:linear-gradient(135deg,var(--green),var(--green2));
+      color:white;
+      border-radius:32px;
+      padding:24px;
+      box-shadow:var(--shadow);
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:18px;
+      align-items:stretch;
+    }
+    .brand{display:flex;gap:14px;align-items:center;margin-bottom:16px;}
+    .logo{
+      width:64px;height:64px;border-radius:20px;background:rgba(255,255,255,.18);
+      display:grid;place-items:center;border:1px solid rgba(255,255,255,.35);font-size:34px;
+    }
+    .brand h1{margin:0;font-size:28px;letter-spacing:.5px}
+    .brand p{margin:4px 0 0;opacity:.88;font-size:14px}
+    .time{font-size:88px;font-weight:900;line-height:1;letter-spacing:1px;margin-top:6px;}
+    .date{font-size:25px;font-weight:800;margin-top:10px;}
+    .period{display:inline-flex;align-items:center;gap:8px;margin-top:12px;background:rgba(255,255,255,.18);padding:10px 14px;border-radius:999px;font-weight:800;}
+    .assistant{
+      background:rgba(255,255,255,.17);border:1px solid rgba(255,255,255,.30);
+      border-radius:26px;padding:20px;display:flex;flex-direction:column;justify-content:center;
+    }
+    .assistant .label{font-size:15px;opacity:.9;font-weight:700;margin-bottom:12px;}
+    .assistant h2{margin:0;font-size:25px;line-height:1.35;}
+    .assistant p{margin:12px 0 0;line-height:1.7;opacity:.95;}
+    .section-title{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin:24px 4px 12px;}
+    .section-title h2{margin:0;font-size:23px;}
+    .section-title span{color:var(--muted);font-size:14px;}
+    .modules{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+    .module{
+      background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+      padding:20px;box-shadow:var(--shadow);min-height:138px;cursor:pointer;
+      transition:.18s transform,.18s box-shadow,.18s border-color;position:relative;overflow:hidden;
+    }
+    .module:hover{transform:translateY(-3px);box-shadow:0 20px 42px rgba(35,90,62,.14);border-color:#b7d6c4;}
+    .icon{font-size:38px;margin-bottom:10px;}
+    .module h3{margin:0;font-size:22px;}
+    .module p{margin:8px 0 0;color:var(--muted);line-height:1.45;font-size:14px;}
+    .badge{position:absolute;top:16px;right:16px;font-size:12px;font-weight:800;background:var(--mint);color:var(--green);padding:6px 10px;border-radius:999px;}
+    .soon{background:#f7f7f7;color:#78909c;}
+    .ready{background:#fff5d8;color:#6b4b00;}
+    .footer-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-top:14px;}
+    .note,.status{
+      background:rgba(255,255,255,.75);border:1px solid var(--border);border-radius:var(--radius);
+      padding:18px;box-shadow:var(--shadow);line-height:1.7;
+    }
+    .note strong{color:var(--green)}
+    .status-row{display:flex;justify-content:space-between;border-bottom:1px dashed var(--border);padding:8px 0;gap:12px;}
+    .status-row:last-child{border-bottom:none}
+    @media(max-width:800px){
+      .wrap{padding:14px 12px 28px}.hero{grid-template-columns:1fr;padding:18px;border-radius:26px}.brand h1{font-size:23px}.logo{width:56px;height:56px}.time{font-size:64px}.date{font-size:20px}.modules{grid-template-columns:1fr 1fr}.footer-grid{grid-template-columns:1fr}.assistant h2{font-size:21px}
+    }
+    @media(max-width:480px){.modules{grid-template-columns:1fr}.time{font-size:58px}.module{min-height:118px}.section-title{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div>
+        <div class="brand">
+          <div class="logo">🏰</div>
+          <div>
+            <h1>Heremay Smart Campus</h1>
+            <p>和美智慧校園｜Home V1.0</p>
+          </div>
+        </div>
+        <div class="time" id="timeText">--:--</div>
+        <div class="date" id="dateText">讀取日期中…</div>
+        <div class="period" id="periodText">☀️ 今日狀態</div>
+      </div>
+      <div class="assistant">
+        <div class="label">今日助理</div>
+        <h2 id="greetingText">早安，子元！</h2>
+        <p id="assistantText">今天先確認巡堂與園務提醒，重要的事情交給系統記得。</p>
+      </div>
+    </section>
+
+    <div class="section-title">
+      <div>
+        <h2>工作中心</h2>
+        <span>同一個入口，逐步完成每一個模組。</span>
+      </div>
+    </div>
+
+    <section class="modules">
+      <div class="module" onclick="openModule('patrol')"><span class="badge ready">可開發</span><div class="icon">🚶</div><h3>巡堂</h3><p>手機快速巡堂，一鍵產生政府訪查表。</p></div>
+      <div class="module" onclick="openModule('calendar')"><span class="badge soon">規劃中</span><div class="icon">📅</div><h3>行事曆</h3><p>假日、臨時休假、例行工作、排班與提醒。</p></div>
+      <div class="module" onclick="openModule('attendance')"><span class="badge soon">規劃中</span><div class="icon">🕘</div><h3>打卡／請假</h3><p>出勤、請假、特休與人員狀態整合。</p></div>
+      <div class="module" onclick="openModule('kitchen')"><span class="badge soon">規劃中</span><div class="icon">🍱</div><h3>廚房</h3><p>菜單、留樣、食材與廚房例行工作。</p></div>
+      <div class="module" onclick="openModule('board')"><span class="badge soon">規劃中</span><div class="icon">📢</div><h3>公佈欄</h3><p>全園公告，所有同仁都能發布與查看。</p></div>
+      <div class="module" onclick="openModule('report')"><span class="badge soon">規劃中</span><div class="icon">🛠️</div><h3>訊息回報</h3><p>維修、清潔、採購，讓問題有人接手。</p></div>
+      <div class="module" onclick="openModule('signup')"><span class="badge soon">規劃中</span><div class="icon">📝</div><h3>報名</h3><p>員工旅遊、團購、訂餐飲料等快速統計。</p></div>
+      <div class="module" onclick="openModule('assistant')"><span class="badge soon">規劃中</span><div class="icon">🤖</div><h3>智慧秘書</h3><p>主動提醒今天、三天後、出門前該做的事。</p></div>
+      <div class="module" onclick="openModule('settings')"><span class="badge ready">基礎</span><div class="icon">⚙️</div><h3>系統設定</h3><p>園所、Wi‑Fi、員工、生日、年資、班級導師。</p></div>
+    </section>
+
+    <section class="footer-grid">
+      <div class="note"><strong>今日一句話：</strong><br>科技記住事情，讓人專心陪伴孩子。</div>
+      <div class="status">
+        <div class="status-row"><span>目前版本</span><strong>Home V1.0</strong></div>
+        <div class="status-row"><span>正式 Logo</span><strong>待素材庫建立</strong></div>
+        <div class="status-row"><span>優先模組</span><strong>巡堂報表中心</strong></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const weekdays = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+    function rocYear(y){ return y - 1911; }
+    function pad(n){ return String(n).padStart(2,'0'); }
+    function updateClock(){
+      const now = new Date();
+      const h = now.getHours();
+      const m = now.getMinutes();
+      document.getElementById('timeText').textContent = `${pad(h)}:${pad(m)}`;
+      document.getElementById('dateText').textContent = `${rocYear(now.getFullYear())}年${now.getMonth()+1}月${now.getDate()}日　${weekdays[now.getDay()]}`;
+      let period='☀️ 上午', greeting='早安，子元！', msg='今天先確認巡堂與園務提醒，重要的事情交給系統記得。';
+      if(h>=12 && h<18){period='🌤 下午'; greeting='午安，子元！'; msg='下午也辛苦了，系統會陪您記得每一件重要的事。';}
+      if(h>=18 || h<5){period='🌙 晚上'; greeting='辛苦了，子元！'; msg='今天的工作慢慢收尾，未完成事項會留在系統裡，不用放在腦袋裡。';}
+      document.getElementById('periodText').textContent = period;
+      document.getElementById('greetingText').textContent = greeting;
+      document.getElementById('assistantText').textContent = msg;
+    }
+    function openModule(name){
+      const labels={patrol:'巡堂模組將接到目前已完成的巡堂工作台。',settings:'系統設定是所有模組的資料地基。'};
+      alert(labels[name] || '這個模組已放入 Heremay Smart Campus 藍圖，後續會逐步開發。');
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+  </script>
+</body>
+</html>

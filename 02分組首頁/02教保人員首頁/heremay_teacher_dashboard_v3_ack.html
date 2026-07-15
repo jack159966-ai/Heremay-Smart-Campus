@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>和美智慧校園｜教保人員首頁 v3 已讀確認</title>
+  <style>
+    :root{
+      --bg1:#fff5f9;
+      --bg2:#ffeaf2;
+      --card:#ffffff;
+      --pink:#e9558a;
+      --pink2:#ff8db5;
+      --pink3:#ffd6e5;
+      --ink:#3b2a30;
+      --muted:#8b6f79;
+      --line:#f5bfd2;
+      --yellow:#fff7d7;
+      --yellowLine:#f4cf65;
+      --green:#23a36b;
+      --red:#df4d64;
+      --shadow:0 14px 35px rgba(230,82,137,.18);
+      --radius:24px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Microsoft JhengHei","PingFang TC",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:linear-gradient(180deg,var(--bg1),var(--bg2));
+      color:var(--ink);
+      min-height:100vh;
+    }
+    .phone{
+      width:min(100%, 480px);
+      margin:0 auto;
+      padding:18px 16px 30px;
+    }
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+    .logo{
+      width:50px;
+      height:50px;
+      border-radius:18px;
+      background:linear-gradient(145deg,#fff,#ffe0ec);
+      display:grid;
+      place-items:center;
+      box-shadow:var(--shadow);
+      font-size:28px;
+    }
+    .brand h1{
+      margin:0;
+      font-size:24px;
+      line-height:1.1;
+      color:#6d2840;
+      letter-spacing:.5px;
+      white-space:nowrap;
+    }
+    .brand .sub{
+      margin-top:4px;
+      color:var(--muted);
+      font-weight:700;
+      font-size:13px;
+    }
+    .datetime{
+      text-align:right;
+      flex:0 0 auto;
+      background:rgba(255,255,255,.78);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:9px 10px;
+      min-width:108px;
+      box-shadow:0 8px 20px rgba(230,82,137,.10);
+    }
+    .date{
+      font-size:15px;
+      font-weight:800;
+      color:#7b3149;
+    }
+    .time{
+      font-size:27px;
+      font-weight:900;
+      color:var(--pink);
+      letter-spacing:.5px;
+      line-height:1.05;
+    }
+    .section{
+      background:rgba(255,255,255,.92);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:16px;
+      margin:14px 0;
+      box-shadow:var(--shadow);
+    }
+    .board{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,.1)),
+        var(--yellow);
+      border:2px solid var(--yellowLine);
+      position:relative;
+      overflow:hidden;
+    }
+    .board:before{
+      content:"";
+      position:absolute;
+      inset:8px;
+      border:1px dashed rgba(132,92,17,.25);
+      border-radius:18px;
+      pointer-events:none;
+    }
+    .section-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      font-size:19px;
+      font-weight:900;
+      color:#6d2840;
+      margin-bottom:12px;
+      position:relative;
+      z-index:1;
+    }
+    .tag{
+      font-size:12px;
+      color:#fff;
+      background:linear-gradient(135deg,var(--pink),var(--pink2));
+      padding:5px 10px;
+      border-radius:999px;
+      font-weight:800;
+      white-space:nowrap;
+    }
+    .tag.yellow{background:#b77b00}
+    .pin-row{
+      display:flex;
+      gap:10px;
+      align-items:stretch;
+      position:relative;
+      z-index:1;
+      margin-top:10px;
+    }
+    .pin{
+      flex:0 0 30px;
+      height:30px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:#ffcf59;
+      box-shadow:0 4px 10px rgba(121,86,0,.2);
+      margin-top:3px;
+    }
+    .announce{
+      flex:1;
+      background:rgba(255,255,255,.76);
+      border:1px solid rgba(193,137,24,.28);
+      border-radius:18px;
+      padding:11px 12px;
+    }
+    .announce strong{
+      display:block;
+      font-size:17px;
+      color:#6d4210;
+      margin-bottom:5px;
+    }
+    .announce p{
+      margin:0;
+      color:#5b4450;
+      line-height:1.45;
+      font-weight:750;
+      font-size:14px;
+    }
+    .announce .meta{
+      margin-top:7px;
+      font-size:12.5px;
+      color:#8d6d28;
+      font-weight:800;
+    }
+    .new-badge,.must-badge{
+      display:inline-block;
+      color:#fff;
+      padding:2px 7px;
+      border-radius:999px;
+      font-size:11px;
+      margin-left:6px;
+      vertical-align:middle;
+    }
+    .new-badge{background:#ff4f7d}
+    .must-badge{background:#d17700}
+    .ack-panel{
+      margin-top:10px;
+      padding-top:10px;
+      border-top:1px dashed rgba(193,137,24,.35);
+      display:grid;
+      gap:8px;
+    }
+    .ack-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .ack-stat{
+      font-size:13px;
+      font-weight:900;
+      color:#6d4210;
+      background:rgba(255,247,215,.85);
+      border:1px solid rgba(193,137,24,.25);
+      padding:6px 9px;
+      border-radius:999px;
+    }
+    .ack-btn{
+      border:0;
+      background:linear-gradient(135deg,var(--green),#56c58c);
+      color:white;
+      border-radius:999px;
+      padding:9px 14px;
+      font-weight:900;
+      font-size:14px;
+      cursor:pointer;
+      box-shadow:0 8px 18px rgba(35,163,107,.22);
+    }
+    .ack-btn.done{
+      background:#cabf9e;
+      color:#594b2c;
+      cursor:default;
+      box-shadow:none;
+    }
+    .admin-btn{
+      border:1px solid rgba(193,137,24,.38);
+      background:white;
+      color:#6d4210;
+      border-radius:999px;
+      padding:8px 12px;
+      font-weight:900;
+      font-size:13px;
+      cursor:pointer;
+    }
+    .reminder{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      padding:11px 0;
+      border-top:1px dashed var(--line);
+    }
+    .reminder:first-of-type{border-top:0}
+    .rtime{
+      flex:0 0 56px;
+      color:var(--pink);
+      font-weight:900;
+      font-size:17px;
+    }
+    .rbody{
+      flex:1;
+      font-weight:800;
+      font-size:15px;
+      line-height:1.45;
+    }
+    .rnote{
+      color:var(--muted);
+      font-size:13px;
+      font-weight:700;
+      margin-top:3px;
+    }
+    .due-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    .due{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:linear-gradient(180deg,#fff,#fff7fa);
+      padding:12px;
+      min-height:112px;
+    }
+    .due h3{
+      margin:0 0 8px;
+      font-size:16px;
+      color:#6d2840;
+    }
+    .due ul{
+      margin:0;
+      padding-left:18px;
+      color:#5b4450;
+      font-weight:750;
+      line-height:1.55;
+      font-size:13.5px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:14px;
+    }
+    .btn{
+      position:relative;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,#fff,#fff7fa);
+      border-radius:20px;
+      padding:16px 12px;
+      min-height:108px;
+      box-shadow:0 9px 20px rgba(230,82,137,.10);
+      cursor:pointer;
+      text-align:left;
+      transition:.15s transform ease,.15s box-shadow ease;
+    }
+    .btn:active{transform:scale(.98)}
+    .icon{
+      width:42px;
+      height:42px;
+      display:grid;
+      place-items:center;
+      border-radius:16px;
+      background:var(--pink3);
+      color:#9c294f;
+      font-size:25px;
+      margin-bottom:10px;
+    }
+    .btn strong{
+      display:block;
+      font-size:18px;
+      color:#6d2840;
+      margin-bottom:5px;
+    }
+    .btn span{
+      display:block;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:700;
+      line-height:1.35;
+    }
+    .primary{
+      grid-column:span 2;
+      background:linear-gradient(135deg,#fff,#ffe5ef);
+      border:2px solid #f3a9c2;
+      min-height:96px;
+      display:flex;
+      gap:14px;
+      align-items:center;
+    }
+    .primary .icon{margin-bottom:0;background:linear-gradient(135deg,var(--pink),var(--pink2));color:white}
+    .primary strong{font-size:22px}
+    .footer{
+      margin:18px 0 0;
+      color:#94707e;
+      text-align:center;
+      font-weight:700;
+      font-size:12.5px;
+    }
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:22px;
+      transform:translateX(-50%) translateY(130px);
+      width:min(92%,420px);
+      background:#6d2840;
+      color:white;
+      border-radius:20px;
+      padding:14px 16px;
+      box-shadow:0 18px 38px rgba(0,0,0,.2);
+      font-weight:800;
+      transition:.25s ease;
+      z-index:20;
+      line-height:1.45;
+    }
+    .toast.show{transform:translateX(-50%) translateY(0)}
+    .modal{
+      position:fixed;
+      inset:0;
+      background:rgba(37,22,29,.36);
+      display:none;
+      align-items:flex-end;
+      justify-content:center;
+      z-index:30;
+      padding:18px;
+    }
+    .modal.show{display:flex}
+    .sheet{
+      width:min(100%,460px);
+      background:white;
+      border-radius:26px;
+      padding:18px;
+      box-shadow:0 24px 50px rgba(0,0,0,.25);
+      max-height:82vh;
+      overflow:auto;
+    }
+    .sheet h2{
+      margin:0 0 10px;
+      color:#6d2840;
+      font-size:22px;
+    }
+    .sheet .summary{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin:12px 0;
+    }
+    .pill{
+      border-radius:999px;
+      padding:7px 10px;
+      font-weight:900;
+      font-size:13px;
+      background:#fff1f6;
+      color:#6d2840;
+      border:1px solid var(--line);
+    }
+    .listbox{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:12px;
+      margin:10px 0;
+      background:#fffafd;
+    }
+    .listbox h3{
+      margin:0 0 8px;
+      font-size:16px;
+      color:#6d2840;
+    }
+    .person{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:7px 0;
+      border-top:1px dashed var(--line);
+      font-weight:750;
+      color:#5b4450;
+      font-size:14px;
+    }
+    .person:first-of-type{border-top:0}
+    .close{
+      width:100%;
+      border:0;
+      border-radius:18px;
+      padding:13px;
+      background:#6d2840;
+      color:white;
+      font-weight:900;
+      font-size:16px;
+      margin-top:10px;
+      cursor:pointer;
+    }
+    @media (max-width:380px){
+      .brand h1{font-size:21px}
+      .time{font-size:23px}
+      .grid{grid-template-columns:1fr}
+      .primary{grid-column:span 1}
+      .due-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <header class="top">
+      <div class="brand">
+        <div class="logo">👩‍🏫</div>
+        <div>
+          <h1>教保人員首頁</h1>
+          <div class="sub">和美智慧校園｜班級工作台</div>
+        </div>
+      </div>
+      <div class="datetime">
+        <div class="date" id="dateText">--/--</div>
+        <div class="time" id="timeText">--:--</div>
+      </div>
+    </header>
+
+    <section class="section board">
+      <div class="section-title">
+        <span>📌 園方公佈欄</span>
+        <span class="tag yellow">可確認收到</span>
+      </div>
+
+      <div class="pin-row">
+        <div class="pin">📍</div>
+        <div class="announce">
+          <strong>下午 4:10 請協助整理戶外玩具 <span class="new-badge">NEW</span><span class="must-badge">需確認</span></strong>
+          <p>今日戶外活動後，請各班協助確認球類、呼拉圈與三輪車歸位，並留意是否有破損需要回報。</p>
+          <div class="meta">發布：行政管理｜對象：教保人員｜今天 09:10</div>
+          <div class="ack-panel">
+            <div class="ack-row">
+              <span class="ack-stat" id="ackStat1">已收到 3 / 6 人</span>
+              <button class="ack-btn" id="ackBtn1" onclick="ackNotice(1)">我已收到</button>
+            </div>
+            <div class="ack-row">
+              <button class="admin-btn" onclick="showAdmin(1)">主管查看已收／未收名單</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pin-row">
+        <div class="pin">📍</div>
+        <div class="announce">
+          <strong>明日拍攝活動照片提醒</strong>
+          <p>請各班明天上午活動時協助拍攝 3～5 張照片，供本週班級紀錄使用。</p>
+          <div class="meta">發布：園長室｜對象：全體教保人員｜今天 08:20</div>
+          <div class="ack-panel">
+            <div class="ack-row">
+              <span class="ack-stat" id="ackStat2">已收到 4 / 6 人</span>
+              <button class="ack-btn" id="ackBtn2" onclick="ackNotice(2)">我已收到</button>
+            </div>
+            <div class="ack-row">
+              <button class="admin-btn" onclick="showAdmin(2)">主管查看已收／未收名單</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">
+        <span>今日提醒事項</span>
+        <span class="tag">依時間排序</span>
+      </div>
+      <div class="reminder">
+        <div class="rtime">08:20</div>
+        <div class="rbody">晨間入園觀察與幼兒點名
+          <div class="rnote">確認請假、遲到與身體狀況</div>
+        </div>
+      </div>
+      <div class="reminder">
+        <div class="rtime">10:30</div>
+        <div class="rbody">戶外活動安全確認
+          <div class="rnote">注意飲水、防曬與活動區域</div>
+        </div>
+      </div>
+      <div class="reminder">
+        <div class="rtime">15:40</div>
+        <div class="rbody">放學交接與家長訊息確認
+          <div class="rnote">未讀通知、個別交辦事項</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">
+        <span>即將到期</span>
+        <span class="tag">1天 / 3天</span>
+      </div>
+      <div class="due-grid">
+        <div class="due">
+          <h3>未來一天</h3>
+          <ul>
+            <li>午餐登記截止</li>
+            <li>親師溝通紀錄補登</li>
+          </ul>
+        </div>
+        <div class="due">
+          <h3>未來三天</h3>
+          <ul>
+            <li>主題課程照片整理</li>
+            <li>活動支援人員登記</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">
+        <span>教保工作選項</span>
+        <span class="tag">粉紅版</span>
+      </div>
+      <div class="grid">
+        <button class="btn primary" onclick="openFeature('打卡 / 出勤')">
+          <div class="icon">✅</div>
+          <div>
+            <strong>打卡 / 出勤</strong>
+            <span>上班、下班、請假與出勤狀態</span>
+          </div>
+        </button>
+
+        <button class="btn" onclick="openFeature('班級事項')">
+          <div class="icon">👧</div>
+          <strong>班級事項</strong>
+          <span>今日班級交辦、幼兒狀況與待處理事項</span>
+        </button>
+
+        <button class="btn" onclick="openFeature('個別通知')">
+          <div class="icon">💬</div>
+          <strong>個別通知</strong>
+          <span>園方或主管給個人的通知與提醒</span>
+        </button>
+
+        <button class="btn" onclick="openFeature('通知與回報')">
+          <div class="icon">📣</div>
+          <strong>通知與回報</strong>
+          <span>回報報修、採購需求或現場問題</span>
+        </button>
+
+        <button class="btn" onclick="openFeature('登記中心')">
+          <div class="icon">📝</div>
+          <strong>登記中心</strong>
+          <span>便當、旅遊、活動與用品需求登記</span>
+        </button>
+
+        <button class="btn" onclick="openFeature('例行工作')">
+          <div class="icon">📋</div>
+          <strong>例行工作</strong>
+          <span>每日例行檢核與班級工作清單</span>
+        </button>
+
+        <button class="btn" onclick="openFeature('親職聯絡本')">
+          <div class="icon">📖</div>
+          <strong>親職聯絡本</strong>
+          <span>預留功能：日後連接家長端</span>
+        </button>
+      </div>
+    </section>
+
+    <div class="footer">🔔 重要公告可要求「我已收到」，主管可查看未確認名單。</div>
+  </main>
+
+  <div class="toast" id="toast">功能測試</div>
+
+  <div class="modal" id="adminModal" onclick="closeAdmin(event)">
+    <div class="sheet" onclick="event.stopPropagation()">
+      <h2 id="modalTitle">公告確認狀態</h2>
+      <div class="summary">
+        <span class="pill" id="modalTotal">對象 6 人</span>
+        <span class="pill" id="modalAck">已收到 0 人</span>
+        <span class="pill" id="modalMiss">未收到 0 人</span>
+      </div>
+      <div class="listbox">
+        <h3>已收到</h3>
+        <div id="ackList"></div>
+      </div>
+      <div class="listbox">
+        <h3>未收到</h3>
+        <div id="missList"></div>
+      </div>
+      <button class="close" onclick="hideAdmin()">關閉</button>
+    </div>
+  </div>
+
+  <script>
+    const currentUser = '王老師';
+    const notices = {
+      1: {
+        title:'下午 4:10 請協助整理戶外玩具',
+        total:['王老師','林老師','陳老師','李老師','黃老師','張老師'],
+        ack:[
+          {name:'林老師', time:'09:13'},
+          {name:'陳老師', time:'09:21'},
+          {name:'李老師', time:'09:30'}
+        ]
+      },
+      2: {
+        title:'明日拍攝活動照片提醒',
+        total:['王老師','林老師','陳老師','李老師','黃老師','張老師'],
+        ack:[
+          {name:'林老師', time:'08:25'},
+          {name:'陳老師', time:'08:31'},
+          {name:'李老師', time:'08:45'},
+          {name:'黃老師', time:'09:02'}
+        ]
+      }
+    };
+
+    function pad(n){ return String(n).padStart(2,'0'); }
+    function nowTime(){
+      const now = new Date();
+      return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    }
+    function updateClock(){
+      const now = new Date();
+      const weekdays = ['日','一','二','三','四','五','六'];
+      document.getElementById('dateText').textContent =
+        `${now.getFullYear()}/${pad(now.getMonth()+1)}/${pad(now.getDate())}（${weekdays[now.getDay()]}）`;
+      document.getElementById('timeText').textContent =
+        `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000 * 20);
+
+    function beep(){
+      try{
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.001, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.38);
+      }catch(e){}
+    }
+
+    function showToast(text, ms=2600){
+      const toast = document.getElementById('toast');
+      toast.textContent = text;
+      toast.classList.add('show');
+      setTimeout(()=>toast.classList.remove('show'), ms);
+    }
+
+    function openFeature(name){
+      showToast(`已點選「${name}」：這裡之後會接到對應功能頁。`, 2200);
+    }
+
+    function refreshAck(id){
+      const n = notices[id];
+      const stat = document.getElementById(`ackStat${id}`);
+      const btn = document.getElementById(`ackBtn${id}`);
+      const already = n.ack.some(x => x.name === currentUser);
+      stat.textContent = `已收到 ${n.ack.length} / ${n.total.length} 人`;
+      if(already){
+        btn.textContent = '已確認收到';
+        btn.classList.add('done');
+        btn.disabled = true;
+      }
+    }
+
+    function ackNotice(id){
+      const n = notices[id];
+      if(!n.ack.some(x => x.name === currentUser)){
+        n.ack.push({name:currentUser, time:nowTime()});
+      }
+      refreshAck(id);
+      showToast(`✅ 已記錄：${currentUser} 已收到「${n.title}」。主管端可看到確認時間。`, 3200);
+    }
+
+    function showAdmin(id){
+      const n = notices[id];
+      const ackNames = n.ack.map(x => x.name);
+      const missing = n.total.filter(name => !ackNames.includes(name));
+      document.getElementById('modalTitle').textContent = `公告確認狀態｜${n.title}`;
+      document.getElementById('modalTotal').textContent = `對象 ${n.total.length} 人`;
+      document.getElementById('modalAck').textContent = `已收到 ${n.ack.length} 人`;
+      document.getElementById('modalMiss').textContent = `未收到 ${missing.length} 人`;
+
+      document.getElementById('ackList').innerHTML = n.ack.map(x => 
+        `<div class="person"><span>${x.name}</span><span>${x.time} 已收到</span></div>`
+      ).join('') || '<div class="person"><span>尚無</span><span></span></div>';
+
+      document.getElementById('missList').innerHTML = missing.map(name =>
+        `<div class="person"><span>${name}</span><span style="color:var(--red)">尚未確認</span></div>`
+      ).join('') || '<div class="person"><span>全部已確認</span><span>✅</span></div>';
+
+      document.getElementById('adminModal').classList.add('show');
+    }
+
+    function hideAdmin(){
+      document.getElementById('adminModal').classList.remove('show');
+    }
+    function closeAdmin(event){
+      if(event.target.id === 'adminModal') hideAdmin();
+    }
+
+    refreshAck(1);
+    refreshAck(2);
+
+    setTimeout(()=>{
+      showToast('📌 新公告：下午 4:10 請協助整理戶外玩具。這則公告需要點選「我已收到」。', 4500);
+      beep();
+    }, 2000);
+  </script>
+</body>
+</html>

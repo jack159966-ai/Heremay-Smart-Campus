@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>和美智慧校園｜打卡</title>
+  <style>
+    :root{
+      --bg:#eaf5ff;
+      --card:#ffffff;
+      --primary:#4c8ecb;
+      --primary-dark:#2f6fa8;
+      --ok:#2e9b63;
+      --warn:#d9822b;
+      --muted:#728096;
+      --line:#d9e6f2;
+      --shadow:0 14px 36px rgba(48,93,137,.14);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif;
+      color:#24415f;
+      background:
+        radial-gradient(circle at 15% 15%,rgba(255,255,255,.95),transparent 28%),
+        linear-gradient(160deg,#f7fbff 0%,var(--bg) 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .app{
+      width:min(100%,430px);
+      background:var(--card);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      border:1px solid rgba(120,164,201,.18);
+    }
+    .header{
+      padding:24px 24px 18px;
+      text-align:center;
+      background:linear-gradient(145deg,#dff0ff,#f9fcff);
+    }
+    .logo{
+      width:68px;height:68px;
+      margin:0 auto 10px;
+      border-radius:20px;
+      display:grid;
+      place-items:center;
+      background:#fff;
+      box-shadow:0 8px 20px rgba(66,121,170,.16);
+      font-size:38px;
+    }
+    h1{font-size:23px;margin:0 0 4px}
+    .sub{font-size:14px;color:var(--muted)}
+    .content{padding:20px}
+    .person{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:15px;
+      background:#f7fbff;
+      border:1px solid var(--line);
+      border-radius:18px;
+    }
+    .avatar{
+      width:58px;height:58px;
+      border-radius:50%;
+      background:#d8eaff;
+      display:grid;
+      place-items:center;
+      font-size:28px;
+      flex:none;
+    }
+    .name{font-size:19px;font-weight:700}
+    .role{font-size:14px;color:var(--muted);margin-top:4px}
+    .clock{
+      text-align:center;
+      padding:24px 8px 18px;
+    }
+    .date{font-size:16px;color:var(--muted)}
+    .time{
+      margin-top:5px;
+      font-size:44px;
+      font-weight:800;
+      letter-spacing:1px;
+      color:#1f4f78;
+    }
+    .wifi{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:14px 15px;
+      border-radius:16px;
+      border:1px solid #ffd8ad;
+      background:#fff8ef;
+      margin-bottom:18px;
+    }
+    .wifi.ok{
+      border-color:#bfe7d1;
+      background:#effaf4;
+    }
+    .wifi-icon{font-size:25px}
+    .wifi-title{font-weight:700}
+    .wifi-text{font-size:13px;color:var(--muted);margin-top:3px}
+    .buttons{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    button{
+      border:0;
+      border-radius:18px;
+      padding:18px 10px;
+      font-size:19px;
+      font-weight:800;
+      cursor:pointer;
+      transition:.18s ease;
+    }
+    button:active{transform:scale(.98)}
+    .in{background:var(--primary);color:#fff}
+    .out{background:#6c7c90;color:#fff}
+    button:disabled{
+      background:#cfd7df;
+      color:#f6f8fa;
+      cursor:not-allowed;
+      transform:none;
+    }
+    .record{
+      margin-top:20px;
+      border-top:1px solid var(--line);
+      padding-top:18px;
+    }
+    .record h2{font-size:17px;margin:0 0 12px}
+    .row{
+      display:flex;
+      justify-content:space-between;
+      padding:12px 2px;
+      border-bottom:1px dashed var(--line);
+      font-size:15px;
+    }
+    .empty{color:var(--muted)}
+    .demo{
+      margin-top:18px;
+      padding:12px 14px;
+      border-radius:14px;
+      background:#f5f7fa;
+      font-size:13px;
+      color:#637083;
+      line-height:1.7;
+    }
+    .demo label{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+    }
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:28px;
+      transform:translateX(-50%) translateY(20px);
+      background:#173d5d;
+      color:#fff;
+      padding:12px 18px;
+      border-radius:999px;
+      opacity:0;
+      pointer-events:none;
+      transition:.25s ease;
+      font-weight:700;
+      white-space:nowrap;
+    }
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+    }
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(21,49,74,.42);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:22px;
+      z-index:20;
+    }
+    .modal-backdrop.show{display:flex}
+    .modal{
+      width:min(100%,360px);
+      background:#fff;
+      border-radius:24px;
+      padding:26px 22px 22px;
+      text-align:center;
+      box-shadow:0 20px 60px rgba(22,50,76,.28);
+    }
+    .modal-icon{
+      width:74px;height:74px;
+      margin:0 auto 14px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:#eaf8f1;
+      color:var(--ok);
+      font-size:42px;
+      font-weight:900;
+    }
+    .modal h3{margin:0 0 8px;font-size:23px}
+    .modal p{margin:0;color:var(--muted);line-height:1.7}
+    .modal-time{
+      font-size:34px;
+      font-weight:800;
+      color:#1f4f78;
+      margin:14px 0 18px;
+    }
+    .modal button{
+      width:100%;
+      background:var(--primary);
+      color:#fff;
+      padding:14px;
+      font-size:17px;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="header">
+      <div class="logo">🏰</div>
+      <h1>和美智慧校園</h1>
+      <div class="sub">HEREMAY 打卡中心</div>
+    </section>
+
+    <section class="content">
+      <div class="person">
+        <div class="avatar">👤</div>
+        <div>
+          <div class="name">謝子元</div>
+          <div class="role">行政主管</div>
+        </div>
+      </div>
+
+      <div class="clock">
+        <div class="date" id="dateText"></div>
+        <div class="time" id="timeText"></div>
+      </div>
+
+      <div class="wifi" id="wifiBox">
+        <div class="wifi-icon">📶</div>
+        <div>
+          <div class="wifi-title" id="wifiTitle">尚未通過園內網路驗證</div>
+          <div class="wifi-text" id="wifiText">請先連上 HEREMAY Wi-Fi</div>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button class="in" id="clockIn" disabled>上班打卡</button>
+        <button class="out" id="clockOut" disabled>下班打卡</button>
+      </div>
+
+      <div class="record">
+        <h2>今日打卡紀錄</h2>
+        <div class="row"><span>上班</span><strong id="inRecord" class="empty">尚未打卡</strong></div>
+        <div class="row"><span>下班</span><strong id="outRecord" class="empty">尚未打卡</strong></div>
+      </div>
+
+      <div class="demo">
+        <label>
+          <input type="checkbox" id="wifiDemo">
+          測試：模擬已連上 HEREMAY
+        </label>
+        正式版本會改由園內伺服器驗證，避免只靠手機顯示的 Wi-Fi 名稱。
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="successModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-icon">✓</div>
+      <h3 id="modalTitle">打卡成功</h3>
+      <p id="modalMessage">已完成本次打卡</p>
+      <div class="modal-time" id="modalTime"></div>
+      <button id="closeModal">完成</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const dateText = document.getElementById('dateText');
+    const timeText = document.getElementById('timeText');
+    const wifiDemo = document.getElementById('wifiDemo');
+    const wifiBox = document.getElementById('wifiBox');
+    const wifiTitle = document.getElementById('wifiTitle');
+    const wifiText = document.getElementById('wifiText');
+    const clockIn = document.getElementById('clockIn');
+    const clockOut = document.getElementById('clockOut');
+    const inRecord = document.getElementById('inRecord');
+    const outRecord = document.getElementById('outRecord');
+    const toast = document.getElementById('toast');
+    const successModal = document.getElementById('successModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalTime = document.getElementById('modalTime');
+    const closeModal = document.getElementById('closeModal');
+
+    let hasClockedIn = false;
+    let hasClockedOut = false;
+
+    function updateClock(){
+      const now = new Date();
+      dateText.textContent = new Intl.DateTimeFormat('zh-TW',{
+        year:'numeric',month:'long',day:'numeric',weekday:'long'
+      }).format(now);
+      timeText.textContent = now.toLocaleTimeString('zh-TW',{
+        hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'
+      });
+    }
+    updateClock();
+    setInterval(updateClock,1000);
+
+    function setWifiState(connected){
+      wifiBox.classList.toggle('ok', connected);
+      wifiTitle.textContent = connected ? '已通過 HEREMAY 園內網路驗證' : '尚未通過園內網路驗證';
+      wifiText.textContent = connected ? '現在可以進行打卡' : '請先連上 HEREMAY Wi-Fi';
+      clockIn.disabled = !connected || hasClockedIn;
+      clockOut.disabled = !connected || hasClockedOut;
+    }
+
+    wifiDemo.addEventListener('change',e=>setWifiState(e.target.checked));
+
+    function stamp(target,label,type){
+      const now = new Date().toLocaleTimeString('zh-TW',{
+        hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'
+      });
+
+      if(type === 'in' && hasClockedIn){
+        showToast('今天已完成上班打卡');
+        return;
+      }
+      if(type === 'out' && hasClockedOut){
+        showToast('今天已完成下班打卡');
+        return;
+      }
+
+      target.textContent = now;
+      target.classList.remove('empty');
+
+      if(type === 'in') hasClockedIn = true;
+      if(type === 'out') hasClockedOut = true;
+
+      setWifiState(wifiDemo.checked);
+      showSuccess(label, now);
+    }
+
+    clockIn.addEventListener('click',()=>stamp(inRecord,'上班打卡','in'));
+    clockOut.addEventListener('click',()=>stamp(outRecord,'下班打卡','out'));
+
+    function showSuccess(label,time){
+      modalTitle.textContent = label + '成功';
+      modalMessage.textContent = '已完成 HEREMAY 園內打卡紀錄';
+      modalTime.textContent = time;
+      successModal.classList.add('show');
+    }
+
+    closeModal.addEventListener('click',()=>successModal.classList.remove('show'));
+    successModal.addEventListener('click',e=>{
+      if(e.target === successModal) successModal.classList.remove('show');
+    });
+
+    function showToast(message){
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(()=>toast.classList.remove('show'),2200);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>和美智慧校園｜Heremay Smart Campus</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section class="logo-area">
+      <img src="assets/logo.png" alt="Heremay 和美智慧校園 Logo" class="logo-img" />
+    </section>
+
+    <section class="login-card">
+      <h1>♡ 歡迎回到和美大家庭！</h1>
+
+      <div class="input-box">
+        <span class="icon">👤</span>
+        <input type="text" placeholder="帳號 / 員工編號" autocomplete="username" />
+      </div>
+
+      <div class="input-box">
+        <span class="icon">🔒</span>
+        <input id="password" type="password" placeholder="密碼" autocomplete="current-password" />
+        <button class="eye-btn" type="button" onclick="togglePassword()">◡</button>
+      </div>
+
+      <button class="login-btn" type="button" onclick="demoLogin()">登入 →</button>
+
+      <div class="login-options">
+        <label><input type="checkbox" checked /> 記住我</label>
+        <button type="button" class="text-btn">忘記密碼？</button>
+      </div>
+
+      <div class="divider">其他登入方式</div>
+
+      <button class="face-btn" type="button" onclick="faceLogin()">😊 刷臉登入</button>
+    </section>
+
+    <footer>
+      🛡️ 資料安全・隱私保護・安心使用<br />
+      <span>Heremay Smart Campus v1.0 Prototype</span>
+    </footer>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
