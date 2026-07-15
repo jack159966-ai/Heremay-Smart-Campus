@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂 v8 不重複同步版</title>
+<title>Heremay 和美智慧校園｜巡堂 v9 照片雲端同步版</title>
 <style>
 :root{--bg:#f7fbff;--card:#fff;--main:#3b82f6;--main2:#2563eb;--soft:#eaf3ff;--green:#16a34a;--greenSoft:#eaf8ef;--red:#dc2626;--redSoft:#fff1f1;--text:#1f2937;--muted:#6b7280;--line:#e5e7eb;--shadow:0 12px 30px rgba(31,41,55,.10);--radius:22px}
 *{box-sizing:border-box}body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,-apple-system,"Segoe UI",sans-serif;background:linear-gradient(180deg,#eef7ff 0%,#f9fbff 45%,#fff7fb 100%);color:var(--text)}
@@ -61,7 +61,7 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo">🏰</div><div class="title"><h1>Heremay 和美智慧校園</h1><p>行政主管巡堂｜時段一次同步、拍照、多人通知、週報留存</p></div></header>
+<header class="top"><div class="logo">🏰</div><div class="title"><h1>Heremay 和美智慧校園</h1><p>行政主管巡堂｜時段一次同步、照片雲端保存、多人通知、週報留存</p></div></header>
 
 <section id="screenHome" class="screen active">
   <div class="card hero">
@@ -102,7 +102,7 @@ button{display:none!important}
 <label for="photoInput" class="btn light full">📷 拍照／選擇照片</label>
 <input id="photoInput" type="file" accept="image/*" capture="environment" multiple onchange="addPhotos(event)" style="position:absolute;left:-9999px">
 <div id="photoStatus" class="small" style="margin-top:8px">尚未選擇照片</div>
-<p class="small">照片會先自動縮小後保存在本機，避免手機原始照片太大而無法儲存。</p>
+<p class="small">照片會先自動縮小並暫存在本機；按下同步後會上傳到巡堂照片雲端資料夾。</p>
 <div id="photoGrid" class="photo-grid"></div><label class="small">備註</label><textarea id="note" placeholder="例如：紗窗破損，請主任協助維修。" oninput="saveCurrent(false)"></textarea><label class="small">通知對象，可複選</label><div id="notifyTargets" class="notify-options"></div></div>
   <div class="card no-print">
 <button class="light full" onclick="shareCurrent()">📤 轉發通知</button>
@@ -145,8 +145,18 @@ function cloudPayload(rec,sessionKey=currentSession){
     notes:rec.note||'',
     notifyTargets:targetText(rec),
     photoCount:(rec.photos||[]).length,
-    photoLinks:''
+    photos:[...(rec.photos||[])]
   };
+}
+
+function photoFingerprint(photo=''){
+  let hash=0;
+  const step=Math.max(1,Math.floor(photo.length/120));
+  for(let i=0;i<photo.length;i+=step){
+    hash=((hash<<5)-hash)+photo.charCodeAt(i);
+    hash|=0;
+  }
+  return `${photo.length}:${hash}`;
 }
 
 
@@ -159,23 +169,13 @@ function recordSyncSignature(rec,sessionKey){
     defects:[...(rec.defects||[])].sort(),
     note:rec.note||'',
     notifyTargets:[...(rec.notifyTargets||[])].sort(),
-    photoCount:(rec.photos||[]).length
+    photoKeys:(rec.photos||[]).map(photoFingerprint)
   });
 }
 
 function markRecordChanged(rec){
   if(!rec)return;
   rec.localUpdatedAt=new Date().toISOString();
-}
-
-async function syncOneRecordToCloud(rec,sessionKey){
-  const body=new URLSearchParams();
-  body.set('payload',JSON.stringify(cloudPayload(rec,sessionKey)));
-  await fetch(SCRIPT_URL,{
-    method:'POST',
-    mode:'no-cors',
-    body
-  });
 }
 
 async function syncOneRecordToCloud(rec,sessionKey){
@@ -220,7 +220,7 @@ async function syncSessionToCloud(sessionKey=currentSession,showAlert=true){
 
   try{
     for(let i=0;i<records.length;i++){
-      setCloudStatus(`☁️ 正在同步${sessionName(sessionKey)}第 ${i+1}／${records.length} 班……`,'syncing');
+      setCloudStatus(`☁️ 正在同步${sessionName(sessionKey)}第 ${i+1}／${records.length} 班（含照片）……`,'syncing');
       await syncOneRecordToCloud(records[i],sessionKey);
       records[i].cloudSyncSignature=recordSyncSignature(records[i],sessionKey);
       records[i].cloudSyncedAt=nowTime();
@@ -471,7 +471,7 @@ function setPhotoStatus(text,error=false){
   el.style.fontWeight=error?'900':'700';
 }
 
-function compressPhoto(file,maxSide=1200,quality=.7){
+function compressPhoto(file,maxSide=900,quality=.65){
   return new Promise((resolve,reject)=>{
     const reader=new FileReader();
     reader.onerror=()=>reject(new Error('無法讀取照片'));
@@ -608,7 +608,7 @@ function saveAndNext(){
   goNextClass();
 }
 function defectText(code){const [a,b]=code.split('-').map(n=>parseInt(n,10));return data.categories[a-1]?.items[b-1]||''}
-function messageForCurrent(){const rec=saveCurrent(true);if(!rec)return '尚未有巡堂紀錄';const codes=(rec.defects||[]).map(c=>`${c} ${defectText(c)}`).join('\n');return `Heremay 和美智慧校園｜巡堂改善通知\n時段：${sessionName()}\n班級：${rec.className}\n時間：${rec.time}\n通知對象：${targetText(rec)}\n狀態：${rec.status==='pass'?'全部合格':'待改善'}\n缺失項目：\n${codes||'無'}\n備註：${rec.note||'無'}\n照片：${rec.photos?.length||0} 張已存入週報表`}
+function messageForCurrent(){const rec=saveCurrent(true);if(!rec)return '尚未有巡堂紀錄';const codes=(rec.defects||[]).map(c=>`${c} ${defectText(c)}`).join('\n');return `Heremay 和美智慧校園｜巡堂改善通知\n時段：${sessionName()}\n班級：${rec.className}\n時間：${rec.time}\n通知對象：${targetText(rec)}\n狀態：${rec.status==='pass'?'全部合格':'待改善'}\n缺失項目：\n${codes||'無'}\n備註：${rec.note||'無'}\n照片：${rec.photos?.length||0} 張（同步後存入雲端照片資料夾）`}
 async function shareCurrent(){const text=messageForCurrent();try{if(navigator.share){await navigator.share({title:'和美智慧校園巡堂改善通知',text});alert('已開啟分享／轉發功能')}else if(navigator.clipboard){await navigator.clipboard.writeText(text);alert('瀏覽器不支援直接分享，已複製通知文字，可貼到 LINE 或訊息中。')}else{downloadText('巡堂改善通知.txt',text)}}catch(e){console.log(e)}}
 function downloadText(filename,text){const blob=new Blob([text],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href)}
 function downloadCurrentText(){downloadText(`巡堂紀錄_${sessionName()}_${data.classes[currentIndex]}.txt`,messageForCurrent())}
