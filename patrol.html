@@ -112,7 +112,7 @@ button{display:none!important}
 </div>
 </section>
 
-<section id="screenRecords" class="screen"><div class="card"><h2>今日巡堂紀錄</h2><p class="muted" id="recordTip"></p><div id="recordsList"></div><button class="light full no-print" style="margin-top:12px" onclick="syncCurrentSession()">☁️ 再次同步本時段全部紀錄</button><div class="grid2 no-print" style="margin-top:10px"><button class="gray" onclick="show('Report')">查看週報</button><button class="danger" onclick="resetSession()">重新開始本時段</button></div></div></section>
+<section id="screenRecords" class="screen"><div class="card"><h2>巡堂紀錄</h2><p class="muted" id="recordTip"></p><div id="recordsList"></div><button class="light full no-print" style="margin-top:12px" onclick="loadCloudRecords(true)">🔄 重新讀取雲端紀錄</button><button class="light full no-print" style="margin-top:10px" onclick="syncCurrentSession()">☁️ 再次同步本時段全部紀錄</button><div class="grid2 no-print" style="margin-top:10px"><button class="gray" onclick="show('Report')">查看週報</button><button class="danger" onclick="resetSession()">重新開始本時段</button></div></div></section>
 
 <section id="screenReport" class="screen"><div class="card"><h2>巡堂統計表</h2><p class="muted no-print">請先選擇週別，再列印或另存 PDF。PDF 版會使用正式統計表格式，只顯示合格 V 與待改善代碼。列印方向請選「直向／Portrait」。</p><div class="no-print pdf-control-grid"><div class="control-card"><label class="small">統計週別</label><select id="reportWeekSelect" onchange="setReportWeek(this.value)"></select></div><div class="control-card"><label class="small">畫面預覽字體大小（直式滿版雙週10天，列印時會自動壓成 A4 一頁）</label><div class="range-row"><input type="range" id="reportFontSize" min="6.5" max="8.5" step="0.1" onchange="setReportFontSize(this.value)" oninput="previewReportFontSize(this.value)"><span class="range-value" id="reportFontSizeLabel">8.0</span></div></div></div><div class="print-page report-form" id="reportPage"></div><button class="primary full no-print" style="margin-top:14px" onclick="window.print()">列印／另存 PDF</button></div></section>
 
@@ -133,6 +133,115 @@ function setCloudStatus(message,type=''){
   box.textContent=message;
 }
 
+let cloudLoading=false;
+
+function displayPhotoCount(rec){
+  return Math.max(
+    Number(rec?.cloudPhotoCount||0),
+    (rec?.photos||[]).length,
+    (rec?.cloudPhotoLinks||[]).length
+  );
+}
+
+function cloudSessionKey(session){
+  const text=String(session||'').trim().toLowerCase();
+  if(text==='上午'||text==='morning')return 'morning';
+  if(text==='下午'||text==='afternoon')return 'afternoon';
+  return '';
+}
+
+function splitCloudList(value){
+  return String(value||'')
+    .split(/[、,，\n\r]+/)
+    .map(x=>x.trim())
+    .filter(Boolean);
+}
+
+function cloudToLocalRecord(item,sessionKey){
+  const rec={
+    className:item.className||'',
+    session:sessionName(sessionKey),
+    date:item.patrolDate||'',
+    isoDate:item.patrolDate||'',
+    time:item.updatedAt||item.createdAt||'',
+    status:item.result==='合格'?'pass':'needs_improvement',
+    defects:splitCloudList(item.defectCodes),
+    note:item.notes||'',
+    notifyTargets:splitCloudList(item.notifyTargets),
+    photos:[],
+    cloudPhotoLinks:Array.isArray(item.photoLinks)?item.photoLinks:[],
+    cloudPhotoCount:Number(item.photoCount||0),
+    cloudSyncedAt:item.updatedAt||item.createdAt||'',
+    cloudUpdatedAt:item.updatedAt||''
+  };
+  rec.cloudSyncSignature=recordSyncSignature(rec,sessionKey);
+  return rec;
+}
+
+function mergeCloudRecords(items){
+  data.history=data.history||{};
+  data.records=data.records||{morning:{},afternoon:{}};
+
+  items.forEach(item=>{
+    const date=item.patrolDate;
+    const sessionKey=cloudSessionKey(item.session);
+    const cls=String(item.className||'').trim();
+    if(!date||!sessionKey||!cls)return;
+
+    let bucket;
+    if(date===isoDate()){
+      data.records[sessionKey]=data.records[sessionKey]||{};
+      bucket=data.records[sessionKey];
+    }else{
+      data.history[date]=data.history[date]||{morning:{},afternoon:{}};
+      data.history[date][sessionKey]=data.history[date][sessionKey]||{};
+      bucket=data.history[date][sessionKey];
+    }
+
+    const local=bucket[cls];
+    const localHasPending=local &&
+      local.cloudSyncSignature!==recordSyncSignature(local,sessionKey);
+
+    if(!local || !localHasPending){
+      bucket[cls]=cloudToLocalRecord(item,sessionKey);
+    }
+  });
+
+  persist(false);
+  updateAll();
+}
+
+async function loadCloudRecords(showAlert=false){
+  if(cloudLoading)return false;
+  if(!navigator.onLine){
+    setCloudStatus('⚠️ 目前離線，先顯示手機內已保存的紀錄。','error');
+    return false;
+  }
+
+  cloudLoading=true;
+  setCloudStatus('☁️ 正在讀取雲端巡堂紀錄……','syncing');
+
+  try{
+    const url=`${SCRIPT_URL}?action=records&_=${Date.now()}`;
+    const response=await fetch(url,{method:'GET',cache:'no-store'});
+    if(!response.ok)throw new Error(`HTTP ${response.status}`);
+    const result=await response.json();
+    if(!result.success)throw new Error(result.message||'雲端讀取失敗');
+
+    mergeCloudRecords(result.records||[]);
+    setCloudStatus(`✅ 已讀取雲端 ${result.count||0} 筆巡堂紀錄。`,'success');
+    if(showAlert)alert(`已從雲端讀取 ${result.count||0} 筆巡堂紀錄。`);
+    return true;
+  }catch(err){
+    console.error(err);
+    setCloudStatus('⚠️ 無法讀取雲端，先顯示手機內紀錄。請確認 Apps Script 已重新部署。','error');
+    if(showAlert)alert('目前無法讀取雲端紀錄。請確認新的 Apps Script 已重新部署。');
+    return false;
+  }finally{
+    cloudLoading=false;
+  }
+}
+
 function cloudPayload(rec,sessionKey=currentSession){
   return {
     recordId:`${rec.isoDate||isoDate()}_${sessionKey}_${rec.className}`,
@@ -144,7 +253,7 @@ function cloudPayload(rec,sessionKey=currentSession){
     defectCodes:(rec.defects||[]).join('、'),
     notes:rec.note||'',
     notifyTargets:targetText(rec),
-    photoCount:(rec.photos||[]).length,
+    photoCount:displayPhotoCount(rec),
     photos:[...(rec.photos||[])]
   };
 }
@@ -224,6 +333,7 @@ async function syncSessionToCloud(sessionKey=currentSession,showAlert=true){
       await syncOneRecordToCloud(records[i],sessionKey);
       records[i].cloudSyncSignature=recordSyncSignature(records[i],sessionKey);
       records[i].cloudSyncedAt=nowTime();
+      records[i].cloudPhotoCount=displayPhotoCount(records[i]);
       persist(false);
     }
 
@@ -595,7 +705,7 @@ function saveDefectAndNext(){
   markRecordChanged(rec);
   archiveRecord(rec);
   persist();
-  alert(`${cls} 已儲存為待改善。\n缺失：${rec.defects.join('、')}\n照片：${rec.photos.length} 張`);
+  alert(`${cls} 已儲存為待改善。\n缺失：${rec.defects.join('、')}\n照片：${displayPhotoCount(rec)} 張`);
   goNextClass();
 }
 
@@ -608,11 +718,11 @@ function saveAndNext(){
   goNextClass();
 }
 function defectText(code){const [a,b]=code.split('-').map(n=>parseInt(n,10));return data.categories[a-1]?.items[b-1]||''}
-function messageForCurrent(){const rec=saveCurrent(true);if(!rec)return '尚未有巡堂紀錄';const codes=(rec.defects||[]).map(c=>`${c} ${defectText(c)}`).join('\n');return `Heremay 和美智慧校園｜巡堂改善通知\n時段：${sessionName()}\n班級：${rec.className}\n時間：${rec.time}\n通知對象：${targetText(rec)}\n狀態：${rec.status==='pass'?'全部合格':'待改善'}\n缺失項目：\n${codes||'無'}\n備註：${rec.note||'無'}\n照片：${rec.photos?.length||0} 張（同步後存入雲端照片資料夾）`}
+function messageForCurrent(){const rec=saveCurrent(true);if(!rec)return '尚未有巡堂紀錄';const codes=(rec.defects||[]).map(c=>`${c} ${defectText(c)}`).join('\n');return `Heremay 和美智慧校園｜巡堂改善通知\n時段：${sessionName()}\n班級：${rec.className}\n時間：${rec.time}\n通知對象：${targetText(rec)}\n狀態：${rec.status==='pass'?'全部合格':'待改善'}\n缺失項目：\n${codes||'無'}\n備註：${rec.note||'無'}\n照片：${displayPhotoCount(rec)} 張（同步後存入雲端照片資料夾）`}
 async function shareCurrent(){const text=messageForCurrent();try{if(navigator.share){await navigator.share({title:'和美智慧校園巡堂改善通知',text});alert('已開啟分享／轉發功能')}else if(navigator.clipboard){await navigator.clipboard.writeText(text);alert('瀏覽器不支援直接分享，已複製通知文字，可貼到 LINE 或訊息中。')}else{downloadText('巡堂改善通知.txt',text)}}catch(e){console.log(e)}}
 function downloadText(filename,text){const blob=new Blob([text],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href)}
 function downloadCurrentText(){downloadText(`巡堂紀錄_${sessionName()}_${data.classes[currentIndex]}.txt`,messageForCurrent())}
-function exportAllText(){const lines=['Heremay 和美智慧校園｜今日巡堂紀錄',`日期：${today()}`,`時段：${sessionName()}`,''];const r=recs();data.classes.forEach(c=>{const x=r[c];if(!x){lines.push(`${c}：尚未巡視`);return}lines.push(`${c}｜${x.status==='pass'?'合格':'待改善'}｜${x.time}`);lines.push(`缺失：${(x.defects||[]).join(', ')||'無'}`);lines.push(`備註：${x.note||'無'}`);lines.push(`照片：${x.photos?.length||0} 張`);lines.push('')});downloadText(`Heremay今日巡堂紀錄_${sessionName()}.txt`,lines.join('\n'))}
+function exportAllText(){const lines=['Heremay 和美智慧校園｜今日巡堂紀錄',`日期：${today()}`,`時段：${sessionName()}`,''];const r=recs();data.classes.forEach(c=>{const x=r[c];if(!x){lines.push(`${c}：尚未巡視`);return}lines.push(`${c}｜${x.status==='pass'?'合格':'待改善'}｜${x.time}`);lines.push(`缺失：${(x.defects||[]).join(', ')||'無'}`);lines.push(`備註：${x.note||'無'}`);lines.push(`照片：${displayPhotoCount(x)} 張`);lines.push('')});downloadText(`Heremay今日巡堂紀錄_${sessionName()}.txt`,lines.join('\n'))}
 async function syncCurrentSession(){await syncSessionToCloud(currentSession,true)}
 function resetSession(){
   if(confirm(`確定清空今天「${sessionName()}」全部巡堂資料，重新從 A1 開始嗎？`)){
@@ -634,7 +744,50 @@ function renderHome(){const r=recs();const done=Object.keys(r).length,total=data
 function renderClasses(){const box=document.getElementById('classList');if(!box)return;document.getElementById('orderTip').textContent=`目前顯示：${sessionName()}巡堂進度。深色＝尚未巡視；淺色＝已巡過。點任何班級都可進入修改。`;box.innerHTML='';const r=recs();data.classes.forEach((c,i)=>{const x=r[c];const state=x?(x.status==='needs_improvement'?' needs':' done'):'';const current=(i===currentIndex?' current':'');const div=document.createElement('div');div.className='class-item'+state+current;div.onclick=()=>openClass(i);div.innerHTML=`<div class="class-main"><div class="class-info"><b>${i+1}. ${c}</b><div class="small">${x?`已巡視 ${x.time}，可點入修改`:'尚未巡視'}</div></div><span class="status">${x?(x.status==='pass'?'合格':'待改善'):(i===currentIndex?'目前':'未巡')}</span></div><div class="order-actions"><button type="button" title="上移" ${i===0?'disabled':''} onclick="moveClassOrder(event,${i},-1)">↑</button><button type="button" title="下移" ${i===data.classes.length-1?'disabled':''} onclick="moveClassOrder(event,${i},1)">↓</button></div>`;box.appendChild(div)})}
 function moveClassOrder(event,i,dir){event.stopPropagation();const currentClass=data.classes[currentIndex];const j=i+dir;if(j<0||j>=data.classes.length)return;const arr=data.classes;[arr[i],arr[j]]=[arr[j],arr[i]];currentIndex=Math.max(0,arr.indexOf(currentClass));persist();toast('班級巡視順序已更新')}
 function renderPatrolHeader(){const cls=data.classes[currentIndex]||'尚未設定班級';const c=document.getElementById('currentClass');if(c)c.textContent=`${sessionName()}｜${cls}`;const s=document.getElementById('currentStep');if(s)s.textContent=`第 ${currentIndex+1} / ${data.classes.length} 班`;const prev=document.getElementById('prevClassBtn');const next=document.getElementById('nextClassBtn');if(prev)prev.disabled=currentIndex<=0;if(next)next.disabled=currentIndex>=data.classes.length-1}
-function renderRecords(){const box=document.getElementById('recordsList');if(!box)return;document.getElementById('recordTip').textContent=`目前顯示：${sessionName()}巡堂紀錄`;box.innerHTML='';let has=false;const r=recs();data.classes.forEach(c=>{const x=r[c];if(!x)return;has=true;const div=document.createElement('div');div.className='record '+(x.status==='needs_improvement'?'bad':'');div.innerHTML=`<b>${sessionName()}｜${c}｜${x.status==='pass'?'<span class="ok">全部合格</span>':'<span class="badtext">待改善</span>'}</b><div class="small">${x.time}</div><div class="codes">${(x.defects||[]).map(y=>`<span class="codechip">${y}</span>`).join('')}</div><div class="small">備註：${x.note||'無'}</div><div class="small">照片：${x.photos?.length||0} 張｜通知：${targetText(x)}</div>`;box.appendChild(div)});if(!has)box.innerHTML='<div class="empty">目前尚無巡堂紀錄</div>'}
+function collectAllRecords(){
+  const map=new Map();
+
+  Object.entries(data.history||{}).forEach(([date,day])=>{
+    ['morning','afternoon'].forEach(session=>{
+      Object.entries(day?.[session]||{}).forEach(([cls,rec])=>{
+        if(rec)map.set(`${date}_${session}_${cls}`,{date,session,cls,rec});
+      });
+    });
+  });
+
+  ['morning','afternoon'].forEach(session=>{
+    Object.entries(data.records?.[session]||{}).forEach(([cls,rec])=>{
+      if(rec)map.set(`${isoDate()}_${session}_${cls}`,{date:isoDate(),session,cls,rec});
+    });
+  });
+
+  return [...map.values()].sort((a,b)=>{
+    const keyA=`${a.date}_${a.session}_${a.cls}`;
+    const keyB=`${b.date}_${b.session}_${b.cls}`;
+    return keyB.localeCompare(keyA);
+  });
+}
+
+function renderRecords(){
+  const box=document.getElementById('recordsList');
+  if(!box)return;
+  document.getElementById('recordTip').textContent='顯示手機本機與雲端合併後的全部巡堂紀錄，最新日期排在最前面。';
+  box.innerHTML='';
+
+  const all=collectAllRecords();
+  if(!all.length){
+    box.innerHTML='<div class="empty">目前尚無巡堂紀錄</div>';
+    return;
+  }
+
+  all.forEach(({date,session,cls,rec:x})=>{
+    const div=document.createElement('div');
+    div.className='record '+(x.status==='needs_improvement'?'bad':'');
+    const photoCount=displayPhotoCount(x);
+    div.innerHTML=`<b>${date}｜${sessionName(session)}｜${cls}｜${x.status==='pass'?'<span class="ok">全部合格</span>':'<span class="badtext">待改善</span>'}</b><div class="small">${x.time||''}</div><div class="codes">${(x.defects||[]).map(y=>`<span class="codechip">${y}</span>`).join('')}</div><div class="small">備註：${x.note||'無'}</div><div class="small">照片：${photoCount} 張｜通知：${targetText(x)}</div>`;
+    box.appendChild(div);
+  });
+}
 function renderWeekSelect(){
   const sel=document.getElementById('reportWeekSelect');
   if(!sel)return;
@@ -694,10 +847,14 @@ function saveSettings(){const cls=document.getElementById('classesSetting').valu
 document.querySelector('.title').ondblclick=()=>show('Settings');
 updateAll();
 loadCurrentDraft();
-setTimeout(()=>{
-  if(navigator.onLine)syncTodayToCloud(false);
-},1500);
-window.addEventListener('online',()=>setTimeout(()=>syncTodayToCloud(false),800));
+async function initializeCloud(){
+  if(!navigator.onLine)return;
+  await loadCloudRecords(false);
+  await syncTodayToCloud(false);
+  await loadCloudRecords(false);
+}
+setTimeout(initializeCloud,1200);
+window.addEventListener('online',()=>setTimeout(initializeCloud,800));
 </script>
 </body>
 </html>
