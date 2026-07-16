@@ -4,6 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Heremay 和美智慧校園｜巡堂 v9 照片雲端同步版</title>
+<meta name="theme-color" content="#fff6fb" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="和美巡堂" />
+<link rel="apple-touch-icon" sizes="180x180" href="assets/app-icon.png?v=20260716-4" />
+<link rel="icon" type="image/png" href="assets/app-icon.png?v=20260716-4" />
+<link rel="manifest" href="manifest.webmanifest?v=20260716-4" />
+
 <style>
 :root{--bg:#f7fbff;--card:#fff;--main:#3b82f6;--main2:#2563eb;--soft:#eaf3ff;--green:#16a34a;--greenSoft:#eaf8ef;--red:#dc2626;--redSoft:#fff1f1;--text:#1f2937;--muted:#6b7280;--line:#e5e7eb;--shadow:0 12px 30px rgba(31,41,55,.10);--radius:22px}
 *{box-sizing:border-box}body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,-apple-system,"Segoe UI",sans-serif;background:linear-gradient(180deg,#eef7ff 0%,#f9fbff 45%,#fff7fb 100%);color:var(--text)}
@@ -157,6 +165,11 @@ function splitCloudList(value){
     .filter(Boolean);
 }
 
+function splitCloudDefectCodes(value){
+  const matches=String(value||'').match(/\b[1-3]-[1-5]\b/g)||[];
+  return [...new Set(matches)];
+}
+
 function cloudToLocalRecord(item,sessionKey){
   const rec={
     className:item.className||'',
@@ -165,7 +178,7 @@ function cloudToLocalRecord(item,sessionKey){
     isoDate:item.patrolDate||'',
     time:item.updatedAt||item.createdAt||'',
     status:item.result==='合格'?'pass':'needs_improvement',
-    defects:splitCloudList(item.defectCodes),
+    defects:splitCloudDefectCodes(item.defectCodes),
     note:item.notes||'',
     notifyTargets:splitCloudList(item.notifyTargets),
     photos:[],
