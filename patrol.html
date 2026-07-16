@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="和美巡堂" />
-<link rel="apple-touch-icon" sizes="180x180" href="assets/app-icon.png?v=20260716-4" />
-<link rel="icon" type="image/png" href="assets/app-icon.png?v=20260716-4" />
-<link rel="manifest" href="manifest.webmanifest?v=20260716-4" />
+<link rel="apple-touch-icon" sizes="180x180" href="assets/app-icon.png?v=20260716-7" />
+<link rel="icon" type="image/png" href="assets/app-icon.png?v=20260716-7" />
+<link rel="manifest" href="manifest.webmanifest?v=20260716-7" />
 
 <style>
 :root{--bg:#f7fbff;--card:#fff;--main:#3b82f6;--main2:#2563eb;--soft:#eaf3ff;--green:#16a34a;--greenSoft:#eaf8ef;--red:#dc2626;--redSoft:#fff1f1;--text:#1f2937;--muted:#6b7280;--line:#e5e7eb;--shadow:0 12px 30px rgba(31,41,55,.10);--radius:22px}
@@ -215,6 +215,14 @@ function mergeCloudRecords(items){
     }
 
     const local=bucket[cls];
+
+    // 歷史日期以雲端試算表為準，避免手機舊快取中的空白缺失代碼擋住正確資料。
+    if(date!==isoDate()){
+      bucket[cls]=cloudToLocalRecord(item,sessionKey);
+      return;
+    }
+
+    // 今天的資料若仍有尚未上傳的本機修改，才保留本機版本。
     const localHasPending=local &&
       local.cloudSyncSignature!==recordSyncSignature(local,sessionKey);
 
