@@ -1,11 +1,10 @@
 {
-  "version": "1.1.0",
+  "version": "1.1.1",
   "releaseDate": "2026-07-17",
-  "title": "入口頁統一更新中心",
+  "title": "更新檢查穩定修正版",
   "notes": [
-    "入口頁自動檢查新版",
-    "發現新版時顯示立即更新按鈕",
-    "更新程式不會刪除各模組 localStorage 本機資料",
-    "Service Worker 更新後自動重新載入"
+    "版本檔與 Service Worker 分開檢查",
+    "Service Worker 暫時失敗時不影響版本狀態",
+    "保留登入與各模組本機資料"
   ]
 }

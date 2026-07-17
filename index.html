@@ -194,7 +194,7 @@
 
   <script>
 
-    const APP_VERSION='1.1.0';
+    const APP_VERSION='1.1.1';
     let waitingWorker=null;
     let refreshing=false;
 
@@ -213,44 +213,48 @@
 
     async function registerUpdateSystem(){
       document.getElementById('versionText').textContent=`Heremay Smart Campus v${APP_VERSION}`;
+
+      // 版本檔檢查與 Service Worker 分開進行；即使其中一項暫時失敗，仍可正常判斷版本。
+      await checkVersionFile();
+
       if(!('serviceWorker' in navigator)){
-        setUpdateStatus(`目前版本 v${APP_VERSION}｜此瀏覽器不支援自動更新`,'error');
         return;
       }
+
       try{
-        const registration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
+        const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'});
+
         registration.addEventListener('updatefound',()=>{
           const worker=registration.installing;
           if(!worker)return;
           setUpdateStatus('正在下載新版程式……');
           worker.addEventListener('statechange',()=>{
-            if(worker.state==='installed'){
-              if(navigator.serviceWorker.controller){
-                waitingWorker=registration.waiting||worker;
-                setUpdateStatus('發現新版本，按「立即更新」即可載入。','available');
-              }else{
-                setUpdateStatus(`已安裝最新版 v${APP_VERSION}`,'done');
-              }
+            if(worker.state==='installed' && navigator.serviceWorker.controller){
+              waitingWorker=registration.waiting||worker;
+              setUpdateStatus('發現新版本，按「立即更新」即可載入。','available');
             }
           });
         });
+
         if(registration.waiting){
           waitingWorker=registration.waiting;
           setUpdateStatus('發現新版本，按「立即更新」即可載入。','available');
-        }else{
-          await registration.update();
-          if(!registration.installing&&!registration.waiting){
-            await checkVersionFile();
-          }
         }
+
+        try{
+          await registration.update();
+        }catch(updateError){
+          console.warn('Service Worker 暫時無法更新：',updateError);
+        }
+
         navigator.serviceWorker.addEventListener('controllerchange',()=>{
           if(refreshing)return;
           refreshing=true;
           location.reload();
         });
       }catch(err){
-        console.error(err);
-        setUpdateStatus(`目前版本 v${APP_VERSION}｜更新檢查失敗，仍可正常登入`,'error');
+        console.warn('Service Worker 註冊失敗，但版本檢查仍可使用：',err);
+        // 不再把整個更新中心標示為失敗，避免使用者誤以為系統不能使用。
       }
     }
 
