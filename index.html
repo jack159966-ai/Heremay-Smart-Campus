@@ -10,9 +10,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="和美智慧校園" />
-  <link rel="apple-touch-icon" sizes="180x180" href="assets/app-icon.png?v=20260716" />
-  <link rel="icon" type="image/png" href="assets/app-icon.png?v=20260716" />
-  <link rel="manifest" href="manifest.webmanifest?v=20260716" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/app-icon.png?v=20260717" />
+  <link rel="icon" type="image/png" href="assets/app-icon.png?v=20260717" />
+  <link rel="manifest" href="manifest.webmanifest?v=20260717" />
 
   <style>
     :root{
@@ -108,6 +108,8 @@
     .divider{display:flex;align-items:center;gap:10px;margin:18px 0 4px;color:#987686;font-size:13px;font-weight:900}
     .divider:before,.divider:after{content:"";height:1px;background:#f0c8d8;flex:1}
     footer{text-align:center;color:#78909b;font-size:12px;font-weight:800;line-height:1.6}footer span{color:#9aaeb7}
+    .update-card{background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.95);border-radius:20px;padding:13px 14px;box-shadow:0 10px 28px rgba(117,91,124,.10)}
+    .update-row{display:flex;align-items:center;gap:10px}.update-icon{font-size:22px;flex:0 0 auto}.update-copy{min-width:0;flex:1}.update-title{font-size:14px;font-weight:900;color:#5a4050}.update-status{font-size:12px;color:#78909b;font-weight:800;line-height:1.45;margin-top:2px}.update-btn{display:none;flex:0 0 auto;border:0;border-radius:14px;padding:10px 12px;background:#55aee0;color:white;font-family:inherit;font-weight:900;cursor:pointer}.update-btn.show{display:block}.update-card.available{border-color:#bfe8fb;background:#f4fbff}.update-card.error{border-color:#ffd2d2;background:#fff8f8}
     .toast{
       position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120px);
       width:min(92%,420px);background:#3f5360;color:white;border-radius:20px;
@@ -158,9 +160,20 @@
       <button class="face-btn" type="button" onclick="faceLogin()">😊 刷臉登入</button>
     </section>
 
+    <section class="update-card" id="updateCard" aria-live="polite">
+      <div class="update-row">
+        <div class="update-icon" id="updateIcon">🔄</div>
+        <div class="update-copy">
+          <div class="update-title">系統更新</div>
+          <div class="update-status" id="updateStatus">正在確認是否有新版本……</div>
+        </div>
+        <button class="update-btn" id="updateBtn" type="button" onclick="applyUpdate()">立即更新</button>
+      </div>
+    </section>
+
     <footer>
       🛡️ 資料安全・隱私保護・安心使用<br />
-      <span>Heremay Smart Campus v1.0 Prototype</span>
+      <span id="versionText">Heremay Smart Campus v1.1.0</span>
     </footer>
   </main>
 
@@ -180,6 +193,102 @@
   </div>
 
   <script>
+
+    const APP_VERSION='1.1.0';
+    let waitingWorker=null;
+    let refreshing=false;
+
+    function setUpdateStatus(message,state='normal'){
+      const card=document.getElementById('updateCard');
+      const status=document.getElementById('updateStatus');
+      const icon=document.getElementById('updateIcon');
+      const btn=document.getElementById('updateBtn');
+      if(!card||!status||!icon||!btn)return;
+      card.classList.toggle('available',state==='available');
+      card.classList.toggle('error',state==='error');
+      btn.classList.toggle('show',state==='available');
+      status.textContent=message;
+      icon.textContent=state==='available'?'⬆️':state==='error'?'⚠️':state==='done'?'✅':'🔄';
+    }
+
+    async function registerUpdateSystem(){
+      document.getElementById('versionText').textContent=`Heremay Smart Campus v${APP_VERSION}`;
+      if(!('serviceWorker' in navigator)){
+        setUpdateStatus(`目前版本 v${APP_VERSION}｜此瀏覽器不支援自動更新`,'error');
+        return;
+      }
+      try{
+        const registration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
+        registration.addEventListener('updatefound',()=>{
+          const worker=registration.installing;
+          if(!worker)return;
+          setUpdateStatus('正在下載新版程式……');
+          worker.addEventListener('statechange',()=>{
+            if(worker.state==='installed'){
+              if(navigator.serviceWorker.controller){
+                waitingWorker=registration.waiting||worker;
+                setUpdateStatus('發現新版本，按「立即更新」即可載入。','available');
+              }else{
+                setUpdateStatus(`已安裝最新版 v${APP_VERSION}`,'done');
+              }
+            }
+          });
+        });
+        if(registration.waiting){
+          waitingWorker=registration.waiting;
+          setUpdateStatus('發現新版本，按「立即更新」即可載入。','available');
+        }else{
+          await registration.update();
+          if(!registration.installing&&!registration.waiting){
+            await checkVersionFile();
+          }
+        }
+        navigator.serviceWorker.addEventListener('controllerchange',()=>{
+          if(refreshing)return;
+          refreshing=true;
+          location.reload();
+        });
+      }catch(err){
+        console.error(err);
+        setUpdateStatus(`目前版本 v${APP_VERSION}｜更新檢查失敗，仍可正常登入`,'error');
+      }
+    }
+
+    async function checkVersionFile(){
+      try{
+        const response=await fetch(`./version.json?_=${Date.now()}`,{cache:'no-store'});
+        if(!response.ok)throw new Error(`HTTP ${response.status}`);
+        const info=await response.json();
+        if(info.version&&info.version!==APP_VERSION){
+          setUpdateStatus(`雲端已有 v${info.version}，正在準備更新……`);
+          const registration=await navigator.serviceWorker.getRegistration();
+          await registration?.update();
+          setTimeout(()=>{
+            if(!waitingWorker)setUpdateStatus('新版已發布，請稍後再按一次檢查或重新開啟。','available');
+          },1200);
+        }else{
+          setUpdateStatus(`目前版本 v${APP_VERSION}｜已是最新版本`,'done');
+        }
+      }catch(err){
+        setUpdateStatus(`目前版本 v${APP_VERSION}｜暫時無法連線檢查`,'error');
+      }
+    }
+
+    async function applyUpdate(){
+      setUpdateStatus('正在更新，完成後會自動重新開啟……');
+      if(waitingWorker){
+        waitingWorker.postMessage({type:'SKIP_WAITING'});
+        return;
+      }
+      const registration=await navigator.serviceWorker.getRegistration();
+      await registration?.update();
+      if(registration?.waiting){
+        waitingWorker=registration.waiting;
+        waitingWorker.postMessage({type:'SKIP_WAITING'});
+      }else{
+        location.reload();
+      }
+    }
     const routes = {
       admin:'admin.html',
       teacher:'teacher.html',
@@ -222,6 +331,8 @@
     function goRole(role){
       window.location.href = routes[role];
     }
+
+    window.addEventListener('load',registerUpdateSystem);
 
     function showToast(msg){
       const t=document.getElementById('toast');

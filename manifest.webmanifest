@@ -2,9 +2,11 @@
   "name": "和美智慧校園",
   "short_name": "和美智慧校園",
   "description": "Heremay Smart Campus",
-  "start_url": "./",
+  "id": "./",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#fff6fb",
   "theme_color": "#fff6fb",
   "icons": [
