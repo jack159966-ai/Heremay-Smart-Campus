@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜庶務人員首頁 v1</title>
+  <title>和美智慧校園｜庶務人員首頁 v8 再次提醒</title>
   <style>
     :root{
       --bg1:#f1fff6;
@@ -93,6 +93,40 @@
       color:var(--green);
       letter-spacing:.5px;
       line-height:1.05;
+    }
+    .repeat-alert{
+      display:none;
+      background:linear-gradient(135deg,#fff7e8,#f2fff7);
+      border:2px solid #f0b95a;
+      border-radius:22px;
+      padding:14px;
+      margin:14px 0;
+      box-shadow:0 12px 28px rgba(193,137,24,.16);
+    }
+    .repeat-alert.show{display:block}
+    .repeat-alert h2{
+      margin:0 0 8px;
+      color:#8a5a00;
+      font-size:19px;
+    }
+    .repeat-alert-item{
+      background:white;
+      border:1px solid #f5d79b;
+      border-radius:16px;
+      padding:10px 11px;
+      margin-top:8px;
+    }
+    .repeat-alert-item strong{
+      display:block;
+      color:#6b4c14;
+      font-size:15px;
+      margin-bottom:4px;
+    }
+    .repeat-alert-item span{
+      color:#7d6d52;
+      font-weight:750;
+      font-size:12.5px;
+      line-height:1.45;
     }
     .section{
       background:rgba(255,255,255,.92);
@@ -497,6 +531,11 @@
       </div>
     </header>
 
+    <section class="repeat-alert" id="repeatAlert">
+      <h2>🔔 主管再次提醒</h2>
+      <div id="repeatAlertList"></div>
+    </section>
+
     <section class="section board">
       <div class="section-title">
         <span>📌 園方公佈欄</span>
@@ -893,6 +932,52 @@
       }, 15000);
     }
 
+    function loadReminderRecords(){
+      if(!currentEmployee || !currentEmployee.name) return;
+
+      postToService({
+        action: 'getReminderRecords',
+        employeeId: currentEmployee.employeeId || '',
+        employeeName: currentUser,
+        noticePrefix: 'support-'
+      });
+    }
+
+    function renderReminderRecords(records){
+      const box = document.getElementById('repeatAlert');
+      const list = document.getElementById('repeatAlertList');
+
+      if(!box || !list) return;
+
+      const latestByNotice = new Map();
+
+      (Array.isArray(records) ? records : []).forEach(record => {
+        const old = latestByNotice.get(record.noticeId);
+        if(!old || String(record.remindedAt) > String(old.remindedAt)){
+          latestByNotice.set(record.noticeId, record);
+        }
+      });
+
+      const items = Array.from(latestByNotice.values());
+
+      if(!items.length){
+        box.classList.remove('show');
+        list.innerHTML = '';
+        return;
+      }
+
+      list.innerHTML = items.map(record => `
+        <div class="repeat-alert-item">
+          <strong>${record.noticeTitle || '園方公告'}</strong>
+          <span>${record.senderName || '主管'}再次提醒｜${record.remindedAt || '剛剛'}</span>
+        </div>
+      `).join('');
+
+      box.classList.add('show');
+      showToast(`🔔 您有 ${items.length} 則主管再次提醒，請查看並確認公告。`, 4200);
+      beep();
+    }
+
     function refreshAck(id){
       const n = notices[id];
       const stat = document.getElementById(`ackStat${id}`);
@@ -935,10 +1020,20 @@
 
     window.addEventListener('message', event => {
       const data = event.data || {};
+      const result = data.payload || {};
+
+      if(data.type === 'HEREMAY_REMINDER_RECORDS_RESULT'){
+        if(!result.ok){
+          showToast(`⚠️ ${result.message || '無法讀取再次提醒。'}`, 3200);
+          return;
+        }
+
+        renderReminderRecords(result.records || []);
+        return;
+      }
 
       if(data.type !== 'HEREMAY_ACK_RESULT') return;
 
-      const result = data.payload || {};
       const id = Number(pendingAckId || String(result.noticeId || '').split('-').pop());
       const n = notices[id];
 
@@ -1055,6 +1150,7 @@
     });
 
     restoreLocalAcks();
+    loadReminderRecords();
 
     setTimeout(()=>{
       showToast('📌 新公告：今日午餐後請加強廚房地面清潔。這則公告需要點選「我已收到」。', 4500);

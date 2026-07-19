@@ -272,7 +272,7 @@
       <div class="logo">🏰</div>
       <div class="brand">
         <h1>Heremay 和美智慧校園</h1>
-        <p>智慧秘書中心｜通知確認與追蹤整合｜v9</p>
+        <p>智慧秘書中心｜通知確認與追蹤整合｜v11</p>
       </div>
       <div class="clock" id="clock">--</div>
     </header>
@@ -847,9 +847,55 @@ function showNoticeTrack(id){
       <h3 style="margin:0 0 8px;color:#254f65">尚未確認名單</h3>
       ${miss.map(p=>`<div class="personRow"><span>${p.name}｜${p.group}</span><span class="statusMiss">尚未確認</span></div>`).join('') || '<div class="personRow"><span>全部已確認</span><span class="statusOk">✅</span></div>'}
     </div>
-    <div class="btnRow"><button class="btn secondary" onclick="showToast('已提醒尚未確認人員')">提醒未確認人員</button><button class="btn" onclick="closeModal()">完成</button></div>
+    <div class="btnRow"><button class="btn secondary" id="remindBtn" onclick="remindUnconfirmed('${n.id}')">提醒未確認人員</button><button class="btn" onclick="closeModal()">完成</button></div>
   `;
   document.getElementById('modalMask').classList.add('show');
+}
+
+
+let pendingReminderNoticeId = '';
+
+function remindUnconfirmed(noticeId){
+  const notice = noticeTracks.find(item => String(item.id) === String(noticeId));
+
+  if(!notice){
+    showToast('找不到公告資料');
+    return;
+  }
+
+  const missing = notice.people.filter(person => !person.ack);
+
+  if(!missing.length){
+    showToast('這則公告已全部確認，不需要再次提醒');
+    return;
+  }
+
+  const button = document.getElementById('remindBtn');
+  if(button){
+    button.disabled = true;
+    button.textContent = '正在送出提醒…';
+  }
+
+  let senderName = '主管';
+  try{
+    const raw = localStorage.getItem('heremay.currentEmployee');
+    const employee = raw ? JSON.parse(raw) : null;
+    if(employee && employee.name) senderName = employee.name;
+  }catch(error){}
+
+  pendingReminderNoticeId = String(notice.id);
+
+  postToService({
+    action: 'remindUnconfirmed',
+    noticeId: notice.id,
+    noticeTitle: notice.title,
+    targetType: notice.target,
+    senderName: senderName,
+    employeeIds: JSON.stringify(missing.map(person => person.employeeId || '')),
+    employeeNames: JSON.stringify(missing.map(person => person.name || ''))
+  });
+
+  showToast(`正在提醒 ${missing.length} 位尚未確認人員…`);
 }
 
 function noticeAudienceForId(noticeId, employees){
@@ -910,6 +956,7 @@ function buildCloudNoticeTracks(payload){
       );
 
       return {
+        employeeId: employee.employeeId || '',
         name: employee.name,
         group: employee.group || employee.jobTitle || '',
         ack: Boolean(record),
@@ -921,6 +968,7 @@ function buildCloudNoticeTracks(payload){
     ackRecords.forEach(record => {
       if(!people.some(person => person.name === record.employeeName)){
         people.push({
+          employeeId: record.employeeId || '',
           name: record.employeeName,
           group: '紀錄保留',
           ack: true,
@@ -935,9 +983,33 @@ function buildCloudNoticeTracks(payload){
 
 window.addEventListener('message', event => {
   const data = event.data || {};
-  if(data.type !== 'HEREMAY_ACK_RECORDS_RESULT') return;
-
   const payload = data.payload || {};
+
+  if(data.type === 'HEREMAY_REMIND_RESULT'){
+    const button = document.getElementById('remindBtn');
+
+    if(button){
+      button.disabled = false;
+      button.textContent = '提醒未確認人員';
+    }
+
+    if(!payload.ok){
+      showToast(payload.message || '再次提醒送出失敗');
+      return;
+    }
+
+    showToast(`✅ ${payload.message || '已送出再次提醒'}`);
+
+    if(button){
+      button.textContent = '已送出提醒';
+      button.disabled = true;
+    }
+
+    pendingReminderNoticeId = '';
+    return;
+  }
+
+  if(data.type !== 'HEREMAY_ACK_RECORDS_RESULT') return;
 
   if(!payload.ok){
     showToast(payload.message || '無法載入雲端公告紀錄');
