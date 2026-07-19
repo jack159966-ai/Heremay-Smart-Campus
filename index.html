@@ -221,7 +221,7 @@
 
 
   <script>
-    const APP_VERSION = '1.3.4';
+    const APP_VERSION = '1.3.5';
 
     /*
       正式登入架構說明
@@ -813,6 +813,7 @@
         }
 
         localStorage.setItem('heremay.lastFaceAccount', account);
+        localStorage.setItem('heremay.currentRole', String(result.role || ''));
 
         if(result.employee){
           localStorage.setItem(
