@@ -85,14 +85,25 @@
       margin-top:12px;
     }
     .icon{font-size:20px;flex:0 0 auto}
-    input{
+    .input-box input{
       border:0;outline:0;background:transparent;
-      width:100%;font-size:16px;color:#4a3941;
+      width:auto;min-width:0;flex:1;
+      font-size:16px;color:#4a3941;
       font-family:inherit;
+      padding:0;
     }
     .eye-btn,.text-btn{
       border:0;background:transparent;cursor:pointer;color:#9a6579;font-weight:900;font-family:inherit;
     }
+    .eye-btn{
+      flex:0 0 44px;
+      width:44px;height:44px;
+      display:grid;place-items:center;
+      border-radius:14px;
+      font-size:20px;
+      padding:0;
+    }
+    .eye-btn:focus-visible{outline:2px solid #ef6f9f;outline-offset:2px}
     .login-btn,.face-btn,.role-btn{
       width:100%;border:0;border-radius:20px;
       padding:15px 16px;
@@ -144,8 +155,11 @@
 
       <div class="input-box">
         <span class="icon">🔒</span>
-        <input id="password" type="password" placeholder="密碼" autocomplete="current-password" />
-        <button class="eye-btn" type="button" onclick="togglePassword()">◡</button>
+        <input id="password" type="password" placeholder="6 位數字密碼"
+          inputmode="numeric" pattern="[0-9]*" maxlength="6"
+          autocomplete="current-password" oninput="digitsOnly(this)" />
+        <button class="eye-btn" id="eyeBtn" type="button"
+          onclick="togglePassword()" aria-label="顯示密碼" title="顯示密碼">👁️</button>
       </div>
 
       <button class="login-btn" type="button" onclick="demoLogin()">登入 →</button>
@@ -216,10 +230,10 @@
       3. 新 NAS 到位後，只要把 API_BASE 與 WIFI_ENDPOINT 改成正式網址即可。
     */
     const CONFIG = {
-      API_BASE: '', // 例：https://auth.heremay.local 或新 NAS 的 HTTPS 位址
+      API_BASE: '',
       WIFI_ENDPOINT: '', // 例：https://192.168.0.xxx/heremay-network-check
       WIFI_TIMEOUT_MS: 5000,
-      TEMP_DEMO_MODE: true // 後端完成後改為 false
+      TEMP_DEMO_MODE: true
     };
 
     let waitingWorker = null;
@@ -509,32 +523,39 @@
     }
 
     async function apiPost(path, body){
-      if(!CONFIG.API_BASE){
-        throw new Error('登入伺服器尚未設定');
-      }
+  if(!CONFIG.API_BASE){
+    throw new Error('登入伺服器尚未設定');
+  }
 
-      const response = await fetchWithTimeout(
-        `${CONFIG.API_BASE}${path}`,
-        {
-          method:'POST',
-          headers:{ 'Content-Type':'application/json' },
-          credentials:'include',
-          body:JSON.stringify(body)
-        },
-        15000
-      );
+  const formData = new URLSearchParams();
 
-      let data = {};
-      try{
-        data = await response.json();
-      }catch(_){}
+  Object.entries(body || {}).forEach(([key, value]) => {
+    formData.set(key, String(value ?? ''));
+  });
 
-      if(!response.ok){
-        throw new Error(data.message || `伺服器錯誤 HTTP ${response.status}`);
-      }
+  const response = await fetchWithTimeout(
+    CONFIG.API_BASE,
+    {
+      method: 'POST',
+      body: formData
+    },
+    15000
+  );
 
-      return data;
-    }
+  let data = {};
+
+  try{
+    data = await response.json();
+  }catch(_){
+    throw new Error('登入服務回傳格式不正確');
+  }
+
+  if(!response.ok){
+    throw new Error(data.message || `伺服器錯誤 HTTP ${response.status}`);
+  }
+
+  return data;
+}
 
     async function registerFaceLogin(){
       const account = document.getElementById('account').value.trim();
@@ -654,9 +675,21 @@
       }
     }
 
+    function digitsOnly(input){
+      input.value = input.value.replace(/\D/g, '').slice(0, 6);
+    }
+
     function togglePassword(){
       const p = document.getElementById('password');
-      p.type = p.type === 'password' ? 'text' : 'password';
+      const btn = document.getElementById('eyeBtn');
+      const showing = p.type === 'text';
+
+      p.type = showing ? 'password' : 'text';
+      btn.textContent = showing ? '👁️' : '🙈';
+      btn.setAttribute('aria-label', showing ? '顯示密碼' : '隱藏密碼');
+      btn.title = showing ? '顯示密碼' : '隱藏密碼';
+      p.focus();
+      p.setSelectionRange(p.value.length, p.value.length);
     }
 
     async function demoLogin(){
@@ -664,7 +697,12 @@
       const password = document.getElementById('password').value;
 
       if(!account || !password){
-        showToast('請輸入帳號與密碼。');
+        showToast('請輸入帳號與 6 位數字密碼。');
+        return;
+      }
+
+      if(!/^\d{6}$/.test(password)){
+        showToast('密碼請輸入 6 位數字。');
         return;
       }
 

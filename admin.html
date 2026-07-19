@@ -314,6 +314,7 @@
       <button class="cardBtn" onclick="openModal('taskTrack')"><span class="tag">追蹤</span><div class="icon">📣</div><h4>通知追蹤</h4><p>查看已收到、未確認，並提醒尚未確認的人員。</p></button>
       <button class="cardBtn" onclick="openModal('project')"><span class="tag">暫緩</span><div class="icon">📁</div><h4>專案計畫</h4><p>畢業典禮、聖誕晚會等大型計畫，先保留入口。</p></button>
       <button class="cardBtn" onclick="location.href='patrol.html'"><span class="tag">進入</span><div class="icon">📋</div><h4>巡堂與紀錄</h4><p>上午／下午巡堂、拍照、缺失追蹤與週報表。</p></button>
+      <button class="cardBtn" onclick="openModal('inspection')"><span class="tag">新增</span><div class="icon">🛝</div><h4>定期安全衛生巡檢</h4><p>遊樂設施、飲用水、水塔清洗等定期檢查與政府查核紀錄。</p></button>
       <button class="cardBtn" onclick="openModal('system')"><div class="icon">⚙️</div><h4>系統管理</h4><p>人員、班級、群組、提醒時間與權限設定。</p></button>
     </section>
 
@@ -399,6 +400,16 @@ function openModal(type){
     patrol:`<div class="modalHeader"><h3>📋 巡堂管理</h3><button class="x" onclick="closeModal()">關閉</button></div>
       <div class="note">巡堂管理已接上整合版：上午／下午巡堂、拍照、通知、班級順序、缺失項目管理與週報表預覽。</div>
       <div class="btnRow"><button class="btn" onclick="location.href='patrol.html'">進入巡堂管理</button><button class="btn secondary" onclick="location.href='patrol.html#weekly'">查看週報表</button></div>`,
+    inspection:`<div class="modalHeader"><h3>🛝 定期安全衛生巡檢</h3><button class="x" onclick="closeModal()">關閉</button></div>
+      <div class="note">第一階段先建立入口與分類。後續會像巡堂一樣，逐項勾選、異常拍照、備註、改善追蹤，並輸出政府查核用紀錄表。</div>
+      <div class="miniGrid">
+        <div class="miniCard"><b>🛝 遊樂設施巡檢</b>螺絲、接點、地墊、鏽蝕、裂縫、安全距離與周邊環境。</div>
+        <div class="miniCard"><b>🚰 飲用水設備／水質</b>飲水機清潔、濾心更換、水質檢驗與報告附件。</div>
+        <div class="miniCard"><b>🧼 水塔清洗</b>清洗日期、廠商、前後照片、證明文件與下次日期。</div>
+        <div class="miniCard"><b>🧯 其他巡檢</b>消防、廚房瓦斯、病媒防治及自訂定期檢查。</div>
+      </div>
+      <div class="hintBox">目前先建立入口，不會影響既有巡堂、智慧任務或登記中心。第一份正式表單預計從「遊樂設施巡檢」開始。</div>
+      <div class="btnRow"><button class="btn" onclick="showToast('遊樂設施巡檢表將作為第一份正式表單')">先做遊樂設施巡檢</button><button class="btn secondary" onclick="closeModal()">稍後再做</button></div>`,
     register:`<div class="modalHeader"><h3>📝 登記中心（獨立模組）</h3><button class="x" onclick="closeModal()">關閉</button></div>
       <div class="note">v16 修正：登記對象簡化為全體、行政、幼兒部、安親部、庶務部；登記方式統一為「項目＋數量」，沒有數量需求時就以 1 表示；新增「儲存為常用模板」與「套用常用模板」，固定店家的便當、飲料、團購表單不用每次重做。</div>
       <div class="row"><div><label>主辦人</label><input id="regHost" placeholder="例如：謝子元、玉瑩園長、秉儒主任、承辦老師" value="目前登入者"></div><div><label>活動名稱</label><input id="regTitle" placeholder="例如：訂餐、飲料、餐旅活動、團購、研習報名"></div></div>

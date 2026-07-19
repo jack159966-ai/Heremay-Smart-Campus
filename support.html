@@ -637,6 +637,12 @@
           <strong>今日提醒</strong>
           <span>查看今日待辦、到期與臨時交辦</span>
         </button>
+
+        <button class="btn" onclick="openPersonalSettings()">
+          <div class="icon">⚙️</div>
+          <strong>個人設定</strong>
+          <span>查看姓名、職稱、登入帳號與修改密碼</span>
+        </button>
       </div>
     </section>
 
@@ -682,6 +688,44 @@
         <button class="submit" onclick="submitReport()">送出回報給行政端</button>
         <button class="close" onclick="hideReport()">取消</button>
       </div>
+    </div>
+  </div>
+
+  <div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
+    <div class="sheet" onclick="event.stopPropagation()">
+      <h2>⚙️ 個人設定</h2>
+
+      <div class="listbox">
+        <h3>個人資料</h3>
+        <div class="person"><span>姓名</span><span id="profileName">廚房阿姨</span></div>
+        <div class="person"><span>職稱</span><span id="profileTitle">庶務人員</span></div>
+        <div class="person"><span>登入帳號</span><span id="profileAccount">support01</span></div>
+      </div>
+
+      <div class="listbox">
+        <h3>修改密碼</h3>
+
+        <label style="display:block;font-weight:900;color:var(--deep);margin:8px 0 5px">目前密碼</label>
+        <input id="oldPassword" class="input" type="password" placeholder="請輸入目前密碼">
+
+        <label style="display:block;font-weight:900;color:var(--deep);margin:12px 0 5px">新密碼</label>
+        <input id="newPassword" class="input" type="password" placeholder="至少 8 個字元">
+
+        <label style="display:block;font-weight:900;color:var(--deep);margin:12px 0 5px">再次確認新密碼</label>
+        <input id="confirmPassword" class="input" type="password" placeholder="請再次輸入新密碼">
+
+        <button class="submit" style="width:100%;margin-top:14px" onclick="savePasswordDemo()">儲存新密碼</button>
+      </div>
+
+      <div class="listbox">
+        <h3>帳號管理說明</h3>
+        <div style="color:var(--muted);font-weight:750;line-height:1.55;font-size:14px">
+          姓名、職稱與登入帳號只能查看，不能自行修改。
+          密碼可由本人修改；忘記密碼時，可請管理者重設臨時密碼。
+        </div>
+      </div>
+
+      <button class="close" onclick="hidePersonalSettings()">關閉</button>
     </div>
   </div>
 
@@ -813,6 +857,45 @@
       const title = document.getElementById('reportTitle').value || '未填寫標題';
       showToast(`✅ 已送出${type}回報：「${title}」；行政端將可查看並處理。`, 3600);
       hideReport();
+    }
+
+    function openPersonalSettings(){
+      document.getElementById('personalModal').classList.add('show');
+    }
+
+    function hidePersonalSettings(){
+      document.getElementById('personalModal').classList.remove('show');
+    }
+
+    function closePersonalSettings(event){
+      if(event.target.id === 'personalModal') hidePersonalSettings();
+    }
+
+    function savePasswordDemo(){
+      const oldPassword = document.getElementById('oldPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      if(!oldPassword || !newPassword || !confirmPassword){
+        showToast('請完整輸入目前密碼與新密碼。');
+        return;
+      }
+
+      if(newPassword.length < 8){
+        showToast('新密碼至少需要 8 個字元。');
+        return;
+      }
+
+      if(newPassword !== confirmPassword){
+        showToast('兩次輸入的新密碼不一致。');
+        return;
+      }
+
+      document.getElementById('oldPassword').value = '';
+      document.getElementById('newPassword').value = '';
+      document.getElementById('confirmPassword').value = '';
+      hidePersonalSettings();
+      showToast('✅ 修改密碼流程測試成功；正式版會寫入登入資料庫。', 3200);
     }
 
     refreshAck(1);
