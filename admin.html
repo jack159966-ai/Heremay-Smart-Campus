@@ -223,7 +223,7 @@
       background:linear-gradient(90deg,#52addd,#84d0f3);
       border-radius:999px;
     }
-    .miniBtn{
+    .miniBtn{touch-action:manipulation;-webkit-tap-highlight-color:transparent;
       border:0;
       background:#54addc;
       color:white;
@@ -272,7 +272,7 @@
       <div class="logo">🏰</div>
       <div class="brand">
         <h1>Heremay 和美智慧校園</h1>
-        <p>智慧秘書中心｜智慧任務｜排程提醒、通知確認與追蹤整合</p>
+        <p>智慧秘書中心｜通知確認與追蹤整合｜v9</p>
       </div>
       <div class="clock" id="clock">--</div>
     </header>
@@ -421,7 +421,7 @@ function openModal(type){
     taskTrack:`<div class="modalHeader"><h3>📣 通知追蹤</h3><button class="x" onclick="closeModal()">關閉</button></div>
       <div class="note">這裡專門追蹤智慧任務發出的通知：誰已收到、誰還沒確認，必要時可以再次提醒。</div>
       <div class="list">
-      ${noticeTracks.map(n=>`<div class="noticeItem"><div><h5>${n.title}</h5><p>對象：${n.target}｜發送：${n.sent}</p><div class="progress"><span style="width:${Math.round(n.people.filter(p=>p.ack).length/n.people.length*100)}%"></span></div></div><button class="miniBtn secondary notice-detail-btn" type="button" data-notice-id="${n.id}">查看</button></div>`).join('')}
+      ${noticeTracks.map(n=>`<div class="noticeItem"><div><h5>${n.title}</h5><p>對象：${n.target}｜發送：${n.sent}</p><div class="progress"><span style="width:${Math.round(n.people.filter(p=>p.ack).length/n.people.length*100)}%"></span></div></div><button class="miniBtn secondary notice-detail-btn" type="button" data-notice-id="${n.id}" onclick="openNoticeFromButton(this)">查看</button></div>`).join('')}
       </div>`,
     secretary:`<div class="modalHeader"><h3>🤖 排程提醒已整合</h3><button class="x" onclick="closeModal()">關閉</button></div><div class="note">排程提醒已整合到「新增智慧任務」。請從智慧秘書中心點選「新增智慧任務」。</div><div class="btnRow"><button class="btn" onclick="openModal('smartTask')">前往新增智慧任務</button></div>`,
     notice:`<div class="modalHeader"><h3>📣 通知已整合</h3><button class="x" onclick="closeModal()">關閉</button></div><div class="note">通知與已收到確認已整合到「新增智慧任務」。追蹤結果請到「通知追蹤」。</div><div class="btnRow"><button class="btn" onclick="openModal('smartTask')">建立通知任務</button><button class="btn secondary" onclick="openModal('taskTrack')">查看通知追蹤</button></div>`,
@@ -801,7 +801,7 @@ function renderNoticeTrack(){
         <p>對象：${n.target}｜發布：${n.sent}｜已收到 ${ack}/${total} 人，未確認 ${miss} 人</p>
         <div class="progress"><span style="width:${pct}%"></span></div>
       </div>
-      <button class="miniBtn notice-detail-btn" type="button" data-notice-id="${n.id}">查看名單</button>
+      <button class="miniBtn notice-detail-btn" type="button" data-notice-id="${n.id}" onclick="openNoticeFromButton(this)">查看名單</button>
     </div>`;
   }).join('');
   document.getElementById('noticeTotal').textContent = noticeTracks.length;
@@ -809,21 +809,19 @@ function renderNoticeTrack(){
   document.getElementById('missTotal').textContent = missTotal;
 }
 
-document.addEventListener('click', function(event){
-  const button = event.target.closest('.notice-detail-btn');
-  if(!button) return;
+function openNoticeFromButton(button){
+  const noticeId = String(button && button.dataset
+    ? button.dataset.noticeId || ''
+    : '').trim();
 
-  event.preventDefault();
-  event.stopPropagation();
-
-  const noticeId = String(button.dataset.noticeId || '').trim();
-  if(!noticeId) {
+  if(!noticeId){
     showToast('找不到公告編號');
     return;
   }
 
   showNoticeTrack(noticeId);
-});
+}
+
 
 function showNoticeTrack(id){
   const n = noticeTracks.find(x=>x.id===id);
