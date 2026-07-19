@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜智慧秘書中心 v14 登入角色驗證</title>
+  <title>Heremay 和美智慧校園｜智慧秘書中心 v16 主管欄位相容</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -80,6 +80,14 @@
       box-shadow:inset 0 2px 7px rgba(255,255,255,.75),0 8px 16px rgba(79,143,180,.18);
       flex:0 0 auto;
       font-size:32px;
+      overflow:hidden;
+    }
+    .logo img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      display:block;
+      padding:5px;
     }
     .brand{flex:1;min-width:0}
     .brand h1{margin:0;font-size:20px;letter-spacing:.3px;color:var(--deep)}
@@ -294,10 +302,10 @@
   <div class="toast" id="toast"></div>
   <main class="app" id="home">
     <header class="topbar">
-      <div class="logo">🏰</div>
+      <div class="logo"><img src="assets/logo.png?v=20260719" alt="和美智慧校園 Logo" onerror="this.remove();this.parentElement.textContent='🏰'"></div>
       <div class="brand">
         <h1>Heremay 和美智慧校園</h1>
-        <p>智慧秘書中心｜通知確認與追蹤整合｜v14</p>
+        <p>智慧秘書中心｜通知確認與追蹤整合｜v16</p>
       </div>
       <div class="clock" id="clock">--</div>
     </header>
@@ -378,15 +386,40 @@ function isManagementEmployee(employee){
   if(loginRole === 'admin') return true;
   if(!employee) return false;
 
-  const homeType = String(employee.homeType || '').trim();
-  const role = String(employee.role || '').trim().toLowerCase();
-  const identity = String(employee.identity || '').trim();
-  const jobTitle = String(employee.jobTitle || '').trim();
+  const homeType = String(
+    employee.homeType ??
+    employee.home ??
+    employee['首頁類型'] ??
+    ''
+  ).trim();
+
+  const role = String(
+    employee.role ??
+    employee.userRole ??
+    employee['角色'] ??
+    ''
+  ).trim().toLowerCase();
+
+  const identity = String(
+    employee.identity ??
+    employee.identityType ??
+    employee['身分類別'] ??
+    ''
+  ).trim();
+
+  const jobTitle = String(
+    employee.jobTitle ??
+    employee.title ??
+    employee.position ??
+    employee['職稱'] ??
+    ''
+  ).trim();
 
   return (
     homeType === '管理首頁' ||
     role === 'admin' ||
     identity === '行政主管' ||
+    identity === '管理層' ||
     /負責人|園長|主任/.test(jobTitle)
   );
 }
@@ -415,7 +448,7 @@ function requireAdminAccess(){
   const brandLine = document.querySelector('.brand p');
   if(brandLine && employee.name){
     brandLine.textContent =
-      `智慧秘書中心｜${employee.name}｜通知確認與追蹤整合｜v14`;
+      `智慧秘書中心｜${employee.name}｜通知確認與追蹤整合｜v16`;
   }
 
   return true;
