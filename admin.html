@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜智慧秘書中心 v12 主管驗證</title>
+  <title>Heremay 和美智慧校園｜智慧秘書中心 v13 主管驗證修正</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -297,7 +297,7 @@
       <div class="logo">🏰</div>
       <div class="brand">
         <h1>Heremay 和美智慧校園</h1>
-        <p>智慧秘書中心｜通知確認與追蹤整合｜v12</p>
+        <p>智慧秘書中心｜通知確認與追蹤整合｜v13</p>
       </div>
       <div class="clock" id="clock">--</div>
     </header>
@@ -375,8 +375,15 @@ function isManagementEmployee(employee){
 
   const homeType = String(employee.homeType || '').trim();
   const role = String(employee.role || '').trim().toLowerCase();
+  const identity = String(employee.identity || '').trim();
+  const jobTitle = String(employee.jobTitle || '').trim();
 
-  return homeType === '管理首頁' || role === 'admin';
+  return (
+    homeType === '管理首頁' ||
+    role === 'admin' ||
+    identity === '行政主管' ||
+    /負責人|園長|主任/.test(jobTitle)
+  );
 }
 
 function requireAdminAccess(){
@@ -403,7 +410,7 @@ function requireAdminAccess(){
   const brandLine = document.querySelector('.brand p');
   if(brandLine && employee.name){
     brandLine.textContent =
-      `智慧秘書中心｜${employee.name}｜通知確認與追蹤整合｜v12`;
+      `智慧秘書中心｜${employee.name}｜通知確認與追蹤整合｜v13`;
   }
 
   return true;
