@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v8 再次提醒</title>
+  <title>和美智慧校園｜教保人員首頁 v10 雲端確認同步</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -846,15 +846,16 @@
     }
 
     function restoreLocalAcks(){
+      // v10 起不再用手機本機紀錄判定「已確認」。
+      // 是否確認一律以雲端公告確認紀錄為準，避免老師端與主管端矛盾。
       Object.keys(notices).forEach(idText => {
         const id = Number(idText);
-        const n = notices[id];
-
-        if(hasLocalAck(id) && !n.ack.some(x => x.name === currentUser)){
-          n.ack.push({name: currentUser, time: '已確認'});
+        const btn = document.getElementById(`ackBtn${id}`);
+        if(btn){
+          btn.disabled = true;
+          btn.textContent = '正在同步…';
+          btn.classList.remove('done');
         }
-
-        refreshAck(id);
       });
     }
 
@@ -887,6 +888,50 @@
         form.remove();
         iframe.remove();
       }, 15000);
+    }
+
+    function loadCloudAckRecords(){
+      postToService({
+        action: 'getAckRecords',
+        noticePrefix: 'teacher-'
+      });
+    }
+
+    function applyCloudAckRecords(payload){
+      const employees = Array.isArray(payload.employees) ? payload.employees : [];
+      const records = Array.isArray(payload.records) ? payload.records : [];
+
+      const audience = employees.filter(employee =>
+        String(employee.homeType || '').trim() === '教保首頁'
+      );
+
+      Object.keys(notices).forEach(idText => {
+        const id = Number(idText);
+        const noticeId = `teacher-${id}`;
+        const n = notices[id];
+
+        n.total = audience.map(employee => employee.name).filter(Boolean);
+
+        const noticeRecords = records.filter(record =>
+          String(record.noticeId || '').trim() === noticeId
+        );
+
+        const seen = new Set();
+        n.ack = [];
+
+        noticeRecords.forEach(record => {
+          const key = String(record.employeeId || record.employeeName || '').trim();
+          if(!key || seen.has(key)) return;
+          seen.add(key);
+
+          n.ack.push({
+            name: record.employeeName || '',
+            time: record.confirmedAt || '已確認'
+          });
+        });
+
+        refreshAck(id);
+      });
     }
 
     function loadReminderRecords(){
@@ -940,11 +985,17 @@
       const stat = document.getElementById(`ackStat${id}`);
       const btn = document.getElementById(`ackBtn${id}`);
       const already = n.ack.some(x => x.name === currentUser);
+
       stat.textContent = `已收到 ${n.ack.length} / ${n.total.length} 人`;
+
       if(already){
         btn.textContent = '已確認收到';
         btn.classList.add('done');
         btn.disabled = true;
+      }else{
+        btn.textContent = '我已收到';
+        btn.classList.remove('done');
+        btn.disabled = false;
       }
     }
 
@@ -979,6 +1030,24 @@
       const data = event.data || {};
       const result = data.payload || {};
 
+      if(data.type === 'HEREMAY_ACK_RECORDS_RESULT'){
+        if(!result.ok){
+          Object.keys(notices).forEach(idText => {
+            const id = Number(idText);
+            const btn = document.getElementById(`ackBtn${id}`);
+            if(btn){
+              btn.disabled = false;
+              btn.textContent = '我已收到';
+            }
+          });
+          showToast(`⚠️ ${result.message || '無法同步雲端確認狀態。'}`, 3400);
+          return;
+        }
+
+        applyCloudAckRecords(result);
+        return;
+      }
+
       if(data.type === 'HEREMAY_REMINDER_RECORDS_RESULT'){
         if(!result.ok){
           showToast(`⚠️ ${result.message || '無法讀取再次提醒。'}`, 3200);
@@ -1006,14 +1075,11 @@
         return;
       }
 
-      if(!n.ack.some(x => x.name === currentUser)){
-        n.ack.push({name: currentUser, time: nowTime()});
-      }
-
+      // 雲端回傳成功後，再重新讀取雲端名單；
+      // 不再自行用本機資料假設成功。
       saveLocalAck(id);
-      refreshAck(id);
-
       showToast(`✅ ${result.message || '已確認收到'}：${n.title}`, 3200);
+      loadCloudAckRecords();
     });
 
     function showAdmin(id){
@@ -1091,6 +1157,7 @@
     });
 
     restoreLocalAcks();
+    loadCloudAckRecords();
     loadReminderRecords();
 
     setTimeout(()=>{
