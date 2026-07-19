@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v10 雲端確認同步</title>
+  <title>和美智慧校園｜教保人員首頁 v11 權限修正</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -530,9 +530,6 @@
               <span class="ack-stat" id="ackStat1">已收到 3 / 6 人</span>
               <button class="ack-btn" id="ackBtn1" onclick="ackNotice(1)">我已收到</button>
             </div>
-            <div class="ack-row">
-              <button class="admin-btn" onclick="showAdmin(1)">主管查看已收／未收名單</button>
-            </div>
           </div>
         </div>
       </div>
@@ -547,9 +544,6 @@
             <div class="ack-row">
               <span class="ack-stat" id="ackStat2">已收到 4 / 6 人</span>
               <button class="ack-btn" id="ackBtn2" onclick="ackNotice(2)">我已收到</button>
-            </div>
-            <div class="ack-row">
-              <button class="admin-btn" onclick="showAdmin(2)">主管查看已收／未收名單</button>
             </div>
           </div>
         </div>
@@ -657,32 +651,11 @@
       </div>
     </section>
 
-    <div class="footer">🔔 重要公告可要求「我已收到」，主管可查看未確認名單。</div>
+    <div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
-
-  <div class="modal" id="adminModal" onclick="closeAdmin(event)">
-    <div class="sheet" onclick="event.stopPropagation()">
-      <h2 id="modalTitle">公告確認狀態</h2>
-      <div class="summary">
-        <span class="pill" id="modalTotal">對象 6 人</span>
-        <span class="pill" id="modalAck">已收到 0 人</span>
-        <span class="pill" id="modalMiss">未收到 0 人</span>
-      </div>
-      <div class="listbox">
-        <h3>已收到</h3>
-        <div id="ackList"></div>
-      </div>
-      <div class="listbox">
-        <h3>未收到</h3>
-        <div id="missList"></div>
-      </div>
-      <button class="close" onclick="hideAdmin()">關閉</button>
-    </div>
-  </div>
-
-  <div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
+<div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
     <div class="sheet" onclick="event.stopPropagation()">
       <h2>⚙️ 個人設定</h2>
 
@@ -1081,33 +1054,6 @@
       showToast(`✅ ${result.message || '已確認收到'}：${n.title}`, 3200);
       loadCloudAckRecords();
     });
-
-    function showAdmin(id){
-      const n = notices[id];
-      const ackNames = n.ack.map(x => x.name);
-      const missing = n.total.filter(name => !ackNames.includes(name));
-      document.getElementById('modalTitle').textContent = `公告確認狀態｜${n.title}`;
-      document.getElementById('modalTotal').textContent = `對象 ${n.total.length} 人`;
-      document.getElementById('modalAck').textContent = `已收到 ${n.ack.length} 人`;
-      document.getElementById('modalMiss').textContent = `未收到 ${missing.length} 人`;
-
-      document.getElementById('ackList').innerHTML = n.ack.map(x => 
-        `<div class="person"><span>${x.name}</span><span>${x.time} 已收到</span></div>`
-      ).join('') || '<div class="person"><span>尚無</span><span></span></div>';
-
-      document.getElementById('missList').innerHTML = missing.map(name =>
-        `<div class="person"><span>${name}</span><span style="color:var(--red)">尚未確認</span></div>`
-      ).join('') || '<div class="person"><span>全部已確認</span><span>✅</span></div>';
-
-      document.getElementById('adminModal').classList.add('show');
-    }
-
-    function hideAdmin(){
-      document.getElementById('adminModal').classList.remove('show');
-    }
-    function closeAdmin(event){
-      if(event.target.id === 'adminModal') hideAdmin();
-    }
 
     function openPersonalSettings(){
       document.getElementById('personalModal').classList.add('show');
