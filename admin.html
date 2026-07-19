@@ -332,6 +332,39 @@
   </div>
 
 <script>
+const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzbZ6r6c8XjHuKad0U5TIJXr8i141fCBwNJcVsKnoGa1-NXG_JOzapeRF5cVlnGI4F7/exec';
+
+function postToService(fields){
+  const iframeName = `heremayAdminFrame_${Date.now()}`;
+
+  const iframe = document.createElement('iframe');
+  iframe.name = iframeName;
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = SERVICE_URL;
+  form.target = iframeName;
+  form.style.display = 'none';
+
+  Object.entries(fields).forEach(([name, value]) => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = String(value ?? '');
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+
+  setTimeout(() => {
+    form.remove();
+    iframe.remove();
+  }, 15000);
+}
+
 const reminders = [
   {time:'08:30', title:'只提醒自己｜晨間行政確認', text:'查看今日請假、人力與園務提醒。'},
   {time:'09:00', title:'通知他人｜中午會議通知', text:'自動通知應參加人員：今天中午要開會。'},
@@ -719,7 +752,7 @@ function renderSecretaryFields(){
   }
 }
 
-const noticeTracks = [
+let noticeTracks = [
   {
     id:1,
     title:'下午 4:10 請協助整理戶外玩具',
@@ -804,7 +837,110 @@ function showNoticeTrack(id){
   `;
   document.getElementById('modalMask').classList.add('show');
 }
+
+function noticeAudienceForId(noticeId, employees){
+  const isTeacher = String(noticeId).startsWith('teacher-');
+  const isSupport = String(noticeId).startsWith('support-');
+
+  return employees.filter(employee => {
+    const homeType = String(employee.homeType || '').trim();
+    if(isTeacher) return homeType === '教保首頁';
+    if(isSupport) return homeType === '庶務首頁';
+    return false;
+  });
+}
+
+function buildCloudNoticeTracks(payload){
+  const employees = Array.isArray(payload.employees) ? payload.employees : [];
+  const records = Array.isArray(payload.records) ? payload.records : [];
+
+  const definitions = [
+    {
+      id:'teacher-1',
+      title:'下午 4:10 請協助整理戶外玩具',
+      target:'教保人員',
+      sent:'今天 09:10',
+      must:true
+    },
+    {
+      id:'teacher-2',
+      title:'明日拍攝活動照片提醒',
+      target:'全體教保人員',
+      sent:'今天 08:20',
+      must:false
+    },
+    {
+      id:'support-1',
+      title:'今日午餐後請加強廚房地面清潔',
+      target:'廚工／清潔人員',
+      sent:'今天 09:05',
+      must:true
+    },
+    {
+      id:'support-2',
+      title:'清潔用品本週五前完成盤點',
+      target:'庶務工作',
+      sent:'今天 08:30',
+      must:false
+    }
+  ];
+
+  return definitions.map(def => {
+    const audience = noticeAudienceForId(def.id, employees);
+    const ackRecords = records.filter(record => record.noticeId === def.id);
+
+    const people = audience.map(employee => {
+      const record = ackRecords.find(item =>
+        (employee.employeeId && item.employeeId === employee.employeeId) ||
+        item.employeeName === employee.name
+      );
+
+      return {
+        name: employee.name,
+        group: employee.group || employee.jobTitle || '',
+        ack: Boolean(record),
+        time: record ? record.confirmedAt : ''
+      };
+    });
+
+    // Keep any cloud record whose employee is no longer in the enabled employee list.
+    ackRecords.forEach(record => {
+      if(!people.some(person => person.name === record.employeeName)){
+        people.push({
+          name: record.employeeName,
+          group: '紀錄保留',
+          ack: true,
+          time: record.confirmedAt
+        });
+      }
+    });
+
+    return {...def, people};
+  });
+}
+
+window.addEventListener('message', event => {
+  const data = event.data || {};
+  if(data.type !== 'HEREMAY_ACK_RECORDS_RESULT') return;
+
+  const payload = data.payload || {};
+
+  if(!payload.ok){
+    showToast(payload.message || '無法載入雲端公告紀錄');
+    return;
+  }
+
+  noticeTracks = buildCloudNoticeTracks(payload);
+  renderNoticeTrack();
+  showToast('已載入最新公告確認紀錄');
+});
+
+function loadCloudAckRecords(){
+  postToService({action:'getAckRecords'});
+}
+
 renderNoticeTrack();
+loadCloudAckRecords();
 
 </script>
 </body>

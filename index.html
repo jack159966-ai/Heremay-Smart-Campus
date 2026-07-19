@@ -221,7 +221,7 @@
 
 
   <script>
-    const APP_VERSION = '1.3.0';
+    const APP_VERSION = '1.3.4';
 
     /*
       正式登入架構說明
@@ -230,10 +230,10 @@
       3. 新 NAS 到位後，只要把 API_BASE 與 WIFI_ENDPOINT 改成正式網址即可。
     */
     const CONFIG = {
-      API_BASE: '',
-      WIFI_ENDPOINT: '', // 例：https://192.168.0.xxx/heremay-network-check
+      API_BASE: 'https://script.google.com/macros/s/AKfycbzbZ6r6c8XjHuKad0U5TIJXr8i141fCBwNJcVsKnoGa1-NXG_JOzapeRF5cVlnGI4F7/exec',
+      WIFI_ENDPOINT: '', // 新 NAS 完成後再填入園內網路驗證網址
       WIFI_TIMEOUT_MS: 5000,
-      TEMP_DEMO_MODE: true
+      TEMP_DEMO_MODE: false
     };
 
     let waitingWorker = null;
@@ -395,9 +395,10 @@
       campusWifiVerified = false;
 
       if(!CONFIG.WIFI_ENDPOINT){
-        setWifiStatus('等待新 NAS 完成後啟用園內網路驗證');
-        if(showResult) showToast('園內網路驗證將在新 NAS 安裝後啟用。');
-        return CONFIG.TEMP_DEMO_MODE;
+        setWifiStatus('園內網路驗證尚未啟用｜目前可正常登入');
+        campusWifiVerified = true;
+        if(showResult) showToast('園內網路驗證尚未啟用，目前不影響登入。');
+        return true;
       }
 
       setWifiStatus('正在確認是否位於園內網路……');
@@ -557,6 +558,75 @@
   return data;
 }
 
+
+    function iframeLogin(account, password){
+      return new Promise((resolve, reject) => {
+        if(!CONFIG.API_BASE){
+          reject(new Error('登入伺服器尚未設定'));
+          return;
+        }
+
+        const frameName = `heremayLoginFrame_${Date.now()}`;
+        const iframe = document.createElement('iframe');
+        const form = document.createElement('form');
+        const accountInput = document.createElement('input');
+        const passwordInput = document.createElement('input');
+
+        iframe.name = frameName;
+        iframe.style.display = 'none';
+        iframe.setAttribute('aria-hidden', 'true');
+
+        form.method = 'POST';
+        form.action = CONFIG.API_BASE;
+        form.target = frameName;
+        form.style.display = 'none';
+
+        accountInput.type = 'hidden';
+        accountInput.name = 'account';
+        accountInput.value = account;
+
+        passwordInput.type = 'hidden';
+        passwordInput.name = 'password';
+        passwordInput.value = password;
+
+        form.append(accountInput, passwordInput);
+        document.body.append(iframe, form);
+
+        let finished = false;
+
+        const cleanup = () => {
+          window.removeEventListener('message', receiveResult);
+          clearTimeout(timer);
+          form.remove();
+          setTimeout(() => iframe.remove(), 100);
+        };
+
+        const receiveResult = event => {
+          const message = event.data;
+
+          if(!message || message.type !== 'HEREMAY_LOGIN_RESULT') return;
+          if(finished) return;
+
+          finished = true;
+          cleanup();
+          resolve(message.payload || {
+            ok: false,
+            message: '登入服務未回傳結果'
+          });
+        };
+
+        const timer = setTimeout(() => {
+          if(finished) return;
+          finished = true;
+          cleanup();
+          reject(new Error('登入服務連線逾時，請稍後再試'));
+        }, 15000);
+
+        window.addEventListener('message', receiveResult);
+        form.submit();
+      });
+    }
+
     async function registerFaceLogin(){
       const account = document.getElementById('account').value.trim();
       const password = document.getElementById('password').value;
@@ -582,6 +652,9 @@
         showToast('入口頁已準備完成；新 NAS 登入伺服器完成後即可正式綁定 Face ID。');
         return;
       }
+
+      showToast('刷臉登入將在新 NAS 完成後啟用；目前請先使用帳號密碼登入。');
+      return;
 
       try{
         const optionsData = await apiPost('/auth/passkey/register/options', {
@@ -645,6 +718,9 @@
         return;
       }
 
+      showToast('刷臉登入將在新 NAS 完成後啟用；目前請先使用帳號密碼登入。');
+      return;
+
       try{
         const optionsData = await apiPost('/auth/passkey/login/options', {
           account
@@ -695,6 +771,7 @@
     async function demoLogin(){
       const account = document.getElementById('account').value.trim();
       const password = document.getElementById('password').value;
+      const loginBtn = document.querySelector('.login-btn');
 
       if(!account || !password){
         showToast('請輸入帳號與 6 位數字密碼。');
@@ -724,21 +801,38 @@
       }
 
       try{
-        const result = await apiPost('/auth/password/login', {
-          account,
-          password
-        });
+        if(loginBtn){
+          loginBtn.disabled = true;
+          loginBtn.textContent = '驗證中……';
+        }
+
+        const result = await iframeLogin(account, password);
 
         if(!result.ok || !result.role){
           throw new Error(result.message || '帳號或密碼錯誤');
         }
 
         localStorage.setItem('heremay.lastFaceAccount', account);
+
+        if(result.employee){
+          localStorage.setItem(
+            'heremay.currentEmployee',
+            JSON.stringify(result.employee)
+          );
+        }else{
+          localStorage.removeItem('heremay.currentEmployee');
+        }
+
         document.getElementById('password').value = '';
         goRole(result.role);
       }catch(err){
         console.error(err);
         showToast(`登入失敗：${err.message || err.name}`);
+      }finally{
+        if(loginBtn){
+          loginBtn.disabled = false;
+          loginBtn.textContent = '登入 →';
+        }
       }
     }
 
