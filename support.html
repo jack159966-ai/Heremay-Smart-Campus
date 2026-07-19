@@ -485,10 +485,10 @@
   <main class="phone">
     <header class="top">
       <div class="brand">
-        <div class="logo">🧹</div>
+        <div class="logo">🏡</div>
         <div>
-          <h1>庶務人員首頁</h1>
-          <div class="sub">和美智慧校園｜廚工／清潔工作台</div>
+          <h1 id="pageTitle">庶務人員首頁</h1>
+          <div class="sub" id="userSummary">和美智慧校園｜廚工／清潔工作台</div>
         </div>
       </div>
       <div class="datetime">
@@ -697,9 +697,9 @@
 
       <div class="listbox">
         <h3>個人資料</h3>
-        <div class="person"><span>姓名</span><span id="profileName">廚房阿姨</span></div>
-        <div class="person"><span>職稱</span><span id="profileTitle">庶務人員</span></div>
-        <div class="person"><span>登入帳號</span><span id="profileAccount">support01</span></div>
+        <div class="person"><span>姓名</span><span id="profileName">尚未載入</span></div>
+        <div class="person"><span>職稱</span><span id="profileTitle">尚未載入</span></div>
+        <div class="person"><span>登入帳號</span><span id="profileAccount">尚未載入</span></div>
       </div>
 
       <div class="listbox">
@@ -730,11 +730,53 @@
   </div>
 
   <script>
-    const currentUser = '廚房阿姨';
+    const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzbZ6r6c8XjHuKad0U5TIJXr8i141fCBwNJcVsKnoGa1-NXG_JOzapeRF5cVlnGI4F7/exec';
+
+    let currentUser = '庶務人員';
+    let currentEmployee = null;
+    let pendingAckId = null;
+
+    function loadCurrentEmployee(){
+      try{
+        const raw = localStorage.getItem('heremay.currentEmployee');
+        currentEmployee = raw ? JSON.parse(raw) : null;
+      }catch(error){
+        console.warn('無法讀取登入者資料：', error);
+        currentEmployee = null;
+      }
+
+      if(currentEmployee && currentEmployee.name){
+        currentUser = String(currentEmployee.name).trim();
+
+        const jobTitle = String(currentEmployee.jobTitle || '').trim();
+        const group = String(currentEmployee.group || '').trim();
+        const account = localStorage.getItem('heremay.lastFaceAccount') || '';
+
+        document.getElementById('pageTitle').textContent =
+          `${currentUser}｜庶務人員首頁`;
+
+        document.getElementById('userSummary').textContent =
+          [jobTitle, group, '和美智慧校園'].filter(Boolean).join('｜');
+
+        document.getElementById('profileName').textContent = currentUser;
+        document.getElementById('profileTitle').textContent = jobTitle || '庶務人員';
+        document.getElementById('profileAccount').textContent = account || '未提供';
+      }else{
+        document.getElementById('pageTitle').textContent = '庶務人員首頁';
+        document.getElementById('userSummary').textContent =
+          '尚未取得登入者資料｜請由登入首頁重新進入';
+
+        document.getElementById('profileName').textContent = '尚未取得';
+        document.getElementById('profileTitle').textContent = '尚未取得';
+        document.getElementById('profileAccount').textContent =
+          localStorage.getItem('heremay.lastFaceAccount') || '尚未取得';
+      }
+    }
+
     const notices = {
       1: {
         title:'今日午餐後請加強廚房地面清潔',
-        total:['廚房阿姨','林廚工','陳清潔','李清潔','張庶務'],
+        total:['庶務人員','林廚工','陳清潔','李清潔','張庶務'],
         ack:[
           {name:'林廚工', time:'09:11'},
           {name:'陳清潔', time:'09:18'}
@@ -742,7 +784,7 @@
       },
       2: {
         title:'清潔用品本週五前完成盤點',
-        total:['廚房阿姨','林廚工','陳清潔','李清潔','張庶務'],
+        total:['庶務人員','林廚工','陳清潔','李清潔','張庶務'],
         ack:[
           {name:'林廚工', time:'08:42'},
           {name:'陳清潔', time:'08:50'},
@@ -794,6 +836,63 @@
       showToast(`已點選「${name}」：這裡之後會接到對應功能頁。`, 2200);
     }
 
+    function ackStorageKey(id){
+      const employeeId = String(currentEmployee?.employeeId || currentUser || '').trim();
+      return `heremay.noticeAck.${id}.${employeeId}`;
+    }
+
+    function hasLocalAck(id){
+      return localStorage.getItem(ackStorageKey(id)) === 'yes';
+    }
+
+    function saveLocalAck(id){
+      localStorage.setItem(ackStorageKey(id), 'yes');
+    }
+
+    function restoreLocalAcks(){
+      Object.keys(notices).forEach(idText => {
+        const id = Number(idText);
+        const n = notices[id];
+
+        if(hasLocalAck(id) && !n.ack.some(x => x.name === currentUser)){
+          n.ack.push({name: currentUser, time: '已確認'});
+        }
+
+        refreshAck(id);
+      });
+    }
+
+    function postToService(fields){
+      const iframeName = `heremayAckFrame_${Date.now()}`;
+
+      const iframe = document.createElement('iframe');
+      iframe.name = iframeName;
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = SERVICE_URL;
+      form.target = iframeName;
+      form.style.display = 'none';
+
+      Object.entries(fields).forEach(([name, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = String(value ?? '');
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+
+      setTimeout(() => {
+        form.remove();
+        iframe.remove();
+      }, 15000);
+    }
+
     function refreshAck(id){
       const n = notices[id];
       const stat = document.getElementById(`ackStat${id}`);
@@ -809,12 +908,61 @@
 
     function ackNotice(id){
       const n = notices[id];
-      if(!n.ack.some(x => x.name === currentUser)){
-        n.ack.push({name:currentUser, time:nowTime()});
-      }
-      refreshAck(id);
-      showToast(`✅ 已記錄：${currentUser} 已收到「${n.title}」。主管端可看到確認時間。`, 3200);
+      const btn = document.getElementById(`ackBtn${id}`);
+
+      if(btn.disabled || pendingAckId !== null) return;
+
+      pendingAckId = id;
+      btn.disabled = true;
+      btn.textContent = '正在儲存…';
+
+      const account =
+        String(currentEmployee?.account || '').trim() ||
+        localStorage.getItem('heremay.lastFaceAccount') ||
+        '';
+
+      postToService({
+        action: 'ackNotice',
+        noticeId: 'support-' + id,
+        noticeTitle: n.title,
+        employeeId: currentEmployee?.employeeId || '',
+        employeeName: currentUser,
+        account: account
+      });
+
+      showToast('正在將確認紀錄寫入雲端…', 2200);
     }
+
+    window.addEventListener('message', event => {
+      const data = event.data || {};
+
+      if(data.type !== 'HEREMAY_ACK_RESULT') return;
+
+      const result = data.payload || {};
+      const id = Number(pendingAckId || String(result.noticeId || '').split('-').pop());
+      const n = notices[id];
+
+      pendingAckId = null;
+
+      if(!result.ok || !n){
+        if(id && document.getElementById(`ackBtn${id}`)){
+          const btn = document.getElementById(`ackBtn${id}`);
+          btn.disabled = false;
+          btn.textContent = '我已收到';
+        }
+        showToast(`⚠️ ${result.message || '雲端儲存失敗，請稍後再試。'}`, 3400);
+        return;
+      }
+
+      if(!n.ack.some(x => x.name === currentUser)){
+        n.ack.push({name: currentUser, time: nowTime()});
+      }
+
+      saveLocalAck(id);
+      refreshAck(id);
+
+      showToast(`✅ ${result.message || '已確認收到'}：${n.title}`, 3200);
+    });
 
     function showAdmin(id){
       const n = notices[id];
@@ -898,8 +1046,15 @@
       showToast('✅ 修改密碼流程測試成功；正式版會寫入登入資料庫。', 3200);
     }
 
-    refreshAck(1);
-    refreshAck(2);
+    loadCurrentEmployee();
+
+    Object.values(notices).forEach(notice => {
+      notice.total = notice.total.map(name =>
+        name === '庶務人員' ? currentUser : name
+      );
+    });
+
+    restoreLocalAcks();
 
     setTimeout(()=>{
       showToast('📌 新公告：今日午餐後請加強廚房地面清潔。這則公告需要點選「我已收到」。', 4500);
