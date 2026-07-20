@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜智慧秘書中心 v16 主管欄位相容</title>
+  <title>Heremay 和美智慧校園｜智慧秘書中心 v17 快速記事</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -294,6 +294,24 @@
     .filePreview{display:grid;gap:8px;margin-top:8px}
     .fileChip{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#f5fbff;border:1px solid #d7edf8;border-radius:14px;padding:9px 10px;color:#355e73;font-weight:800;font-size:13px}
 
+
+    .quickCapture{
+      margin-top:16px;background:rgba(255,255,255,.9);border:1px solid #d6edf8;border-radius:28px;padding:16px;box-shadow:var(--shadow);
+    }
+    .quickCapture h3{margin:0 0 8px;color:#254f65}
+    .quickCapture textarea{min-height:82px}
+    .quickCaptureActions{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-top:10px;align-items:end}
+    .quickCaptureActions label{margin:0 0 6px}
+    .noteBookBar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+    .bookChip{border:1px solid #cfe7f3;background:#f5fbff;color:#347da3;border-radius:999px;padding:8px 12px;font-weight:900;cursor:pointer}
+    .bookChip.active{background:#54addc;color:#fff;border-color:#54addc}
+    .noteEntry{background:#fff;border:1px solid #dfeff7;border-radius:18px;padding:12px;margin-top:9px}
+    .noteEntry h5{margin:0;color:#294e62;font-size:15px}
+    .noteEntry p{margin:6px 0;color:#607987;white-space:pre-wrap;line-height:1.55}
+    .noteMeta{font-size:12px;color:#78909c;font-weight:800}
+    .noteActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    @media(max-width:620px){.quickCaptureActions{grid-template-columns:1fr}.quickCaptureActions .btn{width:100%}}
+
     @media(max-width:760px){.topbar{align-items:flex-start}.hero{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}.cards2{grid-template-columns:1fr}.clock{display:block;min-width:130px;font-size:16px;padding:8px 10px}.clock .dateLine{font-size:19px}.clock .timeLine{font-size:30px}.brand h1{font-size:18px}.welcome h2{font-size:23px}.cardBtn{min-height:122px}.row{grid-template-columns:1fr}}
     @media(max-width:420px){.app{padding:12px 10px 34px}.topbar{border-radius:24px;display:grid;grid-template-columns:50px 1fr;gap:10px}.clock{grid-column:1/3;width:100%;text-align:center}.logo{width:50px;height:50px;font-size:28px}.grid{gap:10px}.cardBtn{padding:15px 12px;border-radius:21px}.cardBtn h4{font-size:16px}.cardBtn p{font-size:12px}.checkGrid{grid-template-columns:1fr}}
   </style>
@@ -305,10 +323,22 @@
       <div class="logo"><img src="assets/logo.png?v=20260719" alt="和美智慧校園 Logo" onerror="this.remove();this.parentElement.textContent='🏰'"></div>
       <div class="brand">
         <h1>Heremay 和美智慧校園</h1>
-        <p>智慧秘書中心｜通知確認與追蹤整合｜v16</p>
+        <p>智慧秘書中心｜快速記事與強提醒｜v17</p>
       </div>
       <div class="clock" id="clock">--</div>
     </header>
+
+
+    <section class="quickCapture">
+      <h3>✍️ 快速記一件事</h3>
+      <textarea id="quickNoteText" placeholder="先把事情記下來，例如：下午聯絡廠商、確認畢典攝影、買飲水機濾心……"></textarea>
+      <div class="quickCaptureActions">
+        <div><label>存入筆記本</label><select id="quickNotebook"></select></div>
+        <div><label>提醒時間（可留白）</label><input id="quickReminderAt" type="datetime-local"></div>
+        <button class="btn" type="button" onclick="saveQuickNote()">儲存記事</button>
+      </div>
+      <div class="hintBox" style="margin-bottom:0">快速記事預設只存在這台裝置、只有目前登入者可查看；第一版先確保離線可用。</div>
+    </section>
 
     <div class="sectionTitle">
       <h3>今日智慧任務</h3><small>今天要提醒、要發送、要追蹤的事項</small>
@@ -343,6 +373,7 @@
       <h3>智慧秘書中心</h3><small>整合排程提醒、通知、已收到追蹤與再次提醒；專案計畫稍後再做</small>
     </div>
     <section class="grid">
+      <button class="cardBtn" onclick="openModal('notebook')"><span class="tag">核心</span><div class="icon">📒</div><h4>我的記事本</h4><p>建立不同筆記本，分類保存臨時事項與私人資料。</p></button>
       <button class="cardBtn" onclick="openModal('smartTask')"><span class="tag">核心</span><div class="icon">🤖</div><h4>新增智慧任務</h4><p>整合個人提醒、通知他人、通知＋已收到確認。</p></button>
       <button class="cardBtn" onclick="openModal('taskTrack')"><span class="tag">追蹤</span><div class="icon">📣</div><h4>通知追蹤</h4><p>查看已收到、未確認，並提醒尚未確認的人員。</p></button>
       <button class="cardBtn" onclick="openModal('project')"><span class="tag">暫緩</span><div class="icon">📁</div><h4>專案計畫</h4><p>畢業典禮、聖誕晚會等大型計畫，先保留入口。</p></button>
@@ -448,7 +479,7 @@ function requireAdminAccess(){
   const brandLine = document.querySelector('.brand p');
   if(brandLine && employee.name){
     brandLine.textContent =
-      `智慧秘書中心｜${employee.name}｜通知確認與追蹤整合｜v16`;
+      `智慧秘書中心｜${employee.name}｜快速記事與強提醒｜v17`;
   }
 
   return true;
@@ -527,6 +558,11 @@ function maskClose(e){if(e.target.id==='modalMask') closeModal()}
 function closeModal(){document.getElementById('modalMask').classList.remove('show')}
 function openModal(type){
   const content={
+    notebook:`<div class="modalHeader"><h3>📒 我的記事本</h3><button class="x" onclick="closeModal()">關閉</button></div>
+      <div class="note">第一版採本機離線保存。每則記事預設私人，只有目前登入帳號在這台裝置上能看到。</div>
+      <div class="row"><div><label>新增筆記本</label><input id="newNotebookName" placeholder="例如：園務待辦、日本旅行、廠商與採購"></div><div style="align-self:end"><button class="btn secondary" onclick="createNotebook()">＋建立筆記本</button></div></div>
+      <div id="notebookTabs" class="noteBookBar"></div>
+      <div id="notebookNotes"></div>`,
     smartTask:`<div class="modalHeader"><h3>🤖 新增智慧任務</h3><button class="x" onclick="closeModal()">關閉</button></div>
       <div class="note">v11 修正：主要內容明確作為公佈欄文字，並新增「再次提醒日期／時間」欄位。專案計畫先保留入口，晚一點再處理。</div>
       <div class="row"><div><label>任務名稱</label><input placeholder="例如：明日中午會議、換飲水機濾心、拜土地公"></div><div><label>任務類型</label><select id="taskType" onchange="renderSmartTaskFields()"><option value="self">只提醒自己</option><option value="notice">通知他人</option><option value="ack">通知＋已收到</option><option value="remind">通知＋再次提醒</option><option value="ackRemind">通知＋已收到＋再次提醒</option></select></div></div>
@@ -622,8 +658,102 @@ function openModal(type){
   if(type==='secretary') renderSecretaryFields();
   if(type==='smartTask') renderSmartTaskFields();
   if(type==='register') renderCommonTemplates();
+  if(type==='notebook') renderNotebookManager();
 }
 
+
+
+function notebookOwnerKey(){
+  const employee = currentAdminEmployee || readCurrentEmployee() || {};
+  return String(employee.employeeId || employee.id || employee.name || 'guest').trim();
+}
+function notebookStorageKey(){ return 'heremay.notebooks.' + notebookOwnerKey(); }
+function noteStorageKey(){ return 'heremay.notes.' + notebookOwnerKey(); }
+function getNotebooks(){
+  try{
+    const list = JSON.parse(localStorage.getItem(notebookStorageKey()) || '[]');
+    if(Array.isArray(list) && list.length) return list;
+  }catch(e){}
+  const defaults=[{id:'inbox',name:'收件匣'},{id:'personal',name:'私人事項'},{id:'campus',name:'園務待辦'}];
+  localStorage.setItem(notebookStorageKey(),JSON.stringify(defaults));
+  return defaults;
+}
+function saveNotebooks(list){ localStorage.setItem(notebookStorageKey(),JSON.stringify(list)); }
+function getNotes(){
+  try{const list=JSON.parse(localStorage.getItem(noteStorageKey())||'[]');return Array.isArray(list)?list:[];}catch(e){return [];}
+}
+function saveNotes(list){ localStorage.setItem(noteStorageKey(),JSON.stringify(list)); }
+function refreshQuickNotebookOptions(){
+  const select=document.getElementById('quickNotebook'); if(!select) return;
+  const current=select.value;
+  select.innerHTML=getNotebooks().map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  if(current && getNotebooks().some(b=>b.id===current)) select.value=current;
+}
+function saveQuickNote(){
+  const text=document.getElementById('quickNoteText')?.value.trim();
+  if(!text) return showToast('請先輸入要記錄的內容');
+  const notes=getNotes();
+  notes.unshift({
+    id:'note_'+Date.now(),
+    notebookId:document.getElementById('quickNotebook')?.value||'inbox',
+    text,
+    reminderAt:document.getElementById('quickReminderAt')?.value||'',
+    privacy:'private',
+    createdAt:new Date().toISOString()
+  });
+  saveNotes(notes);
+  document.getElementById('quickNoteText').value='';
+  document.getElementById('quickReminderAt').value='';
+  showToast('記事已儲存，離線也能查看');
+}
+let activeNotebookId='inbox';
+function createNotebook(){
+  const input=document.getElementById('newNotebookName');
+  const name=input?.value.trim();
+  if(!name) return showToast('請輸入筆記本名稱');
+  const books=getNotebooks();
+  if(books.some(b=>b.name===name)) return showToast('已有同名筆記本');
+  const id='book_'+Date.now(); books.push({id,name}); saveNotebooks(books); activeNotebookId=id;
+  if(input) input.value='';
+  refreshQuickNotebookOptions(); renderNotebookManager();
+}
+function renderNotebookManager(){
+  const books=getNotebooks();
+  if(!books.some(b=>b.id===activeNotebookId)) activeNotebookId=books[0]?.id||'inbox';
+  const tabs=document.getElementById('notebookTabs');
+  const box=document.getElementById('notebookNotes');
+  if(!tabs||!box) return;
+  tabs.innerHTML=books.map(b=>`<button class="bookChip ${b.id===activeNotebookId?'active':''}" onclick="selectNotebook('${b.id}')">${b.name}</button>`).join('');
+  const notes=getNotes().filter(n=>n.notebookId===activeNotebookId);
+  box.innerHTML=notes.length?notes.map(n=>{
+    const created=new Date(n.createdAt); const dt=isNaN(created)?'':created.toLocaleString('zh-TW',{hour12:false});
+    return `<article class="noteEntry"><h5>${n.reminderAt?'🔔 有提醒':'📝 私人記事'}</h5><p>${escapeNoteHtml(n.text)}</p><div class="noteMeta">建立：${dt}${n.reminderAt?'｜提醒：'+n.reminderAt.replace('T',' '):''}</div><div class="noteActions"><button class="miniBtn secondary" onclick="convertNoteToTask('${n.id}')">轉成智慧任務</button><button class="miniBtn secondary" onclick="moveNotePrompt('${n.id}')">移動</button><button class="miniBtn secondary" onclick="deleteNote('${n.id}')">刪除</button></div></article>`;
+  }).join(''):'<div class="hintBox">這本筆記本目前沒有記事。</div>';
+}
+function escapeNoteHtml(text){return String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function selectNotebook(id){activeNotebookId=id;renderNotebookManager();}
+function deleteNote(id){
+  if(!confirm('確定刪除這則記事嗎？')) return;
+  saveNotes(getNotes().filter(n=>n.id!==id)); renderNotebookManager(); showToast('記事已刪除');
+}
+function moveNotePrompt(id){
+  const books=getNotebooks();
+  const names=books.map((b,i)=>`${i+1}. ${b.name}`).join('\n');
+  const ans=prompt('請輸入要移動到的筆記本編號：\n'+names,'1');
+  const idx=Number(ans)-1; if(!books[idx]) return;
+  const notes=getNotes(); const note=notes.find(n=>n.id===id); if(note) note.notebookId=books[idx].id;
+  saveNotes(notes); renderNotebookManager(); showToast('記事已移動');
+}
+function convertNoteToTask(id){
+  const note=getNotes().find(n=>n.id===id); if(!note) return;
+  closeModal(); openModal('smartTask');
+  setTimeout(()=>{
+    const title=document.querySelector('#modal input[placeholder*="明日中午會議"]');
+    const content=document.getElementById('mainContentText');
+    if(title) title.value=note.text.slice(0,28);
+    if(content) content.value=note.text;
+  },0);
+}
 
 function setRegisterMode(mode){
   const cb=document.getElementById('checkboxModeBox');
@@ -1151,6 +1281,7 @@ function loadCloudAckRecords(){
 }
 
 if(requireAdminAccess()){
+  refreshQuickNotebookOptions();
   renderNoticeTrack();
   loadCloudAckRecords();
 }
