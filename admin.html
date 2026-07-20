@@ -550,36 +550,7 @@ function setDue(type,btn){
 renderToday(); setDue('1',document.querySelector('.tab'));
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show')}
 function beep(){
-  try{
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    const ctx = new AudioCtx();
-    const master = ctx.createGain();
-    master.gain.value = 0.95;
-    master.connect(ctx.destination);
-
-    const tones = [880, 1175, 880, 1175, 988, 1319];
-    tones.forEach((frequency, index) => {
-      const start = ctx.currentTime + index * 0.48;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'square';
-      osc.frequency.value = frequency;
-      gain.gain.setValueAtTime(0.001, start);
-      gain.gain.exponentialRampToValueAtTime(0.42, start + 0.03);
-      gain.gain.setValueAtTime(0.42, start + 0.28);
-      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.42);
-      osc.connect(gain);
-      gain.connect(master);
-      osc.start(start);
-      osc.stop(start + 0.44);
-    });
-
-    setTimeout(() => { try{ ctx.close(); }catch(e){} }, 3600);
-  }catch(e){}
-
-  if(navigator.vibrate){
-    navigator.vibrate([500,180,500,180,700,220,900]);
-  }
+  try{const A=window.AudioContext||window.webkitAudioContext,c=new A(),m=c.createGain();m.gain.value=1;m.connect(c.destination);[880,1175,988,1319,880,1175,988,1319,1047,1397,1047,1397,880,1175].forEach((f,i)=>{const st=c.currentTime+i*.58,o=c.createOscillator(),g=c.createGain();o.type=i%2?'sawtooth':'square';o.frequency.value=f;g.gain.setValueAtTime(.001,st);g.gain.exponentialRampToValueAtTime(.85,st+.03);g.gain.setValueAtTime(.85,st+.4);g.gain.exponentialRampToValueAtTime(.001,st+.53);o.connect(g);g.connect(m);o.start(st);o.stop(st+.55)});setTimeout(()=>{try{c.close()}catch(e){}},9000)}catch(e){} if(navigator.vibrate)navigator.vibrate([1000,200,1000,200,1400,250,1000,200,1600]);
 }
 function demoAlarm(){
   document.getElementById('alarmBox').classList.add('show');
@@ -596,49 +567,22 @@ function openModal(type){
       <div class="row"><div><label>新增筆記本</label><input id="newNotebookName" placeholder="例如：園務待辦、日本旅行、廠商與採購"></div><div style="align-self:end"><button class="btn secondary" onclick="createNotebook()">＋建立筆記本</button></div></div>
       <div id="notebookTabs" class="noteBookBar"></div>
       <div id="notebookNotes"></div>`,
-    smartTask:`<div class="modalHeader"><h3>🤖 新增智慧任務</h3><button class="x" onclick="closeModal()">關閉</button></div>
-      <div class="note">依照實際使用順序重新排列：先說明事情，再設定時間與地點，接著決定提醒方式，最後選擇通知對象。</div>
-
-      <h3 style="margin:14px 0 4px;color:#254f65">1. 名稱與補充說明</h3>
-      <label>名稱</label><input id="taskName" placeholder="例如：下午一點半與廠商會面、教保會議、換飲水機濾心">
-      <label>補充說明</label><textarea id="taskDescription" placeholder="例如：請攜帶合約與估價單；會議前先確認參加人員。"></textarea>
-
-      <h3 style="margin:18px 0 4px;color:#254f65">2. 時間與地點</h3>
-      <div class="row"><div><label>日期方式</label><select id="taskDateMode" onchange="renderSmartTaskFields()"><option value="specific">特定日期（一次性）</option><option value="solarCycle">國曆週期</option><option value="lunarCycle">農曆週期</option></select></div><div><label>時間</label><input id="taskTime" type="time" value="09:00"></div></div>
+    smartTask:`<div class="modalHeader"><h3>📅 新增行程／提醒</h3><button class="x" onclick="closeModal()">關閉</button></div>
+      <div class="note">版面比照 Google 行事曆：先填活動與日期時間，再設定重複與提前通知；分享對象放在整份表單最後。</div>
+      <label>活動名稱</label><input id="taskName" placeholder="例如：下午一點半與廠商會面、每日巡堂">
+      <label>補充說明</label><textarea id="taskDescription"></textarea>
+      <div class="row"><div><label>開始日期</label><input id="taskDate" type="date"></div><div><label>開始時間</label><input id="taskTime" type="time" value="09:00"></div></div>
+      <div class="row"><div><label>結束日期（可留白）</label><input type="date"></div><div><label>結束時間（可留白）</label><input type="time"></div></div>
+      <label>地點／地址</label><input id="taskLocation" placeholder="未來可直接開啟 Google 地圖導航">
+      <label>重複</label><select id="taskRepeatMode" onchange="renderSmartTaskFields()"><option value="none">不重複</option><option value="daily">每天</option><option value="weekdays">每週一至週五</option><option value="weekly">每週指定星期</option><option value="monthly">每月</option><option value="yearly">每年</option><option value="lunar">農曆週期</option></select>
       <div id="smartDateFields"></div>
-      <label>地點／地址（可留白）</label><input id="taskLocation" placeholder="輸入地址後，未來可直接開啟 Google 地圖導航">
-
-      <h3 style="margin:18px 0 4px;color:#254f65">3. 提醒方式</h3>
-      <div class="checkGrid">
-        <label class="check"><input type="checkbox" id="alertPhone" checked>手機通知</label>
-        <label class="check"><input type="checkbox" id="alertWatch" checked>Apple Watch 提示</label>
-        <label class="check"><input type="checkbox" id="alertSound" checked>提示音／震動</label>
-        <label class="check"><input type="checkbox" id="alertRepeat" onchange="renderSmartTaskFields()">未完成再次提醒</label>
-      </div>
-      <label>提前預約提醒（可複選）</label>
-      <div class="hintBox">例如下午 1:30 的重要行程，可同時設定「提前 1 天、提前 1 小時、提前 10 分鐘」，正式時間再提醒一次。</div>
-      <div class="checkGrid" id="advanceReminderOptions">
-        <label class="check"><input type="checkbox" value="10080">提前 1 週</label>
-        <label class="check"><input type="checkbox" value="2880">提前 2 天</label>
-        <label class="check"><input type="checkbox" value="1440" checked>提前 1 天</label>
-        <label class="check"><input type="checkbox" value="120">提前 2 小時</label>
-        <label class="check"><input type="checkbox" value="60" checked>提前 1 小時</label>
-        <label class="check"><input type="checkbox" value="30">提前 30 分鐘</label>
-        <label class="check"><input type="checkbox" value="10" checked>提前 10 分鐘</label>
-        <label class="check"><input type="checkbox" value="0" checked>準時再次提醒</label>
-      </div>
-      <div class="row"><div><label>重要程度</label><select id="taskPriority"><option>一般</option><option>重要</option><option>非常重要</option></select></div><div><label>提醒持續方式</label><select id="alertDuration"><option>一般提示</option><option selected>強提醒（較長鈴聲＋震動）</option><option>未完成每 10 分鐘再提醒</option></select></div></div>
-      <div id="secondReminderFields"></div>
-
-      <h3 style="margin:18px 0 4px;color:#254f65">4. 通知對象</h3>
-      <div class="row"><div><label>公／私</label><select id="privacyMode" onchange="renderSmartTaskFields()"><option value="private">私人｜只有自己</option><option value="public">公務｜通知園內人員</option></select></div><div><label>通知後是否追蹤</label><select id="ackMode"><option value="none">不需確認</option><option value="ack">需要「我已收到」</option></select></div></div>
-      <div id="smartTargetFields"></div>
-
-      <details style="margin-top:16px"><summary style="font-weight:900;color:#355e73;cursor:pointer">其他進階設定</summary>
-        <div class="checkGrid" style="margin-top:10px"><label class="check"><input type="checkbox">至少保留在首頁一天</label><label class="check"><input type="checkbox">完成後保留紀錄</label></div>
-        <label>主管內部備註（可留白）</label><textarea placeholder="只有主管看得到，不會發送給通知對象。"></textarea>
-      </details>
-      <div class="btnRow"><button class="btn" onclick="showToast('已建立智慧任務測試資料')">儲存智慧任務</button><button class="btn secondary" onclick="demoAlarm()">測試提醒鈴聲</button></div>`,
+      <label>提前通知</label><div class="hintBox">自行輸入數字，再選分鐘、小時、天或週；可新增多筆。</div>
+      <div id="advanceReminderList"><div class="optionRow reminderRow"><input type="number" min="0" value="1" style="max-width:120px"><select style="max-width:150px"><option>分鐘</option><option>小時</option><option selected>天</option><option>週</option></select><button class="miniBtn secondary" onclick="removeReminderRow(this)">移除</button></div></div>
+      <div class="btnRow"><button class="btn secondary" onclick="addReminderRow()">＋新增另一個通知時間</button><button class="btn secondary" onclick="demoAlarm()">測試較長鈴聲</button></div>
+      <label>提醒方式</label><div class="checkGrid"><label class="check"><input type="checkbox" checked>手機通知</label><label class="check"><input type="checkbox" checked>Apple Watch 提示</label><label class="check"><input type="checkbox" checked>長鈴聲／震動</label><label class="check"><input type="checkbox" id="alertRepeat" onchange="renderSmartTaskFields()">未完成再次提醒</label></div><div id="secondReminderFields"></div>
+      <details style="margin-top:16px"><summary style="font-weight:900;color:#355e73">其他設定</summary><label>主管內部備註</label><textarea></textarea></details>
+      <h3 style="margin:20px 0 4px;color:#254f65">最後：分享對象</h3><div class="row"><div><label>公／私</label><select id="privacyMode" onchange="renderSmartTaskFields()"><option value="private">私人｜只有自己</option><option value="public">公務｜分享給園內人員</option></select></div><div><label>是否需要確認</label><select><option>不需確認</option><option>需要「我已收到」</option></select></div></div><div id="smartTargetFields"></div>
+      <div class="btnRow"><button class="btn" onclick="showToast('已建立行程提醒測試資料')">儲存行程／提醒</button></div>`,
     taskTrack:`<div class="modalHeader"><h3>📣 通知追蹤</h3><button class="x" onclick="closeModal()">關閉</button></div>
       <div class="note">這裡專門追蹤智慧任務發出的通知：誰已收到、誰還沒確認，必要時可以再次提醒。</div>
       <div class="list">
@@ -993,60 +937,13 @@ function loadTravelSample(){
 }
 
 
+function addReminderRow(){const b=document.getElementById('advanceReminderList');if(!b)return;const d=document.createElement('div');d.className='optionRow reminderRow';d.innerHTML='<input type="number" min="0" value="10" style="max-width:120px"><select style="max-width:150px"><option selected>分鐘</option><option>小時</option><option>天</option><option>週</option></select><button class="miniBtn secondary" onclick="removeReminderRow(this)">移除</button>';b.appendChild(d)}
+function removeReminderRow(btn){const rows=document.querySelectorAll('#advanceReminderList .reminderRow');if(rows.length>1)btn.closest('.reminderRow').remove();else showToast('至少保留一個提前通知時間')}
 function renderSmartTaskFields(){
-  const dateBox=document.getElementById('smartDateFields');
-  const targetBox=document.getElementById('smartTargetFields');
-  const secondBox=document.getElementById('secondReminderFields');
-  const mode=document.getElementById('taskDateMode')?.value || 'specific';
-  const privacy=document.getElementById('privacyMode')?.value || 'private';
-  const repeat=document.getElementById('alertRepeat')?.checked || false;
-
-  if(dateBox){
-    if(mode==='specific'){
-      dateBox.innerHTML=`<div class="row"><div><label>日期</label><input id="taskDate" type="date"></div><div><label>結束時間（可留白）</label><input id="taskEndTime" type="time"></div></div>`;
-    }else if(mode==='solarCycle'){
-      dateBox.innerHTML=`<div class="hintBox">適合每天、每週、每月或固定間隔發生的事項。</div><div class="row"><div><label>國曆週期</label><select><option>每天</option><option>每週固定星期</option><option>每月固定日期</option><option>每3個月一次</option><option>每半年一次</option><option>每年一次</option></select></div><div><label>週期條件</label><input placeholder="例如：每月5日；每週一"></div></div>`;
-    }else{
-      dateBox.innerHTML=`<div class="hintBox">適合農曆初二、十六或每年固定農曆日期。</div><div class="row"><div><label>農曆週期</label><select><option>每個農曆月</option><option>每年指定農曆月日</option></select></div><div><label>農曆月份</label><input placeholder="每月提醒可留白"></div></div><label>農曆日期，可複選</label><div class="checkGrid"><label class="check"><input type="checkbox">初一</label><label class="check"><input type="checkbox">初二</label><label class="check"><input type="checkbox">十五</label><label class="check"><input type="checkbox">十六</label></div>`;
-    }
-  }
-
-  if(secondBox){
-    secondBox.innerHTML = repeat ? `<div class="row"><div><label>未完成後多久再提醒</label><select><option>5 分鐘後</option><option>10 分鐘後</option><option>30 分鐘後</option><option>1 小時後</option><option>隔天同一時間</option></select></div><div><label>最多再次提醒</label><select><option>1 次</option><option>2 次</option><option>3 次</option><option>直到完成</option></select></div></div>` : '';
-  }
-
-  if(targetBox){
-    if(privacy==='private'){
-      targetBox.innerHTML=`<div class="hintBox">私人事項只有建立者本人看得到，不會出現在園長、主任或其他同仁的畫面。</div>`;
-    }else{
-      targetBox.innerHTML=`<div class="hintBox">先選部門，再選該部門全體或個人。可同時通知多個部門。</div>
-        <div class="panel" style="box-shadow:none;margin-top:10px">
-          <label class="check"><input type="checkbox" onchange="toggleDepartmentTarget('幼兒部',this.checked)"><strong>幼兒部</strong></label>
-          <div id="target-幼兒部" style="display:none;margin:8px 0 4px 24px">
-            <label class="check"><input type="radio" name="幼兒部Target" value="all" checked>幼兒部全體</label>
-            <label class="check"><input type="radio" name="幼兒部Target" value="person">選擇個人</label>
-            <input class="deptPersonInput" data-dept="幼兒部" placeholder="輸入或選擇幼兒部人員姓名" style="margin-top:8px;display:none">
-          </div>
-        </div>
-        <div class="panel" style="box-shadow:none;margin-top:10px">
-          <label class="check"><input type="checkbox" onchange="toggleDepartmentTarget('安親部',this.checked)"><strong>安親部</strong></label>
-          <div id="target-安親部" style="display:none;margin:8px 0 4px 24px">
-            <label class="check"><input type="radio" name="安親部Target" value="all" checked>安親部全體</label>
-            <label class="check"><input type="radio" name="安親部Target" value="person">選擇個人</label>
-            <input class="deptPersonInput" data-dept="安親部" placeholder="輸入或選擇安親部人員姓名" style="margin-top:8px;display:none">
-          </div>
-        </div>
-        <div class="panel" style="box-shadow:none;margin-top:10px">
-          <label class="check"><input type="checkbox" onchange="toggleDepartmentTarget('庶務部',this.checked)"><strong>庶務部</strong></label>
-          <div id="target-庶務部" style="display:none;margin:8px 0 4px 24px">
-            <label class="check"><input type="radio" name="庶務部Target" value="all" checked>庶務部全體</label>
-            <label class="check"><input type="radio" name="庶務部Target" value="person">選擇個人</label>
-            <input class="deptPersonInput" data-dept="庶務部" placeholder="輸入或選擇庶務部人員姓名" style="margin-top:8px;display:none">
-          </div>
-        </div>`;
-      bindDepartmentRadios();
-    }
-  }
+ const d=document.getElementById('smartDateFields'),t=document.getElementById('smartTargetFields'),s=document.getElementById('secondReminderFields'),r=document.getElementById('taskRepeatMode')?.value||'none',p=document.getElementById('privacyMode')?.value||'private';
+ if(d){if(r==='weekdays')d.innerHTML='<div class="hintBox">適合每日巡堂：週一至週五執行，並排除假日。</div><div class="checkGrid"><label class="check"><input type="checkbox" checked>排除國定假日</label><label class="check"><input type="checkbox" checked>排除園所休園日</label></div>';else if(r==='daily')d.innerHTML='<div class="hintBox">每天執行；若不含假日，建議改選「每週一至週五」。</div><div class="checkGrid"><label class="check"><input type="checkbox">排除國定假日</label><label class="check"><input type="checkbox">排除園所休園日</label></div>';else if(r==='weekly')d.innerHTML='<label>每週執行日</label><div class="checkGrid">'+['一','二','三','四','五','六','日'].map(x=>'<label class="check"><input type="checkbox">週'+x+'</label>').join('')+'</div>';else if(r==='monthly')d.innerHTML='<div class="row"><div><label>每幾個月</label><input type="number" min="1" value="1"></div><div><label>每月幾日</label><input type="number" min="1" max="31" value="1"></div></div>';else if(r==='lunar')d.innerHTML='<label>農曆日期</label><input placeholder="例如：每月初二、十六">';else d.innerHTML=''}
+ if(s)s.innerHTML=document.getElementById('alertRepeat')?.checked?'<div class="row"><div><label>未完成後</label><select><option>10 分鐘</option><option>30 分鐘</option><option>1 小時</option></select></div><div><label>最多提醒</label><select><option>1 次</option><option>3 次</option><option>直到完成</option></select></div></div>':'';
+ if(t){if(p==='private')t.innerHTML='<div class="hintBox">只有自己看得到。</div>';else{t.innerHTML=`<div class="hintBox">先選部門，再選全體或個人。</div>${['幼兒部','安親部','庶務部'].map(x=>`<div class="panel" style="box-shadow:none;margin-top:8px"><label class="check"><input type="checkbox" onchange="toggleDepartmentTarget('${x}',this.checked)"><strong>${x}</strong></label><div id="target-${x}" style="display:none;margin:8px 0 4px 24px"><label class="check"><input type="radio" name="${x}Target" value="all" checked>${x}全體</label><label class="check"><input type="radio" name="${x}Target" value="person">選擇個人</label><input class="deptPersonInput" data-dept="${x}" placeholder="輸入姓名" style="display:none;margin-top:8px"></div></div>`).join('')}`;bindDepartmentRadios()}}
 }
 
 function toggleDepartmentTarget(dept, checked){
