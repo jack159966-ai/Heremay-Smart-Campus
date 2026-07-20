@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4f8ff">
+<title>Heremay 和美智慧校園｜團購報名中心 v1.4.1</title>
+<style>
+:root{
+  --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
+  --muted:#6f8298;--green:#2ca86b;--orange:#ef7b28;--red:#d94d59;
+  --shadow:0 10px 28px rgba(45,82,132,.11);--radius:24px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:linear-gradient(180deg,#f8fbff,#edf5ff 55%,#fbfdff);color:#203b61}
+.app{width:min(980px,100%);margin:auto;padding:14px 12px 90px}
+.header{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:8px 4px 16px}
+.logo{width:64px;height:64px;border-radius:20px;background:#fff;box-shadow:var(--shadow);overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:contain;padding:3px}
+.header small{display:block;color:#607b98;font-weight:800}
+.header h1{margin:2px 0 0;font-size:30px;color:var(--deep)}
+.back{border:1px solid #cfe0f5;background:#fff;color:var(--blue);border-radius:16px;padding:11px 14px;font-size:15px;font-weight:900;cursor:pointer}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:13px}
+.tab{border:1px solid #d8e6f6;background:#fff;color:#57738f;border-radius:16px;padding:12px 8px;font-weight:900;cursor:pointer}
+.tab.active{background:#2f68d8;color:#fff;border-color:#2f68d8}
+.panel{display:none}.panel.active{display:block}
+.card{background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:13px;box-shadow:var(--shadow)}
+.card h2{margin:0 0 12px;color:var(--deep);font-size:23px}
+.card h3{margin:16px 0 8px;color:#244e7c}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:block;margin:10px 0 6px;font-weight:900;color:#355d88}
+input,textarea,select{width:100%;border:1px solid #cedff2;border-radius:15px;padding:12px 13px;font-size:16px;background:#fcfeff;color:#203b61}
+input[type="number"]{-moz-appearance:textfield;appearance:textfield}
+input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+textarea{min-height:95px;resize:vertical}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+.btn{border:0;border-radius:16px;padding:12px 16px;font-size:16px;font-weight:900;cursor:pointer;background:var(--blue);color:#fff}
+.btn.secondary{background:#edf4ff;color:var(--blue);border:1px solid #cfe0f5}
+.btn.danger{background:#fff0f1;color:var(--red);border:1px solid #ffd0d4}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.hint{background:#f5f9ff;border:1px solid #d8e6f6;border-radius:16px;padding:11px;color:#56718d;line-height:1.55;font-weight:800;font-size:14px;margin:8px 0}
+.templateGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.templateCategoryGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:start}
+.templateCategoryBox{display:grid;gap:8px}
+.savedUnderTemplate{display:grid;gap:7px}
+.savedUnderTemplate:empty{display:none}
+.savedUnderTemplate .templateSaved{grid-template-columns:1fr;padding:9px}
+.savedUnderTemplate .actions{margin-top:6px}
+.savedUnderTemplate .btn{padding:8px 10px;font-size:14px}
+.templateBtn{border:1px solid #d8e6f6;background:#fff;border-radius:16px;padding:12px 8px;font-weight:900;color:#315f91;cursor:pointer}
+.templateBtn.active{background:#eaf2ff;border-color:#8fb2ea;color:#174eaa}
+.templatePicker{margin-top:12px;border:1px solid #cfe0f5;border-radius:20px;padding:14px;background:#f8fbff}
+.templatePickerHead{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.templatePickerHead h3{margin:0;color:#173f75}
+.templatePickerList{display:grid;gap:8px;margin-top:10px}
+.templateChoice{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#fff;border:1px solid #dce8f7;border-radius:16px;padding:11px}
+.templateChoice strong{display:block;color:#204f83}
+.templateChoice small{color:#71879d;font-weight:800}
+.newTemplateChoice{border:2px dashed #9cbce6;background:#f4f8ff}
+.checkGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.check{display:flex;gap:7px;align-items:center;background:#f8fbff;border:1px solid #dce8f7;border-radius:14px;padding:10px;font-weight:850}
+.check input{width:auto}
+.productEditor{border:1px solid #dce8f7;border-radius:20px;padding:14px;margin-top:12px;background:#fbfdff}
+.productTop{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
+.productTop h3{margin:0}
+.specList,.prefList{display:grid;gap:8px;margin-top:8px}
+.specRow{display:grid;grid-template-columns:1fr 130px auto;gap:8px;align-items:center}
+.prefRow{display:grid;grid-template-columns:1fr 140px 1.5fr auto;gap:8px;align-items:center}
+.fileList{display:grid;gap:8px;margin-top:10px}
+.fileChip{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid #dce8f7;border-radius:14px;padding:10px;background:#fff}
+.fileChip strong{display:block;font-size:14px;word-break:break-all}.fileChip small{color:var(--muted)}
+.eventCard{border:1px solid #dce8f7;border-radius:21px;padding:15px;background:#fff;margin-top:10px}
+.campaignList{display:grid;gap:10px}
+.campaignSummary{border:1px solid #dce8f7;border-radius:20px;padding:14px;background:#fff}
+.campaignSummary h3{margin:0;color:#173f75}
+.summaryActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.templateSaved{border:1px solid #dce8f7;border-radius:16px;padding:11px;background:#fbfdff;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+
+.eventCard h3{margin:0;color:#173f75}
+.meta{font-size:13px;color:#71879d;font-weight:800;line-height:1.55;margin-top:6px}
+.counter{display:inline-flex;gap:8px;align-items:center;background:#fff5e9;border:1px solid #ffddb3;border-radius:999px;padding:7px 11px;font-weight:900;color:#99531d;margin-top:8px}
+.productCard{border-top:1px dashed #dce8f7;padding-top:12px;margin-top:12px}
+.productHead{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.productName{font-size:18px;font-weight:950;color:#173f75}
+.optionBlock{margin-top:8px}
+.optionLabel{font-size:14px;font-weight:900;color:#45688d;margin-bottom:5px}
+.choiceGrid{display:flex;gap:8px;flex-wrap:wrap}
+.choice{border:1px solid #d4e2f4;background:#f8fbff;border-radius:999px;padding:8px 11px;font-weight:850;cursor:pointer}
+.choice input{width:auto;margin-right:5px}
+.qtyGrid{display:grid;grid-template-columns:110px 1fr;gap:10px;margin-top:10px}
+.totalBox{margin-top:12px;background:#fff7e8;border:1px solid #ffdcae;border-radius:18px;padding:13px;font-size:20px;font-weight:950;color:#9b5419}
+.publicTable{width:100%;border-collapse:collapse;margin-top:10px}
+.publicTable th,.publicTable td{border:1px solid #dbe7f4;padding:9px;text-align:left;vertical-align:top}
+.publicTable th{background:#edf4ff;color:#285a9f}
+.badge{display:inline-block;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900}
+.badge.ok{background:#eaf8ef;color:#238558}
+.badge.no{background:#fff0f1;color:#c1434f}
+.badge.wait{background:#fff4df;color:#b46617}
+.empty{text-align:center;padding:28px;color:var(--muted);font-weight:850;background:#f8fbff;border-radius:18px;border:1px dashed #ccdced}
+.toast{position:fixed;left:50%;bottom:25px;transform:translateX(-50%);background:#173f75;color:#fff;border-radius:999px;padding:11px 16px;font-weight:900;opacity:0;pointer-events:none;transition:.25s;z-index:30}
+.toast.show{opacity:1}
+.version{text-align:center;color:#7890a6;font-size:12px;font-weight:800;margin-top:10px}
+@media(max-width:760px){
+  .header{grid-template-columns:54px 1fr}.logo{width:54px;height:54px}.back{grid-column:1/3;width:100%}
+  .tabs{grid-template-columns:repeat(2,1fr)}.row,.specRow,.prefRow,.qtyGrid{grid-template-columns:1fr}
+  .templateGrid,.templateCategoryGrid{grid-template-columns:repeat(2,1fr)}.checkGrid{grid-template-columns:1fr}.header h1{font-size:27px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+<header class="header">
+  <div class="logo"><img src="assets/logo.png?v=20260720-groupbuy-v11" alt="和美智慧校園 Logo" onerror="this.parentElement.textContent='🏰'"></div>
+  <div><small>Heremay 和美智慧校園</small><h1>🛒 團購／報名中心</h1></div>
+  <button class="back" type="button" onclick="goBack()">← 返回上一頁</button>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" onclick="showPanel('available',this)">可參加</button>
+  <button class="tab" onclick="showPanel('create',this)">發起活動</button>
+  <button class="tab" onclick="showPanel('mine',this)">我的回覆</button>
+  <button class="tab" onclick="showPanel('stats',this)">統計／結單</button>
+</nav>
+
+<section id="available" class="panel active">
+  <div class="card"><h2>目前可參加的團購／活動</h2><div id="availableList"></div></div>
+</section>
+
+<section id="create" class="panel">
+  <div class="card">
+    <h2>選擇模板</h2>
+    <div class="templateGrid">
+      <button class="templateBtn active" onclick="openTemplatePicker('drink',this)">🥤 飲料</button>
+      <button class="templateBtn" onclick="openTemplatePicker('meal',this)">🍱 餐點</button>
+      <button class="templateBtn" onclick="openTemplatePicker('goods',this)">📦 一般商品</button>
+      <button class="templateBtn" onclick="openTemplatePicker('travel',this)">🚌 旅遊／聚餐</button>
+      <button class="templateBtn" onclick="openTemplatePicker('training',this)">📚 研習／活動</button>
+    </div>
+
+    <div id="templatePicker" class="templatePicker" style="display:none">
+      <div class="templatePickerHead">
+        <h3 id="templatePickerTitle">選擇模板</h3>
+        <button class="btn secondary" type="button" onclick="closeTemplatePicker()">關閉</button>
+      </div>
+      <div id="templatePickerList" class="templatePickerList"></div>
+    </div>
+
+    <div id="selectedTemplateNotice" class="hint">目前使用：飲料系統模板</div>
+
+    <div class="row">
+      <div><label>活動名稱</label><input id="campaignTitle" placeholder="例如：下午茶飲料團購"></div>
+      <div><label>主辦人</label><input id="hostName"></div>
+    </div>
+    <label>活動說明</label><textarea id="campaignDesc"></textarea>
+    <div class="row">
+      <div><label>截止日期</label><input id="deadlineDate" type="date"></div>
+      <div><label>截止時間</label><input id="deadlineTime" type="time" value="17:00"></div>
+    </div>
+
+    <label>開放對象</label>
+    <div class="checkGrid" id="targets">
+      <label class="check"><input type="checkbox" value="全體" checked>全體</label>
+      <label class="check"><input type="checkbox" value="行政">行政</label>
+      <label class="check"><input type="checkbox" value="教保">教保</label>
+      <label class="check"><input type="checkbox" value="庶務">庶務</label>
+    </div>
+
+    <div class="row">
+      <div><label>參加者可查看他人內容</label>
+        <select id="visibility">
+          <option value="private">不公開，只有主辦人可看</option>
+          <option value="status">公開姓名與參加狀態</option>
+          <option value="full">公開完整登記內容</option>
+        </select>
+      </div>
+      <div><label>是否必須回覆</label>
+        <select id="replyRequired"><option value="no">否</option><option value="yes">是，必須選參加或不參加</option></select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div><label>總人數上限（0＝不限）</label><input id="capacity" type="number" min="0" value="0" inputmode="numeric"></div>
+      <div><label>候補機制</label><select id="waitlist"><option value="off">不啟用</option><option value="on">額滿後自動候補</option></select></div>
+    </div>
+    <div class="row">
+      <div><label>每人最多攜伴</label><input id="maxCompanion" type="number" min="0" value="0" inputmode="numeric"></div>
+      <div><label>名額計算方式</label><select id="capacityMode"><option value="people">本人＋攜伴都計入</option><option value="registrations">只計報名筆數</option></select></div>
+    </div>
+    <div class="row">
+      <div><label>建議保存方式</label>
+        <select id="retentionMode">
+          <option value="delete">短期活動：結束後通常不必長期保存</option>
+          <option value="keep">重要活動：建議保留報名與統計紀錄</option>
+        </select>
+      </div>
+      <div><label>說明</label><div class="hint" style="margin:0">這只是提醒；活動結束後仍可選擇保留或永久刪除。</div></div>
+    </div>
+
+    <label>附件：圖片與 PDF，可分批累加</label>
+    <input id="attachments" type="file" accept="image/*,.pdf" multiple>
+    <div id="fileList" class="fileList"></div>
+
+    <h2 style="margin-top:18px">本次開放品項</h2>
+    <div class="hint">只建立這次要提供的少數品項。每個品項分成「價格規格」與「免費偏好」。</div>
+    <div id="productEditors"></div>
+    <div class="actions"><button class="btn secondary" onclick="addProductEditor()">＋新增下一個品項</button></div>
+
+    <div id="editNotice" class="hint" style="display:none">✏️ 正在編輯既有活動；儲存後會更新原活動，不會新增另一份。</div>
+    <div class="actions">
+      <button class="btn" id="saveCampaignBtn" onclick="createCampaign()">建立活動</button>
+      <button class="btn secondary" onclick="saveCurrentAsTemplate()">儲存為我的模板</button>
+      <button class="btn secondary" onclick="resetForm()">清除表單</button>
+      <button class="btn secondary" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">取消編輯</button>
+    </div>
+  </div>
+</section>
+
+<section id="mine" class="panel">
+  <div class="card"><h2>我的回覆與訂購</h2><div id="myOrders"></div></div>
+</section>
+
+<section id="stats" class="panel">
+  <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
+</section>
+
+<div class="version">團購／報名中心 v1.4.1｜2026-07-20｜活動結束與永久刪除分離</div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const CK='heremay.groupbuy.campaigns.v11', OK='heremay.groupbuy.orders.v11', TK='heremay.groupbuy.templates.v12';
+let pendingFiles=[], activeTemplate='drink', editingCampaignId='', openedCampaignId='', pickerCategory='drink';
+
+const templateCategoryNames={
+ drink:'🥤 飲料類常用模板',
+ meal:'🍱 餐點類常用模板',
+ goods:'📦 一般商品類常用模板',
+ travel:'🚌 旅遊／聚餐類常用模板',
+ training:'📚 研習／活動類常用模板'
+};
+
+const templates={
+ drink:{title:'飲料團購',desc:'請選擇飲品、杯型、冷熱、甜度與冰量。',required:false,visibility:'full',capacity:0,waitlist:'off',maxCompanion:0,
+ products:[{name:'珍珠奶茶',specs:[['中杯',50],['大杯',60]],prefs:[['冷熱','單選','冷,熱'],['甜度','單選','正常,少糖,半糖,微糖,無糖'],['冰量','單選','正常冰,少冰,微冰,去冰']]}]},
+ meal:{title:'餐點團購',desc:'請選擇餐點、份量與口味。',required:false,visibility:'full',capacity:0,waitlist:'off',maxCompanion:0,
+ products:[{name:'雞排',specs:[['一般',75],['加大',95]],prefs:[['辣度','單選','不辣,小辣,中辣,大辣'],['口味','單選','原味,梅粉,海苔'],['切法','單選','切,不切']]}]},
+ goods:{title:'一般商品團購',desc:'請選擇商品規格、顏色、尺寸與數量。',required:false,visibility:'private',capacity:0,waitlist:'off',maxCompanion:0,
+ products:[{name:'商品 A',specs:[['基本款',100]],prefs:[['顏色','單選','紅,藍,黑'],['尺寸','單選','S,M,L,XL']]}]},
+ travel:{title:'旅遊／聚餐報名',desc:'每位受邀者都要回覆參加或不參加。名額依成功送出時間排序。',required:true,visibility:'status',capacity:40,waitlist:'on',maxCompanion:1,
+ products:[{name:'活動報名',specs:[['本人參加',0]],prefs:[['餐食','單選','葷食,素食'],['交通','單選','搭車,自行前往'],['其他需求','文字','']]}]},
+ training:{title:'研習／活動報名',desc:'請選擇參加場次與餐食。',required:true,visibility:'status',capacity:30,waitlist:'on',maxCompanion:0,
+ products:[{name:'研習報名',specs:[['上午場',0],['下午場',0]],prefs:[['餐食','單選','葷食,素食,不需要'],['需要研習時數','單選','需要,不需要']]}]}
+};
+
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>t.classList.remove('show'),1500)}
+function currentEmployee(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}')}catch(e){return {}}}
+function currentName(){return currentEmployee().name||'目前使用者'}
+function getC(){try{return JSON.parse(localStorage.getItem(CK)||'[]')}catch(e){return []}}
+function setC(v){localStorage.setItem(CK,JSON.stringify(v))}
+function getO(){try{return JSON.parse(localStorage.getItem(OK)||'[]')}catch(e){return []}}
+function setO(v){localStorage.setItem(OK,JSON.stringify(v))}
+function getT(){try{return JSON.parse(localStorage.getItem(TK)||'[]')}catch(e){return []}}
+function setT(v){localStorage.setItem(TK,JSON.stringify(v))}
+function isHost(c){return (c.host||'')===currentName()}
+
+function goBack(){const r=String(localStorage.getItem('heremay.currentRole')||'').toLowerCase();location.href=r==='admin'?'admin.html':r==='teacher'?'teacher.html':r==='support'?'support.html':'index.html'}
+function showPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');btn.classList.add('active');renderAll()}
+
+function applyTemplate(type,btn){
+ activeTemplate=type;
+ document.querySelectorAll('.templateBtn').forEach(x=>x.classList.remove('active'));
+ if(btn)btn.classList.add('active');
+ const t=templates[type];if(!t)return;
+ document.getElementById('campaignTitle').value=t.title;
+ document.getElementById('campaignDesc').value=t.desc;
+ document.getElementById('replyRequired').value=t.required?'yes':'no';
+ document.getElementById('visibility').value=t.visibility;
+ document.getElementById('capacity').value=t.capacity;
+ document.getElementById('waitlist').value=t.waitlist;
+ document.getElementById('maxCompanion').value=t.maxCompanion;
+ document.getElementById('retentionMode').value=(type==='travel'||type==='training')?'keep':'delete';
+ document.getElementById('selectedTemplateNotice').textContent='目前使用：'+(templateCategoryNames[type]||type)+'系統模板';
+ document.getElementById('productEditors').innerHTML='';
+ t.products.forEach(p=>addProductEditor(p));
+}
+function specRow(name='',price=''){return `<div class="specRow"><input class="specName" placeholder="規格，例如：大杯、熱飲" value="${esc(name)}"><input class="specPrice" type="number" min="0" inputmode="decimal" placeholder="價格" value="${esc(price)}"><button class="btn danger" type="button" onclick="this.closest('.specRow').remove()">移除</button></div>`}
+function prefRow(name='',type='單選',values=''){return `<div class="prefRow"><input class="prefName" placeholder="偏好，例如：甜度、辣度" value="${esc(name)}"><select class="prefType"><option ${type==='單選'?'selected':''}>單選</option><option ${type==='複選'?'selected':''}>複選</option><option ${type==='文字'?'selected':''}>文字</option></select><input class="prefValues" placeholder="選項，以逗號分隔" value="${esc(values)}"><button class="btn danger" type="button" onclick="this.closest('.prefRow').remove()">移除</button></div>`}
+function addProductEditor(data={name:'',specs:[['',0]],prefs:[]}){
+ const d=document.createElement('div');d.className='productEditor';
+ d.innerHTML=`<div class="productTop"><div><label>品名</label><input class="productNameInput" placeholder="例如：珍珠奶茶" value="${esc(data.name||'')}"></div><div class="actions"><button class="btn secondary" type="button" onclick="duplicateProduct(this)">複製此品項</button><button class="btn danger" onclick="removeProduct(this)">刪除品項</button></div></div>
+ <h3>價格規格</h3><div class="hint">大小、份量、冷熱若會影響價格，就建立為規格。</div><div class="specList">${(data.specs||[]).map(x=>specRow(x[0],x[1])).join('')}</div><div class="actions"><button class="btn secondary" type="button" onclick="this.closest('.productEditor').querySelector('.specList').insertAdjacentHTML('beforeend',specRow())">＋新增價格規格</button></div>
+ <h3>免費偏好</h3><div class="hint">甜度、冰量、辣度、鹹度、切法等不改變價格。</div><div class="prefList">${(data.prefs||[]).map(x=>prefRow(x[0],x[1],x[2])).join('')}</div><div class="actions"><button class="btn secondary" type="button" onclick="this.closest('.productEditor').querySelector('.prefList').insertAdjacentHTML('beforeend',prefRow())">＋新增免費偏好</button><button class="btn secondary" type="button" onclick="copyPrefsFromPrevious(this)">套用上一個品項偏好</button></div>`;
+ document.getElementById('productEditors').appendChild(d);
+}
+function removeProduct(btn){const box=document.getElementById('productEditors');if(box.children.length<=1)return toast('至少保留一個品項');btn.closest('.productEditor').remove()}
+function editorData(ed){
+ return {name:ed.querySelector('.productNameInput').value.trim()+' 副本',
+ specs:[...ed.querySelectorAll('.specRow')].map(r=>[r.querySelector('.specName').value.trim(),Number(r.querySelector('.specPrice').value||0)]),
+ prefs:[...ed.querySelectorAll('.prefRow')].map(r=>[r.querySelector('.prefName').value.trim(),r.querySelector('.prefType').value,r.querySelector('.prefValues').value])};
+}
+function duplicateProduct(btn){const ed=btn.closest('.productEditor');addProductEditor(editorData(ed));toast('已複製品項')}
+function copyPrefsFromPrevious(btn){
+ const ed=btn.closest('.productEditor'),all=[...document.querySelectorAll('.productEditor')],idx=all.indexOf(ed);
+ if(idx<=0)return toast('前面沒有可套用的品項');
+ const prev=all[idx-1],list=ed.querySelector('.prefList');list.innerHTML='';
+ [...prev.querySelectorAll('.prefRow')].forEach(r=>list.insertAdjacentHTML('beforeend',prefRow(r.querySelector('.prefName').value,r.querySelector('.prefType').value,r.querySelector('.prefValues').value)));
+ toast('已套用上一個品項的偏好');
+}
+
+document.getElementById('attachments').addEventListener('change',e=>{for(const f of [...e.target.files])if(!pendingFiles.some(x=>x.name===f.name&&x.size===f.size&&x.lastModified===f.lastModified))pendingFiles.push(f);e.target.value='';renderFiles()});
+function renderFiles(){document.getElementById('fileList').innerHTML=pendingFiles.map((f,i)=>`<div class="fileChip"><span><strong>📎 ${esc(f.name)}</strong><small>${Math.ceil(f.size/1024)} KB</small></span><button class="btn danger" onclick="pendingFiles.splice(${i},1);renderFiles()">移除</button></div>`).join('')}
+function collectProducts(){return [...document.querySelectorAll('.productEditor')].map(ed=>({id:'p_'+Date.now()+'_'+Math.random().toString(36).slice(2),name:ed.querySelector('.productNameInput').value.trim(),specs:[...ed.querySelectorAll('.specRow')].map(r=>({name:r.querySelector('.specName').value.trim(),price:Number(r.querySelector('.specPrice').value||0)})).filter(x=>x.name),prefs:[...ed.querySelectorAll('.prefRow')].map(r=>({name:r.querySelector('.prefName').value.trim(),type:r.querySelector('.prefType').value,values:r.querySelector('.prefValues').value.split(/[,，、；;\n\r]+/).map(x=>x.trim()).filter(Boolean)})).filter(x=>x.name)})).filter(x=>x.name&&x.specs.length)}
+
+function currentFormSnapshot(){
+ return {
+  template:activeTemplate,
+  title:document.getElementById('campaignTitle').value.trim(),
+  desc:document.getElementById('campaignDesc').value.trim(),
+  visibility:document.getElementById('visibility').value,
+  replyRequired:document.getElementById('replyRequired').value==='yes',
+  capacity:Number(document.getElementById('capacity').value||0),
+  waitlist:document.getElementById('waitlist').value==='on',
+  maxCompanion:Number(document.getElementById('maxCompanion').value||0),
+  capacityMode:document.getElementById('capacityMode').value,
+  retentionMode:document.getElementById('retentionMode').value,
+  products:collectProducts()
+ };
+}
+function saveCurrentAsTemplate(){
+ const snap=currentFormSnapshot();
+ if(!snap.products.length)return toast('請先建立品項');
+ const name=prompt('請輸入模板名稱，例如：常買飲料店');
+ if(!name)return;
+ const ts=getT();ts.unshift({id:'t_'+Date.now(),name:name.trim(),template:activeTemplate,...snap});setT(ts);renderSavedTemplates();toast('常用模板已儲存');
+}
+function loadSavedTemplate(id){
+ const t=getT().find(x=>x.id===id);if(!t)return;
+ activeTemplate=t.template||'drink';
+ document.getElementById('campaignTitle').value=t.title||t.name||'';
+ document.getElementById('campaignDesc').value=t.desc||'';
+ document.getElementById('visibility').value=t.visibility||'private';
+ document.getElementById('replyRequired').value=t.replyRequired?'yes':'no';
+ document.getElementById('capacity').value=Number(t.capacity||0);
+ document.getElementById('waitlist').value=t.waitlist?'on':'off';
+ document.getElementById('maxCompanion').value=Number(t.maxCompanion||0);
+ document.getElementById('capacityMode').value=t.capacityMode||'people';
+ document.getElementById('productEditors').innerHTML='';
+ (t.products||[]).forEach(p=>addProductEditor({name:p.name,specs:(p.specs||[]).map(s=>[s.name,s.price]),prefs:(p.prefs||[]).map(pref=>[pref.name,pref.type,(pref.values||[]).join('，')])}));
+ document.getElementById('retentionMode').value=t.retentionMode||((activeTemplate==='travel'||activeTemplate==='training')?'keep':'delete');
+ document.getElementById('selectedTemplateNotice').textContent='目前使用：'+t.name;
+ document.getElementById('campaignTitle').scrollIntoView({behavior:'smooth',block:'center'});
+ toast('常用模板已載入');
+}
+function deleteSavedTemplate(id){
+ if(!confirm('確定刪除這個常用模板嗎？'))return;
+ setT(getT().filter(x=>x.id!==id));renderSavedTemplates();toast('模板已刪除');
+}
+function renderSavedTemplates(){
+ if(document.getElementById('templatePicker')?.style.display!=='none')renderTemplatePicker();
+}
+function openTemplatePicker(cat,btn){
+ pickerCategory=cat;
+ document.querySelectorAll('.templateBtn').forEach(x=>x.classList.remove('active'));
+ btn.classList.add('active');
+ document.getElementById('templatePicker').style.display='block';
+ renderTemplatePicker();
+}
+function closeTemplatePicker(){
+ document.getElementById('templatePicker').style.display='none';
+}
+function renderTemplatePicker(){
+ const box=document.getElementById('templatePickerList');
+ const title=document.getElementById('templatePickerTitle');
+ const items=getT().filter(t=>(t.template||'drink')===pickerCategory);
+ title.textContent=templateCategoryNames[pickerCategory]||'選擇模板';
+ box.innerHTML=`<div class="templateChoice newTemplateChoice">
+   <div><strong>＋建立全新${(templateCategoryNames[pickerCategory]||'').replace(/^.. /,'')}</strong><small>使用系統預設欄位，再自行調整內容</small></div>
+   <button class="btn" type="button" onclick="startNewFromCategory('${pickerCategory}')">新創</button>
+ </div>`+
+ items.map(t=>`<div class="templateChoice">
+   <div><strong>${esc(t.name)}</strong><small>${(t.products||[]).length} 個品項</small></div>
+   <div class="actions"><button class="btn secondary" type="button" onclick="loadSavedTemplate('${t.id}');closeTemplatePicker()">套用</button><button class="btn danger" type="button" onclick="deleteSavedTemplate('${t.id}')">刪除</button></div>
+ </div>`).join('');
+}
+function startNewFromCategory(cat){
+ activeTemplate=cat;
+ const buttons=[...document.querySelectorAll('.templateBtn')];
+ const idx={drink:0,meal:1,goods:2,travel:3,training:4}[cat]??0;
+ applyTemplate(cat,buttons[idx]);
+ closeTemplatePicker();
+ document.getElementById('campaignTitle').scrollIntoView({behavior:'smooth',block:'center'});
+ toast('已開啟全新模板');
+}
+function createCampaign(){
+ const title=document.getElementById('campaignTitle').value.trim(),products=collectProducts();
+ if(!title)return toast('請輸入活動名稱');
+ if(!products.length)return toast('請建立至少一個完整品項');
+
+ const existing=editingCampaignId?getC().find(x=>x.id===editingCampaignId):null;
+ const c={
+   id:existing?.id||('c_'+Date.now()),
+   template:activeTemplate,
+   title,
+   host:document.getElementById('hostName').value.trim()||currentName(),
+   desc:document.getElementById('campaignDesc').value.trim(),
+   deadline:[document.getElementById('deadlineDate').value,document.getElementById('deadlineTime').value].filter(Boolean).join(' '),
+   targets:[...document.querySelectorAll('#targets input:checked')].map(x=>x.value),
+   visibility:document.getElementById('visibility').value,
+   replyRequired:document.getElementById('replyRequired').value==='yes',
+   capacity:Number(document.getElementById('capacity').value||0),
+   waitlist:document.getElementById('waitlist').value==='on',
+   maxCompanion:Number(document.getElementById('maxCompanion').value||0),
+   capacityMode:document.getElementById('capacityMode').value,
+   retentionMode:document.getElementById('retentionMode').value,
+   files:pendingFiles.length?pendingFiles.map(f=>({name:f.name,size:f.size,type:f.type})):(existing?.files||[]),
+   products,
+   closed:existing?.closed||false,
+   createdAt:existing?.createdAt||new Date().toISOString(),
+   updatedAt:new Date().toISOString()
+ };
+
+ const cs=getC();
+ if(existing){
+   const idx=cs.findIndex(x=>x.id===editingCampaignId);
+   if(idx>=0)cs[idx]=c;
+ }else{
+   cs.unshift(c);
+ }
+ setC(cs);
+ const msg=existing?'活動已更新':'活動已建立';
+ resetForm();
+ renderAll();
+ toast(msg);
+}
+function resetForm(){
+ editingCampaignId='';
+ pendingFiles=[];
+ renderFiles();
+ document.getElementById('productEditors').innerHTML='';
+ applyTemplate('drink',document.querySelector('.templateBtn'));
+ document.getElementById('saveCampaignBtn').textContent='建立活動';
+ document.getElementById('editNotice').style.display='none';
+ document.getElementById('cancelEditBtn').style.display='none';
+}
+function cancelEdit(){resetForm();toast('已取消編輯')}
+function editCampaign(id){
+ const c=getC().find(x=>x.id===id);if(!c)return;
+ editingCampaignId=id;
+ activeTemplate=c.template||'drink';
+ document.querySelectorAll('.templateBtn').forEach(btn=>btn.classList.remove('active'));
+ const templateIndex={drink:0,meal:1,goods:2,travel:3,training:4}[activeTemplate]??0;
+ document.querySelectorAll('.templateBtn')[templateIndex]?.classList.add('active');
+
+ document.getElementById('campaignTitle').value=c.title||'';
+ document.getElementById('hostName').value=c.host||currentName();
+ document.getElementById('campaignDesc').value=c.desc||'';
+ const [d='',t='']=String(c.deadline||'').split(' ');
+ document.getElementById('deadlineDate').value=d;
+ document.getElementById('deadlineTime').value=t||'17:00';
+ document.querySelectorAll('#targets input').forEach(x=>x.checked=(c.targets||[]).includes(x.value));
+ document.getElementById('visibility').value=c.visibility||'private';
+ document.getElementById('replyRequired').value=c.replyRequired?'yes':'no';
+ document.getElementById('capacity').value=Number(c.capacity||0);
+ document.getElementById('waitlist').value=c.waitlist?'on':'off';
+ document.getElementById('maxCompanion').value=Number(c.maxCompanion||0);
+ document.getElementById('capacityMode').value=c.capacityMode||'people';
+ document.getElementById('retentionMode').value=c.retentionMode||((c.template==='travel'||c.template==='training')?'keep':'delete');
+
+ pendingFiles=[];
+ document.getElementById('fileList').innerHTML=(c.files||[]).map(f=>`<div class="fileChip"><span><strong>📎 ${esc(f.name)}</strong><small>既有附件</small></span></div>`).join('');
+ document.getElementById('productEditors').innerHTML='';
+ (c.products||[]).forEach(p=>addProductEditor({
+   name:p.name,
+   specs:(p.specs||[]).map(s=>[s.name,s.price]),
+   prefs:(p.prefs||[]).map(pref=>[pref.name,pref.type,(pref.values||[]).join('，')])
+ }));
+
+ document.getElementById('saveCampaignBtn').textContent='儲存修改';
+ document.getElementById('editNotice').style.display='block';
+ document.getElementById('cancelEditBtn').style.display='inline-block';
+
+ showPanel('create',document.querySelectorAll('.tab')[1]);
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function renderPreference(p,cid,pid){
+ if(p.type==='文字')return `<div class="optionBlock"><div class="optionLabel">${esc(p.name)}</div><input class="prefInput" data-pref="${esc(p.name)}" placeholder="請輸入"></div>`;
+ if(p.type==='複選')return `<div class="optionBlock"><div class="optionLabel">${esc(p.name)}</div><div class="choiceGrid">${p.values.map(v=>`<label class="choice"><input type="checkbox" class="prefCheck" data-pref="${esc(p.name)}" value="${esc(v)}">${esc(v)}</label>`).join('')}</div></div>`;
+ return `<div class="optionBlock"><div class="optionLabel">${esc(p.name)}</div><div class="choiceGrid">${p.values.map(v=>`<label class="choice"><input type="radio" name="${cid}_${pid}_${esc(p.name)}" class="prefInput" data-pref="${esc(p.name)}" value="${esc(v)}">${esc(v)}</label>`).join('')}</div></div>`;
+}
+function participantCount(c){
+ const os=getO().filter(o=>o.campaignId===c.id&&o.status!=='not_joining');
+ return os.reduce((s,o)=>s+(c.capacityMode==='registrations'?1:(1+Number(o.companions||0))),0)
+}
+function remaining(c){return c.capacity>0?Math.max(0,c.capacity-participantCount(c)):null}
+function publicRows(c){
+ const os=getO().filter(o=>o.campaignId===c.id);
+ if(c.visibility==='private')return '';
+ return `<table class="publicTable"><thead><tr><th>姓名</th><th>狀態</th>${c.visibility==='full'?'<th>內容</th>':''}</tr></thead><tbody>${os.map(o=>`<tr><td>${esc(o.user)}</td><td>${o.status==='accepted'?'<span class="badge ok">正取</span>':o.status==='waitlist'?'<span class="badge wait">候補</span>':'<span class="badge no">不參加</span>'}</td>${c.visibility==='full'?`<td>${esc(o.lines.map(l=>`${l.name}／${l.spec}×${l.qty}`).join('、'))}</td>`:''}</tr>`).join('')}</tbody></table>`
+}
+function eventCard(c){
+ const rem=remaining(c),full=rem===0&&c.capacity>0;
+ return `<article class="eventCard"><h3>${esc(c.title)}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}｜對象：${esc(c.targets.join('、'))}</div><div class="meta">${esc(c.desc||'')}</div>${c.cancelled?`<div class="hint">活動已取消${c.cancelReason?'：'+esc(c.cancelReason):''}</div>`:''}
+ ${c.capacity>0?`<div class="counter">已報名 ${participantCount(c)}／${c.capacity} 人｜剩餘 ${rem} 人</div>`:''}
+ ${c.replyRequired?`<div class="optionBlock"><div class="optionLabel">是否參加（必填）</div><div class="choiceGrid"><label class="choice"><input type="radio" name="join_${c.id}" value="yes">參加</label><label class="choice"><input type="radio" name="join_${c.id}" value="no">不參加</label></div></div>`:''}
+ ${c.maxCompanion>0?`<label>攜伴人數（最多 ${c.maxCompanion} 人）</label><input id="companions_${c.id}" type="number" min="0" max="${c.maxCompanion}" value="0" inputmode="numeric">`:''}
+ ${c.products.map(p=>`<div class="productCard" data-campaign="${c.id}" data-product="${p.id}"><div class="productHead"><div class="productName">${esc(p.name)}</div></div><div class="optionBlock"><div class="optionLabel">規格與價格</div><div class="choiceGrid">${p.specs.map((s,i)=>`<label class="choice"><input type="radio" name="spec_${c.id}_${p.id}" class="specChoice" value="${i}" data-price="${s.price}">${esc(s.name)} $${s.price}</label>`).join('')}</div></div>${p.prefs.map(x=>renderPreference(x,c.id,p.id)).join('')}<div class="qtyGrid"><div><label>數量</label><input class="qty" type="number" min="0" value="0" inputmode="numeric" oninput="updateTotal('${c.id}')"></div><div class="totalBox productSubtotal">小計：$0</div></div></div>`).join('')}
+ <div class="totalBox" id="total_${c.id}">預估總額：$0</div><label>備註</label><input id="note_${c.id}" placeholder="可留白"><div class="actions"><button class="btn" ${(c.closed||c.cancelled)?'disabled':''} onclick="submitReply('${c.id}')">${c.cancelled?'活動已取消':c.closed?'已結單':'送出回覆'}</button></div>${publicRows(c)}</article>`
+}
+function updateTotal(cid){let total=0;document.querySelectorAll(`[data-campaign="${cid}"]`).forEach(row=>{const qty=Number(row.querySelector('.qty').value||0),spec=row.querySelector('.specChoice:checked'),price=Number(spec?.dataset.price||0),sub=qty*price;row.querySelector('.productSubtotal').textContent='小計：$'+sub;total+=sub});document.getElementById('total_'+cid).textContent='預估總額：$'+total}
+function submitReply(cid){
+ const c=getC().find(x=>x.id===cid);if(!c)return;
+ let join='yes';if(c.replyRequired){join=document.querySelector(`input[name="join_${cid}"]:checked`)?.value||'';if(!join)return toast('請先選擇參加或不參加')}
+ const companions=Number(document.getElementById('companions_'+cid)?.value||0);
+ if(join==='no'){const os=getO().filter(o=>!(o.campaignId===cid&&o.user===currentName()));os.unshift({id:'o_'+Date.now(),campaignId:cid,user:currentName(),status:'not_joining',companions:0,lines:[],note:'',createdAt:new Date().toISOString()});setO(os);renderAll();return toast('已回覆不參加')}
+ const lines=[];document.querySelectorAll(`[data-campaign="${cid}"]`).forEach(row=>{const qty=Number(row.querySelector('.qty').value||0);if(qty<=0)return;const p=c.products.find(x=>x.id===row.dataset.product),si=Number(row.querySelector('.specChoice:checked')?.value);if(!Number.isInteger(si))return;const spec=p.specs[si],prefs={};row.querySelectorAll('.prefInput').forEach(el=>{if(el.value)prefs[el.dataset.pref]=el.value});row.querySelectorAll('.prefCheck:checked').forEach(el=>{prefs[el.dataset.pref]=prefs[el.dataset.pref]||[];prefs[el.dataset.pref].push(el.value)});lines.push({name:p.name,spec:spec.name,price:spec.price,qty,prefs,subtotal:spec.price*qty})});
+ if(!lines.length&&c.template!=='travel'&&c.template!=='training')return toast('請至少選擇一個品項');
+ const seats=c.capacityMode==='registrations'?1:1+companions,rem=remaining(c),status=c.capacity>0&&seats>rem?(c.waitlist?'waitlist':'rejected'):'accepted';
+ if(status==='rejected')return toast('名額已滿，這個活動沒有開放候補');
+ const os=getO().filter(o=>!(o.campaignId===cid&&o.user===currentName()));os.unshift({id:'o_'+Date.now(),campaignId:cid,user:currentName(),status,companions,lines,note:document.getElementById('note_'+cid).value.trim(),createdAt:new Date().toISOString()});setO(os);renderAll();toast(status==='waitlist'?'名額已滿，已列入候補':'回覆已送出')
+}
+function renderAvailable(){
+ const cs=getC().filter(c=>!c.deleted&&!c.closed&&!c.cancelled);
+ const box=document.getElementById('availableList');
+ if(openedCampaignId){
+   const c=cs.find(x=>x.id===openedCampaignId);
+   if(!c){openedCampaignId='';return renderAvailable()}
+   box.innerHTML=`<div class="actions"><button class="btn secondary" onclick="openedCampaignId='';renderAvailable()">← 返回活動清單</button></div>${eventCard(c)}`;
+   return;
+ }
+ box.innerHTML=cs.length?`<div class="campaignList">${cs.map(c=>`<div class="campaignSummary"><h3>${esc(c.title)} ${c.cancelled?'<span class="badge no">已取消</span>':''}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}</div>${c.capacity>0?`<div class="counter">已報名 ${participantCount(c)}／${c.capacity} 人｜剩餘 ${remaining(c)} 人</div>`:''}<div class="summaryActions"><button class="btn" onclick="openedCampaignId='${c.id}';renderAvailable()">進入${c.template==='travel'||c.template==='training'?'報名':'訂購'}</button>${isHost(c)?`<button class="btn secondary" onclick="editCampaign('${c.id}')">編輯活動</button><button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="finishCampaign('${c.id}')">活動結束</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button>`:''}</div></div>`).join('')}</div>`:'<div class="empty">目前沒有可參加的活動。</div>';
+}
+function renderMine(){const os=getO().filter(o=>o.user===currentName());document.getElementById('myOrders').innerHTML=os.length?os.map(o=>`<article class="eventCard"><h3>${esc(getC().find(c=>c.id===o.campaignId)?.title||'活動')}</h3><div class="meta">${new Date(o.createdAt).toLocaleString('zh-TW',{hour12:false})}</div><div class="meta">狀態：${o.status==='accepted'?'正取':o.status==='waitlist'?'候補':'不參加'}</div>${o.lines.map(l=>`<div class="meta">${esc(l.name)}｜${esc(l.spec)}｜${esc(Object.entries(l.prefs||{}).map(([k,v])=>k+'：'+(Array.isArray(v)?v.join('、'):v)).join('；'))}｜${l.qty}份｜$${l.subtotal}</div>`).join('')}</article>`).join(''):'<div class="empty">目前沒有回覆紀錄。</div>'}
+function renderStats(){
+ const cs=getC(),os=getO();
+ document.getElementById('statsList').innerHTML=cs.length?cs.map(c=>{
+   const list=os.filter(o=>o.campaignId===c.id);
+   const money=list.reduce((s,o)=>s+o.lines.reduce((a,l)=>a+l.subtotal,0),0);
+   const status=c.cancelled?'已取消':c.closed?'已結束':'進行中';
+   const normalAction=c.closed
+     ? `<button class="btn secondary" onclick="toggleClose('${c.id}')">重新開放</button>`
+     : `<button class="btn danger" onclick="finishCampaign('${c.id}')">活動結束</button>`;
+   return `<article class="eventCard">
+     <h3>${esc(c.title)} <span class="badge ${c.closed||c.cancelled?'wait':'ok'}">${status}</span></h3>
+     <div class="meta">正取 ${list.filter(o=>o.status==='accepted').length} 筆｜候補 ${list.filter(o=>o.status==='waitlist').length} 筆｜不參加 ${list.filter(o=>o.status==='not_joining').length} 筆</div>
+     <div class="totalBox">總金額：$${money}</div>
+     ${publicRows({...c,visibility:'full'})}
+     ${isHost(c)?`<div class="actions">${normalAction}<button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button></div>`:''}
+   </article>`;
+ }).join(''):'<div class="empty">目前沒有活動。</div>';
+}
+function deleteCampaign(id){
+ const c=getC().find(x=>x.id===id);if(!c||!isHost(c))return;
+ if(getO().some(o=>o.campaignId===id))return toast('已有報名紀錄，請改用取消活動');
+ if(!confirm('確定刪除這個活動嗎？'))return;
+ setC(getC().filter(x=>x.id!==id));renderAll();toast('活動已刪除');
+}
+function finishCampaign(id){
+ const cs=getC(),c=cs.find(x=>x.id===id);if(!c||!isHost(c))return;
+ if(!confirm(`確定結束「${c.title}」嗎？\n結束後停止接受新回覆，但活動與訂單紀錄會保留。`))return;
+ c.closed=true;
+ c.finishedAt=new Date().toISOString();
+ c.updatedAt=c.finishedAt;
+ setC(cs);
+ if(openedCampaignId===id)openedCampaignId='';
+ renderAll();
+ toast('活動已結束，紀錄仍保留');
+}
+function purgeCampaign(id){
+ const c=getC().find(x=>x.id===id);if(!c||!isHost(c))return;
+ const count=getO().filter(o=>o.campaignId===id).length;
+ const first=confirm(`確定要永久刪除「${c.title}」嗎？\n活動與 ${count} 筆訂購／報名紀錄都會刪除。`);
+ if(!first)return;
+ const second=confirm('再次確認：永久刪除後無法復原，但常用模板不受影響。');
+ if(!second)return;
+ setC(getC().filter(x=>x.id!==id));
+ setO(getO().filter(o=>o.campaignId!==id));
+ if(openedCampaignId===id)openedCampaignId='';
+ renderAll();
+ toast('活動與全部訂單已永久刪除');
+}
+function cancelCampaign(id){
+ const cs=getC(),c=cs.find(x=>x.id===id);if(!c||!isHost(c))return;
+ const reason=prompt('請輸入取消原因，例如：雞腿缺貨');
+ if(reason===null)return;
+ c.cancelled=true;c.cancelReason=reason.trim();c.closed=true;c.updatedAt=new Date().toISOString();
+ setC(cs);renderAll();toast('活動已取消並保留原紀錄');
+}
+function toggleClose(id){
+ const cs=getC(),c=cs.find(x=>x.id===id);if(!c||!isHost(c))return;
+ c.closed=!c.closed;
+ c.updatedAt=new Date().toISOString();
+ if(!c.closed)c.finishedAt='';
+ setC(cs);
+ renderAll();
+ toast(c.closed?'活動已結束':'活動已重新開放');
+}
+function renderAll(){renderAvailable();renderMine();renderStats()}
+
+document.getElementById('hostName').value=currentName();
+applyTemplate('drink',document.querySelector('.templateBtn'));
+renderSavedTemplates();
+renderAll();
+</script>
+</body>
+</html>

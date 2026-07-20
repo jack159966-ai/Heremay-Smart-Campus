@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#eef7ff">
+<title>Heremay 和美智慧校園｜記事本 v1.0.1</title>
+<style>
+:root{
+  --bg:#f3f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce8f7;
+  --muted:#6b7f95;--green:#2ca86b;--orange:#ef7b28;--red:#d94d59;
+  --shadow:0 10px 28px rgba(45,82,132,.11);--radius:24px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:linear-gradient(180deg,#f6f9ff,#eef7ff 55%,#fafcff);color:#203b61}
+.app{width:min(820px,100%);margin:auto;padding:14px 12px 90px}
+.header{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:8px 4px 16px}
+.logo{width:64px;height:64px;border-radius:20px;background:#fff;box-shadow:var(--shadow);overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:contain;padding:3px}
+.header small{display:block;color:#607b98;font-weight:800}
+.header h1{margin:2px 0 0;font-size:30px;color:var(--deep)}
+.back{border:1px solid #cfe0f5;background:#fff;color:var(--blue);border-radius:16px;padding:11px 14px;font-size:15px;font-weight:900;cursor:pointer}
+.card{background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:13px;box-shadow:var(--shadow)}
+.card h2{margin:0 0 12px;color:var(--deep);font-size:23px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:block;margin:10px 0 6px;font-weight:900;color:#355d88}
+input,textarea,select{width:100%;border:1px solid #cedff2;border-radius:15px;padding:12px 13px;font-size:16px;background:#fcfeff;color:#203b61}
+textarea{min-height:120px;resize:vertical}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+.btn{border:0;border-radius:16px;padding:12px 16px;font-size:16px;font-weight:900;cursor:pointer;background:var(--blue);color:#fff}
+.btn.secondary{background:#edf4ff;color:var(--blue);border:1px solid #cfe0f5}
+.btn.danger{background:#fff0f1;color:var(--red);border:1px solid #ffd0d4}
+.checkline{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.checkline label{display:flex;gap:7px;align-items:center;margin:0;font-size:15px}
+.checkline input{width:auto}
+.uploadBox{margin-top:10px;border:2px dashed #cbdcf0;border-radius:18px;padding:14px;background:#f8fbff}
+.uploadBox input{padding:8px;background:#fff}
+.fileList{display:grid;gap:8px;margin-top:10px}
+.fileChip{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid #dce8f7;border-radius:14px;padding:10px;background:#fff}
+.fileChip strong{display:block;font-size:14px;word-break:break-all}
+.fileChip small{color:var(--muted)}
+.toolbar{display:grid;grid-template-columns:1fr 160px;gap:10px}
+.stats{font-weight:900;color:#55718e;margin:10px 2px}
+.noteList{display:grid;gap:11px}
+.noteItem{background:#fff;border:1px solid #dce8f7;border-radius:21px;padding:15px;box-shadow:0 6px 18px rgba(45,82,132,.08)}
+.noteItem.pinned{border-color:#f6c98b;background:#fffdf8}
+.noteItem.completed{opacity:.62}
+.noteTop{display:flex;gap:9px;align-items:flex-start}
+.noteTitle{font-size:20px;font-weight:950;color:#173f75;flex:1}
+.badge{border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900;background:#edf4ff;color:#2f68d8;white-space:nowrap}
+.badge.pin{background:#fff1df;color:#d66c17}
+.badge.done{background:#eaf8ef;color:#238558}
+.noteBody{white-space:pre-wrap;line-height:1.65;margin:9px 0;color:#425f7c}
+.noteMeta{font-size:12px;color:#7890a6;font-weight:800}
+.noteFiles{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.fileBtn{border:1px solid #d6e4f4;background:#f7fbff;color:#315f91;border-radius:999px;padding:7px 10px;font-size:13px;font-weight:850;cursor:pointer}
+.empty{text-align:center;padding:28px;color:var(--muted);font-weight:850;background:#f8fbff;border-radius:18px;border:1px dashed #ccdced}
+.toast{position:fixed;left:50%;bottom:25px;transform:translateX(-50%);background:#173f75;color:#fff;border-radius:999px;padding:11px 16px;font-weight:900;opacity:0;pointer-events:none;transition:.25s;z-index:30}
+.toast.show{opacity:1}
+.version{text-align:center;color:#7890a6;font-size:12px;font-weight:800;margin-top:10px}
+@media(max-width:620px){
+  .header{grid-template-columns:54px 1fr}.logo{width:54px;height:54px}.back{grid-column:1/3;width:100%}
+  .header h1{font-size:27px}.row,.toolbar{grid-template-columns:1fr}.card{padding:14px}.noteTitle{font-size:19px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+<header class="header">
+  <div class="logo"><img src="assets/logo.png?v=20260720-notes" alt="和美智慧校園 Logo" onerror="this.parentElement.textContent='🏰'"></div>
+  <div><small>Heremay 和美智慧校園</small><h1>📒 我的記事本</h1></div>
+  <button class="back" type="button" onclick="location.href='admin.html'">← 返回主管首頁</button>
+</header>
+
+<section class="card">
+  <h2 id="formTitle">新增記事</h2>
+  <input id="editId" type="hidden">
+  <div class="row">
+    <div><label for="title">標題</label><input id="title" maxlength="100" placeholder="例如：下週請廠商檢查冷氣"></div>
+    <div><label for="book">筆記分類</label>
+      <select id="book"><option>收件匣</option><option>園務事項</option><option>採購／廠商</option><option>活動計畫</option><option>私人事項</option></select>
+    </div>
+  </div>
+  <label for="content">記事內容</label>
+  <textarea id="content" placeholder="把需要記住的內容寫在這裡……"></textarea>
+  <div class="row">
+    <div><label for="noteDate">日期／時間（可留白）</label><input id="noteDate" type="datetime-local"></div>
+    <div><label for="customBook">新增自訂分類（可留白）</label><input id="customBook" placeholder="例如：日本旅行"></div>
+  </div>
+  <div class="checkline">
+    <label><input id="pinned" type="checkbox">置頂</label>
+    <label><input id="completed" type="checkbox">已完成</label>
+  </div>
+  <div class="uploadBox">
+    <label for="attachments">附件：照片或一般檔案</label>
+    <input id="attachments" type="file" multiple>
+    <div id="pendingFiles" class="fileList"></div>
+  </div>
+  <div class="actions">
+    <button class="btn" type="button" onclick="saveNote()">儲存記事</button>
+    <button class="btn secondary" type="button" onclick="clearForm()">清除表單</button>
+  </div>
+</section>
+
+<section class="card">
+  <h2>查看記事</h2>
+  <div class="toolbar">
+    <input id="search" placeholder="搜尋標題、內容或分類" oninput="renderNotes()">
+    <select id="filter" onchange="renderNotes()">
+      <option value="all">全部記事</option><option value="pending">未完成</option>
+      <option value="completed">已完成</option><option value="pinned">只看置頂</option>
+    </select>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="noteList" id="noteList"></div>
+</section>
+<div class="version">記事本 v1.0.1｜2026-07-20｜附件可分批累加</div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const META_KEY='heremay.notes.v1';
+const DB_NAME='heremayNotesFiles';
+const STORE='files';
+let pendingFiles=[];
+
+function getNotes(){try{return JSON.parse(localStorage.getItem(META_KEY)||'[]')}catch(e){return []}}
+function setNotes(v){localStorage.setItem(META_KEY,JSON.stringify(v))}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),1600)}
+function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>r.result.createObjectStore(STORE,{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+async function putFile(record){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(record);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+async function getFile(id){const db=await openDB();return new Promise((resolve,reject)=>{const r=db.transaction(STORE).objectStore(STORE).get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+async function deleteFile(id){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+
+document.getElementById('attachments').addEventListener('change',e=>{
+  const selected=[...e.target.files];
+  for(const file of selected){
+    const duplicated=pendingFiles.some(f=>
+      f.name===file.name &&
+      f.size===file.size &&
+      f.lastModified===file.lastModified
+    );
+    if(!duplicated) pendingFiles.push(file);
+  }
+  e.target.value='';
+  renderPendingFiles();
+});
+function renderPendingFiles(){
+  const box=document.getElementById('pendingFiles');
+  box.innerHTML=pendingFiles.map((f,i)=>`<div class="fileChip"><span><strong>📎 ${esc(f.name)}</strong><small>${Math.ceil(f.size/1024)} KB</small></span><button class="btn danger" type="button" onclick="removePending(${i})">移除</button></div>`).join('');
+}
+function removePending(i){pendingFiles.splice(i,1);renderPendingFiles()}
+
+async function saveNote(){
+  const title=document.getElementById('title').value.trim();
+  const content=document.getElementById('content').value.trim();
+  if(!title && !content){toast('請先輸入標題或內容');return}
+  const custom=document.getElementById('customBook').value.trim();
+  let book=custom||document.getElementById('book').value;
+  if(custom && ![...document.getElementById('book').options].some(o=>o.value===custom)){
+    const o=document.createElement('option');o.value=o.textContent=custom;document.getElementById('book').appendChild(o);
+  }
+  const notes=getNotes();
+  const editId=document.getElementById('editId').value;
+  let note=notes.find(n=>n.id===editId);
+  if(!note){
+    note={id:'note_'+Date.now(),createdAt:new Date().toISOString(),files:[]};
+    notes.push(note);
+  }
+  note.title=title||'未命名記事';note.content=content;note.book=book;
+  note.noteDate=document.getElementById('noteDate').value;
+  note.pinned=document.getElementById('pinned').checked;
+  note.completed=document.getElementById('completed').checked;
+  note.updatedAt=new Date().toISOString();
+  for(const file of pendingFiles){
+    const id='file_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    await putFile({id,name:file.name,type:file.type,size:file.size,blob:file});
+    note.files.push({id,name:file.name,type:file.type,size:file.size});
+  }
+  setNotes(notes);clearForm();renderNotes();toast('記事已儲存');
+}
+function clearForm(){
+  document.getElementById('formTitle').textContent='新增記事';
+  ['editId','title','content','noteDate','customBook'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pinned').checked=false;document.getElementById('completed').checked=false;
+  document.getElementById('attachments').value='';pendingFiles=[];renderPendingFiles();
+}
+function editNote(id){
+  const n=getNotes().find(x=>x.id===id);if(!n)return;
+  document.getElementById('formTitle').textContent='修改記事';
+  document.getElementById('editId').value=n.id;document.getElementById('title').value=n.title;
+  document.getElementById('content').value=n.content;document.getElementById('noteDate').value=n.noteDate||'';
+  document.getElementById('pinned').checked=!!n.pinned;document.getElementById('completed').checked=!!n.completed;
+  const sel=document.getElementById('book');
+  if(![...sel.options].some(o=>o.value===n.book)){const o=document.createElement('option');o.value=o.textContent=n.book;sel.appendChild(o)}
+  sel.value=n.book;window.scrollTo({top:0,behavior:'smooth'});
+}
+async function removeNote(id){
+  if(!confirm('確定刪除這則記事與附件嗎？'))return;
+  const notes=getNotes();const n=notes.find(x=>x.id===id);
+  for(const f of (n?.files||[])) await deleteFile(f.id);
+  setNotes(notes.filter(x=>x.id!==id));renderNotes();toast('記事已刪除');
+}
+function toggleDone(id){
+  const notes=getNotes(),n=notes.find(x=>x.id===id);if(n)n.completed=!n.completed;setNotes(notes);renderNotes();
+}
+function togglePin(id){
+  const notes=getNotes(),n=notes.find(x=>x.id===id);if(n)n.pinned=!n.pinned;setNotes(notes);renderNotes();
+}
+async function openAttachment(id){
+  const f=await getFile(id);if(!f){toast('找不到附件');return}
+  const url=URL.createObjectURL(f.blob);const a=document.createElement('a');a.href=url;a.target='_blank';a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+function renderNotes(){
+  const q=document.getElementById('search').value.trim().toLowerCase();
+  const filter=document.getElementById('filter').value;
+  let notes=getNotes().filter(n=>{
+    const match=!q||[n.title,n.content,n.book].join(' ').toLowerCase().includes(q);
+    const f=filter==='all'||(filter==='pending'&&!n.completed)||(filter==='completed'&&n.completed)||(filter==='pinned'&&n.pinned);
+    return match&&f;
+  });
+  notes.sort((a,b)=>(Number(b.pinned)-Number(a.pinned))||String(b.updatedAt).localeCompare(String(a.updatedAt)));
+  document.getElementById('stats').textContent=`共 ${notes.length} 則記事`;
+  document.getElementById('noteList').innerHTML=notes.length?notes.map(n=>{
+    const date=n.noteDate?`｜日期：${esc(n.noteDate.replace('T',' '))}`:'';
+    const files=(n.files||[]).map(f=>`<button class="fileBtn" type="button" onclick="openAttachment('${f.id}')">📎 ${esc(f.name)}</button>`).join('');
+    return `<article class="noteItem ${n.pinned?'pinned':''} ${n.completed?'completed':''}">
+      <div class="noteTop"><div class="noteTitle">${esc(n.title)}</div>${n.pinned?'<span class="badge pin">置頂</span>':''}${n.completed?'<span class="badge done">已完成</span>':''}</div>
+      <div class="noteBody">${esc(n.content)}</div>
+      <div class="noteMeta">分類：${esc(n.book)}${date}</div>
+      ${files?`<div class="noteFiles">${files}</div>`:''}
+      <div class="actions">
+        <button class="btn secondary" type="button" onclick="editNote('${n.id}')">修改</button>
+        <button class="btn secondary" type="button" onclick="togglePin('${n.id}')">${n.pinned?'取消置頂':'置頂'}</button>
+        <button class="btn secondary" type="button" onclick="toggleDone('${n.id}')">${n.completed?'恢復未完成':'標記完成'}</button>
+        <button class="btn danger" type="button" onclick="removeNote('${n.id}')">刪除</button>
+      </div>
+    </article>`;
+  }).join(''):'<div class="empty">目前沒有符合條件的記事。</div>';
+}
+renderNotes();
+</script>
+</body>
+</html>
