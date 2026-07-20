@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜智慧秘書中心 v17 快速記事</title>
+  <title>Heremay 和美智慧校園｜智慧秘書中心 v18 智慧任務流程重整</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -323,7 +323,7 @@
       <div class="logo"><img src="assets/logo.png?v=20260719" alt="和美智慧校園 Logo" onerror="this.remove();this.parentElement.textContent='🏰'"></div>
       <div class="brand">
         <h1>Heremay 和美智慧校園</h1>
-        <p>智慧秘書中心｜快速記事與強提醒｜v17</p>
+        <p>智慧秘書中心｜快速記事與強提醒｜v18</p>
       </div>
       <div class="clock" id="clock">--</div>
     </header>
@@ -479,7 +479,7 @@ function requireAdminAccess(){
   const brandLine = document.querySelector('.brand p');
   if(brandLine && employee.name){
     brandLine.textContent =
-      `智慧秘書中心｜${employee.name}｜快速記事與強提醒｜v17`;
+      `智慧秘書中心｜${employee.name}｜快速記事與強提醒｜v18`;
   }
 
   return true;
@@ -564,16 +564,35 @@ function openModal(type){
       <div id="notebookTabs" class="noteBookBar"></div>
       <div id="notebookNotes"></div>`,
     smartTask:`<div class="modalHeader"><h3>🤖 新增智慧任務</h3><button class="x" onclick="closeModal()">關閉</button></div>
-      <div class="note">v11 修正：主要內容明確作為公佈欄文字，並新增「再次提醒日期／時間」欄位。專案計畫先保留入口，晚一點再處理。</div>
-      <div class="row"><div><label>任務名稱</label><input placeholder="例如：明日中午會議、換飲水機濾心、拜土地公"></div><div><label>任務類型</label><select id="taskType" onchange="renderSmartTaskFields()"><option value="self">只提醒自己</option><option value="notice">通知他人</option><option value="ack">通知＋已收到</option><option value="remind">通知＋再次提醒</option><option value="ackRemind">通知＋已收到＋再次提醒</option></select></div></div>
-      <div class="row"><div><label>日期方式</label><select id="taskDateMode" onchange="renderSmartTaskFields()"><option value="specific">特定日期（一次性）</option><option value="solarCycle">國曆週期</option><option value="lunarCycle">農曆週期</option></select></div><div><label>第一次提醒／通知時間</label><input type="time" value="09:00"></div></div>
+      <div class="note">依照實際使用順序重新排列：先說明事情，再設定時間與地點，接著決定提醒方式，最後選擇通知對象。</div>
+
+      <h3 style="margin:14px 0 4px;color:#254f65">1. 名稱與補充說明</h3>
+      <label>名稱</label><input id="taskName" placeholder="例如：下午一點半與廠商會面、教保會議、換飲水機濾心">
+      <label>補充說明</label><textarea id="taskDescription" placeholder="例如：請攜帶合約與估價單；會議前先確認參加人員。"></textarea>
+
+      <h3 style="margin:18px 0 4px;color:#254f65">2. 時間與地點</h3>
+      <div class="row"><div><label>日期方式</label><select id="taskDateMode" onchange="renderSmartTaskFields()"><option value="specific">特定日期（一次性）</option><option value="solarCycle">國曆週期</option><option value="lunarCycle">農曆週期</option></select></div><div><label>時間</label><input id="taskTime" type="time" value="09:00"></div></div>
       <div id="smartDateFields"></div>
-      <div id="smartTargetFields"></div>
-      <div id="contentHint" class="hintBox">主要內容會依任務類型判斷：只提醒自己時是私人提醒；通知他人時會成為接收者公佈欄內看到的文字。</div>
-      <label id="mainContentLabel">主要內容</label><textarea id="mainContentText" placeholder="例如：今天中午要開會；每月5日換飲水機濾心；農曆初二、十六拜土地公。"></textarea>
+      <label>地點／地址（可留白）</label><input id="taskLocation" placeholder="輸入地址後，未來可直接開啟 Google 地圖導航">
+
+      <h3 style="margin:18px 0 4px;color:#254f65">3. 提醒方式</h3>
+      <div class="checkGrid">
+        <label class="check"><input type="checkbox" id="alertPhone" checked>手機通知</label>
+        <label class="check"><input type="checkbox" id="alertWatch" checked>Apple Watch 提示</label>
+        <label class="check"><input type="checkbox" id="alertSound" checked>提示音／震動</label>
+        <label class="check"><input type="checkbox" id="alertRepeat" onchange="renderSmartTaskFields()">未完成再次提醒</label>
+      </div>
+      <div class="row"><div><label>提前提醒</label><select id="advanceReminder"><option value="0">準時提醒</option><option value="10">提前 10 分鐘</option><option value="30">提前 30 分鐘</option><option value="60">提前 1 小時</option><option value="1440">提前 1 天</option></select></div><div><label>重要程度</label><select id="taskPriority"><option>一般</option><option>重要</option><option>非常重要</option></select></div></div>
       <div id="secondReminderFields"></div>
-      <label>內部備註（只給主管看，可留白）</label><textarea placeholder="例如：會議由主任主持；通知發出後若有人未確認，請再口頭提醒。"></textarea>
-      <div class="checkGrid"><label class="check"><input type="checkbox" id="needAckBox">需要接收者點選「我已收到」</label><label class="check"><input type="checkbox">至少保留在首頁一天</label></div>
+
+      <h3 style="margin:18px 0 4px;color:#254f65">4. 通知對象</h3>
+      <div class="row"><div><label>公／私</label><select id="privacyMode" onchange="renderSmartTaskFields()"><option value="private">私人｜只有自己</option><option value="public">公務｜通知園內人員</option></select></div><div><label>通知後是否追蹤</label><select id="ackMode"><option value="none">不需確認</option><option value="ack">需要「我已收到」</option></select></div></div>
+      <div id="smartTargetFields"></div>
+
+      <details style="margin-top:16px"><summary style="font-weight:900;color:#355e73;cursor:pointer">其他進階設定</summary>
+        <div class="checkGrid" style="margin-top:10px"><label class="check"><input type="checkbox">至少保留在首頁一天</label><label class="check"><input type="checkbox">完成後保留紀錄</label></div>
+        <label>主管內部備註（可留白）</label><textarea placeholder="只有主管看得到，不會發送給通知對象。"></textarea>
+      </details>
       <div class="btnRow"><button class="btn" onclick="showToast('已建立智慧任務測試資料')">儲存智慧任務</button><button class="btn secondary" onclick="demoAlarm()">測試提醒鈴聲</button></div>`,
     taskTrack:`<div class="modalHeader"><h3>📣 通知追蹤</h3><button class="x" onclick="closeModal()">關閉</button></div>
       <div class="note">這裡專門追蹤智慧任務發出的通知：誰已收到、誰還沒確認，必要時可以再次提醒。</div>
@@ -933,53 +952,72 @@ function renderSmartTaskFields(){
   const dateBox=document.getElementById('smartDateFields');
   const targetBox=document.getElementById('smartTargetFields');
   const secondBox=document.getElementById('secondReminderFields');
-  const contentHint=document.getElementById('contentHint');
-  const mainLabel=document.getElementById('mainContentLabel');
-  const mainText=document.getElementById('mainContentText');
-  const type=document.getElementById('taskType')?.value || 'self';
   const mode=document.getElementById('taskDateMode')?.value || 'specific';
-  if(!dateBox || !targetBox) return;
-  if(mode==='specific'){
-    dateBox.innerHTML=`<div class="hintBox">適合一次性任務，例如明天開會、7/15 聯絡廠商、8/3 活動前確認。</div>
-      <div class="row"><div><label>指定日期</label><input type="date"></div><div><label>完成後</label><select><option>提醒一次後結束</option><option>完成後保留紀錄</option><option>完成後轉成待追蹤事項</option></select></div></div>`;
-  }else if(mode==='solarCycle'){
-    dateBox.innerHTML=`<div class="hintBox">國曆週期適合固定保養或行政例行事項，例如每月5日換飲水機濾心、每3個月清洗水塔。</div>
-      <div class="row"><div><label>週期</label><select><option>每天</option><option>每週固定星期</option><option>每月固定日期</option><option>每3個月一次</option><option>每半年一次</option><option>每年一次</option></select></div><div><label>國曆日期／條件</label><input placeholder="例如：每月5日；每3個月第1週星期一"></div></div>`;
-  }else{
-    dateBox.innerHTML=`<div class="hintBox">農曆週期不用文字猜測，改用勾選欄位。例如拜土地公可勾選初二、十六。</div>
-      <div class="row"><div><label>農曆週期</label><select><option>每個農曆月</option><option>每年指定農曆月日</option></select></div><div><label>農曆月份（每年提醒時使用）</label><input placeholder="例如：12月；每月提醒可留白"></div></div>
-      <label>農曆日期，可複選</label><div class="checkGrid">
-        <label class="check"><input type="checkbox">初一</label><label class="check"><input type="checkbox" checked>初二</label>
-        <label class="check"><input type="checkbox">初八</label><label class="check"><input type="checkbox">初十</label>
-        <label class="check"><input type="checkbox">十五</label><label class="check"><input type="checkbox" checked>十六</label>
-      </div>`;
-  }
-  const isNoticeType = type !== 'self';
-  const hasSecondReminder = type === 'remind' || type === 'ackRemind';
-  const needsAck = type === 'ack' || type === 'ackRemind';
-  if(type==='self'){
-    targetBox.innerHTML=`<div class="hintBox">任務類型為「只提醒自己」，不會發給其他同仁。</div>`;
-    if(contentHint) contentHint.textContent='這是主管自己的提醒內容，不會出現在其他人的公佈欄。';
-    if(mainLabel) mainLabel.textContent='提醒內容（只給自己看）';
-    if(mainText) mainText.placeholder='例如：10:00 聯絡廠商；每月5日確認濾心更換。';
-    const ack=document.getElementById('needAckBox'); if(ack){ack.checked=false; ack.disabled=true;}
-  }else{
-    targetBox.innerHTML=`<label>通知對象，可複選</label><div class="hintBox">可指定全體、幼兒部、安親部、庶務組、個別班級或特定工作群組。</div><div class="checkGrid">
-      ${['全體人員','行政主管','幼兒部教保人員','安親部教保人員','庶務組','廚工','清潔人員','A1班','A2班','A3班','B1班','B2班','B3班','C1班','C2班','C3班','Y1班','Y2班','Y3班'].map(x=>`<label class="check"><input type="checkbox">${x}</label>`).join('')}
-      </div>`;
-    if(contentHint) contentHint.textContent='這裡的「主要內容」就是接收者首頁公佈欄／通知卡上會看到的文字。';
-    if(mainLabel) mainLabel.textContent='第一次通知內容（會出現在接收者公佈欄）';
-    if(mainText) mainText.placeholder='例如：今天中午要開會，請相關人員準時參加。';
-    const ack=document.getElementById('needAckBox'); if(ack){ack.disabled=false; ack.checked=needsAck;}
-  }
-  if(secondBox){
-    if(hasSecondReminder){
-      secondBox.innerHTML=`<div class="row"><div><label>再次提醒日期</label><input type="date"></div><div><label>再次提醒時間</label><input type="time" value="13:25"></div></div>
-        <label>再次提醒內容（第二次通知文字）</label><textarea placeholder="例如：請到辦公室，攜帶筆記本與筆。"></textarea>`;
+  const privacy=document.getElementById('privacyMode')?.value || 'private';
+  const repeat=document.getElementById('alertRepeat')?.checked || false;
+
+  if(dateBox){
+    if(mode==='specific'){
+      dateBox.innerHTML=`<div class="row"><div><label>日期</label><input id="taskDate" type="date"></div><div><label>結束時間（可留白）</label><input id="taskEndTime" type="time"></div></div>`;
+    }else if(mode==='solarCycle'){
+      dateBox.innerHTML=`<div class="hintBox">適合每天、每週、每月或固定間隔發生的事項。</div><div class="row"><div><label>國曆週期</label><select><option>每天</option><option>每週固定星期</option><option>每月固定日期</option><option>每3個月一次</option><option>每半年一次</option><option>每年一次</option></select></div><div><label>週期條件</label><input placeholder="例如：每月5日；每週一"></div></div>`;
     }else{
-      secondBox.innerHTML=`<div class="hintBox">如需設定第二次提醒，請將任務類型改成「通知＋再次提醒」或「通知＋已收到＋再次提醒」。</div>`;
+      dateBox.innerHTML=`<div class="hintBox">適合農曆初二、十六或每年固定農曆日期。</div><div class="row"><div><label>農曆週期</label><select><option>每個農曆月</option><option>每年指定農曆月日</option></select></div><div><label>農曆月份</label><input placeholder="每月提醒可留白"></div></div><label>農曆日期，可複選</label><div class="checkGrid"><label class="check"><input type="checkbox">初一</label><label class="check"><input type="checkbox">初二</label><label class="check"><input type="checkbox">十五</label><label class="check"><input type="checkbox">十六</label></div>`;
     }
   }
+
+  if(secondBox){
+    secondBox.innerHTML = repeat ? `<div class="row"><div><label>未完成後多久再提醒</label><select><option>5 分鐘後</option><option>10 分鐘後</option><option>30 分鐘後</option><option>1 小時後</option><option>隔天同一時間</option></select></div><div><label>最多再次提醒</label><select><option>1 次</option><option>2 次</option><option>3 次</option><option>直到完成</option></select></div></div>` : '';
+  }
+
+  if(targetBox){
+    if(privacy==='private'){
+      targetBox.innerHTML=`<div class="hintBox">私人事項只有建立者本人看得到，不會出現在園長、主任或其他同仁的畫面。</div>`;
+    }else{
+      targetBox.innerHTML=`<div class="hintBox">先選部門，再選該部門全體或個人。可同時通知多個部門。</div>
+        <div class="panel" style="box-shadow:none;margin-top:10px">
+          <label class="check"><input type="checkbox" onchange="toggleDepartmentTarget('幼兒部',this.checked)"><strong>幼兒部</strong></label>
+          <div id="target-幼兒部" style="display:none;margin:8px 0 4px 24px">
+            <label class="check"><input type="radio" name="幼兒部Target" value="all" checked>幼兒部全體</label>
+            <label class="check"><input type="radio" name="幼兒部Target" value="person">選擇個人</label>
+            <input class="deptPersonInput" data-dept="幼兒部" placeholder="輸入或選擇幼兒部人員姓名" style="margin-top:8px;display:none">
+          </div>
+        </div>
+        <div class="panel" style="box-shadow:none;margin-top:10px">
+          <label class="check"><input type="checkbox" onchange="toggleDepartmentTarget('安親部',this.checked)"><strong>安親部</strong></label>
+          <div id="target-安親部" style="display:none;margin:8px 0 4px 24px">
+            <label class="check"><input type="radio" name="安親部Target" value="all" checked>安親部全體</label>
+            <label class="check"><input type="radio" name="安親部Target" value="person">選擇個人</label>
+            <input class="deptPersonInput" data-dept="安親部" placeholder="輸入或選擇安親部人員姓名" style="margin-top:8px;display:none">
+          </div>
+        </div>
+        <div class="panel" style="box-shadow:none;margin-top:10px">
+          <label class="check"><input type="checkbox" onchange="toggleDepartmentTarget('庶務部',this.checked)"><strong>庶務部</strong></label>
+          <div id="target-庶務部" style="display:none;margin:8px 0 4px 24px">
+            <label class="check"><input type="radio" name="庶務部Target" value="all" checked>庶務部全體</label>
+            <label class="check"><input type="radio" name="庶務部Target" value="person">選擇個人</label>
+            <input class="deptPersonInput" data-dept="庶務部" placeholder="輸入或選擇庶務部人員姓名" style="margin-top:8px;display:none">
+          </div>
+        </div>`;
+      bindDepartmentRadios();
+    }
+  }
+}
+
+function toggleDepartmentTarget(dept, checked){
+  const box=document.getElementById('target-'+dept);
+  if(box) box.style.display=checked?'':'none';
+}
+
+function bindDepartmentRadios(){
+  ['幼兒部','安親部','庶務部'].forEach(dept=>{
+    document.querySelectorAll(`input[name="${dept}Target"]`).forEach(radio=>{
+      radio.addEventListener('change',()=>{
+        const input=document.querySelector(`.deptPersonInput[data-dept="${dept}"]`);
+        if(input) input.style.display = radio.value==='person' && radio.checked ? '' : 'none';
+      });
+    });
+  });
 }
 
 function renderSecretaryFields(){
