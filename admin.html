@@ -550,9 +550,42 @@ function setDue(type,btn){
 renderToday(); setDue('1',document.querySelector('.tab'));
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show')}
 function beep(){
-  try{const ctx=new (window.AudioContext||window.webkitAudioContext)(); const osc=ctx.createOscillator(); const gain=ctx.createGain(); osc.type='sine'; osc.frequency.value=880; gain.gain.setValueAtTime(.001,ctx.currentTime); gain.gain.exponentialRampToValueAtTime(.18,ctx.currentTime+.03); gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.45); osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime+.48);}catch(e){}
+  try{
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AudioCtx();
+    const master = ctx.createGain();
+    master.gain.value = 0.95;
+    master.connect(ctx.destination);
+
+    const tones = [880, 1175, 880, 1175, 988, 1319];
+    tones.forEach((frequency, index) => {
+      const start = ctx.currentTime + index * 0.48;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.value = frequency;
+      gain.gain.setValueAtTime(0.001, start);
+      gain.gain.exponentialRampToValueAtTime(0.42, start + 0.03);
+      gain.gain.setValueAtTime(0.42, start + 0.28);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.42);
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start(start);
+      osc.stop(start + 0.44);
+    });
+
+    setTimeout(() => { try{ ctx.close(); }catch(e){} }, 3600);
+  }catch(e){}
+
+  if(navigator.vibrate){
+    navigator.vibrate([500,180,500,180,700,220,900]);
+  }
 }
-function demoAlarm(){document.getElementById('alarmBox').classList.add('show');beep();showToast('提醒測試：已跳出文字與鈴聲')}
+function demoAlarm(){
+  document.getElementById('alarmBox').classList.add('show');
+  beep();
+  showToast('強提醒測試：較長鈴聲，支援的裝置會同步震動');
+}
 function scrollTopFast(){window.scrollTo({top:0,behavior:'smooth'})}
 function maskClose(e){if(e.target.id==='modalMask') closeModal()}
 function closeModal(){document.getElementById('modalMask').classList.remove('show')}
@@ -582,7 +615,19 @@ function openModal(type){
         <label class="check"><input type="checkbox" id="alertSound" checked>提示音／震動</label>
         <label class="check"><input type="checkbox" id="alertRepeat" onchange="renderSmartTaskFields()">未完成再次提醒</label>
       </div>
-      <div class="row"><div><label>提前提醒</label><select id="advanceReminder"><option value="0">準時提醒</option><option value="10">提前 10 分鐘</option><option value="30">提前 30 分鐘</option><option value="60">提前 1 小時</option><option value="1440">提前 1 天</option></select></div><div><label>重要程度</label><select id="taskPriority"><option>一般</option><option>重要</option><option>非常重要</option></select></div></div>
+      <label>提前預約提醒（可複選）</label>
+      <div class="hintBox">例如下午 1:30 的重要行程，可同時設定「提前 1 天、提前 1 小時、提前 10 分鐘」，正式時間再提醒一次。</div>
+      <div class="checkGrid" id="advanceReminderOptions">
+        <label class="check"><input type="checkbox" value="10080">提前 1 週</label>
+        <label class="check"><input type="checkbox" value="2880">提前 2 天</label>
+        <label class="check"><input type="checkbox" value="1440" checked>提前 1 天</label>
+        <label class="check"><input type="checkbox" value="120">提前 2 小時</label>
+        <label class="check"><input type="checkbox" value="60" checked>提前 1 小時</label>
+        <label class="check"><input type="checkbox" value="30">提前 30 分鐘</label>
+        <label class="check"><input type="checkbox" value="10" checked>提前 10 分鐘</label>
+        <label class="check"><input type="checkbox" value="0" checked>準時再次提醒</label>
+      </div>
+      <div class="row"><div><label>重要程度</label><select id="taskPriority"><option>一般</option><option>重要</option><option>非常重要</option></select></div><div><label>提醒持續方式</label><select id="alertDuration"><option>一般提示</option><option selected>強提醒（較長鈴聲＋震動）</option><option>未完成每 10 分鐘再提醒</option></select></div></div>
       <div id="secondReminderFields"></div>
 
       <h3 style="margin:18px 0 4px;color:#254f65">4. 通知對象</h3>
