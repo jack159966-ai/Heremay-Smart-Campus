@@ -1,10 +1,12 @@
 {
-  "version": "1.1.1",
-  "releaseDate": "2026-07-17",
-  "title": "更新檢查穩定修正版",
+  "version": "1.3.4",
+  "releaseDate": "2026-07-20",
+  "title": "手機快取更新機制修正版",
   "notes": [
-    "版本檔與 Service Worker 分開檢查",
-    "Service Worker 暫時失敗時不影響版本狀態",
-    "保留登入與各模組本機資料"
+    "HTML、JavaScript、CSS、版本檔與設定檔改為優先向網路取得最新版",
+    "離線時才使用手機內既有快取，不再長期卡在舊頁面",
+    "新 Service Worker 啟用後會自動清除舊版快取",
+    "支援立即更新按鈕送出 SKIP_WAITING 指令",
+    "保留登入資料與各模組 localStorage 資料"
   ]
 }

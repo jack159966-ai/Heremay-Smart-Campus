@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂正式穩定版 v1.0</title>
+<title>Heremay 和美智慧校園｜巡堂正式修正版 v1.1.3</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -69,9 +69,10 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo">🏰</div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂正式穩定版 v1.0｜2026-07-19｜雲端同步、照片保存、週報留存</p></div></header>
+<header class="top"><div class="logo">🏰</div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂正式修正版 v1.1.4｜2026-07-20｜完成數修正、保留順序、返回主管首頁</p></div></header>
 
 <section id="screenHome" class="screen active">
+  <button class="light full no-print" type="button" onclick="returnToPreviousPage()" style="margin:0 0 10px">← 返回主管首頁</button>
   <div class="card hero">
     <span class="pill">行政主管模式</span><span class="pill" style="margin-left:6px">巡堂人：<b id="patrolUserName">行政主管</b></span>
     <h2 style="margin-top:12px">今日巡堂</h2>
@@ -117,10 +118,11 @@ button{display:none!important}
 <button class="danger full" style="margin-top:10px" onclick="saveDefectAndNext()">⚠️ 儲存待改善並前往下一班</button>
 <button class="primary full" style="margin-top:10px" onclick="saveAndNext()">儲存目前內容並前往下一班</button>
 <button class="gray full" style="margin-top:10px" onclick="finishAndSave()">☁️ 結束／同步本時段</button>
+<button class="light full" style="margin-top:10px" onclick="show('Home')">← 返回巡堂首頁</button>
 </div>
 </section>
 
-<section id="screenRecords" class="screen"><div class="card"><h2>巡堂紀錄</h2><p class="muted" id="recordTip"></p><div id="recordsList"></div><button class="light full no-print" style="margin-top:12px" onclick="loadCloudRecords(true)">🔄 重新讀取雲端紀錄</button><button class="light full no-print" style="margin-top:10px" onclick="syncCurrentSession()">☁️ 再次同步本時段全部紀錄</button><div class="grid2 no-print" style="margin-top:10px"><button class="gray" onclick="show('Report')">查看週報</button><button class="danger" onclick="resetSession()">重新開始本時段</button></div></div></section>
+<section id="screenRecords" class="screen"><div class="card"><h2>巡堂紀錄</h2><p class="muted" id="recordTip"></p><div id="recordsList"></div><button class="light full no-print" style="margin-top:12px" onclick="show('Home')">← 返回巡堂首頁</button><button class="light full no-print" style="margin-top:10px" onclick="loadCloudRecords(true)">🔄 重新讀取雲端紀錄</button><button class="light full no-print" style="margin-top:10px" onclick="syncCurrentSession()">☁️ 再次同步本時段全部紀錄</button><div class="grid2 no-print" style="margin-top:10px"><button class="gray" onclick="show('Report')">查看週報</button><button class="danger" onclick="resetSession()">重新開始本時段</button></div></div></section>
 
 <section id="screenReport" class="screen"><div class="card"><h2>巡堂統計表</h2><p class="muted no-print">請先選擇週別，再列印或另存 PDF。PDF 版會使用正式統計表格式，只顯示合格 V 與待改善代碼。列印方向請選「直向／Portrait」。</p><div class="no-print pdf-control-grid"><div class="control-card"><label class="small">統計週別</label><select id="reportWeekSelect" onchange="setReportWeek(this.value)"></select></div><div class="control-card"><label class="small">畫面預覽字體大小（直式滿版雙週10天，列印時會自動壓成 A4 一頁）</label><div class="range-row"><input type="range" id="reportFontSize" min="6.5" max="8.5" step="0.1" onchange="setReportFontSize(this.value)" oninput="previewReportFontSize(this.value)"><span class="range-value" id="reportFontSizeLabel">8.0</span></div></div></div><div class="print-page report-form" id="reportPage"></div><button class="primary full no-print" style="margin-top:14px" onclick="window.print()">列印／另存 PDF</button></div></section>
 
@@ -417,6 +419,33 @@ const defaultCategories=[
 ];
 const notifyOptions=['本班教保人員','主任','園長','清潔人員','廚工','行政群組'];
 const storeKey='heremay_patrol_12classes_v15_auto_sync';
+const classOrderKey='heremay_patrol_class_order_v1';
+const badClassBackupKey='heremay_patrol_bad_class_backup_20260720';
+
+function repairAndRestoreClassList(x){
+  x.classes=Array.isArray(x.classes)?x.classes:[];
+  x.inactiveClasses=Array.isArray(x.inactiveClasses)?x.inactiveClasses:[];
+
+  // 先備份異常的五班（或更少）清單，只修班級設定，不碰巡堂紀錄與歷史資料。
+  if(x.classes.length<=5){
+    try{localStorage.setItem(badClassBackupKey,JSON.stringify({classes:x.classes,inactiveClasses:x.inactiveClasses,time:new Date().toISOString()}));}catch(e){}
+    x.classes=defaultClasses.filter(c=>!['Y2','Y3'].includes(c));
+    x.inactiveClasses=['Y2','Y3'];
+  }
+
+  // 優先套用獨立保存的巡堂順序；只接受至少 6 班的合理清單，避免再次載入示範版。
+  try{
+    const savedOrder=JSON.parse(localStorage.getItem(classOrderKey)||'null');
+    if(Array.isArray(savedOrder)&&savedOrder.length>=6){
+      const activeSet=new Set(x.classes);
+      const restored=savedOrder.filter(c=>activeSet.has(c));
+      x.classes.forEach(c=>{if(!restored.includes(c))restored.push(c)});
+      x.classes=restored;
+    }
+  }catch(e){}
+  return x;
+}
+
 let data=loadData();
 data.history=data.history||{};
 data.selectedWeekStart=data.selectedWeekStart||isoDate(startOfWeek(new Date()));
@@ -456,12 +485,18 @@ function rollOverIfNeeded(x){
   }
   return x;
 }
-function loadData(){const saved=localStorage.getItem(storeKey);if(saved){try{const x=JSON.parse(saved);x.records=x.records||{};x.records.morning=x.records.morning||{};x.records.afternoon=x.records.afternoon||{};x.currentIndex=x.currentIndex||{morning:0,afternoon:0};x.history=x.history||{};x.selectedWeekStart=x.selectedWeekStart||isoDate(startOfWeek(new Date()));x.classes=Array.isArray(x.classes)&&x.classes.length?x.classes:[...defaultClasses];x.inactiveClasses=Array.isArray(x.inactiveClasses)?x.inactiveClasses:[];if(!('classPauseInitialized' in x)){['Y2','Y3'].forEach(c=>{x.classes=x.classes.filter(v=>v!==c);if(!x.inactiveClasses.includes(c))x.inactiveClasses.push(c)});x.classPauseInitialized=true}return rollOverIfNeeded(x)}catch(e){}}const fresh=blankData();fresh.classPauseInitialized=true;return fresh;}
+function loadData(){const saved=localStorage.getItem(storeKey);if(saved){try{const x=JSON.parse(saved);x.records=x.records||{};x.records.morning=x.records.morning||{};x.records.afternoon=x.records.afternoon||{};x.currentIndex=x.currentIndex||{morning:0,afternoon:0};x.history=x.history||{};x.selectedWeekStart=x.selectedWeekStart||isoDate(startOfWeek(new Date()));x.classes=Array.isArray(x.classes)&&x.classes.length?x.classes:[...defaultClasses];x.inactiveClasses=Array.isArray(x.inactiveClasses)?x.inactiveClasses:[];if(!('classPauseInitialized' in x)){['Y2','Y3'].forEach(c=>{x.classes=x.classes.filter(v=>v!==c);if(!x.inactiveClasses.includes(c))x.inactiveClasses.push(c)});x.classPauseInitialized=true}return rollOverIfNeeded(repairAndRestoreClassList(x))}catch(e){}}const fresh=blankData();fresh.classPauseInitialized=true;return repairAndRestoreClassList(fresh);}
 function sessionName(s=currentSession){return s==='morning'?'上午':'下午'}
 function recs(s=currentSession){data.records[s]=data.records[s]||{};return data.records[s]}
-function persist(doUpdate=true){data.activeDate=isoDate();data.currentSession=currentSession;data.currentIndex=data.currentIndex||{};data.currentIndex[currentSession]=currentIndex;localStorage.setItem(storeKey,JSON.stringify(data));if(doUpdate)updateAll()}
+function persist(doUpdate=true){data.activeDate=isoDate();data.currentSession=currentSession;data.currentIndex=data.currentIndex||{};data.currentIndex[currentSession]=currentIndex;localStorage.setItem(storeKey,JSON.stringify(data));if(Array.isArray(data.classes)&&data.classes.length>=6)localStorage.setItem(classOrderKey,JSON.stringify(data.classes));if(doUpdate)updateAll()}
 function today(){return new Date().toLocaleDateString('zh-TW')}
 function nowTime(){return new Date().toLocaleString('zh-TW',{hour12:false})}
+function returnToPreviousPage(){
+  location.href='admin.html';
+}
+function isCompletedRecord(rec){
+  return !!rec && (rec.status==='pass' || rec.status==='needs_improvement');
+}
 function show(name){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen'+name).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));const nav=document.getElementById('nav'+name);if(nav)nav.classList.add('active');updateAll()}
 async function setSession(s){
   saveCurrent(false);
@@ -477,7 +512,7 @@ async function setSession(s){
   persist();
   show('Home');
 }
-function unfinishedClasses(){const r=recs();return data.classes.map((c,i)=>({name:c,index:i})).filter(x=>!r[x.name])}
+function unfinishedClasses(){const r=recs();return data.classes.map((c,i)=>({name:c,index:i})).filter(x=>!isCompletedRecord(r[x.name]))}
 function firstUnfinished(){const u=unfinishedClasses();return u.length?u[0].index:Math.max(0,data.classes.length-1)}
 function nextUnfinishedAfter(i){const u=unfinishedClasses();if(!u.length)return -1;return (u.find(x=>x.index>i)||u[0]).index}
 function goPatrol(){const idx=firstUnfinished();openClass(idx)}
@@ -500,7 +535,7 @@ async function finishAndSave(){
       show('Home');
     }else{
       toast(`${sessionName()}巡堂已全部完成並同步`);
-      show('Records');
+      show('Home');
     }
   }
 }
@@ -547,7 +582,7 @@ function getTargetsFromUI(){return [...document.querySelectorAll('#notifyTargets
 function renderNotifyOptions(rec){const box=document.getElementById('notifyTargets');if(!box)return;const oldTarget=rec?.notifyTarget;const selected=new Set(rec?.notifyTargets|| (oldTarget?[oldTarget]:['本班教保人員']));box.innerHTML=notifyOptions.map(x=>`<label><input type="checkbox" value="${x}" ${selected.has(x)?'checked':''} onchange="saveCurrent(false)">${x}</label>`).join('')}
 function targetText(rec){const arr=rec?.notifyTargets || (rec?.notifyTarget?[rec.notifyTarget]:[]);return arr.length?arr.join('、'):'未指定'}
 function toast(msg){const el=document.getElementById('toast');if(!el){return}el.textContent=msg;el.classList.add('show');clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(()=>el.classList.remove('show'),1200)}
-function goNextClass(){const next=nextUnfinishedAfter(currentIndex);if(next>=0){currentIndex=next;loadCurrentDraft();show('Patrol')}else{toast(`${sessionName()}巡堂已完成`);show('Records')}persist()}
+function goNextClass(){const next=nextUnfinishedAfter(currentIndex);if(next>=0){currentIndex=next;loadCurrentDraft();show('Patrol')}else{toast(`${sessionName()}巡堂已完成`);show('Home')}persist()}
 function stepClass(delta){
   saveCurrent(true);
   const next=currentIndex+delta;
@@ -808,7 +843,7 @@ function removeClassEditorRow(btn){
 }
 function updateAll(){renderSessionTabs();renderHome();renderClasses();renderPatrolHeader();renderRecords();renderReport();renderSettings()}
 function renderSessionTabs(){const m=document.getElementById('sessionMorning'),a=document.getElementById('sessionAfternoon');if(m&&a){m.classList.toggle('active',currentSession==='morning');a.classList.toggle('active',currentSession==='afternoon')}}
-function renderHome(){const r=recs();const done=Object.keys(r).length,total=data.classes.length;const t=document.getElementById('homeProgressText');if(t)t.textContent=`${sessionName()}：${done} / ${total} 班完成`;const b=document.getElementById('homeBar');if(b)b.style.width=total?`${done/total*100}%`:'0%';const box=document.getElementById('unfinishedList');if(box){const u=unfinishedClasses();if(u.length){box.innerHTML=`<div class="unfinished-title">尚未巡視 ${u.length} 班：點班級可直接補巡</div><div class="unfinished-buttons">${u.map(x=>`<button class="light" onclick="goUnfinished(${x.index})">${x.name}</button>`).join('')}</div>`}else{box.innerHTML='<div class="unfinished-title ok">本時段已全部巡完</div>'}}}
+function renderHome(){const r=recs();const total=data.classes.length;const done=data.classes.filter(cls=>isCompletedRecord(r[cls])).length;const t=document.getElementById('homeProgressText');if(t)t.textContent=`${sessionName()}：${done} / ${total} 班完成`;const b=document.getElementById('homeBar');if(b)b.style.width=total?`${done/total*100}%`:'0%';const box=document.getElementById('unfinishedList');if(box){const u=unfinishedClasses();if(u.length){box.innerHTML=`<div class="unfinished-title">尚未巡視 ${u.length} 班：點班級可直接補巡</div><div class="unfinished-buttons">${u.map(x=>`<button class="light" onclick="goUnfinished(${x.index})">${x.name}</button>`).join('')}</div>`}else{box.innerHTML='<div class="unfinished-title ok">本時段已全部巡完</div>'}}}
 function renderClasses(){const box=document.getElementById('classList');if(!box)return;document.getElementById('orderTip').textContent=`目前顯示：${sessionName()}巡堂進度。深色＝尚未巡視；淺色＝已巡過。點任何班級都可進入修改。`;box.innerHTML='';const r=recs();data.classes.forEach((c,i)=>{const x=r[c];const state=x?(x.status==='needs_improvement'?' needs':' done'):'';const current=(i===currentIndex?' current':'');const div=document.createElement('div');div.className='class-item'+state+current;div.onclick=()=>openClass(i);div.innerHTML=`<div class="class-main"><div class="class-info"><b>${i+1}. ${c}</b><div class="small">${x?`已巡視 ${x.time}，可點入修改`:'尚未巡視'}</div></div><span class="status">${x?(x.status==='pass'?'合格':'待改善'):(i===currentIndex?'目前':'未巡')}</span></div><div class="order-actions"><button type="button" title="上移" ${i===0?'disabled':''} onclick="moveClassOrder(event,${i},-1)">↑</button><button type="button" title="下移" ${i===data.classes.length-1?'disabled':''} onclick="moveClassOrder(event,${i},1)">↓</button></div>`;box.appendChild(div)})}
 function moveClassOrder(event,i,dir){event.stopPropagation();const currentClass=data.classes[currentIndex];const j=i+dir;if(j<0||j>=data.classes.length)return;const arr=data.classes;[arr[i],arr[j]]=[arr[j],arr[i]];currentIndex=Math.max(0,arr.indexOf(currentClass));persist();toast('班級巡視順序已更新')}
 function renderPatrolHeader(){const cls=data.classes[currentIndex]||'尚未設定班級';const c=document.getElementById('currentClass');if(c)c.textContent=`${sessionName()}｜${cls}`;const s=document.getElementById('currentStep');if(s)s.textContent=`第 ${currentIndex+1} / ${data.classes.length} 班`;const prev=document.getElementById('prevClassBtn');const next=document.getElementById('nextClassBtn');if(prev)prev.disabled=currentIndex<=0;if(next)next.disabled=currentIndex>=data.classes.length-1}
