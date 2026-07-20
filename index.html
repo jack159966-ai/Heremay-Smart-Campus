@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>和美智慧校園｜Heremay Smart Campus</title>
+
+  <!-- 手機桌面圖示與 PWA 設定 -->
+  <meta name="theme-color" content="#fff6fb" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="和美智慧校園" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/app-icon.png?v=20260717" />
+  <link rel="icon" type="image/png" href="assets/app-icon.png?v=20260717" />
+  <link rel="manifest" href="manifest.webmanifest?v=20260717b" />
+
+  <style>
+    :root{
+      --bg1:#fff6fb;
+      --bg2:#eaf7ff;
+      --card:#ffffff;
+      --pink:#ef6f9f;
+      --pink2:#ff9fc0;
+      --blue:#55aee0;
+      --green:#38aa6c;
+      --ink:#34424a;
+      --muted:#78909b;
+      --line:#f3c8d8;
+      --shadow:0 18px 45px rgba(117,91,124,.18);
+      --radius:28px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:"Microsoft JhengHei","Noto Sans TC",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 15% 10%, rgba(255,210,229,.9), transparent 30%),
+        radial-gradient(circle at 85% 20%, rgba(189,232,255,.9), transparent 32%),
+        linear-gradient(180deg,var(--bg1),var(--bg2));
+    }
+    .app-shell{
+      width:min(100%,460px);
+      min-height:100vh;
+      margin:0 auto;
+      padding:28px 18px 22px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:18px;
+    }
+    .logo-area{text-align:center}
+    .logo-wrap{
+      width:128px;height:128px;margin:0 auto 12px;
+      border-radius:36px;
+      background:linear-gradient(145deg,#fff,#ffe7f0 48%,#d8f2ff);
+      display:grid;place-items:center;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.9);
+    }
+    .logo-img{width:100%;height:100%;object-fit:contain;padding:8px}
+    .castle-fallback{display:none;font-size:66px}
+    .logo-wrap.no-img .logo-img{display:none}
+    .logo-wrap.no-img .castle-fallback{display:block}
+    .school-name{margin:0;font-size:24px;color:#5a4050;font-weight:900;letter-spacing:.4px}
+    .school-sub{margin:5px 0 0;color:var(--muted);font-size:13px;font-weight:800}
+    .login-card{
+      background:rgba(255,255,255,.92);
+      backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,.95);
+      border-radius:var(--radius);
+      padding:22px 18px;
+      box-shadow:var(--shadow);
+    }
+    h1{margin:0 0 18px;text-align:center;color:#6d4056;font-size:22px;line-height:1.3}
+    .input-box{
+      display:flex;align-items:center;gap:10px;
+      border:1px solid #f0c8d8;
+      background:#fffafd;
+      border-radius:18px;
+      padding:0 12px;
+      min-height:54px;
+      margin-top:12px;
+    }
+    .icon{font-size:20px;flex:0 0 auto}
+    .input-box input{
+      border:0;outline:0;background:transparent;
+      width:auto;min-width:0;flex:1;
+      font-size:16px;color:#4a3941;
+      font-family:inherit;
+      padding:0;
+    }
+    .eye-btn,.text-btn{
+      border:0;background:transparent;cursor:pointer;color:#9a6579;font-weight:900;font-family:inherit;
+    }
+    .eye-btn{
+      flex:0 0 44px;
+      width:44px;height:44px;
+      display:grid;place-items:center;
+      border-radius:14px;
+      font-size:20px;
+      padding:0;
+    }
+    .eye-btn:focus-visible{outline:2px solid #ef6f9f;outline-offset:2px}
+    .login-btn,.face-btn,.role-btn{
+      width:100%;border:0;border-radius:20px;
+      padding:15px 16px;
+      font-size:17px;font-weight:900;
+      cursor:pointer;font-family:inherit;
+      transition:.15s transform ease,.15s filter ease;
+    }
+    .login-btn:active,.face-btn:active,.role-btn:active{transform:scale(.985)}
+    .login-btn{margin-top:16px;color:white;background:linear-gradient(135deg,var(--pink),var(--pink2));box-shadow:0 12px 24px rgba(239,111,159,.24)}
+    .face-btn{margin-top:12px;color:white;background:linear-gradient(135deg,#52addd,#80ccf0);box-shadow:0 12px 24px rgba(82,173,221,.22)}
+    .login-options{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:#846b75;font-size:14px;font-weight:800}
+    .login-options label{display:flex;align-items:center;gap:5px}.login-options input{width:auto}
+    .divider{display:flex;align-items:center;gap:10px;margin:18px 0 4px;color:#987686;font-size:13px;font-weight:900}
+    .divider:before,.divider:after{content:"";height:1px;background:#f0c8d8;flex:1}
+    footer{text-align:center;color:#78909b;font-size:12px;font-weight:800;line-height:1.6}footer span{color:#9aaeb7}
+    .update-card{background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.95);border-radius:20px;padding:13px 14px;box-shadow:0 10px 28px rgba(117,91,124,.10)}
+    .update-row{display:flex;align-items:center;gap:10px}.update-icon{font-size:22px;flex:0 0 auto}.update-copy{min-width:0;flex:1}.update-title{font-size:14px;font-weight:900;color:#5a4050}.update-status{font-size:12px;color:#78909b;font-weight:800;line-height:1.45;margin-top:2px}.update-btn{display:none;flex:0 0 auto;border:0;border-radius:14px;padding:10px 12px;background:#55aee0;color:white;font-family:inherit;font-weight:900;cursor:pointer}.update-btn.show{display:block}.update-card.available{border-color:#bfe8fb;background:#f4fbff}.update-card.error{border-color:#ffd2d2;background:#fff8f8}
+    .toast{
+      position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120px);
+      width:min(92%,420px);background:#3f5360;color:white;border-radius:20px;
+      padding:14px 16px;box-shadow:0 18px 38px rgba(0,0,0,.22);
+      font-weight:850;line-height:1.45;transition:.25s ease;z-index:40;
+    }
+    .toast.show{transform:translateX(-50%) translateY(0)}
+    .modal-mask{position:fixed;inset:0;background:rgba(39,35,44,.38);display:none;align-items:flex-end;justify-content:center;padding:16px;z-index:35}.modal-mask.show{display:flex}
+    .sheet{width:min(100%,430px);background:white;border-radius:28px;padding:18px;box-shadow:0 24px 55px rgba(0,0,0,.25)}
+    .sheet h2{margin:0 0 7px;color:#5a4050;font-size:22px}.sheet p{margin:0 0 14px;color:#758b96;font-weight:800;line-height:1.5}
+    .role-list{display:grid;gap:10px}.role-btn{text-align:left;color:#314753;background:#f8fcff;border:1px solid #d7edf8}.role-btn.admin{background:#eef9ff;border-color:#bfe8fb}.role-btn.teacher{background:#fff1f7;border-color:#f4bfd4}.role-btn.support{background:#f0fff6;border-color:#bfe8ce}.role-btn span{display:block;margin-top:4px;color:#78909b;font-size:13px;font-weight:800}.close-btn{margin-top:12px;width:100%;border:0;border-radius:18px;padding:13px;background:#f3f7fa;color:#647d89;font-weight:900;font-family:inherit;cursor:pointer}
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <section class="logo-area">
+      <div class="logo-wrap" id="logoWrap">
+        <img src="assets/logo.png" alt="Heremay 和美智慧校園 Logo" class="logo-img" onerror="document.getElementById('logoWrap').classList.add('no-img')" />
+        <div class="castle-fallback">🏰</div>
+      </div>
+      <h2 class="school-name">和美智慧校園</h2>
+      <p class="school-sub">Heremay Smart Campus</p>
+    </section>
+
+    <section class="login-card">
+      <h1>♡ 歡迎回到和美大家庭！</h1>
+
+      <div class="input-box">
+        <span class="icon">👤</span>
+        <input id="account" type="text" placeholder="帳號 / 員工編號" autocomplete="username" />
+      </div>
+
+      <div class="input-box">
+        <span class="icon">🔒</span>
+        <input id="password" type="password" placeholder="6 位數字密碼"
+          inputmode="numeric" pattern="[0-9]*" maxlength="6"
+          autocomplete="current-password" oninput="digitsOnly(this)" />
+        <button class="eye-btn" id="eyeBtn" type="button"
+          onclick="togglePassword()" aria-label="顯示密碼" title="顯示密碼">👁️</button>
+      </div>
+
+      <button class="login-btn" type="button" onclick="demoLogin()">登入 →</button>
+
+      <div class="login-options">
+        <label><input type="checkbox" checked /> 記住我</label>
+        <button type="button" class="text-btn" onclick="showToast('正式版會交由管理者協助重設密碼')">忘記密碼？</button>
+      </div>
+
+      <div class="divider">其他登入方式</div>
+
+      <button class="face-btn" type="button" onclick="faceLogin()">😊 Face ID／生物辨識登入</button>
+      <button class="text-btn" style="display:block;margin:12px auto 0" type="button" onclick="registerFaceLogin()">首次使用：設定刷臉登入</button>
+    </section>
+
+
+    <section class="update-card" id="wifiCard" aria-live="polite">
+      <div class="update-row">
+        <div class="update-icon" id="wifiIcon">📶</div>
+        <div class="update-copy">
+          <div class="update-title">園內網路驗證</div>
+          <div class="update-status" id="wifiStatus">尚未驗證</div>
+        </div>
+        <button class="update-btn show" id="wifiBtn" type="button" onclick="checkCampusWifi(true)">立即檢查</button>
+      </div>
+    </section>
+
+    <section class="update-card" id="updateCard" aria-live="polite">
+      <div class="update-row">
+        <div class="update-icon" id="updateIcon">🔄</div>
+        <div class="update-copy">
+          <div class="update-title">系統更新</div>
+          <div class="update-status" id="updateStatus">正在確認是否有新版本……</div>
+        </div>
+        <button class="update-btn" id="updateBtn" type="button" onclick="applyUpdate()">立即更新</button>
+      </div>
+    </section>
+
+    <footer>
+      🛡️ 資料安全・隱私保護・安心使用<br />
+      <span id="versionText">Heremay Smart Campus v1.3.0</span>
+    </footer>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <div class="modal-mask" id="faceModal" onclick="closeFaceModal(event)">
+    <section class="sheet" onclick="event.stopPropagation()">
+      <h2>😊 生物辨識成功</h2>
+      <p>這是本機測試模式；正式串接員工資料庫後，系統會自動判斷身分。</p>
+      <div class="role-list">
+        <button class="role-btn admin" onclick="goRole('admin')">👑 行政主管首頁<span>謝子元／吳玉瑩園長／謝秉儒主任</span></button>
+        <button class="role-btn teacher" onclick="goRole('teacher')">👩‍🏫 教保人員首頁<span>老師、助教與班級工作台</span></button>
+        <button class="role-btn support" onclick="goRole('support')">🧹 庶務人員首頁<span>廚工、清潔與園務支援</span></button>
+      </div>
+      <button class="close-btn" onclick="hideFaceModal()">取消</button>
+    </section>
+  </div>
+
+
+  <script>
+    const APP_VERSION = '1.3.5';
+
+    /*
+      正式登入架構說明
+      1. 帳號密碼、Passkey 註冊與驗證，皆交由後端伺服器判斷。
+      2. 瀏覽器只保存「上次使用帳號」，不保存角色、密碼或通行權限。
+      3. 新 NAS 到位後，只要把 API_BASE 與 WIFI_ENDPOINT 改成正式網址即可。
+    */
+    const CONFIG = {
+      API_BASE: 'https://script.google.com/macros/s/AKfycbzbZ6r6c8XjHuKad0U5TIJXr8i141fCBwNJcVsKnoGa1-NXG_JOzapeRF5cVlnGI4F7/exec',
+      WIFI_ENDPOINT: '', // 新 NAS 完成後再填入園內網路驗證網址
+      WIFI_TIMEOUT_MS: 5000,
+      TEMP_DEMO_MODE: false
+    };
+
+    let waitingWorker = null;
+    let refreshing = false;
+    let campusWifiVerified = false;
+
+    const routes = {
+      admin: 'admin.html',
+      teacher: 'teacher.html',
+      support: 'support.html'
+    };
+
+    // 僅供尚未完成後端前測試畫面分流；正式上線後由伺服器回傳角色。
+    const demoAccountRoleMap = {
+      'jack':'admin','jack159966':'admin','謝子元':'admin','子元':'admin',
+      '園長':'admin','吳玉瑩':'admin','玉瑩':'admin',
+      '主任':'admin','謝秉儒':'admin','秉儒':'admin',
+      'admin':'admin','001':'admin',
+      'teacher':'teacher','teacher01':'teacher','老師':'teacher',
+      '教保':'teacher','教保人員':'teacher','002':'teacher',
+      'support':'support','support01':'support','庶務':'support',
+      '庶務人員':'support','廚工':'support','清潔':'support',
+      '清潔人員':'support','003':'support'
+    };
+
+    function setUpdateStatus(message, state='normal'){
+      const card = document.getElementById('updateCard');
+      const status = document.getElementById('updateStatus');
+      const icon = document.getElementById('updateIcon');
+      const btn = document.getElementById('updateBtn');
+      if(!card || !status || !icon || !btn) return;
+      card.classList.toggle('available', state === 'available');
+      card.classList.toggle('error', state === 'error');
+      btn.classList.toggle('show', state === 'available');
+      status.textContent = message;
+      icon.textContent = state === 'available' ? '⬆️' :
+                         state === 'error' ? '⚠️' :
+                         state === 'done' ? '✅' : '🔄';
+    }
+
+    async function registerUpdateSystem(){
+      document.getElementById('versionText').textContent =
+        `Heremay Smart Campus v${APP_VERSION}`;
+
+      await checkVersionFile();
+
+      if(!('serviceWorker' in navigator)) return;
+
+      try{
+        const registration = await navigator.serviceWorker.register(
+          './sw.js',
+          { scope:'./', updateViaCache:'none' }
+        );
+
+        registration.addEventListener('updatefound', () => {
+          const worker = registration.installing;
+          if(!worker) return;
+          setUpdateStatus('正在下載新版程式……');
+
+          worker.addEventListener('statechange', () => {
+            if(worker.state === 'installed' && navigator.serviceWorker.controller){
+              waitingWorker = registration.waiting || worker;
+              setUpdateStatus('發現新版本，按「立即更新」即可載入。', 'available');
+            }
+          });
+        });
+
+        if(registration.waiting){
+          waitingWorker = registration.waiting;
+          setUpdateStatus('發現新版本，按「立即更新」即可載入。', 'available');
+        }
+
+        try{
+          await registration.update();
+        }catch(err){
+          console.warn('Service Worker 暫時無法更新：', err);
+        }
+
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if(refreshing) return;
+          refreshing = true;
+          location.reload();
+        });
+      }catch(err){
+        console.warn('Service Worker 註冊失敗：', err);
+      }
+    }
+
+    async function checkVersionFile(){
+      try{
+        const response = await fetch(`./version.json?_=${Date.now()}`, { cache:'no-store' });
+        if(!response.ok) throw new Error(`HTTP ${response.status}`);
+        const info = await response.json();
+
+        if(info.version && info.version !== APP_VERSION){
+          setUpdateStatus(`雲端已有 v${info.version}，正在準備更新……`);
+          const registration = await navigator.serviceWorker.getRegistration();
+          await registration?.update();
+          setTimeout(() => {
+            if(!waitingWorker){
+              setUpdateStatus('新版已發布，請稍後重新檢查或重新開啟。', 'available');
+            }
+          }, 1200);
+        }else{
+          setUpdateStatus(`目前版本 v${APP_VERSION}｜已是最新版本`, 'done');
+        }
+      }catch(err){
+        setUpdateStatus(`目前版本 v${APP_VERSION}｜暫時無法連線檢查`, 'error');
+      }
+    }
+
+    async function applyUpdate(){
+      setUpdateStatus('正在更新，完成後會自動重新開啟……');
+
+      if(waitingWorker){
+        waitingWorker.postMessage({ type:'SKIP_WAITING' });
+        return;
+      }
+
+      const registration = await navigator.serviceWorker.getRegistration();
+      await registration?.update();
+
+      if(registration?.waiting){
+        waitingWorker = registration.waiting;
+        waitingWorker.postMessage({ type:'SKIP_WAITING' });
+      }else{
+        location.reload();
+      }
+    }
+
+    function setWifiStatus(message, state='normal'){
+      const card = document.getElementById('wifiCard');
+      const status = document.getElementById('wifiStatus');
+      const icon = document.getElementById('wifiIcon');
+      if(!card || !status || !icon) return;
+
+      card.classList.toggle('available', state === 'ok');
+      card.classList.toggle('error', state === 'error');
+      status.textContent = message;
+      icon.textContent = state === 'ok' ? '✅' :
+                         state === 'error' ? '⚠️' : '📶';
+    }
+
+    async function fetchWithTimeout(url, options={}, timeoutMs=5000){
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+      try{
+        return await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+      }finally{
+        clearTimeout(timer);
+      }
+    }
+
+    async function checkCampusWifi(showResult=false){
+      campusWifiVerified = false;
+
+      if(!CONFIG.WIFI_ENDPOINT){
+        setWifiStatus('園內網路驗證尚未啟用｜目前可正常登入');
+        campusWifiVerified = true;
+        if(showResult) showToast('園內網路驗證尚未啟用，目前不影響登入。');
+        return true;
+      }
+
+      setWifiStatus('正在確認是否位於園內網路……');
+
+      try{
+        const response = await fetchWithTimeout(
+          `${CONFIG.WIFI_ENDPOINT}?_=${Date.now()}`,
+          {
+            cache:'no-store',
+            credentials:'include'
+          },
+          CONFIG.WIFI_TIMEOUT_MS
+        );
+
+        if(!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const result = await response.json();
+        if(result && result.ok === true){
+          campusWifiVerified = true;
+          setWifiStatus('園內網路驗證成功', 'ok');
+          if(showResult) showToast('園內網路驗證成功。');
+          return true;
+        }
+      }catch(err){
+        console.warn('園內網路驗證失敗：', err);
+      }
+
+      setWifiStatus('無法驗證園內網路，請確認已連接 HEREMAY Wi-Fi', 'error');
+      if(showResult){
+        showToast('無法驗證園內網路，請確認裝置已連接園內 Wi-Fi。');
+      }
+      return false;
+    }
+
+    async function requireCampusWifi(){
+      if(campusWifiVerified) return true;
+      return await checkCampusWifi(false);
+    }
+
+    function bytesToBase64url(bytes){
+      let binary = '';
+      bytes.forEach(b => binary += String.fromCharCode(b));
+      return btoa(binary)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/,'');
+    }
+
+    function base64urlToBytes(value){
+      const padding = '='.repeat((4 - value.length % 4) % 4);
+      const base64 = (value + padding)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+      const binary = atob(base64);
+      return Uint8Array.from(binary, c => c.charCodeAt(0));
+    }
+
+    function normalizePublicKeyOptions(options){
+      const copy = structuredClone(options);
+
+      if(copy.challenge){
+        copy.challenge = base64urlToBytes(copy.challenge);
+      }
+
+      if(copy.user?.id){
+        copy.user.id = base64urlToBytes(copy.user.id);
+      }
+
+      if(Array.isArray(copy.allowCredentials)){
+        copy.allowCredentials = copy.allowCredentials.map(item => ({
+          ...item,
+          id: base64urlToBytes(item.id)
+        }));
+      }
+
+      if(Array.isArray(copy.excludeCredentials)){
+        copy.excludeCredentials = copy.excludeCredentials.map(item => ({
+          ...item,
+          id: base64urlToBytes(item.id)
+        }));
+      }
+
+      return copy;
+    }
+
+    function credentialToJSON(credential){
+      const response = credential.response;
+
+      const json = {
+        id: credential.id,
+        rawId: bytesToBase64url(new Uint8Array(credential.rawId)),
+        type: credential.type,
+        clientExtensionResults: credential.getClientExtensionResults()
+      };
+
+      if(response.clientDataJSON){
+        json.response = {
+          clientDataJSON: bytesToBase64url(new Uint8Array(response.clientDataJSON))
+        };
+      }
+
+      if(response.attestationObject){
+        json.response.attestationObject =
+          bytesToBase64url(new Uint8Array(response.attestationObject));
+      }
+
+      if(response.authenticatorData){
+        json.response.authenticatorData =
+          bytesToBase64url(new Uint8Array(response.authenticatorData));
+      }
+
+      if(response.signature){
+        json.response.signature =
+          bytesToBase64url(new Uint8Array(response.signature));
+      }
+
+      if(response.userHandle){
+        json.response.userHandle =
+          bytesToBase64url(new Uint8Array(response.userHandle));
+      }
+
+      return json;
+    }
+
+    async function apiPost(path, body){
+  if(!CONFIG.API_BASE){
+    throw new Error('登入伺服器尚未設定');
+  }
+
+  const formData = new URLSearchParams();
+
+  Object.entries(body || {}).forEach(([key, value]) => {
+    formData.set(key, String(value ?? ''));
+  });
+
+  const response = await fetchWithTimeout(
+    CONFIG.API_BASE,
+    {
+      method: 'POST',
+      body: formData
+    },
+    15000
+  );
+
+  let data = {};
+
+  try{
+    data = await response.json();
+  }catch(_){
+    throw new Error('登入服務回傳格式不正確');
+  }
+
+  if(!response.ok){
+    throw new Error(data.message || `伺服器錯誤 HTTP ${response.status}`);
+  }
+
+  return data;
+}
+
+
+    function iframeLogin(account, password){
+      return new Promise((resolve, reject) => {
+        if(!CONFIG.API_BASE){
+          reject(new Error('登入伺服器尚未設定'));
+          return;
+        }
+
+        const frameName = `heremayLoginFrame_${Date.now()}`;
+        const iframe = document.createElement('iframe');
+        const form = document.createElement('form');
+        const accountInput = document.createElement('input');
+        const passwordInput = document.createElement('input');
+
+        iframe.name = frameName;
+        iframe.style.display = 'none';
+        iframe.setAttribute('aria-hidden', 'true');
+
+        form.method = 'POST';
+        form.action = CONFIG.API_BASE;
+        form.target = frameName;
+        form.style.display = 'none';
+
+        accountInput.type = 'hidden';
+        accountInput.name = 'account';
+        accountInput.value = account;
+
+        passwordInput.type = 'hidden';
+        passwordInput.name = 'password';
+        passwordInput.value = password;
+
+        form.append(accountInput, passwordInput);
+        document.body.append(iframe, form);
+
+        let finished = false;
+
+        const cleanup = () => {
+          window.removeEventListener('message', receiveResult);
+          clearTimeout(timer);
+          form.remove();
+          setTimeout(() => iframe.remove(), 100);
+        };
+
+        const receiveResult = event => {
+          const message = event.data;
+
+          if(!message || message.type !== 'HEREMAY_LOGIN_RESULT') return;
+          if(finished) return;
+
+          finished = true;
+          cleanup();
+          resolve(message.payload || {
+            ok: false,
+            message: '登入服務未回傳結果'
+          });
+        };
+
+        const timer = setTimeout(() => {
+          if(finished) return;
+          finished = true;
+          cleanup();
+          reject(new Error('登入服務連線逾時，請稍後再試'));
+        }, 15000);
+
+        window.addEventListener('message', receiveResult);
+        form.submit();
+      });
+    }
+
+    async function registerFaceLogin(){
+      const account = document.getElementById('account').value.trim();
+      const password = document.getElementById('password').value;
+
+      if(!account || !password){
+        showToast('首次設定請先輸入帳號與密碼。');
+        return;
+      }
+
+      if(!window.PublicKeyCredential || !navigator.credentials){
+        showToast('這個瀏覽器不支援 Face ID／指紋登入。');
+        return;
+      }
+
+      const wifiOk = await requireCampusWifi();
+      if(!wifiOk){
+        showToast('請先連接園內網路，再設定刷臉登入。');
+        return;
+      }
+
+      if(CONFIG.TEMP_DEMO_MODE && !CONFIG.API_BASE){
+        localStorage.setItem('heremay.lastFaceAccount', account);
+        showToast('入口頁已準備完成；新 NAS 登入伺服器完成後即可正式綁定 Face ID。');
+        return;
+      }
+
+      showToast('刷臉登入將在新 NAS 完成後啟用；目前請先使用帳號密碼登入。');
+      return;
+
+      try{
+        const optionsData = await apiPost('/auth/passkey/register/options', {
+          account,
+          password
+        });
+
+        const credential = await navigator.credentials.create({
+          publicKey: normalizePublicKeyOptions(optionsData.publicKey)
+        });
+
+        const result = await apiPost('/auth/passkey/register/verify', {
+          account,
+          credential: credentialToJSON(credential)
+        });
+
+        if(!result.ok) throw new Error(result.message || '註冊驗證失敗');
+
+        localStorage.setItem('heremay.lastFaceAccount', account);
+        document.getElementById('password').value = '';
+        showToast('Face ID／生物辨識登入設定完成。');
+      }catch(err){
+        console.error(err);
+        if(err.name === 'NotAllowedError'){
+          showToast('已取消設定，或裝置未完成生物辨識。');
+        }else{
+          showToast(`設定失敗：${err.message || err.name}`);
+        }
+      }
+    }
+
+    async function faceLogin(){
+      const typedAccount = document.getElementById('account').value.trim();
+      const account = typedAccount ||
+        localStorage.getItem('heremay.lastFaceAccount') || '';
+
+      if(!account){
+        showToast('首次使用請先輸入帳號，再設定刷臉登入。');
+        return;
+      }
+
+      if(!window.PublicKeyCredential || !navigator.credentials){
+        showToast('這個瀏覽器不支援 Face ID／指紋登入。');
+        return;
+      }
+
+      const wifiOk = await requireCampusWifi();
+      if(!wifiOk){
+        showToast('請先連接園內網路，才能登入。');
+        return;
+      }
+
+      if(CONFIG.TEMP_DEMO_MODE && !CONFIG.API_BASE){
+        const role = demoAccountRoleMap[account];
+        if(role){
+          localStorage.setItem('heremay.lastFaceAccount', account);
+          goRole(role);
+        }else{
+          showToast('目前為測試模式，請使用 jack、teacher 或 support。');
+        }
+        return;
+      }
+
+      showToast('刷臉登入將在新 NAS 完成後啟用；目前請先使用帳號密碼登入。');
+      return;
+
+      try{
+        const optionsData = await apiPost('/auth/passkey/login/options', {
+          account
+        });
+
+        const assertion = await navigator.credentials.get({
+          publicKey: normalizePublicKeyOptions(optionsData.publicKey)
+        });
+
+        const result = await apiPost('/auth/passkey/login/verify', {
+          account,
+          credential: credentialToJSON(assertion)
+        });
+
+        if(!result.ok || !result.role){
+          throw new Error(result.message || '登入驗證失敗');
+        }
+
+        localStorage.setItem('heremay.lastFaceAccount', account);
+        goRole(result.role);
+      }catch(err){
+        console.error(err);
+        if(err.name === 'NotAllowedError'){
+          showToast('生物辨識已取消或驗證未通過。');
+        }else{
+          showToast(`刷臉登入失敗：${err.message || err.name}`);
+        }
+      }
+    }
+
+    function digitsOnly(input){
+      input.value = input.value.replace(/\D/g, '').slice(0, 6);
+    }
+
+    function togglePassword(){
+      const p = document.getElementById('password');
+      const btn = document.getElementById('eyeBtn');
+      const showing = p.type === 'text';
+
+      p.type = showing ? 'password' : 'text';
+      btn.textContent = showing ? '👁️' : '🙈';
+      btn.setAttribute('aria-label', showing ? '顯示密碼' : '隱藏密碼');
+      btn.title = showing ? '顯示密碼' : '隱藏密碼';
+      p.focus();
+      p.setSelectionRange(p.value.length, p.value.length);
+    }
+
+    async function demoLogin(){
+      const account = document.getElementById('account').value.trim();
+      const password = document.getElementById('password').value;
+      const loginBtn = document.querySelector('.login-btn');
+
+      if(!account || !password){
+        showToast('請輸入帳號與 6 位數字密碼。');
+        return;
+      }
+
+      if(!/^\d{6}$/.test(password)){
+        showToast('密碼請輸入 6 位數字。');
+        return;
+      }
+
+      const wifiOk = await requireCampusWifi();
+      if(!wifiOk){
+        showToast('請先連接園內網路，才能登入。');
+        return;
+      }
+
+      if(CONFIG.TEMP_DEMO_MODE && !CONFIG.API_BASE){
+        const role = demoAccountRoleMap[account];
+        if(role){
+          localStorage.setItem('heremay.lastFaceAccount', account);
+          goRole(role);
+        }else{
+          showToast('目前為測試模式，請使用 jack、teacher 或 support。');
+        }
+        return;
+      }
+
+      try{
+        if(loginBtn){
+          loginBtn.disabled = true;
+          loginBtn.textContent = '驗證中……';
+        }
+
+        const result = await iframeLogin(account, password);
+
+        if(!result.ok || !result.role){
+          throw new Error(result.message || '帳號或密碼錯誤');
+        }
+
+        localStorage.setItem('heremay.lastFaceAccount', account);
+        localStorage.setItem('heremay.currentRole', String(result.role || ''));
+
+        if(result.employee){
+          localStorage.setItem(
+            'heremay.currentEmployee',
+            JSON.stringify(result.employee)
+          );
+        }else{
+          localStorage.removeItem('heremay.currentEmployee');
+        }
+
+        document.getElementById('password').value = '';
+        goRole(result.role);
+      }catch(err){
+        console.error(err);
+        showToast(`登入失敗：${err.message || err.name}`);
+      }finally{
+        if(loginBtn){
+          loginBtn.disabled = false;
+          loginBtn.textContent = '登入 →';
+        }
+      }
+    }
+
+    function hideFaceModal(){
+      document.getElementById('faceModal').classList.remove('show');
+    }
+
+    function closeFaceModal(event){
+      if(event.target.id === 'faceModal') hideFaceModal();
+    }
+
+    function goRole(role){
+      const target = routes[role];
+      if(!target){
+        showToast('登入成功，但尚未設定此身分的首頁。');
+        return;
+      }
+      window.location.href = target;
+    }
+
+    function showToast(message){
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.remove('show');
+      void toast.offsetWidth;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3200);
+    }
+
+    window.addEventListener('load', () => {
+      registerUpdateSystem();
+      checkCampusWifi(false);
+
+      const lastAccount = localStorage.getItem('heremay.lastFaceAccount');
+      if(lastAccount){
+        document.getElementById('account').value = lastAccount;
+      }
+    });
+  </script>
+
+</body>
+</html>
