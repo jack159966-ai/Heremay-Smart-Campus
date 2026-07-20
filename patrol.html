@@ -69,7 +69,7 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo">🏰</div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂正式修正版 v1.1.4｜2026-07-20｜完成數修正、保留順序、返回主管首頁</p></div></header>
+<header class="top"><div class="logo">🏰</div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂正式修正版 v1.1.5｜2026-07-20｜巡堂順序確認儲存、返回主管首頁</p></div></header>
 
 <section id="screenHome" class="screen active">
   <button class="light full no-print" type="button" onclick="returnToPreviousPage()" style="margin:0 0 10px">← 返回主管首頁</button>
@@ -95,7 +95,7 @@ button{display:none!important}
   </div>
 </section>
 
-<section id="screenOrder" class="screen"><div class="card"><h2>班級巡視順序</h2><p class="muted" id="orderTip"></p><button class="primary full no-print" type="button" onclick="show('Settings')" style="margin:10px 0 12px">⚙️ 班級管理（啟用／暫停／改名／增減）</button><div class="legend-row"><span class="legend-chip todo">深色：尚未巡視</span><span class="legend-chip done">淺綠：已合格</span><span class="legend-chip bad">淺紅：待改善</span></div><div class="class-list" id="classList" style="margin-top:10px"></div></div></section>
+<section id="screenOrder" class="screen"><div class="card"><h2>班級巡視順序</h2><p class="muted" id="orderTip"></p><div id="orderSaveStatus" class="cloud-box success no-print">✅ 目前巡堂順序已儲存</div><button id="saveOrderBtn" class="success full no-print" type="button" onclick="confirmAndSaveClassOrder()" style="margin:10px 0" disabled>✅ 確認並儲存巡堂順序</button><button class="primary full no-print" type="button" onclick="show('Settings')" style="margin:0 0 12px">⚙️ 班級管理（啟用／暫停／改名／增減）</button><div class="legend-row"><span class="legend-chip todo">深色：尚未巡視</span><span class="legend-chip done">淺綠：已合格</span><span class="legend-chip bad">淺紅：待改善</span></div><div class="class-list" id="classList" style="margin-top:10px"></div></div></section>
 
 <section id="screenPatrol" class="screen">
   <div class="card hero">
@@ -257,7 +257,7 @@ function mergeCloudRecords(items){
 async function loadCloudRecords(showAlert=false){
   if(cloudLoading)return false;
   if(!navigator.onLine){
-    setCloudStatus('⚠️ 目前離線，先顯示手機內已保存的紀錄  。','error');
+    setCloudStatus('⚠️ 目前離線，先顯示手機內已保存的紀錄。','error');
     return false;
   }
 
@@ -452,6 +452,9 @@ data.selectedWeekStart=data.selectedWeekStart||isoDate(startOfWeek(new Date()));
 let currentSession=data.currentSession||'morning';
 let currentIndex=data.currentIndex?.[currentSession]||0;
 let currentPhotos=[];
+let orderDirty=false;
+let orderSavedSnapshot=[...(data.classes||[])];
+
 function pad2(n){return String(n).padStart(2,'0')}
 function isoDate(d=new Date()){return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`}
 function parseISODate(s){const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
@@ -497,7 +500,52 @@ function returnToPreviousPage(){
 function isCompletedRecord(rec){
   return !!rec && (rec.status==='pass' || rec.status==='needs_improvement');
 }
-function show(name){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen'+name).classList.add('active');document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));const nav=document.getElementById('nav'+name);if(nav)nav.classList.add('active');updateAll()}
+function activeScreenName(){
+  const active=document.querySelector('.screen.active');
+  return active?.id?.replace('screen','')||'';
+}
+function updateOrderSaveState(){
+  const status=document.getElementById('orderSaveStatus');
+  const btn=document.getElementById('saveOrderBtn');
+  if(status){
+    status.className='cloud-box no-print '+(orderDirty?'error':'success');
+    status.textContent=orderDirty?'⚠️ 巡堂順序尚未儲存':'✅ 目前巡堂順序已儲存';
+  }
+  if(btn)btn.disabled=!orderDirty;
+}
+function discardUnsavedClassOrder(){
+  const currentClass=data.classes[currentIndex];
+  data.classes=[...orderSavedSnapshot];
+  currentIndex=Math.max(0,data.classes.indexOf(currentClass));
+  if(currentIndex<0)currentIndex=0;
+  orderDirty=false;
+}
+function confirmAndSaveClassOrder(){
+  if(!orderDirty){toast('目前巡堂順序已儲存');return}
+  persist(false);
+  orderSavedSnapshot=[...data.classes];
+  orderDirty=false;
+  updateAll();
+  toast('巡堂順序已儲存');
+}
+function show(name){
+  const from=activeScreenName();
+  if(from==='Order'&&name!=='Order'&&orderDirty){
+    const leave=confirm('巡堂順序尚未儲存。\n\n確定要離開並放棄這次排序嗎？');
+    if(!leave)return false;
+    discardUnsavedClassOrder();
+  }
+  if(name==='Order'&&from!=='Order'){
+    orderSavedSnapshot=[...data.classes];
+    orderDirty=false;
+  }
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen'+name).classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  const nav=document.getElementById('nav'+name);if(nav)nav.classList.add('active');
+  updateAll();
+  return true;
+}
 async function setSession(s){
   saveCurrent(false);
   const previous=currentSession;
@@ -841,11 +889,11 @@ function removeClassEditorRow(btn){
   if(name&&!confirm(`確定刪除班級「${name}」嗎？\n既有歷史巡堂紀錄仍會保留。`))return;
   row?.remove();
 }
-function updateAll(){renderSessionTabs();renderHome();renderClasses();renderPatrolHeader();renderRecords();renderReport();renderSettings()}
+function updateAll(){renderSessionTabs();renderHome();renderClasses();renderPatrolHeader();renderRecords();renderReport();renderSettings();updateOrderSaveState()}
 function renderSessionTabs(){const m=document.getElementById('sessionMorning'),a=document.getElementById('sessionAfternoon');if(m&&a){m.classList.toggle('active',currentSession==='morning');a.classList.toggle('active',currentSession==='afternoon')}}
 function renderHome(){const r=recs();const total=data.classes.length;const done=data.classes.filter(cls=>isCompletedRecord(r[cls])).length;const t=document.getElementById('homeProgressText');if(t)t.textContent=`${sessionName()}：${done} / ${total} 班完成`;const b=document.getElementById('homeBar');if(b)b.style.width=total?`${done/total*100}%`:'0%';const box=document.getElementById('unfinishedList');if(box){const u=unfinishedClasses();if(u.length){box.innerHTML=`<div class="unfinished-title">尚未巡視 ${u.length} 班：點班級可直接補巡</div><div class="unfinished-buttons">${u.map(x=>`<button class="light" onclick="goUnfinished(${x.index})">${x.name}</button>`).join('')}</div>`}else{box.innerHTML='<div class="unfinished-title ok">本時段已全部巡完</div>'}}}
 function renderClasses(){const box=document.getElementById('classList');if(!box)return;document.getElementById('orderTip').textContent=`目前顯示：${sessionName()}巡堂進度。深色＝尚未巡視；淺色＝已巡過。點任何班級都可進入修改。`;box.innerHTML='';const r=recs();data.classes.forEach((c,i)=>{const x=r[c];const state=x?(x.status==='needs_improvement'?' needs':' done'):'';const current=(i===currentIndex?' current':'');const div=document.createElement('div');div.className='class-item'+state+current;div.onclick=()=>openClass(i);div.innerHTML=`<div class="class-main"><div class="class-info"><b>${i+1}. ${c}</b><div class="small">${x?`已巡視 ${x.time}，可點入修改`:'尚未巡視'}</div></div><span class="status">${x?(x.status==='pass'?'合格':'待改善'):(i===currentIndex?'目前':'未巡')}</span></div><div class="order-actions"><button type="button" title="上移" ${i===0?'disabled':''} onclick="moveClassOrder(event,${i},-1)">↑</button><button type="button" title="下移" ${i===data.classes.length-1?'disabled':''} onclick="moveClassOrder(event,${i},1)">↓</button></div>`;box.appendChild(div)})}
-function moveClassOrder(event,i,dir){event.stopPropagation();const currentClass=data.classes[currentIndex];const j=i+dir;if(j<0||j>=data.classes.length)return;const arr=data.classes;[arr[i],arr[j]]=[arr[j],arr[i]];currentIndex=Math.max(0,arr.indexOf(currentClass));persist();toast('班級巡視順序已更新')}
+function moveClassOrder(event,i,dir){event.stopPropagation();const currentClass=data.classes[currentIndex];const j=i+dir;if(j<0||j>=data.classes.length)return;const arr=data.classes;[arr[i],arr[j]]=[arr[j],arr[i]];currentIndex=Math.max(0,arr.indexOf(currentClass));orderDirty=true;renderClasses();renderPatrolHeader();updateOrderSaveState();toast('順序已調整，請按確認儲存')}
 function renderPatrolHeader(){const cls=data.classes[currentIndex]||'尚未設定班級';const c=document.getElementById('currentClass');if(c)c.textContent=`${sessionName()}｜${cls}`;const s=document.getElementById('currentStep');if(s)s.textContent=`第 ${currentIndex+1} / ${data.classes.length} 班`;const prev=document.getElementById('prevClassBtn');const next=document.getElementById('nextClassBtn');if(prev)prev.disabled=currentIndex<=0;if(next)next.disabled=currentIndex>=data.classes.length-1}
 function collectAllRecords(){
   const map=new Map();
@@ -990,6 +1038,8 @@ setTimeout(initializeCloud,300);
 window.addEventListener('online',initializeCloud);
 
 renderPatrolUser();
+
+window.addEventListener('beforeunload',event=>{if(orderDirty){event.preventDefault();event.returnValue='';}});
 </script>
 </body>
 </html>
