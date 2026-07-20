@@ -314,81 +314,194 @@
 
     @media(max-width:760px){.topbar{align-items:flex-start}.hero{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}.cards2{grid-template-columns:1fr}.clock{display:block;min-width:130px;font-size:16px;padding:8px 10px}.clock .dateLine{font-size:19px}.clock .timeLine{font-size:30px}.brand h1{font-size:18px}.welcome h2{font-size:23px}.cardBtn{min-height:122px}.row{grid-template-columns:1fr}}
     @media(max-width:420px){.app{padding:12px 10px 34px}.topbar{border-radius:24px;display:grid;grid-template-columns:50px 1fr;gap:10px}.clock{grid-column:1/3;width:100%;text-align:center}.logo{width:50px;height:50px;font-size:28px}.grid{gap:10px}.cardBtn{padding:15px 12px;border-radius:21px}.cardBtn h4{font-size:16px}.cardBtn p{font-size:12px}.checkGrid{grid-template-columns:1fr}}
+  
+    /* ===== 主管工作台 v19 新版面 ===== */
+    :root{
+      --dash-blue:#2f68d8;
+      --dash-deep:#173f75;
+      --dash-soft:#f6f9ff;
+      --dash-line:#dfe8f6;
+      --dash-orange:#ff8a34;
+      --dash-green:#2ca86b;
+    }
+    body{background:linear-gradient(180deg,#f6f9ff 0%,#eef7ff 52%,#f9fbff 100%)}
+    .app{width:min(820px,100%);padding:14px 12px 36px}
+    .dashboardHeader{
+      display:grid;grid-template-columns:68px 1fr auto;gap:14px;align-items:center;
+      padding:10px 6px 16px;
+    }
+    .dashboardLogo{
+      width:68px;height:68px;border-radius:20px;overflow:hidden;background:#fff;
+      box-shadow:0 8px 22px rgba(49,91,150,.14);display:grid;place-items:center;
+    }
+    .dashboardLogo img{width:100%;height:100%;object-fit:contain;padding:3px}
+    .dashboardIdentity small{display:block;color:#52708d;font-weight:850;font-size:15px;margin-bottom:3px}
+    .dashboardName{font-size:38px;line-height:1.05;font-weight:950;color:#12386f;letter-spacing:.5px}
+    .dashboardClock{text-align:right;color:#183f73;font-weight:900}
+    .dashboardClock .dateLine{font-size:18px}
+    .dashboardClock .timeLine{font-size:36px;line-height:1.05;color:#2461c6;margin-top:4px}
+    .dashCard{
+      background:rgba(255,255,255,.95);border:1px solid var(--dash-line);
+      border-radius:26px;padding:18px;margin-bottom:14px;
+      box-shadow:0 10px 28px rgba(45,82,132,.10);
+    }
+    .dashTitle{
+      margin:0 0 14px;display:flex;align-items:center;gap:10px;
+      color:#153e72;font-size:25px;font-weight:950;
+    }
+    .dashTitle .count{
+      margin-left:auto;background:#fff2e8;color:#e86f1d;border-radius:999px;
+      padding:6px 12px;font-size:15px;
+    }
+    .taskList{display:grid;gap:9px}
+    .taskRow{
+      display:grid;grid-template-columns:78px 1fr auto;gap:12px;align-items:center;
+      border:1px solid #e6edf8;border-radius:18px;padding:13px;background:#fff;
+      transition:.2s ease;
+    }
+    .taskRow.done{opacity:.45;transform:scale(.99)}
+    .taskTime{
+      font-size:21px;font-weight:950;color:#2f68c9;background:#edf4ff;
+      border-radius:14px;padding:8px;text-align:center;
+    }
+    .taskTitle{font-size:20px;font-weight:950;color:#1c3557}
+    .taskText{font-size:15px;color:#6b7f95;line-height:1.45;margin-top:3px;font-weight:750}
+    .taskDoneBtn{
+      width:42px;height:42px;border:1px solid #d7e4f5;border-radius:50%;background:#f7faff;
+      color:#2f68d8;font-size:22px;cursor:pointer;font-weight:900;
+    }
+    .completedToggle{
+      width:100%;border:0;background:transparent;color:#2f68d8;font-size:17px;
+      font-weight:900;padding:12px 4px 0;cursor:pointer;
+    }
+    .completedList{display:none;margin-top:10px}.completedList.show{display:grid}
+    .futureGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .futureBox{border:1px solid #dfe8f6;border-radius:20px;padding:15px;background:#fff}
+    .futureBox h3{margin:0 0 10px;color:#2461c6;font-size:19px}
+    .futureItem{
+      display:grid;grid-template-columns:70px 1fr;gap:10px;padding:9px 0;
+      border-top:1px dashed #e3eaf4;font-size:19px;font-weight:900;color:#203b61;
+    }
+    .futureItem:first-of-type{border-top:0}
+    .futureItem time{font-size:20px;color:#183f73}
+    .patrolButton{
+      width:100%;border:1px solid #c9dcff;border-radius:20px;background:linear-gradient(135deg,#edf4ff,#fff);
+      padding:17px 18px;display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;
+      box-shadow:0 7px 18px rgba(47,104,216,.10);
+    }
+    .patrolButton .pIcon{font-size:36px}
+    .patrolButton strong{font-size:24px;color:#174eaa}
+    .patrolButton span{display:block;color:#6a7e95;font-weight:800;margin-top:3px}
+    .patrolButton .arrow{margin-left:auto;font-size:30px;color:#2f68d8}
+    .secretaryGrid,.lowGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .toolCard{
+      border:1px solid #dfe8f6;border-radius:20px;background:#fff;padding:16px;
+      display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;
+      text-align:left;cursor:pointer;min-height:100px;
+    }
+    .toolCard .toolIcon{font-size:38px}.toolCard strong{font-size:21px;color:#183f73}
+    .toolCard p{margin:4px 0 0;color:#6d8095;font-weight:750;line-height:1.4}
+    .toolCard .go{font-size:25px;color:#6082ad}
+    .secretaryHeading{margin:0 0 13px;color:#153e72;font-size:24px;font-weight:950}
+    .versionStamp{text-align:center;color:#7890a6;font-size:12px;font-weight:800;margin-top:8px}
+    @media(max-width:620px){
+      .dashboardHeader{grid-template-columns:58px 1fr auto;gap:10px}
+      .dashboardLogo{width:58px;height:58px}
+      .dashboardIdentity small{font-size:13px}
+      .dashboardName{font-size:34px}
+      .dashboardClock .dateLine{font-size:14px}
+      .dashboardClock .timeLine{font-size:30px}
+      .dashCard{padding:15px;border-radius:22px}
+      .dashTitle{font-size:23px}
+      .taskRow{grid-template-columns:68px 1fr 40px;padding:12px 10px;gap:9px}
+      .taskTime{font-size:19px}
+      .taskTitle{font-size:19px}
+      .taskText{font-size:14px}
+      .futureGrid{grid-template-columns:1fr}
+      .futureItem{font-size:20px}
+      .secretaryGrid,.lowGrid{grid-template-columns:1fr 1fr;gap:10px}
+      .toolCard{grid-template-columns:44px 1fr auto;padding:13px;min-height:94px}
+      .toolCard .toolIcon{font-size:33px}
+      .toolCard strong{font-size:19px}
+      .toolCard p{font-size:13px}
+    }
+    @media(max-width:390px){
+      .dashboardName{font-size:30px}
+      .dashboardClock .dateLine{display:none}
+      .secretaryGrid,.lowGrid{grid-template-columns:1fr}
+    }
+
   </style>
 </head>
 <body class="auth-pending">
   <div class="toast" id="toast"></div>
   <main class="app" id="home">
-    <header class="topbar">
-      <div class="logo"><img src="assets/logo.png?v=20260719" alt="和美智慧校園 Logo" onerror="this.remove();this.parentElement.textContent='🏰'"></div>
-      <div class="brand">
-        <h1>Heremay 和美智慧校園</h1>
-        <p>智慧秘書中心｜快速記事與強提醒｜v18</p>
+    <header class="dashboardHeader">
+      <div class="dashboardLogo"><img src="assets/logo.png?v=20260720" alt="和美智慧校園 Logo" onerror="this.parentElement.textContent='🏰'"></div>
+      <div class="dashboardIdentity">
+        <small>Heremay 和美智慧校園</small>
+        <div class="dashboardName" id="adminName">主管</div>
       </div>
-      <div class="clock" id="clock">--</div>
+      <div class="dashboardClock" id="clock">--</div>
     </header>
 
-
-    <section class="quickCapture">
-      <h3>✍️ 快速記一件事</h3>
-      <textarea id="quickNoteText" placeholder="先把事情記下來，例如：下午聯絡廠商、確認畢典攝影、買飲水機濾心……"></textarea>
-      <div class="quickCaptureActions">
-        <div><label>存入筆記本</label><select id="quickNotebook"></select></div>
-        <div><label>提醒時間（可留白）</label><input id="quickReminderAt" type="datetime-local"></div>
-        <button class="btn" type="button" onclick="saveQuickNote()">儲存記事</button>
-      </div>
-      <div class="hintBox" style="margin-bottom:0">快速記事預設只存在這台裝置、只有目前登入者可查看；第一版先確保離線可用。</div>
+    <section class="dashCard">
+      <h2 class="dashTitle">📅 今天待辦 <span class="count" id="todayCount">0 件</span></h2>
+      <div class="taskList" id="todayList"></div>
+      <button class="completedToggle" id="completedToggle" type="button" onclick="toggleCompleted()">已完成 0 件⌄</button>
+      <div class="completedList taskList" id="completedList"></div>
     </section>
 
-    <div class="sectionTitle">
-      <h3>今日智慧任務</h3><small>今天要提醒、要發送、要追蹤的事項</small>
-    </div>
-    <section class="cards2">
-      <div class="panel">
-        <div class="btnRow" style="margin-top:0"><button class="btn secondary" onclick="demoAlarm()">測試提醒鈴聲</button></div>
-        <div class="alarm" id="alarmBox">🔔 提醒：10:00 巡堂管理｜請開始上午巡堂。</div>
-        <div class="list" id="todayList"></div>
-      </div>
-      <div class="panel">
-        <h3 style="margin:0;color:#254f65">即將到期</h3>
-        <div class="dueTabs"><button class="tab active" onclick="setDue('1',this)">未來一天</button><button class="tab" onclick="setDue('3',this)">未來三天</button></div>
-        <div class="list" id="dueList"></div>
+    <section class="dashCard">
+      <h2 class="dashTitle">🗓️ 明天／後天</h2>
+      <div class="futureGrid">
+        <article class="futureBox">
+          <h3 id="tomorrowTitle">明天</h3>
+          <div id="tomorrowList"></div>
+        </article>
+        <article class="futureBox">
+          <h3 id="afterTomorrowTitle">後天</h3>
+          <div id="afterTomorrowList"></div>
+        </article>
       </div>
     </section>
 
+    <section class="dashCard">
+      <button class="patrolButton" type="button" onclick="location.href='patrol.html'">
+        <span class="pIcon">📋</span>
+        <span><strong>巡堂</strong><span>上午／下午巡堂、紀錄與週報表</span></span>
+        <span class="arrow">›</span>
+      </button>
+    </section>
 
-    <div class="sectionTitle">
-      <h3>通知追蹤</h3><small>智慧任務發送後，可查看已收到與未確認</small>
-    </div>
-    <section class="noticeBoard">
-      <div class="noticeSummary">
-        <div class="summaryBox"><strong id="noticeTotal">2</strong><span>今日公告</span></div>
-        <div class="summaryBox"><strong id="ackTotal">7</strong><span>已收到人次</span></div>
-        <div class="summaryBox"><strong id="missTotal">5</strong><span>未確認人次</span></div>
+    <section class="dashCard">
+      <h2 class="secretaryHeading">🤖 智慧秘書</h2>
+      <div class="secretaryGrid">
+        <button class="toolCard" type="button" onclick="openModal('notebook')">
+          <span class="toolIcon">📒</span><span><strong>記事本</strong><p>分類管理、搜尋與查看記事。</p></span><span class="go">›</span>
+        </button>
+        <button class="toolCard" type="button" onclick="openModal('smartTask')">
+          <span class="toolIcon">🗓️</span><span><strong>公告／行事曆</strong><p>行程提醒、公告與通知追蹤。</p></span><span class="go">›</span>
+        </button>
       </div>
-      <div id="noticeTrackList"></div>
     </section>
 
-    <div class="sectionTitle">
-      <h3>智慧秘書中心</h3><small>整合排程提醒、通知、已收到追蹤與再次提醒；專案計畫稍後再做</small>
-    </div>
-    <section class="grid">
-      <button class="cardBtn" onclick="openModal('notebook')"><span class="tag">核心</span><div class="icon">📒</div><h4>我的記事本</h4><p>建立不同筆記本，分類保存臨時事項與私人資料。</p></button>
-      <button class="cardBtn" onclick="openModal('smartTask')"><span class="tag">核心</span><div class="icon">🤖</div><h4>新增智慧任務</h4><p>整合個人提醒、通知他人、通知＋已收到確認。</p></button>
-      <button class="cardBtn" onclick="openModal('taskTrack')"><span class="tag">追蹤</span><div class="icon">📣</div><h4>通知追蹤</h4><p>查看已收到、未確認，並提醒尚未確認的人員。</p></button>
-      <button class="cardBtn" onclick="openModal('project')"><span class="tag">暫緩</span><div class="icon">📁</div><h4>專案計畫</h4><p>畢業典禮、聖誕晚會等大型計畫，先保留入口。</p></button>
-      <button class="cardBtn" onclick="location.href='patrol.html'"><span class="tag">進入</span><div class="icon">📋</div><h4>巡堂與紀錄</h4><p>上午／下午巡堂、拍照、缺失追蹤與週報表。</p></button>
-      <button class="cardBtn" onclick="openModal('inspection')"><span class="tag">新增</span><div class="icon">🛝</div><h4>定期安全衛生巡檢</h4><p>遊樂設施、飲用水、水塔清洗等定期檢查與政府查核紀錄。</p></button>
-      <button class="cardBtn" onclick="openModal('system')"><div class="icon">⚙️</div><h4>系統管理</h4><p>人員、班級、群組、提醒時間與權限設定。</p></button>
+    <section class="lowGrid">
+      <button class="toolCard" type="button" onclick="openModal('register')">
+        <span class="toolIcon">📝</span><span><strong>登記中心</strong><p>訂餐、活動、研習與團購。</p></span><span class="go">›</span>
+      </button>
+      <button class="toolCard" type="button" onclick="openModal('project')">
+        <span class="toolIcon">📁</span><span><strong>專案計畫</strong><p>大型活動規劃與進度追蹤。</p></span><span class="go">›</span>
+      </button>
+      <button class="toolCard" type="button" onclick="openModal('inspection')">
+        <span class="toolIcon">🛡️</span><span><strong>定期巡檢</strong><p>安全衛生與週期檢查紀錄。</p></span><span class="go">›</span>
+      </button>
+      <button class="toolCard" type="button" onclick="openModal('system')">
+        <span class="toolIcon">⚙️</span><span><strong>系統管理</strong><p>人員、班級、權限與設定。</p></span><span class="go">›</span>
+      </button>
     </section>
 
-    <div class="sectionTitle">
-      <h3>獨立模組入口</h3><small>不併入智慧秘書中心，避免權責混在一起</small>
-    </div>
-    <section class="grid">
-      <button class="cardBtn" onclick="openModal('register')"><span class="tag">獨立</span><div class="icon">📝</div><h4>登記中心</h4><p>每位同仁都可成為主要執行者，也可作為回覆／調查對象。</p></button>
-    </section>
-
+    <div class="versionStamp">主管工作台 v19｜2026-07-20</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
@@ -476,10 +589,9 @@ function requireAdminAccess(){
   currentAdminEmployee = employee;
   document.body.classList.remove('auth-pending');
 
-  const brandLine = document.querySelector('.brand p');
-  if(brandLine && employee.name){
-    brandLine.textContent =
-      `智慧秘書中心｜${employee.name}｜快速記事與強提醒｜v18`;
+  const nameBox = document.getElementById('adminName');
+  if(nameBox){
+    nameBox.textContent = employee?.name || '主管';
   }
 
   return true;
@@ -518,36 +630,81 @@ function postToService(fields){
 }
 
 const reminders = [
-  {time:'08:30', title:'只提醒自己｜晨間行政確認', text:'查看今日請假、人力與園務提醒。'},
-  {time:'09:00', title:'通知他人｜中午會議通知', text:'自動通知應參加人員：今天中午要開會。'},
-  {time:'13:25', title:'通知＋已收到｜會前提醒', text:'提醒參加會議的人到辦公室，攜帶筆記本與筆。'},
-  {time:'14:30', title:'只提醒自己｜下午巡堂管理', text:'依班級順序進行下午巡堂。'}
+  {id:'morning-admin',time:'08:30', title:'晨間行政確認', text:'查看今日請假、人力與園務提醒。'},
+  {id:'meeting-notice',time:'09:00', title:'中午會議通知', text:'確認應參加人員已收到通知。'},
+  {id:'meeting-reminder',time:'13:25', title:'會前提醒', text:'提醒參加會議的人到辦公室，攜帶筆記本與筆。'},
+  {id:'afternoon-patrol',time:'14:30', title:'下午巡堂管理', text:'依班級順序進行下午巡堂。'}
 ];
-const due1 = [
-  {time:'明天', title:'廚房設備維修回覆', text:'確認主任是否已完成紗窗／設備修繕安排。'},
-  {time:'明天', title:'便當登記截止', text:'統計葷素與數量。'}
+const tomorrowItems = [
+  {time:'09:00', title:'教保員在職研習'},
+  {time:'14:00', title:'場地清潔作業'}
 ];
-const due3 = [
-  ...due1,
-  {time:'3天內', title:'招生文宣專案', text:'檢查海報與網站內容更新進度。'},
-  {time:'3天內', title:'環境安全檢查', text:'彙整本週巡堂待改善項目。'}
+const afterTomorrowItems = [
+  {time:'09:00', title:'全體教師會議'}
 ];
+
 function pad(n){return String(n).padStart(2,'0')}
 function tick(){
   const d=new Date(); const days=['日','一','二','三','四','五','六'];
-  document.getElementById('clock').innerHTML=`<div class="dateLine">${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}（週${days[d.getDay()]}）</div><div class="timeLine">${pad(d.getHours())}:${pad(d.getMinutes())}</div>`;
+  const clock=document.getElementById('clock');
+  if(clock) clock.innerHTML=`<div class="dateLine">${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}（週${days[d.getDay()]}）</div><div class="timeLine">${pad(d.getHours())}:${pad(d.getMinutes())}</div>`;
+  const t1=new Date(d);t1.setDate(d.getDate()+1);
+  const t2=new Date(d);t2.setDate(d.getDate()+2);
+  const t1Title=document.getElementById('tomorrowTitle');
+  const t2Title=document.getElementById('afterTomorrowTitle');
+  if(t1Title) t1Title.textContent=`明天 ${t1.getMonth()+1}/${t1.getDate()}（${days[t1.getDay()]}）`;
+  if(t2Title) t2Title.textContent=`後天 ${t2.getMonth()+1}/${t2.getDate()}（${days[t2.getDay()]}）`;
 }
 setInterval(tick,1000); tick();
+
+function completedTaskKey(){return 'heremay.admin.completedTasks.'+new Date().toISOString().slice(0,10)}
+function getCompletedTasks(){
+  try{return JSON.parse(localStorage.getItem(completedTaskKey())||'[]')}catch(e){return []}
+}
+function setCompletedTasks(ids){localStorage.setItem(completedTaskKey(),JSON.stringify(ids))}
+function completeTask(id){
+  const ids=getCompletedTasks();
+  if(!ids.includes(id)) ids.push(id);
+  setCompletedTasks(ids);
+  renderToday();
+}
+function restoreTask(id){
+  setCompletedTasks(getCompletedTasks().filter(x=>x!==id));
+  renderToday();
+}
+function taskMarkup(r,done=false){
+  return `<div class="taskRow ${done?'done':''}">
+    <div class="taskTime">${r.time}</div>
+    <div><div class="taskTitle">${r.title}</div><div class="taskText">${r.text}</div></div>
+    <button class="taskDoneBtn" type="button" onclick="${done?`restoreTask('${r.id}')`:`completeTask('${r.id}')`}" title="${done?'恢復待辦':'標記完成'}">${done?'↩':'✓'}</button>
+  </div>`;
+}
 function renderToday(){
-  const el=document.getElementById('todayList');
-  el.innerHTML=reminders.sort((a,b)=>a.time.localeCompare(b.time)).map(r=>`<div class="item"><div class="time">${r.time}</div><div><h5>${r.title}</h5><p>${r.text}</p></div></div>`).join('');
+  const doneIds=getCompletedTasks();
+  const pending=reminders.filter(r=>!doneIds.includes(r.id));
+  const done=reminders.filter(r=>doneIds.includes(r.id));
+  const pendingBox=document.getElementById('todayList');
+  const doneBox=document.getElementById('completedList');
+  if(pendingBox) pendingBox.innerHTML=pending.length?pending.map(r=>taskMarkup(r,false)).join(''):'<div class="hintBox">🎉 今天的待辦都完成了。</div>';
+  if(doneBox) doneBox.innerHTML=done.map(r=>taskMarkup(r,true)).join('');
+  const count=document.getElementById('todayCount');
+  if(count) count.textContent=`${pending.length} 件`;
+  const toggle=document.getElementById('completedToggle');
+  if(toggle) toggle.textContent=`已完成 ${done.length} 件⌄`;
 }
-function setDue(type,btn){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active');
-  const data=type==='1'?due1:due3;
-  document.getElementById('dueList').innerHTML=data.map(r=>`<div class="item"><div class="time">${r.time}</div><div><h5>${r.title}</h5><p>${r.text}</p></div></div>`).join('');
+function toggleCompleted(){
+  document.getElementById('completedList')?.classList.toggle('show');
 }
-renderToday(); setDue('1',document.querySelector('.tab'));
+function renderFuture(){
+  const render=(list,id)=>{
+    const box=document.getElementById(id);
+    if(!box) return;
+    box.innerHTML=list.length?list.map(x=>`<div class="futureItem"><time>${x.time}</time><span>${x.title}</span></div>`).join(''):'<div class="hintBox">目前沒有安排</div>';
+  };
+  render(tomorrowItems,'tomorrowList');
+  render(afterTomorrowItems,'afterTomorrowList');
+}
+renderToday(); renderFuture();
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show')}
 function beep(){
   try{const A=window.AudioContext||window.webkitAudioContext,c=new A(),m=c.createGain();m.gain.value=1;m.connect(c.destination);[880,1175,988,1319,880,1175,988,1319,1047,1397,1047,1397,880,1175].forEach((f,i)=>{const st=c.currentTime+i*.58,o=c.createOscillator(),g=c.createGain();o.type=i%2?'sawtooth':'square';o.frequency.value=f;g.gain.setValueAtTime(.001,st);g.gain.exponentialRampToValueAtTime(.85,st+.03);g.gain.setValueAtTime(.85,st+.4);g.gain.exponentialRampToValueAtTime(.001,st+.53);o.connect(g);g.connect(m);o.start(st);o.stop(st+.55)});setTimeout(()=>{try{c.close()}catch(e){}},9000)}catch(e){} if(navigator.vibrate)navigator.vibrate([1000,200,1000,200,1400,250,1000,200,1600]);
