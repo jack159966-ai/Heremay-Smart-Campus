@@ -257,7 +257,7 @@ function mergeCloudRecords(items){
 async function loadCloudRecords(showAlert=false){
   if(cloudLoading)return false;
   if(!navigator.onLine){
-    setCloudStatus('⚠️ 目前離線，先顯示手機內已保存的紀錄。','error');
+    setCloudStatus('⚠️ 目前離線，先顯示手機內已保存的紀錄  。','error');
     return false;
   }
 
