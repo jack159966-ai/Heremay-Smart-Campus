@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f4f8ff">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.5.2</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.6.1</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -21,8 +21,8 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-ser
 .header h1{margin:2px 0 0;font-size:30px;color:var(--deep)}
 .back{border:1px solid #cfe0f5;background:#fff;color:var(--blue);border-radius:16px;padding:11px 14px;font-size:15px;font-weight:900;cursor:pointer}
 .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:13px}
-.tab{border:1px solid #d8e6f6;background:#fff;color:#57738f;border-radius:16px;padding:12px 8px;font-weight:900;cursor:pointer}
-.tab.active{background:#2f68d8;color:#fff;border-color:#2f68d8}
+.tab{border:1px solid #d8e6f6;background:#fff;color:#426581;border-radius:18px;padding:16px 10px;font-size:21px;line-height:1.3;font-weight:950;cursor:pointer;min-height:62px}
+.tab.active{background:#2f68d8;color:#fff;border-color:#2f68d8;box-shadow:0 7px 18px rgba(47,104,216,.23)}
 .panel{display:none}.panel.active{display:block}
 .card{background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:13px;box-shadow:var(--shadow)}
 .card h2{margin:0 0 12px;color:var(--deep);font-size:23px}
@@ -123,9 +123,11 @@ textarea{min-height:95px;resize:vertical}
 
 @media(max-width:760px){
   .header{grid-template-columns:54px 1fr}.logo{width:54px;height:54px}.back{grid-column:1/3;width:100%}
-  .tabs{grid-template-columns:repeat(2,1fr)}.row,.specRow,.prefRow,.qtyGrid{grid-template-columns:1fr}
-  .templateGrid,.templateCategoryGrid{grid-template-columns:repeat(2,1fr)}.checkGrid{grid-template-columns:1fr}.header h1{font-size:27px}.productHeader{grid-template-columns:auto minmax(0,1fr) auto;padding:12px 10px}.productNumber{min-width:58px;font-size:13px}.productHeaderTitle{font-size:17px}
+  .tabs{grid-template-columns:repeat(2,1fr)}.tab{font-size:21px;min-height:72px;padding:16px 8px}.row,.specRow,.prefRow,.qtyGrid{grid-template-columns:1fr}
+  .templateGrid,.templateCategoryGrid{grid-template-columns:repeat(2,1fr)}.checkGrid{grid-template-columns:1fr}.header h1{font-size:27px}.productHeader{grid-template-columns:auto minmax(0,1fr) auto;padding:12px 10px}.productNumber{min-width:58px;font-size:13px}.productHeaderTitle{font-size:17px}.quickItemRow{grid-template-columns:1fr 1fr}.quickItemRow .quickName{grid-column:1/-1;min-width:0}.quickItemRow .btn{grid-column:1/-1}.quickItemHead{grid-template-columns:1fr 1fr}.quickItemHead span:first-child{grid-column:1/-1}.quickItemHead span:last-child{display:none}
 }
+
+.quickBuilder{border:2px solid #9fc0ea;border-radius:22px;background:#f8fbff;padding:14px;margin:14px 0}.quickItemList{display:grid;gap:9px;margin-top:10px}.quickItemRow{display:grid;grid-template-columns:1.5fr 110px 110px auto;gap:8px;align-items:center;background:#fff;border:1px solid #d5e4f5;border-radius:16px;padding:9px}.quickItemHead{display:grid;grid-template-columns:1.5fr 110px 110px auto;gap:8px;padding:0 9px;font-size:13px;color:#607b98;font-weight:900}.quickCommon{background:#fff;border:1px solid #d5e4f5;border-radius:18px;padding:12px;margin-top:12px}.quickOrderBox{border-top:1px dashed #dce8f7;margin-top:12px;padding-top:12px}.quickProductList{display:grid;gap:8px}.quickProductChoice{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;border:1px solid #d7e4f4;border-radius:15px;padding:11px;background:#f9fcff}.quickProductChoice input{width:auto}.quickProductChoice strong{color:#173f75}.quickQty{max-width:110px}
 </style>
 </head>
 <body>
@@ -154,7 +156,14 @@ textarea{min-height:95px;resize:vertical}
 
 <section id="create" class="panel">
   <div class="card">
-    <h2>選擇模板</h2>
+    <h2>活動基本資料</h2>
+    <div class="row">
+      <div><label>活動名稱</label><input id="campaignTitle" placeholder="例如：下午茶飲料團購"></div>
+      <div><label>主辦人</label><input id="hostName"></div>
+    </div>
+    <label>活動說明</label><textarea id="campaignDesc"></textarea>
+
+    <h2 style="margin-top:18px">選擇模板</h2>
     <div class="templateGrid">
       <button class="templateBtn active" onclick="openTemplatePicker('drink',this)">🥤 飲料</button>
       <button class="templateBtn" onclick="openTemplatePicker('meal',this)">🍱 餐點</button>
@@ -172,12 +181,8 @@ textarea{min-height:95px;resize:vertical}
     </div>
 
     <div id="selectedTemplateNotice" class="hint">目前使用：飲料系統模板</div>
+    <div id="quickBuilder" class="quickBuilder"><h2>先建立本次品項清單</h2><div class="hint">飲料與餐點先列品項及價格；冷熱、甜度、冰量等共同選項只設定一次。</div><div class="quickItemHead"><span>品項名稱</span><span id="quickPrice1Label">中杯</span><span id="quickPrice2Label">大杯</span><span></span></div><div id="quickItemList" class="quickItemList"></div><div class="actions"><button class="btn secondary" type="button" onclick="addQuickItem()">＋新增品項</button></div><div class="quickCommon"><h3>共同選項</h3><div id="drinkCommonFields"><label>冷熱</label><input id="commonTemp" value="冷,熱"><label>甜度</label><input id="commonSweet" value="正常,少糖,半糖,微糖,無糖"><label>冰量</label><input id="commonIce" value="正常冰,少冰,微冰,去冰"></div><div id="mealCommonFields" style="display:none"><label>辣度</label><input id="commonSpicy" value="不辣,小辣,中辣,大辣"><label>處理方式</label><input id="commonCut" value="切,不切"></div></div></div>
 
-    <div class="row">
-      <div><label>活動名稱</label><input id="campaignTitle" placeholder="例如：下午茶飲料團購"></div>
-      <div><label>主辦人</label><input id="hostName"></div>
-    </div>
-    <label>活動說明</label><textarea id="campaignDesc"></textarea>
     <div class="row">
       <div><label>截止日期</label><input id="deadlineDate" type="date"></div>
       <div><label>截止時間</label><input id="deadlineTime" type="time" value="17:00"></div>
@@ -191,7 +196,7 @@ textarea{min-height:95px;resize:vertical}
       <label class="check"><input type="checkbox" value="庶務">庶務</label>
     </div>
 
-    <div class="row">
+    <div class="row" id="visibilityReplyRow">
       <div><label>參加者可查看他人內容</label>
         <select id="visibility">
           <option value="private">不公開，只有主辦人可看</option>
@@ -204,11 +209,11 @@ textarea{min-height:95px;resize:vertical}
       </div>
     </div>
 
-    <div class="row">
+    <div class="row" id="capacityRow">
       <div><label>總人數上限（0＝不限）</label><input id="capacity" type="number" min="0" value="0" inputmode="numeric"></div>
       <div><label>候補機制</label><select id="waitlist"><option value="off">不啟用</option><option value="on">額滿後自動候補</option></select></div>
     </div>
-    <div class="row">
+    <div class="row" id="companionRow">
       <div><label>每人最多攜伴</label><input id="maxCompanion" type="number" min="0" value="0" inputmode="numeric"></div>
       <div><label>名額計算方式</label><select id="capacityMode"><option value="people">本人＋攜伴都計入</option><option value="registrations">只計報名筆數</option></select></div>
     </div>
@@ -226,11 +231,7 @@ textarea{min-height:95px;resize:vertical}
     <input id="attachments" type="file" accept="image/*,.pdf" multiple>
     <div id="fileList" class="fileList"></div>
 
-    <h2 style="margin-top:18px">本次開放品項</h2>
-    <div class="hint">只建立這次要提供的少數品項。每個品項分成「價格規格」與「免費偏好」。</div>
-    <div id="productEditors"></div>
-    <div id="productCountBar" class="productCountBar">目前共有 0 個品項</div>
-    <div class="actions"><button class="btn secondary" onclick="addProductEditor()">＋新增下一個品項</button></div>
+    <div id="legacyProductSection"><h2 style="margin-top:18px">本次開放品項</h2><div class="hint">旅遊、研習與一般商品可使用完整品項設定。</div><div id="productEditors"></div><div id="productCountBar" class="productCountBar">目前共有 0 個品項</div><div class="actions"><button class="btn secondary" onclick="addProductEditor()">＋新增下一個品項</button></div></div>
 
     <div id="editNotice" class="hint" style="display:none">✏️ 正在編輯既有活動；儲存後會更新原活動，不會新增另一份。</div>
     <div class="actions">
@@ -250,7 +251,7 @@ textarea{min-height:95px;resize:vertical}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.5.2｜2026-07-21｜手機品項收合辨識版</div>
+<div class="version">團購／報名中心 v1.6.2｜2026-07-21｜分類統計與欄位加寬修正版</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -279,7 +280,15 @@ const templates={
  products:[{name:'活動報名',specs:[['本人參加',0]],prefs:[['餐食','單選','葷食,素食'],['交通','單選','搭車,自行前往'],['其他需求','文字','']]}]},
  training:{title:'研習／活動報名',desc:'請選擇參加場次與餐食。',required:true,visibility:'status',capacity:30,waitlist:'on',maxCompanion:0,
  products:[{name:'研習報名',specs:[['上午場',0],['下午場',0]],prefs:[['餐食','單選','葷食,素食,不需要'],['需要研習時數','單選','需要,不需要']]}]}
-};
+ };
+
+function quickType(){return activeTemplate==='drink'||activeTemplate==='meal'}
+function csvValues(id){return document.getElementById(id).value.split(/[,，、；;\n\r]+/).map(x=>x.trim()).filter(Boolean)}
+function addQuickItem(data={}){const row=document.createElement('div');row.className='quickItemRow';row.innerHTML=`<input class="quickName" placeholder="例如：珍珠奶茶" value="${esc(data.name||'')}"><input class="quickPrice1" type="number" min="0" placeholder="價格" value="${esc(data.price1??'')}"><input class="quickPrice2" type="number" min="0" placeholder="價格" value="${esc(data.price2??'')}"><button class="btn danger" type="button" onclick="this.closest('.quickItemRow').remove()">移除</button>`;document.getElementById('quickItemList').appendChild(row)}
+function resetQuickItems(type){const b=document.getElementById('quickItemList');b.innerHTML='';if(type==='drink'){addQuickItem({name:'珍珠奶茶',price1:50,price2:60});addQuickItem({name:'紅茶',price1:30,price2:40});addQuickItem({name:'鮮奶茶',price1:55,price2:65})}else if(type==='meal'){addQuickItem({name:'雞排',price1:75,price2:95});addQuickItem({name:'排骨飯',price1:90,price2:110})}}
+function collectQuickProducts(){return [...document.querySelectorAll('.quickItemRow')].map((r,i)=>{const n=r.querySelector('.quickName').value.trim(),p1=Number(r.querySelector('.quickPrice1').value||0),p2=Number(r.querySelector('.quickPrice2').value||0),lab=activeTemplate==='drink'?['中杯','大杯']:['一般','加大'];return{id:'p_'+Date.now()+'_'+i,name:n,specs:[{name:lab[0],price:p1},{name:lab[1],price:p2}].filter(x=>x.price>0),prefs:[]}}).filter(x=>x.name&&x.specs.length)}
+function collectCommonPrefs(){if(activeTemplate==='drink')return[{name:'冷熱',type:'單選',values:csvValues('commonTemp')},{name:'甜度',type:'單選',values:csvValues('commonSweet')},{name:'冰量',type:'單選',values:csvValues('commonIce')}];if(activeTemplate==='meal')return[{name:'辣度',type:'單選',values:csvValues('commonSpicy')},{name:'處理方式',type:'單選',values:csvValues('commonCut')}];return[]}
+function updateCategoryLayout(type){const q=type==='drink'||type==='meal';document.getElementById('quickBuilder').style.display=q?'block':'none';document.getElementById('legacyProductSection').style.display=q?'none':'block';document.getElementById('capacityRow').style.display=q?'none':'grid';document.getElementById('companionRow').style.display=(type==='travel'||type==='training')?'grid':'none';document.getElementById('visibilityReplyRow').style.display=q?'none':'grid';document.getElementById('drinkCommonFields').style.display=type==='drink'?'block':'none';document.getElementById('mealCommonFields').style.display=type==='meal'?'block':'none';document.getElementById('quickPrice1Label').textContent=type==='drink'?'中杯':'一般';document.getElementById('quickPrice2Label').textContent=type==='drink'?'大杯':'加大';if(q)resetQuickItems(type)}
 
 function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>t.classList.remove('show'),1500)}
@@ -392,7 +401,8 @@ function applyTemplate(type,btn){
  document.getElementById('retentionMode').value=(type==='travel'||type==='training')?'keep':'delete';
  document.getElementById('selectedTemplateNotice').textContent='目前使用：'+(templateCategoryNames[type]||type)+'系統模板';
  document.getElementById('productEditors').innerHTML='';
- t.products.forEach(p=>addProductEditor(p));
+ updateCategoryLayout(type);
+ if(!quickType())t.products.forEach(p=>addProductEditor(p));
  updateProductHeadings();
 }
 function specRow(name='',price=''){return `<div class="specRow"><input class="specName" placeholder="規格，例如：大杯、熱飲" value="${esc(name)}"><input class="specPrice" type="number" min="0" inputmode="decimal" placeholder="價格" value="${esc(price)}"><button class="btn danger" type="button" onclick="this.closest('.specRow').remove()">移除</button></div>`}
@@ -452,7 +462,7 @@ function copyPrefsFromPrevious(btn){
 
 document.getElementById('attachments').addEventListener('change',e=>{for(const f of [...e.target.files])if(!pendingFiles.some(x=>x.name===f.name&&x.size===f.size&&x.lastModified===f.lastModified))pendingFiles.push(f);e.target.value='';renderFiles()});
 function renderFiles(){document.getElementById('fileList').innerHTML=pendingFiles.map((f,i)=>`<div class="fileChip"><span><strong>📎 ${esc(f.name)}</strong><small>${Math.ceil(f.size/1024)} KB</small></span><button class="btn danger" onclick="pendingFiles.splice(${i},1);renderFiles()">移除</button></div>`).join('')}
-function collectProducts(){return [...document.querySelectorAll('.productEditor')].map(ed=>({id:'p_'+Date.now()+'_'+Math.random().toString(36).slice(2),name:ed.querySelector('.productNameInput').value.trim(),specs:[...ed.querySelectorAll('.specRow')].map(r=>({name:r.querySelector('.specName').value.trim(),price:Number(r.querySelector('.specPrice').value||0)})).filter(x=>x.name),prefs:[...ed.querySelectorAll('.prefRow')].map(r=>({name:r.querySelector('.prefName').value.trim(),type:r.querySelector('.prefType').value,values:r.querySelector('.prefValues').value.split(/[,，、；;\n\r]+/).map(x=>x.trim()).filter(Boolean)})).filter(x=>x.name)})).filter(x=>x.name&&x.specs.length)}
+function collectProducts(){if(quickType())return collectQuickProducts();return [...document.querySelectorAll('.productEditor')].map(ed=>({id:'p_'+Date.now()+'_'+Math.random().toString(36).slice(2),name:ed.querySelector('.productNameInput').value.trim(),specs:[...ed.querySelectorAll('.specRow')].map(r=>({name:r.querySelector('.specName').value.trim(),price:Number(r.querySelector('.specPrice').value||0)})).filter(x=>x.name),prefs:[...ed.querySelectorAll('.prefRow')].map(r=>({name:r.querySelector('.prefName').value.trim(),type:r.querySelector('.prefType').value,values:r.querySelector('.prefValues').value.split(/[,，、；;\n\r]+/).map(x=>x.trim()).filter(Boolean)})).filter(x=>x.name)})).filter(x=>x.name&&x.specs.length)}
 
 function currentFormSnapshot(){
  return {
@@ -466,7 +476,8 @@ function currentFormSnapshot(){
   maxCompanion:Number(document.getElementById('maxCompanion').value||0),
   capacityMode:document.getElementById('capacityMode').value,
   retentionMode:document.getElementById('retentionMode').value,
-  products:collectProducts()
+  products:collectProducts(),
+  commonPrefs:collectCommonPrefs()
  };
 }
 async function saveCurrentAsTemplate(){
@@ -559,6 +570,7 @@ async function createCampaign(){
    retentionMode:document.getElementById('retentionMode').value,
    files:pendingFiles.length?pendingFiles.map(f=>({name:f.name,size:f.size,type:f.type})):(existing?.files||[]),
    products,
+   commonPrefs:collectCommonPrefs(),
    status:existing?.status||'open',
    cancelReason:existing?.cancelReason||'',
    createdAt:existing?.createdAt||new Date().toISOString(),
@@ -622,6 +634,7 @@ function renderPreference(p,cid,pid){
  if(p.type==='複選')return `<div class="optionBlock"><div class="optionLabel">${esc(p.name)}</div><div class="choiceGrid">${p.values.map(v=>`<label class="choice"><input type="checkbox" class="prefCheck" data-pref="${esc(p.name)}" value="${esc(v)}">${esc(v)}</label>`).join('')}</div></div>`;
  return `<div class="optionBlock"><div class="optionLabel">${esc(p.name)}</div><div class="choiceGrid">${p.values.map(v=>`<label class="choice"><input type="radio" name="${cid}_${pid}_${esc(p.name)}" class="prefInput" data-pref="${esc(p.name)}" value="${esc(v)}">${esc(v)}</label>`).join('')}</div></div>`;
 }
+function quickTypeForCampaign(c){return c.template==='drink'||c.template==='meal'}
 function participantCount(c){
  const os=getO().filter(o=>o.campaignId===c.id&&o.status!=='not_joining');
  return os.reduce((s,o)=>s+(c.capacityMode==='registrations'?1:(1+Number(o.companions||0))),0)
@@ -632,14 +645,16 @@ function publicRows(c){
  if(c.visibility==='private')return '';
  return `<table class="publicTable"><thead><tr><th>姓名</th><th>狀態</th>${c.visibility==='full'?'<th>內容</th>':''}</tr></thead><tbody>${os.map(o=>`<tr><td>${esc(o.user)}</td><td>${o.status==='accepted'?'<span class="badge ok">正取</span>':o.status==='waitlist'?'<span class="badge wait">候補</span>':'<span class="badge no">不參加</span>'}</td>${c.visibility==='full'?`<td>${esc(o.lines.map(l=>`${l.name}／${l.spec}×${l.qty}`).join('、'))}</td>`:''}</tr>`).join('')}</tbody></table>`
 }
+function quickOrderFields(c){const po=c.products.map((p,i)=>`<label class="quickProductChoice"><input type="radio" name="quickProduct_${c.id}" value="${i}" onchange="renderQuickSpecs('${c.id}')"><strong>${esc(p.name)}</strong><span>選擇</span></label>`).join('');const prefs=(c.commonPrefs||[]).map((p,pi)=>`<div class="optionBlock"><div class="optionLabel">${esc(p.name)}</div><div class="choiceGrid">${(p.values||[]).map(v=>`<label class="choice"><input type="radio" name="quickPref_${c.id}_${pi}" value="${esc(v)}">${esc(v)}</label>`).join('')}</div></div>`).join('');return `<div class="quickOrderBox"><div class="optionLabel">1. 選擇品項</div><div class="quickProductList">${po}</div><div id="quickSpecs_${c.id}" class="optionBlock"></div>${prefs}<div class="qtyGrid"><div><label>數量</label><input id="quickQty_${c.id}" class="quickQty" type="number" min="1" value="1" inputmode="numeric" oninput="updateQuickTotal('${c.id}')"></div><div class="totalBox" id="total_${c.id}">預估總額：$0</div></div></div>`}
+function renderQuickSpecs(cid){const c=getC().find(x=>x.id===cid);if(!c)return;const pi=Number(document.querySelector(`input[name="quickProduct_${cid}"]:checked`)?.value),p=c.products[pi];if(!p)return;document.getElementById('quickSpecs_'+cid).innerHTML=`<div class="optionLabel">2. 選擇規格</div><div class="choiceGrid">${p.specs.map((s,i)=>`<label class="choice"><input type="radio" name="quickSpec_${cid}" value="${i}" onchange="updateQuickTotal('${cid}')">${esc(s.name)} $${s.price}</label>`).join('')}</div>`}
+function updateQuickTotal(cid){const c=getC().find(x=>x.id===cid);if(!c)return;const pi=Number(document.querySelector(`input[name="quickProduct_${cid}"]:checked`)?.value),si=Number(document.querySelector(`input[name="quickSpec_${cid}"]:checked`)?.value),q=Number(document.getElementById('quickQty_'+cid)?.value||1),pr=c.products?.[pi]?.specs?.[si]?.price||0,b=document.getElementById('total_'+cid);if(b)b.textContent='預估總額：$'+pr*q}
 function eventCard(c){
  const rem=remaining(c),full=rem===0&&c.capacity>0;
  return `<article class="eventCard"><h3>${esc(c.title)}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}｜對象：${esc(c.targets.join('、'))}</div><div class="meta">${esc(c.desc||'')}</div>${c.cancelled?`<div class="hint">活動已取消${c.cancelReason?'：'+esc(c.cancelReason):''}</div>`:''}
  ${c.capacity>0?`<div class="counter">已報名 ${participantCount(c)}／${c.capacity} 人｜剩餘 ${rem} 人</div>`:''}
  ${c.replyRequired?`<div class="optionBlock"><div class="optionLabel">是否參加（必填）</div><div class="choiceGrid"><label class="choice"><input type="radio" name="join_${c.id}" value="yes">參加</label><label class="choice"><input type="radio" name="join_${c.id}" value="no">不參加</label></div></div>`:''}
  ${c.maxCompanion>0?`<label>攜伴人數（最多 ${c.maxCompanion} 人）</label><input id="companions_${c.id}" type="number" min="0" max="${c.maxCompanion}" value="0" inputmode="numeric">`:''}
- ${c.products.map(p=>`<div class="productCard" data-campaign="${c.id}" data-product="${p.id}"><div class="productHead"><div class="productName">${esc(p.name)}</div></div><div class="optionBlock"><div class="optionLabel">規格與價格</div><div class="choiceGrid">${p.specs.map((s,i)=>`<label class="choice"><input type="radio" name="spec_${c.id}_${p.id}" class="specChoice" value="${i}" data-price="${s.price}">${esc(s.name)} $${s.price}</label>`).join('')}</div></div>${p.prefs.map(x=>renderPreference(x,c.id,p.id)).join('')}<div class="qtyGrid"><div><label>數量</label><input class="qty" type="number" min="0" value="0" inputmode="numeric" oninput="updateTotal('${c.id}')"></div><div class="totalBox productSubtotal">小計：$0</div></div></div>`).join('')}
- <div class="totalBox" id="total_${c.id}">預估總額：$0</div><label>備註</label><input id="note_${c.id}" placeholder="可留白"><div class="actions"><button class="btn" ${(c.closed||c.cancelled)?'disabled':''} onclick="submitReply('${c.id}')">${c.cancelled?'活動已取消':c.closed?'已結單':'送出回覆'}</button></div>${publicRows(c)}</article>`
+ ${quickTypeForCampaign(c)?quickOrderFields(c):c.products.map(p=>`<div class="productCard" data-campaign="${c.id}" data-product="${p.id}"><div class="productHead"><div class="productName">${esc(p.name)}</div></div><div class="optionBlock"><div class="optionLabel">規格與價格</div><div class="choiceGrid">${p.specs.map((s,i)=>`<label class="choice"><input type="radio" name="spec_${c.id}_${p.id}" class="specChoice" value="${i}" data-price="${s.price}">${esc(s.name)} $${s.price}</label>`).join('')}</div></div>${p.prefs.map(x=>renderPreference(x,c.id,p.id)).join('')}<div class="qtyGrid"><div><label>數量</label><input class="qty" type="number" min="0" value="0" inputmode="numeric" oninput="updateTotal('${c.id}')"></div><div class="totalBox productSubtotal">小計：$0</div></div></div>`).join('')+`<div class="totalBox" id="total_${c.id}">預估總額：$0</div>`}<label>備註</label><input id="note_${c.id}" placeholder="可留白"><div class="actions"><button class="btn" ${(c.closed||c.cancelled)?'disabled':''} onclick="submitReply('${c.id}')">${c.cancelled?'活動已取消':c.closed?'已結單':'送出回覆'}</button></div>${publicRows(c)}</article>`
 }
 function updateTotal(cid){let total=0;document.querySelectorAll(`[data-campaign="${cid}"]`).forEach(row=>{const qty=Number(row.querySelector('.qty').value||0),spec=row.querySelector('.specChoice:checked'),price=Number(spec?.dataset.price||0),sub=qty*price;row.querySelector('.productSubtotal').textContent='小計：$'+sub;total+=sub});document.getElementById('total_'+cid).textContent='預估總額：$'+total}
 async function submitReply(cid){
@@ -658,7 +673,7 @@ async function submitReply(cid){
    return;
  }
  const lines=[];
- document.querySelectorAll(`[data-campaign="${cid}"]`).forEach(row=>{
+ if(quickTypeForCampaign(c)){const pi=Number(document.querySelector(`input[name="quickProduct_${cid}"]:checked`)?.value),si=Number(document.querySelector(`input[name="quickSpec_${cid}"]:checked`)?.value);if(!Number.isInteger(pi)||!Number.isInteger(si))return toast('請先選擇品項與規格');const p=c.products[pi],spec=p.specs[si],qty=Number(document.getElementById('quickQty_'+cid)?.value||1),prefs={};(c.commonPrefs||[]).forEach((pref,index)=>{const value=document.querySelector(`input[name="quickPref_${cid}_${index}"]:checked`)?.value||'';if(value)prefs[pref.name]=value});lines.push({name:p.name,spec:spec.name,price:spec.price,qty,prefs,subtotal:spec.price*qty})}else document.querySelectorAll(`[data-campaign="${cid}"]`).forEach(row=>{
    const qty=Number(row.querySelector('.qty').value||0);if(qty<=0)return;
    const p=c.products.find(x=>x.id===row.dataset.product);
    const si=Number(row.querySelector('.specChoice:checked')?.value);
