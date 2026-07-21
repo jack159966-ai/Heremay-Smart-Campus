@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v20</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v21</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -487,8 +487,8 @@
     </section>
 
     <section class="lowGrid">
-      <button class="toolCard" type="button" onclick="openModal('register')">
-        <span class="toolIcon">📝</span><span><strong>登記中心</strong><p>訂餐、活動、研習與團購。</p></span><span class="go">›</span>
+      <button class="toolCard" type="button" onclick="location.href='groupbuy.html'">
+        <span class="toolIcon">🛒</span><span><strong>團購／報名中心</strong><p>團購、聚餐、旅遊、研習與活動報名。</p></span><span class="go">›</span>
       </button>
       <button class="toolCard" type="button" onclick="openModal('project')">
         <span class="toolIcon">📁</span><span><strong>專案計畫</strong><p>大型活動規劃與進度追蹤。</p></span><span class="go">›</span>
@@ -501,7 +501,7 @@
       </button>
     </section>
 
-    <div class="versionStamp">主管工作台 v20｜2026-07-20｜記事本獨立頁面</div>
+    <div class="versionStamp">主管工作台 v21｜2026-07-21｜團購／報名中心獨立化</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
@@ -765,52 +765,6 @@ function openModal(type){
       </div>
       <div class="hintBox">目前先建立入口，不會影響既有巡堂、智慧任務或登記中心。第一份正式表單預計從「遊樂設施巡檢」開始。</div>
       <div class="btnRow"><button class="btn" onclick="showToast('遊樂設施巡檢表將作為第一份正式表單')">先做遊樂設施巡檢</button><button class="btn secondary" onclick="closeModal()">稍後再做</button></div>`,
-    register:`<div class="modalHeader"><h3>📝 登記中心（獨立模組）</h3><button class="x" onclick="closeModal()">關閉</button></div>
-      <div class="note">v16 修正：登記對象簡化為全體、行政、幼兒部、安親部、庶務部；登記方式統一為「項目＋數量」，沒有數量需求時就以 1 表示；新增「儲存為常用模板」與「套用常用模板」，固定店家的便當、飲料、團購表單不用每次重做。</div>
-      <div class="row"><div><label>主辦人</label><input id="regHost" placeholder="例如：謝子元、玉瑩園長、秉儒主任、承辦老師" value="目前登入者"></div><div><label>活動名稱</label><input id="regTitle" placeholder="例如：訂餐、飲料、餐旅活動、團購、研習報名"></div></div>
-      <label>邀請／登記對象，可複選</label>
-      <div class="hintBox">登記中心對象先維持簡潔：全體、行政、幼兒部、安親部、庶務部。需要更細的人員名單，未來再由正式權限系統處理。</div>
-      <div class="checkGrid" id="regTargets">
-        ${['全體','行政','幼兒部','安親部','庶務部'].map(x=>`<label class="check"><input type="checkbox" value="${x}">${x}</label>`).join('')}
-      </div>
-      <label>活動說明／登記說明</label><textarea id="regDesc" placeholder="例如：本次活動請於期限前完成登記。若有特殊需求，請在備註欄填寫。"></textarea>
-      <label>上傳圖片或 PDF（可選）</label>
-      <div class="hintBox">適合放菜單、飲料單、旅遊行程圖、活動海報、研習課程表、報名說明 PDF。正式版會做權限與檔案保存；目前為本機測試介面。</div>
-      <input type="file" accept="image/*,.pdf" multiple onchange="previewRegisterFiles(this)">
-      <div id="regFilePreview" class="filePreview"></div>
-
-      <label>系統模板</label>
-      <div class="hintBox">系統模板只協助快速帶入基本品項；主辦人仍可自行增減。現在所有模板都採「項目＋數量」，若沒有數量問題，數量就維持預設 1。</div>
-      <div class="miniGrid">
-        <button class="btn secondary" onclick="loadRegisterTemplate('meal')">🍱 訂餐</button>
-        <button class="btn secondary" onclick="loadRegisterTemplate('drink')">🥤 飲料</button>
-        <button class="btn secondary" onclick="loadRegisterTemplate('diningTravel')">🚌 餐旅活動</button>
-        <button class="btn secondary" onclick="loadRegisterTemplate('groupBuy')">🛒 團購</button>
-        <button class="btn secondary" onclick="loadRegisterTemplate('training')">📚 研習</button>
-      </div>
-
-      <label>常用登記表模板</label>
-      <div class="hintBox">例如固定便當店、固定飲料店或固定團購品項，可以先做一張空白表單後存成模板。下次直接套用，不用重新輸入品項。</div>
-      <div class="row"><div><select id="commonTemplateSelect"><option value="">尚無常用模板</option></select></div><div><button class="btn secondary" onclick="loadCommonRegisterTemplate()">套用常用模板</button></div></div>
-      <div class="btnRow"><button class="btn secondary" onclick="saveRegisterAsCommonTemplate()">💾 儲存為常用模板</button><button class="btn secondary" onclick="deleteCommonRegisterTemplate()">刪除選取模板</button></div>
-
-      <label>登記項目與數量</label>
-      <div class="hintBox">例如：排骨便當 5 個、奶茶 3 杯、團購品項 2 組。若只是報名或勾選性質，數量就維持 1。</div>
-      <div id="regQtyItems" class="list">
-        <div class="optionRow"><input class="qtyItemName" value="排骨便當" placeholder="項目名稱，例如：排骨便當"><input class="qtyItemCount" type="number" min="0" value="1" placeholder="數量" style="max-width:110px"><button class="miniBtn secondary" onclick="removeQtyItem(this)">移除</button></div>
-        <div class="optionRow"><input class="qtyItemName" value="雞腿便當" placeholder="項目名稱"><input class="qtyItemCount" type="number" min="0" value="1" placeholder="數量" style="max-width:110px"><button class="miniBtn secondary" onclick="removeQtyItem(this)">移除</button></div>
-      </div>
-      <div class="btnRow"><button class="btn secondary" onclick="addQtyItem('',1)">＋新增項目</button></div>
-
-      <div id="companionBox" style="display:none">
-        <label>餐旅活動攜伴設定</label>
-        <div class="checkGrid"><label class="check"><input type="checkbox" checked>開放攜伴</label><label class="check"><input type="checkbox">需填攜伴姓名</label><label class="check"><input type="checkbox" checked>需填攜伴人數</label><label class="check"><input type="checkbox">攜伴餐點另行統計</label></div>
-        <div class="row"><div><label>本人數量預設</label><input type="number" min="0" value="1"></div><div><label>攜伴人數預設</label><input type="number" min="0" value="0"></div></div>
-      </div>
-
-      <div class="row"><div><label>截止日期</label><input type="date" id="regDeadlineDate"></div><div><label>截止時間</label><input type="time" id="regDeadlineTime" value="17:00"></div></div>
-      <div class="checkGrid"><label class="check"><input type="checkbox" checked>需要顯示已登記／未登記名單</label><label class="check"><input type="checkbox" checked>登記完成後通知主辦人</label><label class="check"><input type="checkbox">允許回覆者修改答案</label><label class="check"><input type="checkbox">需要備註欄</label><label class="check"><input type="checkbox" checked>統計總數</label></div>
-      <div class="btnRow"><button class="btn" onclick="showToast('已建立登記表測試')">建立登記表</button><button class="btn secondary" onclick="showToast('登記表預覽：接收者會看到活動名稱、說明、附件與項目＋數量表；餐旅活動會看到攜伴欄位')">預覽接收者畫面</button><button class="btn secondary">查看統計</button></div>`,
     system:`<div class="modalHeader"><h3>⚙️ 系統管理</h3><button class="x" onclick="closeModal()">關閉</button></div>
       <div class="list">
       ${['人員與角色設定','班級與群組設定','提醒時間設定','巡堂項目設定','通知對象設定','權限管理'].map(x=>`<div class="item"><div class="time">設定</div><div><h5>${x}</h5><p>正式版由行政主管調整，避免功能寫死。</p></div></div>`).join('')}
@@ -822,7 +776,6 @@ function openModal(type){
   document.getElementById('modalMask').classList.add('show');
   if(type==='secretary') renderSecretaryFields();
   if(type==='smartTask') renderSmartTaskFields();
-  if(type==='register') renderCommonTemplates();
   if(type==='notebook') renderNotebookManager();
 }
 
@@ -920,178 +873,6 @@ function convertNoteToTask(id){
   },0);
 }
 
-function setRegisterMode(mode){
-  const cb=document.getElementById('checkboxModeBox');
-  const qty=document.getElementById('quantityModeBox');
-  if(cb) cb.style.display = mode==='checkbox' ? '' : 'none';
-  if(qty) qty.style.display = mode==='quantity' ? '' : 'none';
-}
-function addQtyItem(name='', count=1){
-  const box=document.getElementById('regQtyItems');
-  if(!box) return;
-  const div=document.createElement('div');
-  div.className='optionRow';
-  div.innerHTML=`<input class="qtyItemName" placeholder="項目名稱，例如：排骨便當" value="${name}"><input class="qtyItemCount" type="number" min="0" value="${count}" placeholder="數量" style="max-width:110px"><button class="miniBtn secondary" onclick="removeQtyItem(this)">移除</button>`;
-  box.appendChild(div);
-}
-function removeQtyItem(btn){
-  const row=btn.closest('.optionRow');
-  const box=document.getElementById('regQtyItems');
-  if(row && box && box.children.length>1) row.remove();
-  else showToast('至少保留一個項目');
-}
-function fillQtyItems(items){
-  const box=document.getElementById('regQtyItems');
-  if(!box) return;
-  box.innerHTML='';
-  items.forEach(it=>addQtyItem(it[0], it[1]||0));
-}
-function chooseRegisterMode(mode){
-  const radio=document.querySelector(`input[name="regMode"][value="${mode}"]`);
-  if(radio) radio.checked=true;
-  setRegisterMode(mode);
-}
-function setCompanionBox(show){
-  const box=document.getElementById('companionBox');
-  if(box) box.style.display = show ? '' : 'none';
-}
-
-function addRegOption(text=''){
-  const box=document.getElementById('regOptions');
-  if(!box) return;
-  const div=document.createElement('div');
-  div.className='optionRow';
-  div.innerHTML=`<input placeholder="請輸入選項文字" value="${text}"><button class="miniBtn secondary" onclick="removeRegOption(this)">移除</button>`;
-  box.appendChild(div);
-}
-function removeRegOption(btn){
-  const row=btn.closest('.optionRow');
-  const box=document.getElementById('regOptions');
-  if(row && box && box.children.length>1) row.remove();
-  else showToast('至少保留一個登記選項');
-}
-function previewRegisterFiles(input){
-  const box=document.getElementById('regFilePreview');
-  if(!box) return;
-  const files=Array.from(input.files||[]);
-  box.innerHTML=files.length?files.map(f=>`<div class="fileChip"><span>📎 ${f.name}</span><small>${Math.ceil(f.size/1024)} KB</small></div>`).join(''):'<div class="hintBox">尚未選擇附件</div>';
-}
-
-function getRegisterItems(){
-  return Array.from(document.querySelectorAll('#regQtyItems .optionRow')).map(row=>{
-    const name=row.querySelector('.qtyItemName')?.value?.trim() || '';
-    const count=Number(row.querySelector('.qtyItemCount')?.value || 1);
-    return [name, Number.isFinite(count)?count:1];
-  }).filter(x=>x[0]);
-}
-function getRegisterTargets(){
-  return Array.from(document.querySelectorAll('#regTargets input:checked')).map(x=>x.value);
-}
-function setRegisterTargets(targets=[]){
-  document.querySelectorAll('#regTargets input').forEach(input=>{input.checked = targets.includes(input.value);});
-}
-function loadRegisterTemplate(type){
-  const templates={
-    meal:{
-      title:'訂餐登記',
-      companion:false,
-      items:[['排骨便當',1],['雞腿便當',1],['魚排便當',1],['素食便當',1],['加飯',1]],
-      msg:'已帶入訂餐模板（項目＋數量，數量預設 1）'
-    },
-    drink:{
-      title:'飲料訂購登記',
-      companion:false,
-      items:[['紅茶',1],['綠茶',1],['青茶',1],['奶茶',1],['咖啡',1]],
-      msg:'已帶入飲料模板（項目＋數量，數量預設 1）'
-    },
-    diningTravel:{
-      title:'餐旅活動登記',
-      companion:true,
-      items:[['本人參加',1],['不克參加',1],['葷食',1],['素食',1],['需要協助安排交通',1],['可協助分工',1]],
-      msg:'已帶入餐旅活動模板（項目＋數量，數量預設 1，含攜伴欄位）'
-    },
-    groupBuy:{
-      title:'團購登記',
-      companion:false,
-      items:[['品項 A',0],['品項 B',0],['品項 C',0],['其他',0]],
-      msg:'已帶入團購模板（品項及數量統計）'
-    },
-    training:{
-      title:'研習報名登記',
-      companion:false,
-      items:[['參加',1],['不克參加',1],['需要研習證明',1],['需要公假登記',1],['需要代課協助',1]],
-      msg:'已帶入研習模板（項目＋數量，數量預設 1）'
-    }
-  };
-  const t=templates[type];
-  if(!t) return;
-  const title=document.getElementById('regTitle');
-  if(title) title.value=t.title;
-  setCompanionBox(!!t.companion);
-  if(t.items) fillQtyItems(t.items);
-  showToast(t.msg);
-}
-function getCommonTemplates(){
-  try{return JSON.parse(localStorage.getItem('heremay_common_register_templates')||'[]');}
-  catch(e){return [];}
-}
-function saveCommonTemplates(list){
-  localStorage.setItem('heremay_common_register_templates', JSON.stringify(list));
-}
-function renderCommonTemplates(){
-  const select=document.getElementById('commonTemplateSelect');
-  if(!select) return;
-  const list=getCommonTemplates();
-  select.innerHTML=list.length?list.map((t,i)=>`<option value="${i}">${t.name}</option>`).join(''):'<option value="">尚無常用模板</option>';
-}
-function saveRegisterAsCommonTemplate(){
-  const defaultName=document.getElementById('regTitle')?.value || '常用登記表';
-  const name=prompt('請輸入常用模板名稱，例如：阿明便當、50嵐飲料、制服團購', defaultName);
-  if(!name) return;
-  const data={
-    name,
-    host:document.getElementById('regHost')?.value || '',
-    title:document.getElementById('regTitle')?.value || '',
-    desc:document.getElementById('regDesc')?.value || '',
-    targets:getRegisterTargets(),
-    items:getRegisterItems(),
-    companion:document.getElementById('companionBox')?.style.display !== 'none'
-  };
-  const list=getCommonTemplates();
-  const existing=list.findIndex(t=>t.name===name);
-  if(existing>=0) list[existing]=data; else list.push(data);
-  saveCommonTemplates(list);
-  renderCommonTemplates();
-  showToast('已儲存為常用模板：'+name);
-}
-function loadCommonRegisterTemplate(){
-  const select=document.getElementById('commonTemplateSelect');
-  if(!select || select.value==='') return showToast('目前沒有可套用的常用模板');
-  const t=getCommonTemplates()[Number(select.value)];
-  if(!t) return;
-  const host=document.getElementById('regHost'); if(host) host.value=t.host||host.value;
-  const title=document.getElementById('regTitle'); if(title) title.value=t.title||t.name;
-  const desc=document.getElementById('regDesc'); if(desc) desc.value=t.desc||'';
-  setRegisterTargets(t.targets||[]);
-  fillQtyItems(t.items&&t.items.length?t.items:[['項目',1]]);
-  setCompanionBox(!!t.companion);
-  showToast('已套用常用模板：'+t.name);
-}
-function deleteCommonRegisterTemplate(){
-  const select=document.getElementById('commonTemplateSelect');
-  if(!select || select.value==='') return showToast('目前沒有可刪除的常用模板');
-  const list=getCommonTemplates();
-  const t=list[Number(select.value)];
-  if(!t) return;
-  if(!confirm('確定刪除常用模板「'+t.name+'」嗎？')) return;
-  list.splice(Number(select.value),1);
-  saveCommonTemplates(list);
-  renderCommonTemplates();
-  showToast('已刪除常用模板');
-}
-function loadTravelSample(){
-  loadRegisterTemplate('diningTravel');
-}
 
 
 function addReminderRow(){const b=document.getElementById('advanceReminderList');if(!b)return;const d=document.createElement('div');d.className='optionRow reminderRow';d.innerHTML='<input type="number" min="0" value="10" style="max-width:120px"><select style="max-width:150px"><option selected>分鐘</option><option>小時</option><option>天</option><option>週</option></select><button class="miniBtn secondary" onclick="removeReminderRow(this)">移除</button>';b.appendChild(d)}
