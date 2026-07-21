@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f4f8ff">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.5</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.5.2</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -60,9 +60,23 @@ textarea{min-height:95px;resize:vertical}
 .checkGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .check{display:flex;gap:7px;align-items:center;background:#f8fbff;border:1px solid #dce8f7;border-radius:14px;padding:10px;font-weight:850}
 .check input{width:auto}
-.productEditor{border:1px solid #dce8f7;border-radius:20px;padding:14px;margin-top:12px;background:#fbfdff}
+.productEditor{border:2px solid var(--itemLine,#9dbceb);border-radius:22px;margin-top:14px;background:#fff;overflow:hidden;box-shadow:0 8px 22px rgba(45,82,132,.09)}
+.productEditor:nth-child(5n+1){--itemBand:#e8f2ff;--itemLine:#7aa7e8;--itemText:#174e9b}
+.productEditor:nth-child(5n+2){--itemBand:#fff0f3;--itemLine:#e58aa0;--itemText:#a33d59}
+.productEditor:nth-child(5n+3){--itemBand:#edf9ef;--itemLine:#82c495;--itemText:#2d7b45}
+.productEditor:nth-child(5n+4){--itemBand:#fff6df;--itemLine:#dfb85d;--itemText:#8d6510}
+.productEditor:nth-child(5n+5){--itemBand:#f3edff;--itemLine:#a88bdc;--itemText:#64469b}
+.productHeader{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:13px 14px;background:var(--itemBand);cursor:pointer;position:sticky;top:0;z-index:3}
+.productNumber{min-width:48px;height:34px;border-radius:999px;background:#fff;color:var(--itemText);display:flex;align-items:center;justify-content:center;font-weight:950;border:1px solid var(--itemLine)}
+.productHeaderTitle{font-size:18px;font-weight:950;color:var(--itemText);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.productToggle{border:1px solid var(--itemLine);background:#fff;color:var(--itemText);border-radius:12px;padding:7px 10px;font-weight:950;cursor:pointer}
+.productBody{padding:14px}
+.productEditor.collapsed .productBody{display:none}
+.productEditor.collapsed .productToggle::after{content:'展開'}
+.productEditor:not(.collapsed) .productToggle::after{content:'收合'}
 .productTop{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
 .productTop h3{margin:0}
+.productCountBar{margin-top:12px;background:#eef6ff;border:1px solid #cfe0f5;border-radius:16px;padding:10px 12px;font-weight:900;color:#315f91;text-align:center}
 .specList,.prefList{display:grid;gap:8px;margin-top:8px}
 .specRow{display:grid;grid-template-columns:1fr 130px auto;gap:8px;align-items:center}
 .prefRow{display:grid;grid-template-columns:1fr 140px 1.5fr auto;gap:8px;align-items:center}
@@ -110,7 +124,7 @@ textarea{min-height:95px;resize:vertical}
 @media(max-width:760px){
   .header{grid-template-columns:54px 1fr}.logo{width:54px;height:54px}.back{grid-column:1/3;width:100%}
   .tabs{grid-template-columns:repeat(2,1fr)}.row,.specRow,.prefRow,.qtyGrid{grid-template-columns:1fr}
-  .templateGrid,.templateCategoryGrid{grid-template-columns:repeat(2,1fr)}.checkGrid{grid-template-columns:1fr}.header h1{font-size:27px}
+  .templateGrid,.templateCategoryGrid{grid-template-columns:repeat(2,1fr)}.checkGrid{grid-template-columns:1fr}.header h1{font-size:27px}.productHeader{grid-template-columns:auto minmax(0,1fr) auto;padding:12px 10px}.productNumber{min-width:58px;font-size:13px}.productHeaderTitle{font-size:17px}
 }
 </style>
 </head>
@@ -215,6 +229,7 @@ textarea{min-height:95px;resize:vertical}
     <h2 style="margin-top:18px">本次開放品項</h2>
     <div class="hint">只建立這次要提供的少數品項。每個品項分成「價格規格」與「免費偏好」。</div>
     <div id="productEditors"></div>
+    <div id="productCountBar" class="productCountBar">目前共有 0 個品項</div>
     <div class="actions"><button class="btn secondary" onclick="addProductEditor()">＋新增下一個品項</button></div>
 
     <div id="editNotice" class="hint" style="display:none">✏️ 正在編輯既有活動；儲存後會更新原活動，不會新增另一份。</div>
@@ -235,7 +250,7 @@ textarea{min-height:95px;resize:vertical}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.5｜2026-07-21｜活動、訂單與模板雲端同步</div>
+<div class="version">團購／報名中心 v1.5.2｜2026-07-21｜手機品項收合辨識版</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -325,17 +340,11 @@ async function loadCloudData(showMessage=true){
  cloudBusy=true;
  if(showMessage)setSyncState('busy','正在同步雲端資料…');
  try{
-   const [campaignRes,orderRes,templateRes]=await Promise.all([
-     jsonpCloud('listCampaigns'),
-     jsonpCloud('listOrders'),
-     jsonpCloud('listTemplates')
-   ]);
-   if(!campaignRes.ok)throw new Error(campaignRes.message||'活動讀取失敗');
-   if(!orderRes.ok)throw new Error(orderRes.message||'訂單讀取失敗');
-   if(!templateRes.ok)throw new Error(templateRes.message||'模板讀取失敗');
-   setC((campaignRes.data||[]).map(normalizeCampaign));
-   setO(orderRes.data||[]);
-   setT(templateRes.data||[]);
+   const result=await jsonpCloud('syncAll');
+   if(!result.ok)throw new Error(result.message||'雲端同步失敗');
+   setC((result.campaigns||[]).map(normalizeCampaign));
+   setO(result.orders||[]);
+   setT(result.templates||[]);
    setSyncState('ok','雲端同步完成｜'+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}));
    renderSavedTemplates();
    renderAll();
@@ -384,17 +393,49 @@ function applyTemplate(type,btn){
  document.getElementById('selectedTemplateNotice').textContent='目前使用：'+(templateCategoryNames[type]||type)+'系統模板';
  document.getElementById('productEditors').innerHTML='';
  t.products.forEach(p=>addProductEditor(p));
+ updateProductHeadings();
 }
 function specRow(name='',price=''){return `<div class="specRow"><input class="specName" placeholder="規格，例如：大杯、熱飲" value="${esc(name)}"><input class="specPrice" type="number" min="0" inputmode="decimal" placeholder="價格" value="${esc(price)}"><button class="btn danger" type="button" onclick="this.closest('.specRow').remove()">移除</button></div>`}
 function prefRow(name='',type='單選',values=''){return `<div class="prefRow"><input class="prefName" placeholder="偏好，例如：甜度、辣度" value="${esc(name)}"><select class="prefType"><option ${type==='單選'?'selected':''}>單選</option><option ${type==='複選'?'selected':''}>複選</option><option ${type==='文字'?'selected':''}>文字</option></select><input class="prefValues" placeholder="選項，以逗號分隔" value="${esc(values)}"><button class="btn danger" type="button" onclick="this.closest('.prefRow').remove()">移除</button></div>`}
 function addProductEditor(data={name:'',specs:[['',0]],prefs:[]}){
+ const box=document.getElementById('productEditors');
+ [...box.querySelectorAll('.productEditor')].forEach(x=>x.classList.add('collapsed'));
  const d=document.createElement('div');d.className='productEditor';
- d.innerHTML=`<div class="productTop"><div><label>品名</label><input class="productNameInput" placeholder="例如：珍珠奶茶" value="${esc(data.name||'')}"></div><div class="actions"><button class="btn secondary" type="button" onclick="duplicateProduct(this)">複製此品項</button><button class="btn danger" onclick="removeProduct(this)">刪除品項</button></div></div>
+ d.innerHTML=`<div class="productHeader" onclick="toggleProductEditor(this)">
+   <span class="productNumber">品項</span>
+   <span class="productHeaderTitle">${esc(data.name||'尚未命名')}</span>
+   <button class="productToggle" type="button" aria-label="收合或展開"></button>
+ </div>
+ <div class="productBody">
+ <div class="productTop"><div><label>品名</label><input class="productNameInput" placeholder="例如：珍珠奶茶" value="${esc(data.name||'')}" oninput="updateProductHeadings()"></div><div class="actions"><button class="btn secondary" type="button" onclick="duplicateProduct(this)">複製此品項</button><button class="btn danger" onclick="removeProduct(this)">刪除品項</button></div></div>
  <h3>價格規格</h3><div class="hint">大小、份量、冷熱若會影響價格，就建立為規格。</div><div class="specList">${(data.specs||[]).map(x=>specRow(x[0],x[1])).join('')}</div><div class="actions"><button class="btn secondary" type="button" onclick="this.closest('.productEditor').querySelector('.specList').insertAdjacentHTML('beforeend',specRow())">＋新增價格規格</button></div>
- <h3>免費偏好</h3><div class="hint">甜度、冰量、辣度、鹹度、切法等不改變價格。</div><div class="prefList">${(data.prefs||[]).map(x=>prefRow(x[0],x[1],x[2])).join('')}</div><div class="actions"><button class="btn secondary" type="button" onclick="this.closest('.productEditor').querySelector('.prefList').insertAdjacentHTML('beforeend',prefRow())">＋新增免費偏好</button><button class="btn secondary" type="button" onclick="copyPrefsFromPrevious(this)">套用上一個品項偏好</button></div>`;
- document.getElementById('productEditors').appendChild(d);
+ <h3>免費偏好</h3><div class="hint">甜度、冰量、辣度、鹹度、切法等不改變價格。</div><div class="prefList">${(data.prefs||[]).map(x=>prefRow(x[0],x[1],x[2])).join('')}</div><div class="actions"><button class="btn secondary" type="button" onclick="this.closest('.productEditor').querySelector('.prefList').insertAdjacentHTML('beforeend',prefRow())">＋新增免費偏好</button><button class="btn secondary" type="button" onclick="copyPrefsFromPrevious(this)">套用上一個品項偏好</button></div>
+ </div>`;
+ box.appendChild(d);
+ updateProductHeadings();
+ setTimeout(()=>d.scrollIntoView({behavior:'smooth',block:'start'}),80);
 }
-function removeProduct(btn){const box=document.getElementById('productEditors');if(box.children.length<=1)return toast('至少保留一個品項');btn.closest('.productEditor').remove()}
+function toggleProductEditor(header){
+ const editor=header.closest('.productEditor');
+ const willOpen=editor.classList.contains('collapsed');
+ if(willOpen){
+   document.querySelectorAll('.productEditor').forEach(x=>x.classList.add('collapsed'));
+   editor.classList.remove('collapsed');
+ }else{
+   editor.classList.add('collapsed');
+ }
+}
+function updateProductHeadings(){
+ const editors=[...document.querySelectorAll('.productEditor')];
+ editors.forEach((ed,index)=>{
+   const name=ed.querySelector('.productNameInput')?.value.trim()||'尚未命名';
+   ed.querySelector('.productNumber').textContent='品項 '+(index+1);
+   ed.querySelector('.productHeaderTitle').textContent=name;
+ });
+ const bar=document.getElementById('productCountBar');
+ if(bar)bar.textContent='目前共有 '+editors.length+' 個品項｜點色帶可展開或收合';
+}
+function removeProduct(btn){const box=document.getElementById('productEditors');if(box.children.length<=1)return toast('至少保留一個品項');btn.closest('.productEditor').remove();updateProductHeadings()}
 function editorData(ed){
  return {name:ed.querySelector('.productNameInput').value.trim()+' 副本',
  specs:[...ed.querySelectorAll('.specRow')].map(r=>[r.querySelector('.specName').value.trim(),Number(r.querySelector('.specPrice').value||0)]),
