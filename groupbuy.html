@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f4f8ff">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.4.1</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.5</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -100,6 +100,13 @@ textarea{min-height:95px;resize:vertical}
 .toast{position:fixed;left:50%;bottom:25px;transform:translateX(-50%);background:#173f75;color:#fff;border-radius:999px;padding:11px 16px;font-weight:900;opacity:0;pointer-events:none;transition:.25s;z-index:30}
 .toast.show{opacity:1}
 .version{text-align:center;color:#7890a6;font-size:12px;font-weight:800;margin-top:10px}
+.syncBar{display:flex;justify-content:space-between;gap:10px;align-items:center;background:#eef7ff;border:1px solid #cfe3fa;border-radius:16px;padding:10px 12px;margin-bottom:13px;color:#315f91;font-weight:900}
+.syncState{display:flex;align-items:center;gap:8px}
+.syncDot{width:10px;height:10px;border-radius:50%;background:#ef9d28;box-shadow:0 0 0 4px rgba(239,157,40,.13)}
+.syncDot.ok{background:#2ca86b;box-shadow:0 0 0 4px rgba(44,168,107,.13)}
+.syncDot.bad{background:#d94d59;box-shadow:0 0 0 4px rgba(217,77,89,.13)}
+.syncRefresh{border:1px solid #c9dcf5;background:#fff;color:#2f68d8;border-radius:12px;padding:8px 11px;font-weight:900;cursor:pointer}
+
 @media(max-width:760px){
   .header{grid-template-columns:54px 1fr}.logo{width:54px;height:54px}.back{grid-column:1/3;width:100%}
   .tabs{grid-template-columns:repeat(2,1fr)}.row,.specRow,.prefRow,.qtyGrid{grid-template-columns:1fr}
@@ -121,6 +128,11 @@ textarea{min-height:95px;resize:vertical}
   <button class="tab" onclick="showPanel('mine',this)">我的回覆</button>
   <button class="tab" onclick="showPanel('stats',this)">統計／結單</button>
 </nav>
+
+<div class="syncBar">
+  <div class="syncState"><span class="syncDot" id="syncDot"></span><span id="syncText">正在連接雲端資料…</span></div>
+  <button class="syncRefresh" type="button" onclick="manualCloudRefresh()">重新同步</button>
+</div>
 
 <section id="available" class="panel active">
   <div class="card"><h2>目前可參加的團購／活動</h2><div id="availableList"></div></div>
@@ -223,13 +235,15 @@ textarea{min-height:95px;resize:vertical}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.4.1｜2026-07-20｜活動結束與永久刪除分離</div>
+<div class="version">團購／報名中心 v1.5｜2026-07-21｜活動、訂單與模板雲端同步</div>
 </main>
 <div class="toast" id="toast"></div>
 
 <script>
-const CK='heremay.groupbuy.campaigns.v11', OK='heremay.groupbuy.orders.v11', TK='heremay.groupbuy.templates.v12';
+const SERVICE_URL='https://script.google.com/macros/s/AKfycbyGOxpeqwRU3_Q2HcoQHsMr_PvUkoLkpRwPPCLs5K6iWRye7fVeQdNkMAvc1oBvqFFrpw/exec';
+const CK='heremay.groupbuy.cloud.campaigns.v15', OK='heremay.groupbuy.cloud.orders.v15', TK='heremay.groupbuy.cloud.templates.v15';
 let pendingFiles=[], activeTemplate='drink', editingCampaignId='', openedCampaignId='', pickerCategory='drink';
+let cloudBusy=false;
 
 const templateCategoryNames={
  drink:'🥤 飲料類常用模板',
@@ -263,6 +277,93 @@ function setO(v){localStorage.setItem(OK,JSON.stringify(v))}
 function getT(){try{return JSON.parse(localStorage.getItem(TK)||'[]')}catch(e){return []}}
 function setT(v){localStorage.setItem(TK,JSON.stringify(v))}
 function isHost(c){return (c.host||'')===currentName()}
+
+function setSyncState(state,message){
+ const dot=document.getElementById('syncDot'),txt=document.getElementById('syncText');
+ if(dot){dot.className='syncDot'+(state==='ok'?' ok':state==='bad'?' bad':'')}
+ if(txt)txt.textContent=message;
+}
+function jsonpCloud(action,params={}){
+ return new Promise((resolve,reject)=>{
+   const cb='heremayCloudCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+   const script=document.createElement('script');
+   const timer=setTimeout(()=>cleanup(new Error('雲端讀取逾時')),15000);
+   function cleanup(error,data){
+     clearTimeout(timer);
+     try{delete window[cb]}catch(e){}
+     script.remove();
+     error?reject(error):resolve(data);
+   }
+   window[cb]=data=>cleanup(null,data);
+   const q=new URLSearchParams({action,callback:cb,...params});
+   script.src=SERVICE_URL+'?'+q.toString();
+   script.onerror=()=>cleanup(new Error('無法連線雲端服務'));
+   document.head.appendChild(script);
+ });
+}
+function postCloud(action,payload){
+ return new Promise((resolve,reject)=>{
+   const frameName='heremayGroupbuyFrame_'+Date.now();
+   const iframe=document.createElement('iframe');
+   iframe.name=frameName;iframe.style.display='none';
+   const form=document.createElement('form');
+   form.method='POST';form.action=SERVICE_URL;form.target=frameName;form.style.display='none';
+   [['action',action],['payload',JSON.stringify(payload||{})]].forEach(([name,value])=>{
+     const input=document.createElement('input');input.type='hidden';input.name=name;input.value=value;form.appendChild(input);
+   });
+   document.body.append(iframe,form);
+   form.submit();
+   setTimeout(()=>{form.remove();iframe.remove();resolve(true)},1400);
+ });
+}
+function normalizeCampaign(c){
+ const status=c.status||(c.cancelled?'cancelled':c.closed?'closed':'open');
+ return {...c,status,closed:status==='closed',cancelled:status==='cancelled'};
+}
+async function loadCloudData(showMessage=true){
+ if(cloudBusy)return;
+ cloudBusy=true;
+ if(showMessage)setSyncState('busy','正在同步雲端資料…');
+ try{
+   const [campaignRes,orderRes,templateRes]=await Promise.all([
+     jsonpCloud('listCampaigns'),
+     jsonpCloud('listOrders'),
+     jsonpCloud('listTemplates')
+   ]);
+   if(!campaignRes.ok)throw new Error(campaignRes.message||'活動讀取失敗');
+   if(!orderRes.ok)throw new Error(orderRes.message||'訂單讀取失敗');
+   if(!templateRes.ok)throw new Error(templateRes.message||'模板讀取失敗');
+   setC((campaignRes.data||[]).map(normalizeCampaign));
+   setO(orderRes.data||[]);
+   setT(templateRes.data||[]);
+   setSyncState('ok','雲端同步完成｜'+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}));
+   renderSavedTemplates();
+   renderAll();
+ }catch(error){
+   console.error(error);
+   setSyncState('bad','雲端連線失敗，暫時顯示本機快取');
+   if(showMessage)toast('目前無法同步，已顯示最近資料');
+   renderAll();
+ }finally{
+   cloudBusy=false;
+ }
+}
+async function cloudWrite(action,payload,successMessage){
+ setSyncState('busy','正在寫入雲端…');
+ try{
+   await postCloud(action,payload);
+   await new Promise(r=>setTimeout(r,700));
+   await loadCloudData(false);
+   if(successMessage)toast(successMessage);
+   return true;
+ }catch(error){
+   console.error(error);
+   setSyncState('bad','雲端寫入失敗');
+   toast('雲端寫入失敗，請稍後再試');
+   return false;
+ }
+}
+function manualCloudRefresh(){loadCloudData(true)}
 
 function goBack(){const r=String(localStorage.getItem('heremay.currentRole')||'').toLowerCase();location.href=r==='admin'?'admin.html':r==='teacher'?'teacher.html':r==='support'?'support.html':'index.html'}
 function showPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');btn.classList.add('active');renderAll()}
@@ -327,12 +428,14 @@ function currentFormSnapshot(){
   products:collectProducts()
  };
 }
-function saveCurrentAsTemplate(){
+async function saveCurrentAsTemplate(){
  const snap=currentFormSnapshot();
  if(!snap.products.length)return toast('請先建立品項');
  const name=prompt('請輸入模板名稱，例如：常買飲料店');
  if(!name)return;
- const ts=getT();ts.unshift({id:'t_'+Date.now(),name:name.trim(),template:activeTemplate,...snap});setT(ts);renderSavedTemplates();toast('常用模板已儲存');
+ const template={id:'t_'+Date.now(),name:name.trim(),template:activeTemplate,creator:currentName(),...snap};
+ const ok=await cloudWrite('saveTemplate',template,'常用模板已儲存到雲端');
+ if(ok)renderSavedTemplates();
 }
 function loadSavedTemplate(id){
  const t=getT().find(x=>x.id===id);if(!t)return;
@@ -352,9 +455,9 @@ function loadSavedTemplate(id){
  document.getElementById('campaignTitle').scrollIntoView({behavior:'smooth',block:'center'});
  toast('常用模板已載入');
 }
-function deleteSavedTemplate(id){
+async function deleteSavedTemplate(id){
  if(!confirm('確定刪除這個常用模板嗎？'))return;
- setT(getT().filter(x=>x.id!==id));renderSavedTemplates();toast('模板已刪除');
+ await cloudWrite('deleteTemplate',{id},'雲端模板已刪除');
 }
 function renderSavedTemplates(){
  if(document.getElementById('templatePicker')?.style.display!=='none')renderTemplatePicker();
@@ -392,7 +495,7 @@ function startNewFromCategory(cat){
  document.getElementById('campaignTitle').scrollIntoView({behavior:'smooth',block:'center'});
  toast('已開啟全新模板');
 }
-function createCampaign(){
+async function createCampaign(){
  const title=document.getElementById('campaignTitle').value.trim(),products=collectProducts();
  if(!title)return toast('請輸入活動名稱');
  if(!products.length)return toast('請建立至少一個完整品項');
@@ -415,23 +518,13 @@ function createCampaign(){
    retentionMode:document.getElementById('retentionMode').value,
    files:pendingFiles.length?pendingFiles.map(f=>({name:f.name,size:f.size,type:f.type})):(existing?.files||[]),
    products,
-   closed:existing?.closed||false,
+   status:existing?.status||'open',
+   cancelReason:existing?.cancelReason||'',
    createdAt:existing?.createdAt||new Date().toISOString(),
    updatedAt:new Date().toISOString()
  };
-
- const cs=getC();
- if(existing){
-   const idx=cs.findIndex(x=>x.id===editingCampaignId);
-   if(idx>=0)cs[idx]=c;
- }else{
-   cs.unshift(c);
- }
- setC(cs);
- const msg=existing?'活動已更新':'活動已建立';
- resetForm();
- renderAll();
- toast(msg);
+ const ok=await cloudWrite('saveCampaign',c,existing?'活動已更新並同步':'活動已建立並同步');
+ if(ok)resetForm();
 }
 function resetForm(){
  editingCampaignId='';
@@ -508,16 +601,41 @@ function eventCard(c){
  <div class="totalBox" id="total_${c.id}">預估總額：$0</div><label>備註</label><input id="note_${c.id}" placeholder="可留白"><div class="actions"><button class="btn" ${(c.closed||c.cancelled)?'disabled':''} onclick="submitReply('${c.id}')">${c.cancelled?'活動已取消':c.closed?'已結單':'送出回覆'}</button></div>${publicRows(c)}</article>`
 }
 function updateTotal(cid){let total=0;document.querySelectorAll(`[data-campaign="${cid}"]`).forEach(row=>{const qty=Number(row.querySelector('.qty').value||0),spec=row.querySelector('.specChoice:checked'),price=Number(spec?.dataset.price||0),sub=qty*price;row.querySelector('.productSubtotal').textContent='小計：$'+sub;total+=sub});document.getElementById('total_'+cid).textContent='預估總額：$'+total}
-function submitReply(cid){
+async function submitReply(cid){
  const c=getC().find(x=>x.id===cid);if(!c)return;
- let join='yes';if(c.replyRequired){join=document.querySelector(`input[name="join_${cid}"]:checked`)?.value||'';if(!join)return toast('請先選擇參加或不參加')}
+ let join='yes';
+ if(c.replyRequired){
+   join=document.querySelector(`input[name="join_${cid}"]:checked`)?.value||'';
+   if(!join)return toast('請先選擇參加或不參加');
+ }
  const companions=Number(document.getElementById('companions_'+cid)?.value||0);
- if(join==='no'){const os=getO().filter(o=>!(o.campaignId===cid&&o.user===currentName()));os.unshift({id:'o_'+Date.now(),campaignId:cid,user:currentName(),status:'not_joining',companions:0,lines:[],note:'',createdAt:new Date().toISOString()});setO(os);renderAll();return toast('已回覆不參加')}
- const lines=[];document.querySelectorAll(`[data-campaign="${cid}"]`).forEach(row=>{const qty=Number(row.querySelector('.qty').value||0);if(qty<=0)return;const p=c.products.find(x=>x.id===row.dataset.product),si=Number(row.querySelector('.specChoice:checked')?.value);if(!Number.isInteger(si))return;const spec=p.specs[si],prefs={};row.querySelectorAll('.prefInput').forEach(el=>{if(el.value)prefs[el.dataset.pref]=el.value});row.querySelectorAll('.prefCheck:checked').forEach(el=>{prefs[el.dataset.pref]=prefs[el.dataset.pref]||[];prefs[el.dataset.pref].push(el.value)});lines.push({name:p.name,spec:spec.name,price:spec.price,qty,prefs,subtotal:spec.price*qty})});
+ if(join==='no'){
+   await cloudWrite('saveOrder',{
+     id:'o_'+Date.now(),campaignId:cid,user:currentName(),status:'not_joining',
+     companions:0,lines:[],note:'',createdAt:new Date().toISOString()
+   },'已回覆不參加');
+   return;
+ }
+ const lines=[];
+ document.querySelectorAll(`[data-campaign="${cid}"]`).forEach(row=>{
+   const qty=Number(row.querySelector('.qty').value||0);if(qty<=0)return;
+   const p=c.products.find(x=>x.id===row.dataset.product);
+   const si=Number(row.querySelector('.specChoice:checked')?.value);
+   if(!Number.isInteger(si))return;
+   const spec=p.specs[si],prefs={};
+   row.querySelectorAll('.prefInput').forEach(el=>{if(el.value)prefs[el.dataset.pref]=el.value});
+   row.querySelectorAll('.prefCheck:checked').forEach(el=>{
+     prefs[el.dataset.pref]=prefs[el.dataset.pref]||[];
+     prefs[el.dataset.pref].push(el.value);
+   });
+   lines.push({name:p.name,spec:spec.name,price:spec.price,qty,prefs,subtotal:spec.price*qty});
+ });
  if(!lines.length&&c.template!=='travel'&&c.template!=='training')return toast('請至少選擇一個品項');
- const seats=c.capacityMode==='registrations'?1:1+companions,rem=remaining(c),status=c.capacity>0&&seats>rem?(c.waitlist?'waitlist':'rejected'):'accepted';
- if(status==='rejected')return toast('名額已滿，這個活動沒有開放候補');
- const os=getO().filter(o=>!(o.campaignId===cid&&o.user===currentName()));os.unshift({id:'o_'+Date.now(),campaignId:cid,user:currentName(),status,companions,lines,note:document.getElementById('note_'+cid).value.trim(),createdAt:new Date().toISOString()});setO(os);renderAll();toast(status==='waitlist'?'名額已滿，已列入候補':'回覆已送出')
+ await cloudWrite('saveOrder',{
+   id:'o_'+Date.now(),campaignId:cid,user:currentName(),status:'accepted',
+   companions,lines,note:document.getElementById('note_'+cid).value.trim(),
+   createdAt:new Date().toISOString()
+ },'回覆已送出並同步');
 }
 function renderAvailable(){
  const cs=getC().filter(c=>!c.deleted&&!c.closed&&!c.cancelled);
@@ -549,51 +667,34 @@ function renderStats(){
    </article>`;
  }).join(''):'<div class="empty">目前沒有活動。</div>';
 }
-function deleteCampaign(id){
+async function deleteCampaign(id){
  const c=getC().find(x=>x.id===id);if(!c||!isHost(c))return;
- if(getO().some(o=>o.campaignId===id))return toast('已有報名紀錄，請改用取消活動');
- if(!confirm('確定刪除這個活動嗎？'))return;
- setC(getC().filter(x=>x.id!==id));renderAll();toast('活動已刪除');
+ if(!confirm('確定永久刪除這個活動嗎？'))return;
+ await cloudWrite('deleteCampaign',{id},'活動已永久刪除');
 }
-function finishCampaign(id){
- const cs=getC(),c=cs.find(x=>x.id===id);if(!c||!isHost(c))return;
+async function finishCampaign(id){
+ const c=getC().find(x=>x.id===id);if(!c||!isHost(c))return;
  if(!confirm(`確定結束「${c.title}」嗎？\n結束後停止接受新回覆，但活動與訂單紀錄會保留。`))return;
- c.closed=true;
- c.finishedAt=new Date().toISOString();
- c.updatedAt=c.finishedAt;
- setC(cs);
  if(openedCampaignId===id)openedCampaignId='';
- renderAll();
- toast('活動已結束，紀錄仍保留');
+ await cloudWrite('finishCampaign',{id},'活動已結束，紀錄仍保留');
 }
-function purgeCampaign(id){
+async function purgeCampaign(id){
  const c=getC().find(x=>x.id===id);if(!c||!isHost(c))return;
  const count=getO().filter(o=>o.campaignId===id).length;
- const first=confirm(`確定要永久刪除「${c.title}」嗎？\n活動與 ${count} 筆訂購／報名紀錄都會刪除。`);
- if(!first)return;
- const second=confirm('再次確認：永久刪除後無法復原，但常用模板不受影響。');
- if(!second)return;
- setC(getC().filter(x=>x.id!==id));
- setO(getO().filter(o=>o.campaignId!==id));
+ if(!confirm(`確定要永久刪除「${c.title}」嗎？\n活動與 ${count} 筆訂購／報名紀錄都會刪除。`))return;
+ if(!confirm('再次確認：永久刪除後無法復原，但常用模板不受影響。'))return;
  if(openedCampaignId===id)openedCampaignId='';
- renderAll();
- toast('活動與全部訂單已永久刪除');
+ await cloudWrite('deleteCampaign',{id},'活動與全部訂單已永久刪除');
 }
-function cancelCampaign(id){
- const cs=getC(),c=cs.find(x=>x.id===id);if(!c||!isHost(c))return;
+async function cancelCampaign(id){
+ const c=getC().find(x=>x.id===id);if(!c||!isHost(c))return;
  const reason=prompt('請輸入取消原因，例如：雞腿缺貨');
  if(reason===null)return;
- c.cancelled=true;c.cancelReason=reason.trim();c.closed=true;c.updatedAt=new Date().toISOString();
- setC(cs);renderAll();toast('活動已取消並保留原紀錄');
+ await cloudWrite('cancelCampaign',{id,reason:reason.trim()},'活動已取消並保留原紀錄');
 }
-function toggleClose(id){
- const cs=getC(),c=cs.find(x=>x.id===id);if(!c||!isHost(c))return;
- c.closed=!c.closed;
- c.updatedAt=new Date().toISOString();
- if(!c.closed)c.finishedAt='';
- setC(cs);
- renderAll();
- toast(c.closed?'活動已結束':'活動已重新開放');
+async function toggleClose(id){
+ const c=getC().find(x=>x.id===id);if(!c||!isHost(c))return;
+ await cloudWrite(c.closed?'reopenCampaign':'finishCampaign',{id},c.closed?'活動已重新開放':'活動已結束');
 }
 function renderAll(){renderAvailable();renderMine();renderStats()}
 
@@ -601,6 +702,7 @@ document.getElementById('hostName').value=currentName();
 applyTemplate('drink',document.querySelector('.templateBtn'));
 renderSavedTemplates();
 renderAll();
+loadCloudData(true);
 </script>
 </body>
 </html>
