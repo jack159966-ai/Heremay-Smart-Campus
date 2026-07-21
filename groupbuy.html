@@ -128,6 +128,83 @@ textarea{min-height:95px;resize:vertical}
 }
 
 .quickBuilder{border:2px solid #9fc0ea;border-radius:22px;background:#f8fbff;padding:14px;margin:14px 0}.quickItemList{display:grid;gap:9px;margin-top:10px}.quickItemRow{display:grid;grid-template-columns:minmax(180px,1fr) 130px auto;gap:8px;align-items:center;background:#fff;border:1px solid #d5e4f5;border-radius:16px;padding:9px}.quickItemHead{display:grid;grid-template-columns:minmax(180px,1fr) 130px auto;gap:8px;padding:0 9px;font-size:14px;color:#607b98;font-weight:900}.quickCommon{background:#fff;border:1px solid #d5e4f5;border-radius:18px;padding:12px;margin-top:12px}.quickOrderBox{border-top:1px dashed #dce8f7;margin-top:12px;padding-top:12px}.quickProductList{display:grid;gap:8px}.quickProductChoice{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;border:1px solid #d7e4f4;border-radius:15px;padding:11px;background:#f9fcff}.quickProductChoice input{width:auto}.quickProductChoice strong{color:#173f75}.quickQty{max-width:110px}
+
+.statsTableWrap{overflow-x:auto;margin-top:12px;border:1px solid #dbe7f4;border-radius:18px;background:#fff}
+.statsDetailTable{width:100%;border-collapse:collapse;min-width:920px;font-size:14px}
+.statsDetailTable th,.statsDetailTable td{border:1px solid #dbe7f4;padding:9px 10px;vertical-align:top;white-space:nowrap}
+.statsDetailTable th{background:#edf4ff;color:#285a9f;font-weight:950;position:sticky;top:0;z-index:1}
+.statsDetailTable td.wrap{white-space:normal;min-width:150px}
+.statsSummaryGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.statsSummaryBox{background:#f8fbff;border:1px solid #dce8f7;border-radius:16px;padding:11px}
+.statsSummaryBox strong{display:block;color:#173f75;margin-bottom:5px}
+.statsSummaryBox span{display:block;color:#56718d;font-weight:800;line-height:1.6}
+@media(max-width:760px){.statsSummaryGrid{grid-template-columns:1fr}.statsDetailTable{font-size:15px;min-width:980px}}
+.statsCampaignList{display:grid;gap:10px}.statsCampaignItem{border:1px solid #dce8f7;border-radius:20px;padding:15px;background:#fff}.statsCampaignItem h3{margin:0;color:#173f75;font-size:20px}.statsCampaignMeta{margin-top:6px;color:#71879d;font-weight:800;line-height:1.55}.statsBackBar{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.printOnly{display:none}
+@media print{
+ body.print-stats{background:#fff!important}
+ body.print-stats .header,body.print-stats .tabs,body.print-stats .syncBar,body.print-stats .version,body.print-stats #available,body.print-stats #create,body.print-stats #mine,body.print-stats .noPrint,body.print-stats .statsBackBar,body.print-stats .actions{display:none!important}
+ body.print-stats .app{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
+ body.print-stats #stats,body.print-stats #stats>.card,body.print-stats .eventCard{width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+ body.print-stats .statsDetailTable{max-width:100%!important}
+ body.print-stats #stats{display:block!important}
+ body.print-stats #stats>.card{box-shadow:none!important;border:0!important;padding:0!important;margin:0!important}
+ body.print-stats #stats>.card>h2{display:none!important}
+ body.print-stats .printOnly{display:block!important;text-align:center;margin-bottom:12px}
+ body.print-stats .eventCard{border:0!important;padding:0!important;margin:0!important}
+ body.print-stats .statsTableWrap{overflow:visible!important;border-radius:0!important;border:0!important}
+ body.print-stats .statsDetailTable{min-width:0!important;width:100%!important;font-size:9pt!important}
+ body.print-stats .statsDetailTable th,body.print-stats .statsDetailTable td{padding:5px!important}
+ body.print-stats .statsSummaryGrid{grid-template-columns:1fr 1fr!important;break-inside:avoid}
+ @page{size:A4 portrait;margin:15mm}
+}
+
+
+.orderMatrixWrap{overflow-x:auto;margin-top:12px;border:1px solid #d5e4f5;border-radius:18px;background:#fff}
+.orderMatrix{width:100%;min-width:760px;border-collapse:collapse;table-layout:auto}
+.orderMatrix th,.orderMatrix td{border-bottom:1px solid #dce8f7;border-right:1px solid #e5edf7;padding:9px;vertical-align:middle;text-align:center}
+.orderMatrix th:last-child,.orderMatrix td:last-child{border-right:0}.orderMatrix tr:last-child td{border-bottom:0}
+.orderMatrix th{background:#edf4ff;color:#285a9f;font-size:14px;font-weight:950;white-space:nowrap}
+.orderMatrix .itemName{text-align:left;min-width:160px;font-weight:950;color:#173f75}
+.orderMatrix .itemPrice{white-space:nowrap;font-weight:900}.orderMatrix select{min-width:105px;padding:9px 8px;font-size:15px}
+.orderMatrix .matrixQty{width:82px;min-width:82px;text-align:center;padding:9px}
+.orderMatrix .matrixSubtotal{font-weight:950;color:#9b5419;white-space:nowrap}
+.orderMatrix tr.matrixAddonRow{background:#fffaf0}.orderMatrix tr.matrixAddonRow .itemName{color:#9b6419}
+.matrixHint{font-size:14px;font-weight:850;color:#56718d;line-height:1.55;margin-top:8px}
+@media(max-width:760px){.orderMatrix{min-width:720px}.orderMatrixWrap{margin-left:-4px;margin-right:-4px}.matrixHint{font-size:15px}}
+
+/* v1.6.7：選項收合、收款／取貨追蹤、PDF 壓縮 */
+.matrixOptionsCollapsed .matrixPrefCol{display:none}
+.matrixOptionToggle{margin:8px 0 0}
+.settlementBtn{border:1px solid #cfe0f5;background:#fff;color:#315f91;border-radius:11px;padding:6px 9px;font-size:13px;font-weight:950;cursor:pointer;white-space:nowrap}
+.settlementBtn.on{background:#eaf8ef;border-color:#a9dfbf;color:#197243}
+.settlementBtn.pickup.on{background:#e5e7eb;border-color:#c7cbd1;color:#4b5563}
+.statsDetailTable tr.pickedUpRow td{background:#eceff2!important;color:#7b838c!important;text-decoration:none}
+.statsDetailTable tr.pickedUpRow .badge{filter:grayscale(1);opacity:.72}
+.settlementSummary{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.settlementChip{border-radius:999px;padding:7px 11px;font-size:13px;font-weight:950;background:#eef6ff;color:#315f91}
+@media print{
+ body.print-stats .settlementBtn{display:none!important}
+ body.print-stats .statsDetailTable{font-size:6.6pt!important;table-layout:fixed!important;width:100%!important;max-width:100%!important}
+ body.print-stats .statsDetailTable th,body.print-stats .statsDetailTable td{padding:1.6px 2px!important;white-space:normal!important;word-break:break-word!important;overflow-wrap:anywhere!important;line-height:1.08!important}
+ body.print-stats .statsDetailTable td.wrap{min-width:0!important}
+ body.print-stats .statsSummaryBox{padding:4px!important}
+ body.print-stats .statsSummaryGrid{gap:4px!important}
+ body.print-stats .eventCard h3{margin-top:5px!important;margin-bottom:4px!important}
+ body.print-stats .totalBox{padding:5px 8px!important;margin:5px 0!important}
+ body.print-stats .printOnly{margin-bottom:6px!important}
+ body.print-stats .printOnly h2{font-size:14pt!important;margin:0 0 3px!important}
+ body.print-stats .summaryTable .colSummaryItem{width:23%!important}
+ body.print-stats .summaryTable .colSummaryPref{width:51%!important}
+ body.print-stats .summaryTable .colSummaryQty{width:11%!important}
+ body.print-stats .summaryTable .colSummaryMoney{width:15%!important}
+ body.print-stats .detailOrderTable .colName{width:10%!important}
+ body.print-stats .detailOrderTable .colItem{width:14%!important}
+ body.print-stats .detailOrderTable .colQty{width:6%!important}
+ body.print-stats .detailOrderTable .colPref{width:9%!important}
+ body.print-stats .detailOrderTable .colNote{width:12%!important}
+ body.print-stats .detailOrderTable .colMoney{width:8%!important}
+ @page{size:A4 portrait;margin:15mm}
+}
 </style>
 </head>
 <body>
@@ -251,7 +328,7 @@ textarea{min-height:95px;resize:vertical}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.6.2｜2026-07-21｜分類統計與欄位加寬修正版</div>
+<div class="version">團購／報名中心 v1.6.12｜2026-07-21｜發起人統計與結單權限版</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -259,7 +336,22 @@ textarea{min-height:95px;resize:vertical}
 const SERVICE_URL='https://script.google.com/macros/s/AKfycbyGOxpeqwRU3_Q2HcoQHsMr_PvUkoLkpRwPPCLs5K6iWRye7fVeQdNkMAvc1oBvqFFrpw/exec';
 const CK='heremay.groupbuy.cloud.campaigns.v15', OK='heremay.groupbuy.cloud.orders.v15', TK='heremay.groupbuy.cloud.templates.v15';
 let pendingFiles=[], activeTemplate='drink', editingCampaignId='', openedCampaignId='', pickerCategory='drink';
+let selectedStatsCampaignId='';
 let cloudBusy=false;
+const SK='heremay.groupbuy.settlement.v17';
+function getSettlement(){try{return JSON.parse(localStorage.getItem(SK)||'{}')}catch(e){return {}}}
+function settlementKey(campaignId,user){return String(campaignId)+'||'+String(user)}
+function settlementState(campaignId,user){return getSettlement()[settlementKey(campaignId,user)]||{paid:false,pickedUp:false}}
+function toggleSettlement(campaignId,user,field){
+ const campaign=getC().find(c=>c.id===campaignId);
+ if(!campaign||!isHost(campaign)){toast('只有活動發起人可以更新收款與取貨狀態');return}
+ const all=getSettlement(),key=settlementKey(campaignId,user),state=all[key]||{paid:false,pickedUp:false};
+ state[field]=!state[field];
+ if(field==='pickedUp'&&state.pickedUp)state.paid=true;
+ all[key]=state;localStorage.setItem(SK,JSON.stringify(all));renderStats();
+ toast(field==='paid'?(state.paid?'已標記收款':'已取消收款'):(state.pickedUp?'已標記取貨':'已取消取貨'));
+}
+
 
 const templateCategoryNames={
  drink:'🥤 飲料類常用模板',
@@ -386,7 +478,7 @@ async function cloudWrite(action,payload,successMessage){
 function manualCloudRefresh(){loadCloudData(true)}
 
 function goBack(){const r=String(localStorage.getItem('heremay.currentRole')||'').toLowerCase();location.href=r==='admin'?'admin.html':r==='teacher'?'teacher.html':r==='support'?'support.html':'index.html'}
-function showPanel(id,btn){document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');btn.classList.add('active');renderAll()}
+function showPanel(id,btn){if(id==='stats'&&!getC().some(isHost)){toast('統計／結單只開放給活動發起人');return}document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');btn.classList.add('active');renderAll()}
 
 function applyTemplate(type,btn){
  activeTemplate=type;
@@ -650,14 +742,28 @@ function remaining(c){return c.capacity>0?Math.max(0,c.capacity-participantCount
 function publicRows(c){
  const os=getO().filter(o=>o.campaignId===c.id);
  if(c.visibility==='private')return '';
- return `<table class="publicTable"><thead><tr><th>姓名</th><th>狀態</th>${c.visibility==='full'?'<th>內容</th>':''}</tr></thead><tbody>${os.map(o=>`<tr><td>${esc(o.user)}</td><td>${o.status==='accepted'?'<span class="badge ok">正取</span>':o.status==='waitlist'?'<span class="badge wait">候補</span>':'<span class="badge no">不參加</span>'}</td>${c.visibility==='full'?`<td>${esc(o.lines.map(l=>`${l.name}／${l.spec}×${l.qty}`).join('、'))}</td>`:''}</tr>`).join('')}</tbody></table>`
+ return `<table class="publicTable"><thead><tr><th>姓名</th><th>狀態</th>${c.visibility==='full'?'<th>內容</th>':''}</tr></thead><tbody>${os.map(o=>`<tr><td class="colName">${esc(o.user)}</td><td>${o.status==='accepted'?'<span class="badge ok">正取</span>':o.status==='waitlist'?'<span class="badge wait">候補</span>':'<span class="badge no">不參加</span>'}</td>${c.visibility==='full'?`<td>${esc(o.lines.map(l=>`${l.name}／${l.spec}×${l.qty}`).join('、'))}</td>`:''}</tr>`).join('')}</tbody></table>`
 }
 function campaignCommonPrefs(c){return c.commonPrefs?.length?c.commonPrefs:(c.products?.[0]?.prefs||[])}
 function campaignAddons(c){return c.addons?.length?c.addons:(c.products?.[0]?.addons||[])}
-function quickOrderFields(c){const po=c.products.map((p,i)=>`<label class="quickProductChoice"><input type="radio" name="quickProduct_${c.id}" value="${i}" onchange="renderQuickSpecs('${c.id}')"><strong>${esc(p.name)}</strong><span>$${Number(p.specs?.[0]?.price||0)}</span></label>`).join('');const prefs=campaignCommonPrefs(c).map((p,pi)=>`<div class="optionBlock"><div class="optionLabel">${esc(p.name)}</div><div class="choiceGrid">${(p.values||[]).map(v=>`<label class="choice"><input type="radio" name="quickPref_${c.id}_${pi}" value="${esc(v)}">${esc(v)}</label>`).join('')}</div></div>`).join('');const addons=campaignAddons(c);const addonHtml=addons.length?`<div class="optionBlock"><div class="optionLabel">加購項目（可複選）</div><div class="choiceGrid">${addons.map((a,i)=>`<label class="choice"><input type="checkbox" name="quickAddon_${c.id}" value="${i}" onchange="updateQuickTotal('${c.id}')">${esc(a.name)}＋$${a.price}</label>`).join('')}</div></div>`:'';return `<div class="quickOrderBox"><div class="optionLabel">1. 選擇品項</div><div class="quickProductList">${po}</div>${prefs}${addonHtml}<div class="qtyGrid"><div><label>數量</label><input id="quickQty_${c.id}" class="quickQty" type="number" min="1" value="1" inputmode="numeric" oninput="updateQuickTotal('${c.id}')"></div><div class="totalBox" id="total_${c.id}">預估總額：$0</div></div></div>`}
+function matrixSelectHtml(cid,rowKey,pref,index){return `<select class="matrixPref" data-pref="${esc(pref.name)}" data-row="${esc(rowKey)}" onchange="updateQuickTotal('${cid}')"><option value="">—</option>${(pref.values||[]).map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')}</select>`}
+function quickOrderFields(c){
+ const prefs=campaignCommonPrefs(c);
+ const productRows=(c.products||[]).map((p,i)=>({kind:'product',key:'p'+i,name:p.name,price:Number(p.specs?.[0]?.price||0),prefs}));
+ const addonRows=campaignAddons(c).map((a,i)=>({kind:'addon',key:'a'+i,name:a.name,price:Number(a.price||0),prefs:[]}));
+ const rows=[...productRows,...addonRows];
+ const prefHeads=prefs.map(p=>`<th>${esc(p.name)}</th>`).join('');
+ const body=rows.map(r=>`<tr class="matrixOrderRow ${r.kind==='addon'?'matrixAddonRow':''}" data-kind="${r.kind}" data-key="${r.key}" data-name="${esc(r.name)}" data-price="${r.price}"><td class="itemName">${r.kind==='addon'?'＋ ':''}${esc(r.name)}</td><td class="itemPrice">$${r.price}</td><td><input class="matrixQty" type="number" min="0" value="0" inputmode="numeric" oninput="updateQuickTotal('${c.id}')"></td>${prefs.map((p,pi)=>`<td class="matrixPrefCol">${r.kind==='product'?matrixSelectHtml(c.id,r.key,p,pi):'—'}</td>`).join('')}<td class="matrixSubtotal">$0</td></tr>`).join('');
+ return `<div class="quickOrderBox"><div class="matrixHint">請在需要的品項填寫數量；數量為 0 的項目不會送出。冷熱、冰量、甜度或辣度可直接在同一列選擇。</div><button class="btn secondary matrixOptionToggle" type="button" onclick="toggleMatrixOptions(this)">收合口味選項</button><div class="orderMatrixWrap"><table class="orderMatrix"><thead><tr><th>品名</th><th>價格</th><th>數量</th>${prefs.map(p=>`<th class="matrixPrefCol">${esc(p.name)}</th>`).join('')}<th>小計</th></tr></thead><tbody>${body}</tbody></table></div><div class="totalBox" id="total_${c.id}">預估總額：$0</div></div>`
+}
 function renderQuickSpecs(cid){updateQuickTotal(cid)}
-function selectedAddonData(c,cid){return [...document.querySelectorAll(`input[name="quickAddon_${cid}"]:checked`)].map(el=>campaignAddons(c)[Number(el.value)]).filter(Boolean)}
-function updateQuickTotal(cid){const c=getC().find(x=>x.id===cid);if(!c)return;const pi=Number(document.querySelector(`input[name="quickProduct_${cid}"]:checked`)?.value),q=Number(document.getElementById('quickQty_'+cid)?.value||1),base=c.products?.[pi]?.specs?.[0]?.price||0,extra=selectedAddonData(c,cid).reduce((s,a)=>s+Number(a.price||0),0),b=document.getElementById('total_'+cid);if(b)b.textContent='預估總額：$'+(base+extra)*q}
+function selectedAddonData(c,cid){return []}
+function toggleMatrixOptions(btn){const table=btn.nextElementSibling?.querySelector('.orderMatrix');if(!table)return;const collapsed=table.classList.toggle('matrixOptionsCollapsed');btn.textContent=collapsed?'展開口味選項':'收合口味選項'}
+function updateQuickTotal(cid){
+ const box=document.querySelector(`.eventCard [id="total_${cid}"]`);let total=0;
+ document.querySelectorAll(`.matrixOrderRow`).forEach(row=>{if(!row.closest('.eventCard')||!row.closest('.eventCard').querySelector(`#total_${cid}`))return;const qty=Number(row.querySelector('.matrixQty')?.value||0),price=Number(row.dataset.price||0),sub=qty*price;const cell=row.querySelector('.matrixSubtotal');if(cell)cell.textContent='$'+sub;total+=sub});
+ if(box)box.textContent='預估總額：$'+total;
+}
 
 function eventCard(c){
  const rem=remaining(c),full=rem===0&&c.capacity>0;
@@ -684,7 +790,15 @@ async function submitReply(cid){
    return;
  }
  const lines=[];
- if(quickTypeForCampaign(c)){const pi=Number(document.querySelector(`input[name="quickProduct_${cid}"]:checked`)?.value);if(!Number.isInteger(pi))return toast('請先選擇品項');const p=c.products[pi],spec=p.specs?.[0]||{name:'基本價格',price:0},qty=Number(document.getElementById('quickQty_'+cid)?.value||1),prefs={};campaignCommonPrefs(c).forEach((pref,index)=>{const value=document.querySelector(`input[name="quickPref_${cid}_${index}"]:checked`)?.value||'';if(value)prefs[pref.name]=value});const addons=selectedAddonData(c,cid);if(addons.length)prefs['加購項目']=addons.map(a=>a.name+'＋$'+a.price);const unitPrice=Number(spec.price||0)+addons.reduce((sum,a)=>sum+Number(a.price||0),0);lines.push({name:p.name,spec:'基本價格',price:unitPrice,qty,prefs,subtotal:unitPrice*qty})}else document.querySelectorAll(`[data-campaign="${cid}"]`).forEach(row=>{
+ if(quickTypeForCampaign(c)){
+   const card=document.getElementById('note_'+cid)?.closest('.eventCard');
+   (card?.querySelectorAll('.matrixOrderRow')||[]).forEach(row=>{
+     const qty=Number(row.querySelector('.matrixQty')?.value||0);if(qty<=0)return;
+     const prefs={};row.querySelectorAll('.matrixPref').forEach(el=>{if(el.value)prefs[el.dataset.pref]=el.value});
+     const price=Number(row.dataset.price||0);
+     lines.push({name:row.dataset.name||'未命名',spec:row.dataset.kind==='addon'?'加購品項':'基本價格',price,qty,prefs,subtotal:price*qty});
+   });
+ }else document.querySelectorAll(`[data-campaign="${cid}"]`).forEach(row=>{
    const qty=Number(row.querySelector('.qty').value||0);if(qty<=0)return;
    const p=c.products.find(x=>x.id===row.dataset.product);
    const si=Number(row.querySelector('.specChoice:checked')?.value);
@@ -716,23 +830,127 @@ function renderAvailable(){
  box.innerHTML=cs.length?`<div class="campaignList">${cs.map(c=>`<div class="campaignSummary"><h3>${esc(c.title)} ${c.cancelled?'<span class="badge no">已取消</span>':''}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}</div>${c.capacity>0?`<div class="counter">已報名 ${participantCount(c)}／${c.capacity} 人｜剩餘 ${remaining(c)} 人</div>`:''}<div class="summaryActions"><button class="btn" onclick="openedCampaignId='${c.id}';renderAvailable()">進入${c.template==='travel'||c.template==='training'?'報名':'訂購'}</button>${isHost(c)?`<button class="btn secondary" onclick="editCampaign('${c.id}')">編輯活動</button><button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="finishCampaign('${c.id}')">活動結束</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button>`:''}</div></div>`).join('')}</div>`:'<div class="empty">目前沒有可參加的活動。</div>';
 }
 function renderMine(){const os=getO().filter(o=>o.user===currentName());document.getElementById('myOrders').innerHTML=os.length?os.map(o=>`<article class="eventCard"><h3>${esc(getC().find(c=>c.id===o.campaignId)?.title||'活動')}</h3><div class="meta">${new Date(o.createdAt).toLocaleString('zh-TW',{hour12:false})}</div><div class="meta">狀態：${o.status==='accepted'?'正取':o.status==='waitlist'?'候補':'不參加'}</div>${o.lines.map(l=>`<div class="meta">${esc(l.name)}｜${esc(l.spec)}｜${esc(Object.entries(l.prefs||{}).map(([k,v])=>k+'：'+(Array.isArray(v)?v.join('、'):v)).join('；'))}｜${l.qty}份｜$${l.subtotal}</div>`).join('')}</article>`).join(''):'<div class="empty">目前沒有回覆紀錄。</div>'}
+function textValue(v){return Array.isArray(v)?v.join('、'):String(v??'')}
+function statsPreferenceNames(c,list){
+ const names=[];
+ const add=n=>{if(n&&!names.includes(n))names.push(n)};
+ campaignCommonPrefs(c).forEach(p=>add(p.name));
+ (c.products||[]).forEach(p=>(p.prefs||[]).forEach(pref=>add(pref.name)));
+ list.forEach(o=>(o.lines||[]).forEach(l=>Object.keys(l.prefs||{}).forEach(add)));
+ return names;
+}
+function lineSortKey(line,user=''){
+ const prefs=Object.entries(line.prefs||{}).sort(([a],[b])=>a.localeCompare(b,'zh-Hant')).map(([k,v])=>k+'='+textValue(v)).join('|');
+ return `${line.name||''}|${prefs}|${user}`;
+}
+function statsDetailTable(c,list){
+ const prefNames=statsPreferenceNames(c,list);
+ const isFoodOrder=c.template==='meal'||c.template==='drink';
+ const showStatus=!isFoodOrder;
+ const showSpec=!isFoodOrder;
+ const showCompanion=!isFoodOrder;
+ const rows=[];
+ list.forEach(o=>{
+   const settle=settlementState(c.id,o.user),picked=!!settle.pickedUp;
+   const canManage=isHost(c);
+   const controls=canManage?`<button class="settlementBtn ${settle.paid?'on':''}" type="button" onclick="toggleSettlement('${c.id}','${String(o.user).replace(/'/g,"\\'")}','paid')">${settle.paid?'✓ 已收':'未收'}</button>`:'—';
+   const pickup=canManage?`<button class="settlementBtn pickup ${picked?'on':''}" type="button" onclick="toggleSettlement('${c.id}','${String(o.user).replace(/'/g,"\\'")}','pickedUp')">${picked?'✓ 已取':'未取'}</button>`:'—';
+   const rowClass=picked?' class="pickedUpRow"':'';
+   if(o.status==='not_joining'){
+     const cells=[`<td class="colName">${esc(o.user)}</td>`];
+     if(showStatus)cells.push('<td><span class="badge no">不參加</span></td>');
+     cells.push('<td>—</td><td>—</td>');
+     if(showSpec)cells.push('<td>—</td>');
+     prefNames.forEach(()=>cells.push('<td>—</td>'));
+     if(showCompanion)cells.push(`<td>${Number(o.companions||0)}</td>`);
+     cells.push(`<td class="wrap">${esc(o.note||'')}</td><td>$0</td><td class="noPrint">${controls}</td><td class="noPrint">${pickup}</td>`);
+     rows.push({key:`~~~~|${o.user}`,html:`<tr${rowClass}>${cells.join('')}</tr>`});return;
+   }
+   const lines=(o.lines||[]).length?o.lines:[{name:c.template==='travel'||c.template==='training'?'活動報名':'—',spec:'—',qty:1,prefs:{},subtotal:0}];
+   lines.forEach(l=>{
+     const cells=[`<td class="colName">${esc(o.user)}</td>`];
+     if(showStatus)cells.push(`<td>${o.status==='accepted'?'<span class="badge ok">正取</span>':'<span class="badge wait">候補</span>'}</td>`);
+     cells.push(`<td class="colItem">${esc(l.name||'—')}</td><td class="colQty">${Number(l.qty||0)}</td>`);
+     if(showSpec)cells.push(`<td>${esc(l.spec&&l.spec!=='基本價格'?l.spec:'—')}</td>`);
+     prefNames.forEach(name=>cells.push(`<td class="colPref">${esc(textValue(l.prefs?.[name])||'—')}</td>`));
+     if(showCompanion)cells.push(`<td>${Number(o.companions||0)}</td>`);
+     cells.push(`<td class="wrap colNote">${esc(o.note||'')}</td><td class="colMoney">$${Number(l.subtotal||0)}</td><td class="noPrint">${controls}</td><td class="noPrint">${pickup}</td>`);
+     rows.push({key:lineSortKey(l,o.user),html:`<tr${rowClass}>${cells.join('')}</tr>`});
+   });
+ });
+ rows.sort((a,b)=>a.key.localeCompare(b.key,'zh-Hant',{numeric:true,sensitivity:'base'}));
+ const headers=['<th class="colName">姓名</th>'];
+ if(showStatus)headers.push('<th>狀態</th>');
+ headers.push('<th class="colItem">品項／活動</th><th class="colQty">數量</th>');
+ if(showSpec)headers.push('<th>規格</th>');
+ prefNames.forEach(n=>headers.push(`<th class="colPref">${esc(n)}</th>`));
+ if(showCompanion)headers.push('<th>攜伴</th>');
+ headers.push('<th class="colNote">備註</th><th class="colMoney">小計</th><th class="noPrint">收款</th><th class="noPrint">取貨</th>');
+ const colspan=headers.length;
+ return `<div class="statsTableWrap"><table class="statsDetailTable detailOrderTable"><thead><tr>${headers.join('')}</tr></thead><tbody>${rows.map(r=>r.html).join('')||`<tr><td colspan="${colspan}">尚無回覆資料</td></tr>`}</tbody></table></div>`;
+}
+function statsSummary(c,list){
+ const grouped=new Map();
+ list.filter(o=>o.status!=='not_joining').forEach(o=>(o.lines||[]).forEach(l=>{
+   const prefs=Object.entries(l.prefs||{}).sort(([a],[b])=>a.localeCompare(b,'zh-Hant')).map(([k,v])=>`${k}：${textValue(v)}`).filter(x=>!x.endsWith('：')).join('／');
+   const key=(l.name||'未命名')+'||'+prefs;
+   const old=grouped.get(key)||{name:l.name||'未命名',prefs,qty:0,money:0};old.qty+=Number(l.qty||0);old.money+=Number(l.subtotal||0);grouped.set(key,old);
+ }));
+ const rows=[...grouped.values()].sort((a,b)=>(a.name+'|'+a.prefs).localeCompare(b.name+'|'+b.prefs,'zh-Hant',{numeric:true,sensitivity:'base'}));
+ const table=rows.length?`<div class="statsTableWrap"><table class="statsDetailTable summaryTable"><thead><tr><th class="colSummaryItem">品項</th><th class="colSummaryPref">口味／選項</th><th class="colSummaryQty">總數量</th><th class="colSummaryMoney">金額</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="colSummaryItem">${esc(r.name)}</td><td class="colSummaryPref">${esc(r.prefs||'—')}</td><td class="colSummaryQty">${r.qty}</td><td class="colSummaryMoney">$${r.money}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">尚無品項統計</div>';
+ return `<h3 style="margin-top:16px">依品項自動排序彙總</h3><div class="hint noPrint">相同品項會集中排列；相同冷熱、冰量、甜度或辣度也會再合併統計。</div>${table}`;
+}
+function openStatsCampaign(id){
+ const c=getC().find(x=>x.id===id);
+ if(!c||!isHost(c)){toast('只有活動發起人可以查看統計與結單資料');return}
+ selectedStatsCampaignId=id;
+ renderStats();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function closeStatsCampaign(){
+ selectedStatsCampaignId='';
+ renderStats();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function printStatsCampaign(){
+ document.body.classList.add('print-stats');
+ const cleanup=()=>document.body.classList.remove('print-stats');
+ window.addEventListener('afterprint',cleanup,{once:true});
+ window.print();
+ setTimeout(cleanup,1200);
+}
 function renderStats(){
- const cs=getC(),os=getO();
- document.getElementById('statsList').innerHTML=cs.length?cs.map(c=>{
-   const list=os.filter(o=>o.campaignId===c.id);
-   const money=list.reduce((s,o)=>s+o.lines.reduce((a,l)=>a+l.subtotal,0),0);
-   const status=c.cancelled?'已取消':c.closed?'已結束':'進行中';
-   const normalAction=c.closed
-     ? `<button class="btn secondary" onclick="toggleClose('${c.id}')">重新開放</button>`
-     : `<button class="btn danger" onclick="finishCampaign('${c.id}')">活動結束</button>`;
-   return `<article class="eventCard">
-     <h3>${esc(c.title)} <span class="badge ${c.closed||c.cancelled?'wait':'ok'}">${status}</span></h3>
-     <div class="meta">正取 ${list.filter(o=>o.status==='accepted').length} 筆｜候補 ${list.filter(o=>o.status==='waitlist').length} 筆｜不參加 ${list.filter(o=>o.status==='not_joining').length} 筆</div>
-     <div class="totalBox">總金額：$${money}</div>
-     ${publicRows({...c,visibility:'full'})}
-     ${isHost(c)?`<div class="actions">${normalAction}<button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button></div>`:''}
-   </article>`;
- }).join(''):'<div class="empty">目前沒有活動。</div>';
+ const cs=getC().filter(isHost),os=getO(),box=document.getElementById('statsList');
+ if(!cs.length){selectedStatsCampaignId='';box.innerHTML='<div class="empty">統計／結單只顯示由您發起的活動。目前沒有您發起的活動。</div>';return}
+ if(!selectedStatsCampaignId){
+   box.innerHTML=`<div class="hint">此處只顯示由您發起的活動。請選擇活動查看統計明細、點貨表與結算資料。</div><div class="statsCampaignList">${cs.map(c=>{
+     const list=os.filter(o=>o.campaignId===c.id);
+     const money=list.reduce((sum,o)=>sum+(o.lines||[]).reduce((a,l)=>a+Number(l.subtotal||0),0),0);
+     const status=c.cancelled?'已取消':c.closed?'已結束':'進行中';
+     return `<article class="statsCampaignItem"><h3>${esc(c.title)} <span class="badge ${c.closed||c.cancelled?'wait':'ok'}">${status}</span></h3><div class="statsCampaignMeta">主辦人：${esc(c.host||'—')}｜截止：${esc(c.deadline||'未設定')}<br>回覆 ${list.length} 筆｜總金額 $${money}</div><div class="actions"><button class="btn" type="button" onclick="openStatsCampaign('${c.id}')">查看統計表</button></div></article>`;
+   }).join('')}</div>`;
+   return;
+ }
+ const c=cs.find(x=>x.id===selectedStatsCampaignId);
+ if(!c){selectedStatsCampaignId='';return renderStats()}
+ const list=os.filter(o=>o.campaignId===c.id);
+ const money=list.reduce((sum,o)=>sum+(o.lines||[]).reduce((a,l)=>a+Number(l.subtotal||0),0),0);
+ const status=c.cancelled?'已取消':c.closed?'已結束':'進行中';
+ const normalAction=c.closed
+   ? `<button class="btn secondary" onclick="toggleClose('${c.id}')">重新開放</button>`
+   : `<button class="btn danger" onclick="finishCampaign('${c.id}')">活動結束</button>`;
+ box.innerHTML=`<div class="statsBackBar noPrint"><button class="btn secondary" type="button" onclick="closeStatsCampaign()">← 返回活動清單</button><button class="btn" type="button" onclick="printStatsCampaign()">🖨️ 列印／另存 PDF</button></div>
+ <div class="printOnly"><h2>${esc(c.title)}｜訂購／報名統計表</h2><div>主辦人：${esc(c.host||'—')}　截止：${esc(c.deadline||'未設定')}　列印時間：${new Date().toLocaleString('zh-TW',{hour12:false})}</div></div>
+ <article class="eventCard"><h3>${esc(c.title)} <span class="badge ${c.closed||c.cancelled?'wait':'ok'}">${status}</span></h3>
+ <div class="meta">正取 ${list.filter(o=>o.status==='accepted').length} 筆｜候補 ${list.filter(o=>o.status==='waitlist').length} 筆｜不參加 ${list.filter(o=>o.status==='not_joining').length} 筆</div>
+ <div class="totalBox">總金額：$${money}</div>
+ ${(()=>{const people=[...new Set(list.filter(o=>o.status!=='not_joining').map(o=>o.user))],paid=people.filter(u=>settlementState(c.id,u).paid).length,picked=people.filter(u=>settlementState(c.id,u).pickedUp).length;return `<div class="settlementSummary noPrint"><span class="settlementChip">已收款 ${paid}／${people.length} 人</span><span class="settlementChip">已取貨 ${picked}／${people.length} 人</span><span class="settlementChip">待交貨 ${people.length-picked} 人</span></div>`})()}
+ ${statsSummary(c,list)}
+ <h3 style="margin-top:16px">逐筆完整明細表</h3>
+ <div class="hint noPrint">手機可左右滑動查看；列印時會自動使用 A4 直式濃縮表格，方便點貨、結算並節省紙張。</div>
+ ${statsDetailTable(c,list)}
+ ${isHost(c)?`<div class="actions noPrint">${normalAction}<button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button></div>`:''}
+ </article>`;
 }
 async function deleteCampaign(id){
  const c=getC().find(x=>x.id===id);if(!c||!isHost(c))return;
