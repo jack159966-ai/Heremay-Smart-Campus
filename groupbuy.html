@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f4f8ff">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.6.1</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Heremay 和美智慧校園｜團購報名中心 v1.6.13</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -138,7 +141,18 @@ textarea{min-height:95px;resize:vertical}
 .statsSummaryBox{background:#f8fbff;border:1px solid #dce8f7;border-radius:16px;padding:11px}
 .statsSummaryBox strong{display:block;color:#173f75;margin-bottom:5px}
 .statsSummaryBox span{display:block;color:#56718d;font-weight:800;line-height:1.6}
-@media(max-width:760px){.statsSummaryGrid{grid-template-columns:1fr}.statsDetailTable{font-size:15px;min-width:980px}}
+@media(max-width:760px){
+ .statsSummaryGrid{grid-template-columns:1fr}
+ .statsTableWrap{overflow-x:auto;position:relative;-webkit-overflow-scrolling:touch}
+ .statsDetailTable{font-size:14px;min-width:720px}
+ .detailOrderTable .colName{position:sticky;left:0;width:78px;min-width:78px;max-width:78px;background:#fff;z-index:3;white-space:normal;word-break:keep-all}
+ .detailOrderTable .colItem{position:sticky;left:78px;width:88px;min-width:88px;max-width:88px;background:#fff;z-index:2;white-space:normal;word-break:break-all;line-height:1.35}
+ .detailOrderTable th.colName,.detailOrderTable th.colItem{background:#edf4ff;z-index:6}
+ .detailOrderTable tr.pickedUpRow .colName,.detailOrderTable tr.pickedUpRow .colItem{background:#eceff2!important}
+ .detailOrderTable .colQty{width:46px;min-width:46px;padding-left:5px;padding-right:5px}
+ .detailOrderTable .colMoney{width:62px;min-width:62px;padding-left:5px;padding-right:5px}
+ .settlementBtn{padding:7px 8px;font-size:12px}
+}
 .statsCampaignList{display:grid;gap:10px}.statsCampaignItem{border:1px solid #dce8f7;border-radius:20px;padding:15px;background:#fff}.statsCampaignItem h3{margin:0;color:#173f75;font-size:20px}.statsCampaignMeta{margin-top:6px;color:#71879d;font-weight:800;line-height:1.55}.statsBackBar{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.printOnly{display:none}
 @media print{
  body.print-stats{background:#fff!important}
@@ -224,7 +238,7 @@ textarea{min-height:95px;resize:vertical}
 
 <div class="syncBar">
   <div class="syncState"><span class="syncDot" id="syncDot"></span><span id="syncText">正在連接雲端資料…</span></div>
-  <button class="syncRefresh" type="button" onclick="manualCloudRefresh()">重新同步</button>
+  <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end"><button class="syncRefresh" type="button" onclick="manualCloudRefresh()">重新同步</button><button class="syncRefresh" type="button" onclick="updateAppNow()">檢查新版</button></div>
 </div>
 
 <section id="available" class="panel active">
@@ -328,7 +342,7 @@ textarea{min-height:95px;resize:vertical}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.6.12｜2026-07-21｜發起人統計與結單權限版</div>
+<div class="version">團購／報名中心 v1.6.13｜2026-07-22｜手機快速更新與固定欄位版</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -477,6 +491,26 @@ async function cloudWrite(action,payload,successMessage){
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
+const APP_VERSION='1.6.13';
+async function updateAppNow(){
+ toast('正在檢查新版…');
+ try{
+   if('serviceWorker' in navigator){
+     const reg=await navigator.serviceWorker.getRegistration();
+     if(reg)await reg.update();
+   }
+ }catch(e){console.warn('Service Worker 更新檢查失敗',e)}
+ const url=new URL(location.href);
+ url.searchParams.set('appv',APP_VERSION+'-'+Date.now());
+ location.replace(url.toString());
+}
+async function checkAppUpdateSilently(){
+ try{
+   if(!('serviceWorker' in navigator))return;
+   const reg=await navigator.serviceWorker.getRegistration();
+   if(reg)await reg.update();
+ }catch(e){console.warn(e)}
+}
 function goBack(){const r=String(localStorage.getItem('heremay.currentRole')||'').toLowerCase();location.href=r==='admin'?'admin.html':r==='teacher'?'teacher.html':r==='support'?'support.html':'index.html'}
 function showPanel(id,btn){if(id==='stats'&&!getC().some(isHost)){toast('統計／結單只開放給活動發起人');return}document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');btn.classList.add('active');renderAll()}
 
@@ -947,7 +981,7 @@ function renderStats(){
  ${(()=>{const people=[...new Set(list.filter(o=>o.status!=='not_joining').map(o=>o.user))],paid=people.filter(u=>settlementState(c.id,u).paid).length,picked=people.filter(u=>settlementState(c.id,u).pickedUp).length;return `<div class="settlementSummary noPrint"><span class="settlementChip">已收款 ${paid}／${people.length} 人</span><span class="settlementChip">已取貨 ${picked}／${people.length} 人</span><span class="settlementChip">待交貨 ${people.length-picked} 人</span></div>`})()}
  ${statsSummary(c,list)}
  <h3 style="margin-top:16px">逐筆完整明細表</h3>
- <div class="hint noPrint">手機可左右滑動查看；列印時會自動使用 A4 直式濃縮表格，方便點貨、結算並節省紙張。</div>
+ <div class="hint noPrint">手機左右滑動時，訂購人與品項會固定在左側；品項欄約顯示 4～5 個中文字。列印時會自動使用 A4 直式濃縮表格。</div>
  ${statsDetailTable(c,list)}
  ${isHost(c)?`<div class="actions noPrint">${normalAction}<button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button></div>`:''}
  </article>`;
@@ -987,6 +1021,7 @@ document.getElementById('hostName').value=currentName();
 applyTemplate('drink',document.querySelector('.templateBtn'));
 renderSavedTemplates();
 renderAll();
+checkAppUpdateSilently();
 loadCloudData(true);
 </script>
 </body>
