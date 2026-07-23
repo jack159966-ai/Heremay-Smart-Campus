@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.7.3</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.8.0</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -83,7 +83,7 @@ textarea{min-height:95px;resize:vertical}
 .specList,.prefList{display:grid;gap:8px;margin-top:8px}
 .specRow{display:grid;grid-template-columns:1fr 130px auto;gap:8px;align-items:center}
 .prefRow{display:grid;grid-template-columns:1fr 140px 1.5fr auto;gap:8px;align-items:center}
-.fileList{display:grid;gap:8px;margin-top:10px}
+.fileList{display:grid;gap:8px;margin-top:10px}.attachmentPublicBox{margin-top:12px;border:1px solid #dce8f7;border-radius:18px;padding:12px;background:#f8fbff}.attachmentPublicBox h3{margin:0 0 8px;color:#173f75}.attachmentGallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.attachmentPreview{border:1px solid #dce8f7;border-radius:16px;background:#fff;padding:10px;overflow:hidden}.attachmentPreview img{width:100%;max-height:260px;object-fit:contain;border-radius:12px;background:#f3f6fa}.attachmentPreview strong{display:block;margin-top:8px;word-break:break-all}.attachmentPreview small{display:block;color:var(--muted);margin-top:3px}.uploadProgress{margin-top:8px;font-weight:900;color:#315f91}.uploadProgress:empty{display:none}@media(max-width:760px){.attachmentGallery{grid-template-columns:1fr}}
 .fileChip{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid #dce8f7;border-radius:14px;padding:10px;background:#fff}
 .fileChip strong{display:block;font-size:14px;word-break:break-all}.fileChip small{color:var(--muted)}
 .eventCard{border:1px solid #dce8f7;border-radius:21px;padding:15px;background:#fff;margin-top:10px}
@@ -127,7 +127,7 @@ textarea{min-height:95px;resize:vertical}
 @media(max-width:760px){
   .header{grid-template-columns:54px 1fr}.logo{width:54px;height:54px}.back{grid-column:1/3;width:100%}
   .tabs{grid-template-columns:repeat(2,1fr)}.tab{font-size:21px;min-height:72px;padding:16px 8px}.row,.specRow,.prefRow,.qtyGrid{grid-template-columns:1fr}
-  .templateGrid,.templateCategoryGrid{grid-template-columns:repeat(2,1fr)}.checkGrid{grid-template-columns:1fr}.header h1{font-size:27px}.productHeader{grid-template-columns:auto minmax(0,1fr) auto;padding:12px 10px}.productNumber{min-width:58px;font-size:13px}.productHeaderTitle{font-size:17px}.quickItemRow{grid-template-columns:minmax(0,1fr) 105px}.quickItemRow .quickName{grid-column:1/-1;min-width:0}.quickItemRow .btn{grid-column:1/-1}.quickItemHead{grid-template-columns:minmax(0,1fr) 105px}.quickItemHead span:first-child{grid-column:1/-1}.quickItemHead span:last-child{display:none}
+  .templateGrid,.templateCategoryGrid{grid-template-columns:repeat(2,1fr)}.checkGrid{grid-template-columns:1fr}.header h1{font-size:27px}.productHeader{grid-template-columns:1fr auto;padding:12px 10px}.productNumber{min-width:72px;width:max-content;font-size:13px}.productHeaderTitle{grid-column:1/-1;grid-row:2;font-size:17px;white-space:normal;overflow:visible;text-overflow:clip;word-break:break-word;line-height:1.45;padding:2px 4px}.productToggle{grid-column:2;grid-row:1}.productTop{grid-template-columns:1fr}.productTop .actions{margin-top:4px}.quickItemRow{grid-template-columns:minmax(0,1fr) 105px}.quickItemRow .quickName{grid-column:1/-1;min-width:0}.quickItemRow .btn{grid-column:1/-1}.quickItemHead{grid-template-columns:minmax(0,1fr) 105px}.quickItemHead span:first-child{grid-column:1/-1}.quickItemHead span:last-child{display:none}
 }
 
 .quickBuilder{border:2px solid #9fc0ea;border-radius:22px;background:#f8fbff;padding:14px;margin:14px 0}.quickItemList{display:grid;gap:9px;margin-top:10px}.quickItemRow{display:grid;grid-template-columns:minmax(180px,1fr) 130px auto;gap:8px;align-items:center;background:#fff;border:1px solid #d5e4f5;border-radius:16px;padding:9px}.quickItemHead{display:grid;grid-template-columns:minmax(180px,1fr) 130px auto;gap:8px;padding:0 9px;font-size:14px;color:#607b98;font-weight:900}.quickCommon{background:#fff;border:1px solid #d5e4f5;border-radius:18px;padding:12px;margin-top:12px}.quickOrderBox{border-top:1px dashed #dce8f7;margin-top:12px;padding-top:12px}.quickProductList{display:grid;gap:8px}.quickProductChoice{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;border:1px solid #d7e4f4;border-radius:15px;padding:11px;background:#f9fcff}.quickProductChoice input{width:auto}.quickProductChoice strong{color:#173f75}.quickQty{max-width:110px}
@@ -225,6 +225,13 @@ textarea{min-height:95px;resize:vertical}
  body.print-stats .detailOrderTable .colMoney{width:8%!important}
  @page{size:A4 portrait;margin:15mm}
 }
+
+.goodsSimple .goodsHide{display:none!important}
+.goodsSimple .specRow{grid-template-columns:1fr auto}
+.goodsSimple .specRow .specName{display:none}
+.goodsSimple .specRow .specPrice{min-width:0}
+.goodsSimple .specRow::before{content:"單價";font-weight:900;color:#355d88;align-self:center}
+@media(max-width:760px){.goodsSimple .specRow{grid-template-columns:72px minmax(0,1fr)}.goodsSimple .productNameInput{font-size:18px;padding:14px}.goodsSimple .specPrice{font-size:18px;padding:14px}}
 </style>
 </head>
 <body>
@@ -253,14 +260,7 @@ textarea{min-height:95px;resize:vertical}
 
 <section id="create" class="panel">
   <div class="card">
-    <h2>活動基本資料</h2>
-    <div class="row">
-      <div><label>活動名稱</label><input id="campaignTitle" placeholder="例如：下午茶飲料團購"></div>
-      <div><label>主辦人</label><input id="hostName"></div>
-    </div>
-    <label>活動說明</label><textarea id="campaignDesc"></textarea>
-
-    <h2 style="margin-top:18px">選擇模板</h2>
+    <h2>先選擇活動模板</h2>
     <div class="templateGrid">
       <button class="templateBtn active" onclick="openTemplatePicker('drink',this)">🥤 飲料</button>
       <button class="templateBtn" onclick="openTemplatePicker('meal',this)">🍱 餐點</button>
@@ -278,8 +278,17 @@ textarea{min-height:95px;resize:vertical}
       <div id="templatePickerList" class="templatePickerList"></div>
     </div>
 
+
     <div id="selectedTemplateNotice" class="hint">目前使用：飲料系統模板</div>
-    <div id="quickBuilder" class="quickBuilder"><h2>先建立本次品項清單</h2><div class="hint">每個品項只設定一個基本價格；加珍珠、加白飯、荷包蛋等另外列為加購項目。</div><div class="quickItemHead"><span>品項名稱</span><span>基本價格</span><span></span></div><div id="quickItemList" class="quickItemList"></div><div class="actions"><button class="btn secondary" type="button" onclick="addQuickItem()">＋新增品項</button></div><div class="quickCommon"><h3>點餐選項</h3><div id="drinkCommonFields"><label>冷熱</label><input id="commonTemp" value="冷,熱"><label>甜度</label><input id="commonSweet" value="正常,少糖,半糖,微糖,無糖"><label>冰量</label><input id="commonIce" value="正常冰,少冰,微冰,去冰"></div><div id="mealCommonFields" style="display:none"><label>辣度</label><input id="commonSpicy" value="不辣,小辣,中辣,大辣"><label>處理方式</label><input id="commonCut" value="切,不切"></div><label>加購項目（名稱:價格，以逗號分隔）</label><input id="commonAddons" placeholder="例如：白飯:10,荷包蛋:10"></div></div>
+
+    <h2 style="margin-top:18px">活動基本資料</h2>
+    <div class="row">
+      <div><label>活動名稱</label><input id="campaignTitle" placeholder="例如：下午茶飲料團購"></div>
+      <div><label>主辦人</label><input id="hostName"></div>
+    </div>
+    <label>活動說明</label><textarea id="campaignDesc"></textarea>
+
+    <div id="quickBuilder" class="quickBuilder"><h2 id="quickBuilderTitle">先建立本次品項清單</h2><div class="hint" id="quickBuilderHint">每個品項只設定一個基本價格；加珍珠、加白飯、荷包蛋等另外列為加購項目。</div><div class="quickItemHead"><span>品名</span><span>單價</span><span></span></div><div id="quickItemList" class="quickItemList"></div><div class="actions"><button class="btn secondary" type="button" onclick="addQuickItem()">＋新增品項</button></div><div class="quickCommon" id="quickCommon"><h3>點餐選項</h3><div id="drinkCommonFields"><label>冷熱</label><input id="commonTemp" value="冷,熱"><label>甜度</label><input id="commonSweet" value="正常,少糖,半糖,微糖,無糖"><label>冰量</label><input id="commonIce" value="正常冰,少冰,微冰,去冰"></div><div id="mealCommonFields" style="display:none"><label>辣度</label><input id="commonSpicy" value="不辣,小辣,中辣,大辣"><label>處理方式</label><input id="commonCut" value="切,不切"></div><label>加購項目（名稱:價格，以逗號分隔）</label><input id="commonAddons" placeholder="例如：白飯:10,荷包蛋:10"></div></div>
 
     <div class="row">
       <div><label>截止日期</label><input id="deadlineDate" type="date"></div>
@@ -327,7 +336,7 @@ textarea{min-height:95px;resize:vertical}
 
     <label>附件：圖片與 PDF，可分批累加</label>
     <input id="attachments" type="file" accept="image/*,.pdf" multiple>
-    <div id="fileList" class="fileList"></div>
+    <div id="fileList" class="fileList"></div><div id="uploadProgress" class="uploadProgress"></div>
 
     <div id="legacyProductSection"><h2 style="margin-top:18px">本次開放品項</h2><div class="hint">旅遊、研習與一般商品可使用完整品項設定。</div><div id="productEditors"></div><div id="productCountBar" class="productCountBar">目前共有 0 個品項</div><div class="actions"><button class="btn secondary" onclick="addProductEditor()">＋新增下一個品項</button></div></div>
 
@@ -349,14 +358,14 @@ textarea{min-height:95px;resize:vertical}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.7.8｜2026-07-23｜修正一般商品多品項顯示與品名欄寬</div>
+<div class="version">團購／報名中心 v1.8.8｜2026-07-23｜附件工作狀態回報</div>
 </main>
 <div class="toast" id="toast"></div>
 
 <script>
 const SERVICE_URL='https://script.google.com/macros/s/AKfycbyGOxpeqwRU3_Q2HcoQHsMr_PvUkoLkpRwPPCLs5K6iWRye7fVeQdNkMAvc1oBvqFFrpw/exec';
 const CK='heremay.groupbuy.cloud.campaigns.v15', OK='heremay.groupbuy.cloud.orders.v15', TK='heremay.groupbuy.cloud.templates.v15';
-let pendingFiles=[], activeTemplate='drink', editingCampaignId='', openedCampaignId='', pickerCategory='drink';
+let pendingFiles=[], existingFiles=[], activeTemplate='drink', editingCampaignId='', openedCampaignId='', pickerCategory='drink';
 let selectedStatsCampaignId='';
 let cloudBusy=false;
 const SK='heremay.groupbuy.settlement.v17';
@@ -388,8 +397,8 @@ const templates={
  products:[{name:'珍珠奶茶',specs:[['基本價格',50]],prefs:[['冷熱','單選','冷,熱'],['甜度','單選','正常,少糖,半糖,微糖,無糖'],['冰量','單選','正常冰,少冰,微冰,去冰']]}]},
  meal:{title:'餐點團購',desc:'請選擇餐點、口味與加購項目。',required:false,visibility:'full',capacity:0,waitlist:'off',maxCompanion:0,
  products:[{name:'雞排',specs:[['基本價格',75]],prefs:[['辣度','單選','不辣,小辣,中辣,大辣'],['口味','單選','原味,梅粉,海苔'],['切法','單選','切,不切']]}]},
- goods:{title:'一般商品團購',desc:'請選擇商品規格、顏色、尺寸與數量。',required:false,visibility:'private',capacity:0,waitlist:'off',maxCompanion:0,
- products:[{name:'商品 A',specs:[['基本款',100]],prefs:[['顏色','單選','紅,藍,黑'],['尺寸','單選','S,M,L,XL']]}]},
+ goods:{title:'一般商品團購',desc:'請填寫商品名稱與單價，參加者只需輸入數量。',required:false,visibility:'private',capacity:0,waitlist:'off',maxCompanion:0,
+ products:[{name:'商品 A',specs:[['單價',100]],prefs:[]}]},
  travel:{title:'旅遊／聚餐報名',desc:'每位受邀者都要回覆參加或不參加。名額依成功送出時間排序。',required:true,visibility:'status',capacity:40,waitlist:'on',maxCompanion:1,
  products:[{name:'活動報名',specs:[['本人參加',0]],prefs:[['餐食','單選','葷食,素食'],['交通','單選','搭車,自行前往'],['其他需求','文字','']]}]},
  training:{title:'研習／活動報名',desc:'請選擇參加場次與餐食。',required:true,visibility:'status',capacity:30,waitlist:'on',maxCompanion:0,
@@ -398,15 +407,61 @@ const templates={
  products:[{name:'旅遊意願',specs:[['問卷',0]],prefs:[['參加意願','單選','願意參加,視日期與行程而定,暫不參加'],['可參加日期','複選','日期 A,日期 B,日期 C'],['偏好旅遊地點','單選','地點 A,地點 B,地點 C'],['預期參加總人數','人數','1,20'],['是否攜帶幼兒','單選','是,否'],['其他需求或建議','文字','']]}]}
  };
 
-function quickType(){return activeTemplate==='drink'||activeTemplate==='meal'}
+function quickType(){return activeTemplate==='drink'||activeTemplate==='meal'||activeTemplate==='goods'}
 function csvValues(id){return document.getElementById(id).value.split(/[,，、；;\n\r]+/).map(x=>x.trim()).filter(Boolean)}
 function addQuickItem(data={}){const row=document.createElement('div');row.className='quickItemRow';row.innerHTML=`<input class="quickName" placeholder="例如：珍珠奶茶或排骨飯" value="${esc(data.name||'')}"><input class="quickPrice" type="number" min="0" placeholder="基本價格" value="${esc(data.price??data.price1??'')}"><button class="btn danger" type="button" onclick="this.closest('.quickItemRow').remove()">移除</button>`;document.getElementById('quickItemList').appendChild(row)}
-function resetQuickItems(type){const b=document.getElementById('quickItemList');b.innerHTML='';if(type==='drink'){addQuickItem({name:'珍珠奶茶',price:50});addQuickItem({name:'紅茶',price:30});addQuickItem({name:'鮮奶茶',price:55});document.getElementById('commonAddons').value='珍珠:10,椰果:10'}else if(type==='meal'){addQuickItem({name:'雞排飯',price:90});addQuickItem({name:'排骨飯',price:90});document.getElementById('commonAddons').value='白飯:10,荷包蛋:10'}}
-function collectCommonPrefs(){if(activeTemplate==='drink')return[{name:'冷熱',type:'單選',values:csvValues('commonTemp')},{name:'甜度',type:'單選',values:csvValues('commonSweet')},{name:'冰量',type:'單選',values:csvValues('commonIce')}].filter(x=>x.values.length);if(activeTemplate==='meal')return[{name:'辣度',type:'單選',values:csvValues('commonSpicy')},{name:'處理方式',type:'單選',values:csvValues('commonCut')}].filter(x=>x.values.length);return[]}
-function collectAddons(){return csvValues('commonAddons').map(x=>{const m=x.match(/^(.+?)[：:](\d+(?:\.\d+)?)$/);return m?{name:m[1].trim(),price:Number(m[2])}:null}).filter(Boolean)}
+function resetQuickItems(type){const b=document.getElementById('quickItemList');b.innerHTML='';if(type==='drink'){addQuickItem({name:'珍珠奶茶',price:50});addQuickItem({name:'紅茶',price:30});addQuickItem({name:'鮮奶茶',price:55});document.getElementById('commonAddons').value='珍珠:10,椰果:10'}else if(type==='meal'){addQuickItem({name:'雞排飯',price:90});addQuickItem({name:'排骨飯',price:90});document.getElementById('commonAddons').value='白飯:10,荷包蛋:10'}else if(type==='goods'){addQuickItem({name:'商品 A',price:100});document.getElementById('commonAddons').value=''}}
+function collectCommonPrefs(){if(activeTemplate==='goods')return[];if(activeTemplate==='drink')return[{name:'冷熱',type:'單選',values:csvValues('commonTemp')},{name:'甜度',type:'單選',values:csvValues('commonSweet')},{name:'冰量',type:'單選',values:csvValues('commonIce')}].filter(x=>x.values.length);if(activeTemplate==='meal')return[{name:'辣度',type:'單選',values:csvValues('commonSpicy')},{name:'處理方式',type:'單選',values:csvValues('commonCut')}].filter(x=>x.values.length);return[]}
+function collectAddons(){if(activeTemplate==='goods')return[];return csvValues('commonAddons').map(x=>{const m=x.match(/^(.+?)[：:](\d+(?:\.\d+)?)$/);return m?{name:m[1].trim(),price:Number(m[2])}:null}).filter(Boolean)}
 function collectQuickProducts(){const prefs=collectCommonPrefs(),addons=collectAddons();return [...document.querySelectorAll('.quickItemRow')].map((r,i)=>{const n=r.querySelector('.quickName').value.trim(),price=Number(r.querySelector('.quickPrice').value||0);return{id:'p_'+Date.now()+'_'+i,name:n,specs:[{name:'基本價格',price}],prefs,addons}}).filter(x=>x.name&&x.specs.length)}
-function updateCategoryLayout(type,keepItems=false){const q=type==='drink'||type==='meal';document.getElementById('quickBuilder').style.display=q?'block':'none';document.getElementById('legacyProductSection').style.display=q?'none':'block';document.getElementById('capacityRow').style.display=(q||type==='survey')?'none':'grid';document.getElementById('companionRow').style.display=(type==='travel'||type==='training')?'grid':'none';document.getElementById('visibilityReplyRow').style.display=q?'none':'grid';document.getElementById('drinkCommonFields').style.display=type==='drink'?'block':'none';document.getElementById('mealCommonFields').style.display=type==='meal'?'block':'none';if(q&&!keepItems)resetQuickItems(type);setTimeout(()=>refreshSurveyEditorLayout(),0)}
+function updateCategoryLayout(type,keepItems=false){
+ const q=type==='drink'||type==='meal'||type==='goods';
+ const isGoods=type==='goods';
+ document.getElementById('quickBuilder').style.display=q?'block':'none';
+ document.getElementById('legacyProductSection').style.display=q?'none':'block';
+ document.getElementById('capacityRow').style.display=(q||type==='survey')?'none':'grid';
+ document.getElementById('companionRow').style.display=(type==='travel'||type==='training')?'grid':'none';
+ document.getElementById('visibilityReplyRow').style.display=q?'none':'grid';
+ document.getElementById('drinkCommonFields').style.display=type==='drink'?'block':'none';
+ document.getElementById('mealCommonFields').style.display=type==='meal'?'block':'none';
+ document.getElementById('quickCommon').style.display=isGoods?'none':'block';
+ document.getElementById('quickBuilderTitle').textContent=isGoods?'一般商品清單':'先建立本次品項清單';
+ document.getElementById('quickBuilderHint').textContent=isGoods?'直接在表格輸入品名與單價；參加者只需填寫數量。':'每個品項只設定一個基本價格；加珍珠、加白飯、荷包蛋等另外列為加購項目。';
+ if(q&&!keepItems)resetQuickItems(type);
+ setTimeout(()=>{refreshSurveyEditorLayout();refreshGoodsEditorLayout()},0)
+}
 function refreshSurveyEditorLayout(){const isSurvey=activeTemplate==='survey';const section=document.getElementById('legacyProductSection');if(!section)return;const title=section.querySelector('h2');const hint=section.querySelector('.hint');if(title)title.textContent=isSurvey?'意願調查題目':'本次開放品項';if(hint)hint.textContent=isSurvey?'請直接設定調查題目，不需建立品名、規格或價格。':'旅遊、研習與一般商品可使用完整品項設定。';section.querySelectorAll('.productEditor').forEach(ed=>{const nameWrap=ed.querySelector('.productTop>div:first-child');const specTitle=[...ed.querySelectorAll('h3')].find(x=>x.textContent.includes('價格規格'));const specHint=specTitle?.nextElementSibling;const specList=ed.querySelector('.specList');const specActions=specList?.nextElementSibling;const prefTitle=[...ed.querySelectorAll('h3')].find(x=>x.textContent.includes('免費偏好'));if(nameWrap)nameWrap.style.display=isSurvey?'none':'';if(specTitle)specTitle.style.display=isSurvey?'none':'';if(specHint)specHint.style.display=isSurvey?'none':'';if(specList)specList.style.display=isSurvey?'none':'';if(specActions)specActions.style.display=isSurvey?'none':'';if(prefTitle)prefTitle.textContent=isSurvey?'調查題目':'免費偏好';const pHint=prefTitle?.nextElementSibling;if(pHint)pHint.textContent=isSurvey?'可設定單選、複選、人數與文字題。':'甜度、冰量、辣度、鹹度、切法等不改變價格。';const num=ed.querySelector('.productNumber');const head=ed.querySelector('.productHeaderTitle');if(isSurvey){if(num)num.textContent='問卷';if(head)head.textContent='旅遊意願調查題目';}})}
+function refreshGoodsEditorLayout(){
+ const isGoods=activeTemplate==='goods';
+ document.querySelectorAll('.productEditor').forEach(ed=>{
+   ed.classList.toggle('goodsSimple',isGoods);
+   const headings=[...ed.querySelectorAll('h3')];
+   const specTitle=headings.find(x=>x.textContent.includes('價格規格'));
+   const prefTitle=headings.find(x=>x.textContent.includes('免費偏好'));
+   const specHint=specTitle?.nextElementSibling;
+   const prefHint=prefTitle?.nextElementSibling;
+   const specActions=ed.querySelector('.specList')?.nextElementSibling;
+   const prefList=ed.querySelector('.prefList');
+   const prefActions=prefList?.nextElementSibling;
+   if(isGoods){
+     if(specTitle)specTitle.textContent='商品單價';
+     if(specHint)specHint.textContent='一般商品只需設定一個單價。';
+     if(specActions)specActions.classList.add('goodsHide');
+     if(prefTitle)prefTitle.classList.add('goodsHide');
+     if(prefHint)prefHint.classList.add('goodsHide');
+     if(prefList)prefList.classList.add('goodsHide');
+     if(prefActions)prefActions.classList.add('goodsHide');
+     let rows=[...ed.querySelectorAll('.specRow')];
+     if(!rows.length){ed.querySelector('.specList')?.insertAdjacentHTML('beforeend',specRow('單價',0));rows=[...ed.querySelectorAll('.specRow')];}
+     rows.slice(1).forEach(r=>r.remove());
+     const name=rows[0]?.querySelector('.specName');if(name)name.value='單價';
+   }else{
+     if(specTitle)specTitle.textContent='價格規格';
+     if(specHint)specHint.textContent='大小、份量、冷熱若會影響價格，就建立為規格。';
+     [specActions,prefTitle,prefHint,prefList,prefActions].forEach(x=>x?.classList.remove('goodsHide'));
+   }
+ });
+}
 function fillQuickFromData(source){const products=source.products||[];document.getElementById('quickItemList').innerHTML='';products.forEach(p=>addQuickItem({name:p.name,price:p.specs?.[0]?.price||0}));if(!products.length)resetQuickItems(activeTemplate);const prefs=(source.commonPrefs?.length?source.commonPrefs:products[0]?.prefs)||[];const byName=Object.fromEntries(prefs.map(p=>[p.name,(p.values||[]).join(',')]));if(byName['冷熱'])document.getElementById('commonTemp').value=byName['冷熱'];if(byName['甜度'])document.getElementById('commonSweet').value=byName['甜度'];if(byName['冰量'])document.getElementById('commonIce').value=byName['冰量'];if(byName['辣度'])document.getElementById('commonSpicy').value=byName['辣度'];if(byName['處理方式'])document.getElementById('commonCut').value=byName['處理方式'];const addons=(source.addons?.length?source.addons:products[0]?.addons)||[];document.getElementById('commonAddons').value=addons.map(a=>a.name+':'+a.price).join(',')}
 
 function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -430,7 +485,7 @@ function jsonpCloud(action,params={}){
  return new Promise((resolve,reject)=>{
    const cb='heremayCloudCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
    const script=document.createElement('script');
-   const timer=setTimeout(()=>cleanup(new Error('雲端讀取逾時')),15000);
+   const timer=setTimeout(()=>cleanup(new Error('雲端讀取逾時')),45000);
    function cleanup(error,data){
      clearTimeout(timer);
      try{delete window[cb]}catch(e){}
@@ -459,6 +514,94 @@ function postCloud(action,payload){
    setTimeout(()=>{form.remove();iframe.remove();resolve(true)},1400);
  });
 }
+function postCloudResponse(action,payload,timeoutMs=180000){
+ return new Promise((resolve,reject)=>{
+   const token='heremayUpload_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+   const frameName=token+'_frame';
+   const iframe=document.createElement('iframe');
+   iframe.name=frameName;iframe.style.display='none';
+   const form=document.createElement('form');
+   form.method='POST';form.action=SERVICE_URL;form.target=frameName;form.style.display='none';
+   const timer=setTimeout(()=>cleanup(new Error('附件上傳逾時')),timeoutMs);
+   function cleanup(error,data){
+     clearTimeout(timer);window.removeEventListener('message',onMessage);form.remove();iframe.remove();error?reject(error):resolve(data);
+   }
+   function onMessage(event){
+     const msg=event.data||{};
+     if(msg.source!=='heremay-groupbuy'||msg.token!==token)return;
+     if(!msg.data||msg.data.ok===false)cleanup(new Error(msg.data?.message||'附件上傳失敗'));
+     else cleanup(null,msg.data);
+   }
+   window.addEventListener('message',onMessage);
+   [['action',action],['payload',JSON.stringify(payload||{})],['callbackToken',token]].forEach(([name,value])=>{
+     const input=document.createElement('input');input.type='hidden';input.name=name;input.value=value;form.appendChild(input);
+   });
+   document.body.append(iframe,form);form.submit();
+ });
+}
+function fileToBase64(file){
+ return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||'').split(',')[1]||'');reader.onerror=()=>reject(new Error('無法讀取檔案：'+file.name));reader.readAsDataURL(file)});
+}
+async function prepareAttachmentPayloads(){
+ const payloads=[];
+ const progress=document.getElementById('uploadProgress');
+ for(let i=0;i<pendingFiles.length;i++){
+   const file=pendingFiles[i];
+   if(file.size>8*1024*1024)throw new Error(file.name+' 超過 8MB，請先壓縮');
+   if(progress)progress.textContent=`正在讀取附件 ${i+1}／${pendingFiles.length}：${file.name}`;
+   const base64=await fileToBase64(file);
+   payloads.push({name:file.name,type:file.type||'application/octet-stream',size:file.size,base64});
+ }
+ return payloads;
+}
+function postCloudLong(action,payload,jobId){
+ return new Promise((resolve,reject)=>{
+   const frameName='heremayLongFrame_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+   const iframe=document.createElement('iframe');iframe.name=frameName;iframe.style.display='none';
+   const form=document.createElement('form');form.method='POST';form.action=SERVICE_URL;form.target=frameName;form.style.display='none';
+   [['action',action],['payload',JSON.stringify(payload||{})],['jobId',jobId||'']].forEach(([name,value])=>{const input=document.createElement('input');input.type='hidden';input.name=name;input.value=value;form.appendChild(input)});
+   iframe.addEventListener('error',()=>reject(new Error('無法送出附件資料')),{once:true});
+   document.body.append(iframe,form);form.submit();form.remove();
+   setTimeout(()=>resolve(true),600);
+   setTimeout(()=>iframe.remove(),180000);
+ });
+}
+async function waitAttachmentJob(jobId){
+ const progress=document.getElementById('uploadProgress');
+ const deadline=Date.now()+180000;
+ while(Date.now()<deadline){
+   if(progress)progress.textContent='附件已送出，正在等待雲端完成…';
+   try{
+     const result=await jsonpCloud('attachmentJobStatus',{jobId});
+     const job=result?.data||{};
+     if(job.status==='done')return job;
+     if(job.status==='error')throw new Error(job.message||'附件上傳失敗');
+     if(job.message&&progress)progress.textContent=job.message;
+   }catch(e){
+     if(e && e.message && !String(e.message).includes('逾時')) throw e;
+     console.warn('等待附件工作狀態時暫時讀取失敗',e);
+   }
+   await new Promise(r=>setTimeout(r,2000));
+ }
+ throw new Error('雲端處理附件逾時，請稍後按重新同步確認');
+}
+function safeOrderLines(order){
+ let lines=order&&order.lines;
+ if(typeof lines==='string'){
+   try{lines=JSON.parse(lines)}catch(e){lines=[]}
+ }
+ if(!Array.isArray(lines))return [];
+ return lines.filter(Boolean).map(l=>{
+   const qty=Number(l.qty||0),price=Number(l.price||0);
+   return {...l,qty,price,subtotal:Number.isFinite(Number(l.subtotal))?Number(l.subtotal):qty*price,prefs:(l.prefs&&typeof l.prefs==='object')?l.prefs:{}};
+ });
+}
+function campaignAttachmentsHtml(c){
+ const files=Array.isArray(c&&c.files)?c.files:[];
+ if(!files.length)return '';
+ const cards=files.map(f=>{const isImg=String(f.type||'').startsWith('image/'),isPdf=String(f.type||'').includes('pdf');if(isImg&&f.previewUrl)return `<div class="attachmentPreview"><a href="${esc(f.url||f.previewUrl)}" target="_blank" rel="noopener"><img src="${esc(f.previewUrl)}" alt="${esc(f.name||'活動圖片')}"></a><strong>🖼️ ${esc(f.name||'圖片')}</strong><small>${f.size?Math.ceil(Number(f.size)/1024)+' KB':''}</small></div>`;return `<div class="attachmentPreview"><strong>${isPdf?'📄':'📎'} ${esc(f.name||'附件')}</strong><small>${f.size?Math.ceil(Number(f.size)/1024)+' KB':''}</small>${f.url?`<div class="actions"><a class="btn secondary" href="${esc(f.url)}" target="_blank" rel="noopener">${isPdf?'開啟 PDF':'開啟附件'}</a></div>`:'<span class="badge wait">舊附件僅有檔名</span>'}</div>`}).join('');
+ return `<div class="attachmentPublicBox"><h3>📎 活動附件</h3><div class="attachmentGallery">${cards}</div></div>`;
+}
 function normalizeCampaign(c){
  const status=c.status||(c.cancelled?'cancelled':c.closed?'closed':'open');
  return {...c,status,closed:status==='closed',cancelled:status==='cancelled'};
@@ -468,14 +611,39 @@ async function loadCloudData(showMessage=true){
  cloudBusy=true;
  if(showMessage)setSyncState('busy','正在同步雲端資料…');
  try{
-   const result=await jsonpCloud('syncAll');
-   if(!result.ok)throw new Error(result.message||'雲端同步失敗');
-   setC((result.campaigns||[]).map(normalizeCampaign));
-   setO(result.orders||[]);
-   setT(result.templates||[]);
+   let campaigns=[],orders=[],templates=[];
+   try{
+     const [cRes,oRes,tRes]=await Promise.all([
+       jsonpCloud('listCampaigns'),
+       jsonpCloud('listOrders'),
+       jsonpCloud('listTemplates')
+     ]);
+     if(!cRes.ok)throw new Error(cRes.message||'活動資料讀取失敗');
+     if(!oRes.ok)throw new Error(oRes.message||'訂單資料讀取失敗');
+     if(!tRes.ok)throw new Error(tRes.message||'模板資料讀取失敗');
+     campaigns=cRes.data||[];
+     orders=oRes.data||[];
+     templates=tRes.data||[];
+   }catch(splitError){
+     console.warn('分段同步失敗，改用整包同步',splitError);
+     const result=await jsonpCloud('syncAll');
+     if(!result.ok)throw new Error(result.message||'雲端同步失敗');
+     campaigns=result.campaigns||[];
+     orders=result.orders||[];
+     templates=result.templates||[];
+   }
+   setC(campaigns.map(normalizeCampaign));
+   setO(orders);
+   setT(templates);
    setSyncState('ok','雲端同步完成｜'+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}));
-   renderSavedTemplates();
-   renderAll();
+   try{
+     renderSavedTemplates();
+     renderAll();
+   }catch(renderError){
+     console.error('畫面顯示錯誤',renderError);
+     setSyncState('ok','雲端同步完成，但部分畫面資料格式異常');
+     if(showMessage)toast('雲端已連線；部分舊資料正在相容處理');
+   }
  }catch(error){
    console.error(error);
    setSyncState('bad','雲端連線失敗，暫時顯示本機快取');
@@ -502,7 +670,7 @@ async function cloudWrite(action,payload,successMessage){
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
-const APP_VERSION='1.7.8';
+const APP_VERSION='1.8.8';
 async function updateAppNow(){
  toast('正在檢查新版…');
  try{
@@ -530,8 +698,8 @@ function applyTemplate(type,btn){
  document.querySelectorAll('.templateBtn').forEach(x=>x.classList.remove('active'));
  if(btn)btn.classList.add('active');
  const t=templates[type];if(!t)return;
- document.getElementById('campaignTitle').value=t.title;
- document.getElementById('campaignDesc').value=t.desc;
+ if(!document.getElementById('campaignTitle').value.trim())document.getElementById('campaignTitle').value=t.title;
+ if(!document.getElementById('campaignDesc').value.trim())document.getElementById('campaignDesc').value=t.desc;
  document.getElementById('replyRequired').value=t.required?'yes':'no';
  document.getElementById('visibility').value=t.visibility;
  document.getElementById('capacity').value=t.capacity;
@@ -563,6 +731,7 @@ function addProductEditor(data={name:'',specs:[['',0]],prefs:[]}){
  box.appendChild(d);
  updateProductHeadings();
  refreshSurveyEditorLayout();
+ refreshGoodsEditorLayout();
  setTimeout(()=>d.scrollIntoView({behavior:'smooth',block:'start'}),80);
 }
 function toggleProductEditor(header){
@@ -601,8 +770,8 @@ function copyPrefsFromPrevious(btn){
 }
 
 document.getElementById('attachments').addEventListener('change',e=>{for(const f of [...e.target.files])if(!pendingFiles.some(x=>x.name===f.name&&x.size===f.size&&x.lastModified===f.lastModified))pendingFiles.push(f);e.target.value='';renderFiles()});
-function renderFiles(){document.getElementById('fileList').innerHTML=pendingFiles.map((f,i)=>`<div class="fileChip"><span><strong>📎 ${esc(f.name)}</strong><small>${Math.ceil(f.size/1024)} KB</small></span><button class="btn danger" onclick="pendingFiles.splice(${i},1);renderFiles()">移除</button></div>`).join('')}
-function collectProducts(){if(quickType())return collectQuickProducts();return [...document.querySelectorAll('.productEditor')].map(ed=>{const prefs=[...ed.querySelectorAll('.prefRow')].map(r=>({name:r.querySelector('.prefName').value.trim(),type:r.querySelector('.prefType').value,values:r.querySelector('.prefValues').value.split(/[,，、；;\n\r]+/).map(x=>x.trim()).filter(Boolean)})).filter(x=>x.name);if(activeTemplate==='survey')return {id:'p_'+Date.now()+'_'+Math.random().toString(36).slice(2),name:'旅遊意願',specs:[{name:'問卷',price:0}],prefs};return {id:'p_'+Date.now()+'_'+Math.random().toString(36).slice(2),name:ed.querySelector('.productNameInput').value.trim(),specs:[...ed.querySelectorAll('.specRow')].map(r=>({name:r.querySelector('.specName').value.trim(),price:Number(r.querySelector('.specPrice').value||0)})).filter(x=>x.name),prefs}}).filter(x=>x.name&&x.specs.length)}
+function renderFiles(){const oldFiles=existingFiles.map((f,i)=>`<div class="fileChip"><span><strong>📎 ${esc(f.name||'附件')}</strong><small>既有附件${f.url?'｜可開啟':'｜僅有檔名'}</small></span><button class="btn danger" type="button" onclick="existingFiles.splice(${i},1);renderFiles()">移除</button></div>`).join('');const fresh=pendingFiles.map((f,i)=>`<div class="fileChip"><span><strong>⬆️ ${esc(f.name)}</strong><small>${Math.ceil(f.size/1024)} KB｜儲存活動時上傳</small></span><button class="btn danger" type="button" onclick="pendingFiles.splice(${i},1);renderFiles()">移除</button></div>`).join('');document.getElementById('fileList').innerHTML=oldFiles+fresh}
+function collectProducts(){if(quickType())return collectQuickProducts();return [...document.querySelectorAll('.productEditor')].map(ed=>{const prefs=[...ed.querySelectorAll('.prefRow')].map(r=>({name:r.querySelector('.prefName').value.trim(),type:r.querySelector('.prefType').value,values:r.querySelector('.prefValues').value.split(/[,，、；;\n\r]+/).map(x=>x.trim()).filter(Boolean)})).filter(x=>x.name);if(activeTemplate==='survey')return {id:'p_'+Date.now()+'_'+Math.random().toString(36).slice(2),name:'旅遊意願',specs:[{name:'問卷',price:0}],prefs};const name=ed.querySelector('.productNameInput').value.trim();const specs=activeTemplate==='goods'?[{name:'單價',price:Number(ed.querySelector('.specPrice')?.value||0)}]:[...ed.querySelectorAll('.specRow')].map(r=>({name:r.querySelector('.specName').value.trim(),price:Number(r.querySelector('.specPrice').value||0)})).filter(x=>x.name);return {id:'p_'+Date.now()+'_'+Math.random().toString(36).slice(2),name,specs,prefs:activeTemplate==='goods'?[]:prefs}}).filter(x=>x.name&&x.specs.length)}
 
 function currentFormSnapshot(){
  return {
@@ -682,6 +851,8 @@ function renderTemplatePicker(){
 }
 function startNewFromCategory(cat){
  activeTemplate=cat;
+ document.getElementById('campaignTitle').value='';
+ document.getElementById('campaignDesc').value='';
  const buttons=[...document.querySelectorAll('.templateBtn')];
  const idx={drink:0,meal:1,goods:2,travel:3,training:4,survey:5}[cat]??0;
  applyTemplate(cat,buttons[idx]);
@@ -693,38 +864,46 @@ async function createCampaign(){
  const title=document.getElementById('campaignTitle').value.trim(),products=collectProducts();
  if(!title)return toast('請輸入活動名稱');
  if(!products.length)return toast('請建立至少一個完整品項');
-
+ const saveBtn=document.getElementById('saveCampaignBtn');
+ if(saveBtn.disabled)return;
+ const originalText=saveBtn.textContent;
+ saveBtn.disabled=true;saveBtn.textContent=pendingFiles.length?'正在準備附件…':'正在建立活動…';
  const existing=editingCampaignId?getC().find(x=>x.id===editingCampaignId):null;
+ const startedAt=Date.now();
  const c={
-   id:existing?.id||('c_'+Date.now()),
-   template:activeTemplate,
-   title,
+   id:existing?.id||('c_'+Date.now()),template:activeTemplate,title,
    host:document.getElementById('hostName').value.trim()||currentName(),
    desc:document.getElementById('campaignDesc').value.trim(),
    deadline:[document.getElementById('deadlineDate').value,document.getElementById('deadlineTime').value].filter(Boolean).join(' '),
    targets:[...document.querySelectorAll('#targets input:checked')].map(x=>x.value),
    visibility:document.getElementById('visibility').value,
    replyRequired:document.getElementById('replyRequired').value==='yes',
-   capacity:Number(document.getElementById('capacity').value||0),
-   waitlist:document.getElementById('waitlist').value==='on',
-   maxCompanion:Number(document.getElementById('maxCompanion').value||0),
-   capacityMode:document.getElementById('capacityMode').value,
-   retentionMode:document.getElementById('retentionMode').value,
-   files:pendingFiles.length?pendingFiles.map(f=>({name:f.name,size:f.size,type:f.type})):(existing?.files||[]),
-   products,
-   commonPrefs:collectCommonPrefs(),
-   addons:collectAddons(),
-   status:existing?.status||'open',
-   cancelReason:existing?.cancelReason||'',
-   createdAt:existing?.createdAt||new Date().toISOString(),
-   updatedAt:new Date().toISOString()
+   capacity:Number(document.getElementById('capacity').value||0),waitlist:document.getElementById('waitlist').value==='on',
+   maxCompanion:Number(document.getElementById('maxCompanion').value||0),capacityMode:document.getElementById('capacityMode').value,
+   retentionMode:document.getElementById('retentionMode').value,files:[...existingFiles],products,
+   commonPrefs:collectCommonPrefs(),addons:collectAddons(),status:existing?.status||'open',
+   cancelReason:existing?.cancelReason||'',createdAt:existing?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()
  };
- const ok=await cloudWrite('saveCampaign',c,existing?'活動已更新並同步':'活動已建立並同步');
- if(ok)resetForm();
+ try{
+   const attachments=await prepareAttachmentPayloads();
+   const jobId='job_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+   saveBtn.textContent=attachments.length?'正在上傳附件…':'正在儲存活動…';
+   await postCloudLong('saveCampaignBundle',{campaign:c,attachments},jobId);
+   await waitAttachmentJob(jobId);
+   document.getElementById('uploadProgress').textContent='';
+   await loadCloudData(false);
+   toast(existing?'活動與附件已更新':'活動與附件已建立');
+   resetForm();
+ }catch(error){
+   console.error(error);
+   document.getElementById('uploadProgress').textContent='';
+   toast(error.message||'附件上傳失敗');
+ }finally{saveBtn.disabled=false;saveBtn.textContent=originalText}
 }
+
 function resetForm(){
  editingCampaignId='';
- pendingFiles=[];
+ pendingFiles=[];existingFiles=[];
  renderFiles();
  document.getElementById('productEditors').innerHTML='';
  applyTemplate('drink',document.querySelector('.templateBtn'));
@@ -756,8 +935,8 @@ function editCampaign(id){
  document.getElementById('capacityMode').value=c.capacityMode||'people';
  document.getElementById('retentionMode').value=c.retentionMode||((c.template==='travel'||c.template==='training'||c.template==='survey')?'keep':'delete');
 
- pendingFiles=[];
- document.getElementById('fileList').innerHTML=(c.files||[]).map(f=>`<div class="fileChip"><span><strong>📎 ${esc(f.name)}</strong><small>既有附件</small></span></div>`).join('');
+ pendingFiles=[];existingFiles=Array.isArray(c.files)?c.files.map(f=>({...f})):[];
+ renderFiles();
  updateCategoryLayout(activeTemplate,true);
  document.getElementById('selectedTemplateNotice').textContent='目前使用：'+(templateCategoryNames[activeTemplate]||activeTemplate);
  document.getElementById('productEditors').innerHTML='';
@@ -785,8 +964,8 @@ function surveyExistingReply(c){return getO().filter(o=>o.campaignId===c.id&&o.u
 function surveyFields(c){const p=surveyProduct(c);return `<div class="productCard surveyForm" data-campaign="${c.id}" data-product="${p.id||'survey'}">${(p.prefs||[]).map(x=>renderPreference(x,c.id,p.id||'survey')).join('')}</div>`}
 function surveyAnswersFromCard(c){const card=document.getElementById('note_'+c.id)?.closest('.eventCard'),answers={};if(!card)return answers;card.querySelectorAll('.surveyForm .prefInput').forEach(el=>{if((el.type==='radio'&&!el.checked)||el.value==='')return;answers[el.dataset.pref]=el.type==='number'?Number(el.value||0):el.value});card.querySelectorAll('.surveyForm .prefCheck:checked').forEach(el=>{answers[el.dataset.pref]=answers[el.dataset.pref]||[];answers[el.dataset.pref].push(el.value)});return answers}
 function prefillSurveyReply(c){const old=surveyExistingReply(c);if(!old)return;const card=document.getElementById('note_'+c.id)?.closest('.eventCard');if(!card)return;const answers=old.surveyAnswers||old.lines?.[0]?.prefs||{};card.querySelectorAll('.surveyForm .prefInput').forEach(el=>{const v=answers[el.dataset.pref];if(el.type==='radio')el.checked=String(v)===el.value;else if(v!==undefined)el.value=v});card.querySelectorAll('.surveyForm .prefCheck').forEach(el=>{const v=answers[el.dataset.pref];el.checked=Array.isArray(v)&&v.includes(el.value)});const note=document.getElementById('note_'+c.id);if(note)note.value=old.note||''}
-function surveyPublicRows(c){const list=getO().filter(o=>o.campaignId===c.id&&o.status!=='not_joining'),questions=surveyProduct(c).prefs||[];return `<div class="statsTableWrap"><table class="statsDetailTable"><thead><tr><th>姓名</th>${questions.map(q=>`<th>${esc(q.name)}</th>`).join('')}<th>最後更新</th></tr></thead><tbody>${list.map(o=>{const a=o.surveyAnswers||o.lines?.[0]?.prefs||{};return `<tr><td>${esc(o.user)}</td>${questions.map(q=>`<td class="wrap">${esc(textValue(a[q.name])||'—')}</td>`).join('')}<td>${new Date(o.updatedAt||o.createdAt).toLocaleString('zh-TW',{hour12:false})}</td></tr>`}).join('')||`<tr><td colspan="${questions.length+2}">尚無填答</td></tr>`}</tbody></table></div>`}
-function surveyStatsSummary(c,list){const questions=surveyProduct(c).prefs||[];const answerOf=o=>o.surveyAnswers||o.lines?.[0]?.prefs||{};return questions.map(q=>{if(q.type==='文字')return '';if(q.type==='人數'){const total=list.reduce((n,o)=>n+Number(answerOf(o)[q.name]||0),0);return `<div class="statsSummaryBox"><strong>${esc(q.name)}</strong><span>預估總人數：${total}</span></div>`}const count={};list.forEach(o=>{const v=answerOf(o)[q.name];(Array.isArray(v)?v:[v]).filter(Boolean).forEach(x=>count[x]=(count[x]||0)+1)});return `<div class="statsSummaryBox"><strong>${esc(q.name)}</strong><span>${Object.entries(count).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${esc(k)}：${v} 票`).join('<br>')||'尚無資料'}</span></div>`}).join('')}
+function surveyPublicRows(c){const list=getO().filter(o=>o.campaignId===c.id&&o.status!=='not_joining'),questions=surveyProduct(c).prefs||[];return `<div class="statsTableWrap"><table class="statsDetailTable"><thead><tr><th>姓名</th>${questions.map(q=>`<th>${esc(q.name)}</th>`).join('')}<th>最後更新</th></tr></thead><tbody>${list.map(o=>{const a=o.surveyAnswers||safeOrderLines(o)[0]?.prefs||{};return `<tr><td>${esc(o.user)}</td>${questions.map(q=>`<td class="wrap">${esc(textValue(a[q.name])||'—')}</td>`).join('')}<td>${new Date(o.updatedAt||o.createdAt).toLocaleString('zh-TW',{hour12:false})}</td></tr>`}).join('')||`<tr><td colspan="${questions.length+2}">尚無填答</td></tr>`}</tbody></table></div>`}
+function surveyStatsSummary(c,list){const questions=surveyProduct(c).prefs||[];const answerOf=o=>o.surveyAnswers||safeOrderLines(o)[0]?.prefs||{};return questions.map(q=>{if(q.type==='文字')return '';if(q.type==='人數'){const total=list.reduce((n,o)=>n+Number(answerOf(o)[q.name]||0),0);return `<div class="statsSummaryBox"><strong>${esc(q.name)}</strong><span>預估總人數：${total}</span></div>`}const count={};list.forEach(o=>{const v=answerOf(o)[q.name];(Array.isArray(v)?v:[v]).filter(Boolean).forEach(x=>count[x]=(count[x]||0)+1)});return `<div class="statsSummaryBox"><strong>${esc(q.name)}</strong><span>${Object.entries(count).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${esc(k)}：${v} 票`).join('<br>')||'尚無資料'}</span></div>`}).join('')}
 function campaignProducts(c){
  let products=c?.products;
  if(typeof products==='string'){
@@ -803,7 +982,7 @@ function campaignProducts(c){
    prefs:Array.isArray(p.prefs)?p.prefs:[]
  }));
 }
-function quickTypeForCampaign(c){return c.template==='drink'||c.template==='meal'}
+function quickTypeForCampaign(c){return c.template==='drink'||c.template==='meal'||c.template==='goods'}
 function orderPeopleCount(c,o){
  if(!o||o.status==='not_joining')return 0;
  return c.capacityMode==='registrations'?1:(1+Number(o.companions||0));
@@ -817,7 +996,7 @@ function publicRows(c){
  const os=getO().filter(o=>o.campaignId===c.id);
  if(c.visibility==='private')return '';
  const showPeople=c.template==='travel'||c.template==='training';
- return `<table class="publicTable"><thead><tr><th>姓名</th><th>狀態</th>${showPeople?'<th>報名人數</th>':''}${c.visibility==='full'?'<th>內容</th>':''}</tr></thead><tbody>${os.map(o=>`<tr><td class="colName">${esc(o.user)}</td><td>${o.status==='accepted'?'<span class="badge ok">正取</span>':o.status==='waitlist'?'<span class="badge wait">候補</span>':'<span class="badge no">不參加</span>'}</td>${showPeople?`<td><strong>${orderPeopleCount(c,o)} 人</strong></td>`:''}${c.visibility==='full'?`<td>${esc((o.lines||[]).map(l=>`${l.name}／${l.spec}×${l.qty}`).join('、'))}</td>`:''}</tr>`).join('')}</tbody></table>`
+ return `<table class="publicTable"><thead><tr><th>姓名</th><th>狀態</th>${showPeople?'<th>報名人數</th>':''}${c.visibility==='full'?'<th>內容</th>':''}</tr></thead><tbody>${os.map(o=>`<tr><td class="colName">${esc(o.user)}</td><td>${o.status==='accepted'?'<span class="badge ok">正取</span>':o.status==='waitlist'?'<span class="badge wait">候補</span>':'<span class="badge no">不參加</span>'}</td>${showPeople?`<td><strong>${orderPeopleCount(c,o)} 人</strong></td>`:''}${c.visibility==='full'?`<td>${esc(safeOrderLines(o).map(l=>`${l.name}／${l.spec}×${l.qty}`).join('、'))}</td>`:''}</tr>`).join('')}</tbody></table>`
 }
 function campaignCommonPrefs(c){const products=campaignProducts(c);return c.commonPrefs?.length?c.commonPrefs:(products[0]?.prefs||[])}
 function campaignAddons(c){return c.addons?.length?c.addons:(c.products?.[0]?.addons||[])}
@@ -829,7 +1008,7 @@ function quickOrderFields(c){
  const rows=[...productRows,...addonRows];
  const prefHeads=prefs.map(p=>`<th>${esc(p.name)}</th>`).join('');
  const body=rows.map(r=>`<tr class="matrixOrderRow ${r.kind==='addon'?'matrixAddonRow':''}" data-kind="${r.kind}" data-key="${r.key}" data-name="${esc(r.name)}" data-price="${r.price}"><td class="itemName">${r.kind==='addon'?'＋ ':''}${esc(r.name)}</td><td class="itemPrice">$${r.price}</td><td><input class="matrixQty" type="number" min="0" value="0" inputmode="numeric" oninput="updateQuickTotal('${c.id}')"></td>${prefs.map((p,pi)=>`<td class="matrixPrefCol">${r.kind==='product'?matrixSelectHtml(c.id,r.key,p,pi):'—'}</td>`).join('')}<td class="matrixSubtotal">$0</td></tr>`).join('');
- return `<div class="quickOrderBox"><div class="matrixHint">請在需要的品項填寫數量；數量為 0 的項目不會送出。冷熱、冰量、甜度或辣度可直接在同一列選擇。</div><button class="btn secondary matrixOptionToggle" type="button" onclick="toggleMatrixOptions(this)">收合口味選項</button><div class="orderMatrixWrap"><table class="orderMatrix"><thead><tr><th>品名</th><th>價格</th><th>數量</th>${prefs.map(p=>`<th class="matrixPrefCol">${esc(p.name)}</th>`).join('')}<th>小計</th></tr></thead><tbody>${body}</tbody></table></div><div class="totalBox" id="total_${c.id}">預估總額：$0</div></div>`
+ const simpleGoods=c.template==='goods';return `<div class="quickOrderBox"><div class="matrixHint">${simpleGoods?'請直接填寫各商品數量；數量為 0 的商品不會送出。':'請在需要的品項填寫數量；數量為 0 的項目不會送出。冷熱、冰量、甜度或辣度可直接在同一列選擇。'}</div>${simpleGoods?'':`<button class="btn secondary matrixOptionToggle" type="button" onclick="toggleMatrixOptions(this)">收合口味選項</button>`}<div class="orderMatrixWrap"><table class="orderMatrix"><thead><tr><th>品名</th><th>價格</th><th>數量</th>${prefs.map(p=>`<th class="matrixPrefCol">${esc(p.name)}</th>`).join('')}<th>小計</th></tr></thead><tbody>${body}</tbody></table></div><div class="totalBox" id="total_${c.id}">預估總額：$0</div></div>`
 }
 function renderQuickSpecs(cid){updateQuickTotal(cid)}
 function selectedAddonData(c,cid){return []}
@@ -879,8 +1058,8 @@ function collectTravelLines(c){
 }
 function eventCard(c){
  const rem=remaining(c),full=rem===0&&c.capacity>0;
- if(c.template==='survey'){setTimeout(()=>prefillSurveyReply(c),0);return `<article class="eventCard"><h3>${esc(c.title)}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}</div><div class="meta">${esc(c.desc||'')}</div><div class="hint">填答後仍可在截止前再次開啟此頁修改；下方會公開顯示姓名與調查答案。</div>${surveyFields(c)}<label>備註</label><input id="note_${c.id}" placeholder="可留白"><div class="actions"><button class="btn" ${(c.closed||c.cancelled)?'disabled':''} onclick="submitReply('${c.id}')">${surveyExistingReply(c)?'更新我的回答':'送出意願調查'}</button></div><h3 style="margin-top:18px">目前填答狀況</h3>${surveyPublicRows(c)}</article>`;}
- return `<article class="eventCard"><h3>${esc(c.title)}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}｜對象：${esc(c.targets.join('、'))}</div><div class="meta">${esc(c.desc||'')}</div>${c.cancelled?`<div class="hint">活動已取消${c.cancelReason?'：'+esc(c.cancelReason):''}</div>`:''}
+ if(c.template==='survey'){setTimeout(()=>prefillSurveyReply(c),0);return `<article class="eventCard"><h3>${esc(c.title)}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}</div><div class="meta">${esc(c.desc||'')}</div>${campaignAttachmentsHtml(c)}<div class="hint">填答後仍可在截止前再次開啟此頁修改；下方會公開顯示姓名與調查答案。</div>${surveyFields(c)}<label>備註</label><input id="note_${c.id}" placeholder="可留白"><div class="actions"><button class="btn" ${(c.closed||c.cancelled)?'disabled':''} onclick="submitReply('${c.id}')">${surveyExistingReply(c)?'更新我的回答':'送出意願調查'}</button></div><h3 style="margin-top:18px">目前填答狀況</h3>${surveyPublicRows(c)}</article>`;}
+ return `<article class="eventCard"><h3>${esc(c.title)}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}｜對象：${esc(c.targets.join('、'))}</div><div class="meta">${esc(c.desc||'')}</div>${campaignAttachmentsHtml(c)}${c.cancelled?`<div class="hint">活動已取消${c.cancelReason?'：'+esc(c.cancelReason):''}</div>`:''}
  ${c.capacity>0?`<div class="counter">已報名 ${participantCount(c)}／${c.capacity} 人｜剩餘 ${rem} 人</div>`:''}
  ${c.replyRequired?`<div class="optionBlock"><div class="optionLabel">是否參加（必填）</div><div class="choiceGrid"><label class="choice"><input type="radio" name="join_${c.id}" value="yes">參加</label><label class="choice"><input type="radio" name="join_${c.id}" value="no">不參加</label></div></div>`:''}
  ${c.template==='travel'?travelPricingFields(c):(c.maxCompanion>0?`<label>攜伴人數（最多 ${c.maxCompanion} 人）</label><select id="companions_${c.id}">${Array.from({length:Number(c.maxCompanion||0)+1},(_,i)=>`<option value="${i}">${i} 人</option>`).join('')}</select>`:'')}
@@ -946,14 +1125,14 @@ function renderAvailable(){
  }
  box.innerHTML=cs.length?`<div class="campaignList">${cs.map(c=>`<div class="campaignSummary"><h3>${esc(c.title)} ${c.cancelled?'<span class="badge no">已取消</span>':''}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}</div>${c.capacity>0?`<div class="counter">已報名 ${participantCount(c)}／${c.capacity} 人｜剩餘 ${remaining(c)} 人</div>`:''}<div class="summaryActions"><button class="btn" onclick="openedCampaignId='${c.id}';renderAvailable()">進入${c.template==='survey'?'調查':(c.template==='travel'||c.template==='training'?'報名':'訂購')}</button>${isHost(c)?`<button class="btn secondary" onclick="editCampaign('${c.id}')">編輯活動</button><button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="finishCampaign('${c.id}')">活動結束</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button>`:''}</div></div>`).join('')}</div>`:'<div class="empty">目前沒有可參加的活動。</div>';
 }
-function renderMine(){const os=getO().filter(o=>o.user===currentName());document.getElementById('myOrders').innerHTML=os.length?os.map(o=>{const c=getC().find(c=>c.id===o.campaignId);if(c?.template==='survey'){const answers=o.surveyAnswers||o.lines?.[0]?.prefs||{};const questions=surveyProduct(c).prefs||[];const answerRows=questions.map(q=>`<div class="meta"><strong>${esc(q.name)}：</strong>${esc(textValue(answers[q.name])||'—')}</div>`).join('');return `<article class="eventCard"><h3>${esc(c.title)}</h3><div class="meta">最後更新：${new Date(o.updatedAt||o.createdAt).toLocaleString('zh-TW',{hour12:false})}</div>${answerRows}${o.note?`<div class="meta"><strong>備註：</strong>${esc(o.note)}</div>`:''}<div class="actions"><button class="btn secondary" type="button" onclick="openedCampaignId='${c.id}';showPanel('available',document.querySelectorAll('.tab')[0])">查看／修改回答</button></div></article>`;}return `<article class="eventCard"><h3>${esc(c?.title||'活動')}</h3><div class="meta">${new Date(o.createdAt).toLocaleString('zh-TW',{hour12:false})}</div><div class="meta">狀態：${o.status==='accepted'?'正取':o.status==='waitlist'?'候補':'不參加'}</div>${(o.lines||[]).map(l=>`<div class="meta">${esc(l.name)}｜${esc(l.spec)}｜${esc(Object.entries(l.prefs||{}).map(([k,v])=>k+'：'+(Array.isArray(v)?v.join('、'):v)).join('；'))}｜單價 $${Number(l.price||0)}｜${l.qty} 人／份｜小計 $${l.subtotal}</div>`).join('')}</article>`}).join(''):'<div class="empty">目前沒有回覆紀錄。</div>'}
+function renderMine(){const os=getO().filter(o=>o.user===currentName());document.getElementById('myOrders').innerHTML=os.length?os.map(o=>{const c=getC().find(c=>c.id===o.campaignId);if(c?.template==='survey'){const answers=o.surveyAnswers||safeOrderLines(o)[0]?.prefs||{};const questions=surveyProduct(c).prefs||[];const answerRows=questions.map(q=>`<div class="meta"><strong>${esc(q.name)}：</strong>${esc(textValue(answers[q.name])||'—')}</div>`).join('');return `<article class="eventCard"><h3>${esc(c.title)}</h3><div class="meta">最後更新：${new Date(o.updatedAt||o.createdAt).toLocaleString('zh-TW',{hour12:false})}</div>${answerRows}${o.note?`<div class="meta"><strong>備註：</strong>${esc(o.note)}</div>`:''}<div class="actions"><button class="btn secondary" type="button" onclick="openedCampaignId='${c.id}';showPanel('available',document.querySelectorAll('.tab')[0])">查看／修改回答</button></div></article>`;}return `<article class="eventCard"><h3>${esc(c?.title||'活動')}</h3><div class="meta">${new Date(o.createdAt).toLocaleString('zh-TW',{hour12:false})}</div><div class="meta">狀態：${o.status==='accepted'?'正取':o.status==='waitlist'?'候補':'不參加'}</div>${safeOrderLines(o).map(l=>`<div class="meta">${esc(l.name)}｜${esc(l.spec)}｜${esc(Object.entries(l.prefs||{}).map(([k,v])=>k+'：'+(Array.isArray(v)?v.join('、'):v)).join('；'))}｜單價 $${Number(l.price||0)}｜${l.qty} 人／份｜小計 $${l.subtotal}</div>`).join('')}</article>`}).join(''):'<div class="empty">目前沒有回覆紀錄。</div>'}
 function textValue(v){return Array.isArray(v)?v.join('、'):String(v??'')}
 function statsPreferenceNames(c,list){
  const names=[];
  const add=n=>{if(n&&!names.includes(n))names.push(n)};
  campaignCommonPrefs(c).forEach(p=>add(p.name));
  campaignProducts(c).forEach(p=>(p.prefs||[]).forEach(pref=>add(pref.name)));
- list.forEach(o=>(o.lines||[]).forEach(l=>Object.keys(l.prefs||{}).forEach(add)));
+ list.forEach(o=>safeOrderLines(o).forEach(l=>Object.keys(l.prefs||{}).forEach(add)));
  return names;
 }
 function lineSortKey(line,user=''){
@@ -986,7 +1165,8 @@ function statsDetailTable(c,list){
      cells.push(`<td class="noPrint">${controls}</td><td class="noPrint">${pickup}</td>`);
      rows.push({key:`~~~~|${o.user}`,html:`<tr${rowClass}>${cells.join('')}</tr>`});return;
    }
-   const lines=(o.lines||[]).length?o.lines:[{name:c.template==='travel'||c.template==='training'?'活動報名':'—',spec:'—',qty:1,prefs:{},subtotal:0}];
+   const normalizedLines=safeOrderLines(o);
+   const lines=normalizedLines.length?normalizedLines:[{name:c.template==='travel'||c.template==='training'?'活動報名':'—',spec:'—',qty:1,prefs:{},subtotal:0}];
    lines.forEach(l=>{
      const cells=[`<td class="colName">${esc(o.user)}</td>`];
      if(showStatus)cells.push(`<td>${o.status==='accepted'?'<span class="badge ok">正取</span>':'<span class="badge wait">候補</span>'}</td>`);
@@ -1021,7 +1201,7 @@ function participantStatsTable(c,list){
 }
 function statsSummary(c,list){
  const grouped=new Map();
- list.filter(o=>o.status!=='not_joining').forEach(o=>(o.lines||[]).forEach(l=>{
+ list.filter(o=>o.status!=='not_joining').forEach(o=>safeOrderLines(o).forEach(l=>{
    const prefs=Object.entries(l.prefs||{}).sort(([a],[b])=>a.localeCompare(b,'zh-Hant')).map(([k,v])=>`${k}：${textValue(v)}`).filter(x=>!x.endsWith('：')).join('／');
    const key=(l.name||'未命名')+'||'+prefs;
    const old=grouped.get(key)||{name:l.name||'未命名',prefs,qty:0,money:0};old.qty+=Number(l.qty||0);old.money+=Number(l.subtotal||0);grouped.set(key,old);
@@ -1055,7 +1235,7 @@ function renderStats(){
  if(!selectedStatsCampaignId){
    box.innerHTML=`<div class="hint">此處只顯示由您發起的活動。請選擇活動查看統計明細、點貨表與結算資料。</div><div class="statsCampaignList">${cs.map(c=>{
      const list=os.filter(o=>o.campaignId===c.id);
-     const money=list.reduce((sum,o)=>sum+(o.lines||[]).reduce((a,l)=>a+Number(l.subtotal||0),0),0);
+     const money=list.reduce((sum,o)=>sum+safeOrderLines(o).reduce((a,l)=>a+Number(l.subtotal||0),0),0);
      const status=c.cancelled?'已取消':c.closed?'已結束':'進行中';
      return `<article class="statsCampaignItem"><h3>${esc(c.title)} <span class="badge ${c.closed||c.cancelled?'wait':'ok'}">${status}</span></h3><div class="statsCampaignMeta">主辦人：${esc(c.host||'—')}｜截止：${esc(c.deadline||'未設定')}<br>回覆 ${list.length} 筆｜總金額 $${money}</div><div class="actions"><button class="btn" type="button" onclick="openStatsCampaign('${c.id}')">查看統計表</button></div></article>`;
    }).join('')}</div>`;
@@ -1065,7 +1245,7 @@ function renderStats(){
  if(!c){selectedStatsCampaignId='';return renderStats()}
  const list=os.filter(o=>o.campaignId===c.id);
  if(c.template==='survey'){const status=c.cancelled?'已取消':c.closed?'已結束':'進行中';const normalAction=c.closed?`<button class="btn secondary" onclick="toggleClose('${c.id}')">重新開放</button>`:`<button class="btn danger" onclick="finishCampaign('${c.id}')">調查結束</button>`;box.innerHTML=`<div class="statsBackBar noPrint"><button class="btn secondary" type="button" onclick="closeStatsCampaign()">← 返回活動清單</button><button class="btn" type="button" onclick="printStatsCampaign()">🖨️ 列印／另存 PDF</button></div><article class="eventCard"><h3>${esc(c.title)} <span class="badge ${c.closed||c.cancelled?'wait':'ok'}">${status}</span></h3><div class="meta">共 ${list.length} 人填答</div><div class="statsSummaryGrid">${surveyStatsSummary(c,list)}</div><h3 style="margin-top:16px">公開填答明細</h3>${surveyPublicRows(c)}<div class="actions noPrint">${normalAction}<button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button></div></article>`;return;}
- const money=list.reduce((sum,o)=>sum+(o.lines||[]).reduce((a,l)=>a+Number(l.subtotal||0),0),0);
+ const money=list.reduce((sum,o)=>sum+safeOrderLines(o).reduce((a,l)=>a+Number(l.subtotal||0),0),0);
  const status=c.cancelled?'已取消':c.closed?'已結束':'進行中';
  const normalAction=c.closed
    ? `<button class="btn secondary" onclick="toggleClose('${c.id}')">重新開放</button>`
