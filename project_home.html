@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#dceeff">
+  <title>和美智慧校園｜專案首頁</title>
+  <style>
+    :root{
+      --primary:#4f86c6;--primary-dark:#356ba9;--text:#23364d;--muted:#6d7d90;
+      --line:#d9e7f3;--shadow:0 10px 28px rgba(49,91,133,.13)
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:linear-gradient(180deg,#eaf5ff,#f8fbff);color:var(--text);min-height:100vh}
+    button{font:inherit;cursor:pointer}
+    .app{width:min(900px,100%);margin:auto;padding:18px 14px 48px}
+    .topbar,.panel{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)}
+    .topbar{border-radius:28px;padding:18px;margin-bottom:16px}
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{width:72px;height:72px;border-radius:20px;object-fit:contain;background:#fff;padding:4px;box-shadow:0 5px 14px rgba(49,91,133,.16)}
+    h1{font-size:1.55rem;margin:0;color:var(--primary-dark)}
+    .subtitle{color:var(--muted);font-size:.95rem;margin-top:5px;line-height:1.55}
+    .hero{border-radius:24px;padding:20px;color:#fff;box-shadow:var(--shadow);margin-bottom:16px;background:linear-gradient(135deg,#4f86c6,#78afe5)}
+    .hero.orange{background:linear-gradient(135deg,#e39a2f,#f2b45a)}
+    .hero.red{background:linear-gradient(135deg,#d95757,#ef7777)}
+    .hero.gray{background:linear-gradient(135deg,#7c8793,#9aa4ad)}
+    .hero-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
+    .project-name{font-size:1.6rem;font-weight:950}.project-date{margin-top:7px;font-weight:850}
+    .countdown{text-align:right}.countdown strong{display:block;font-size:2.25rem}.countdown span{font-weight:850}
+    .note{margin-top:14px;line-height:1.6;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);border-radius:15px;padding:12px}
+    .menu{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .menu-card{border:1px solid var(--line);border-radius:24px;background:#fff;box-shadow:var(--shadow);padding:24px 20px;text-align:left;min-height:190px;transition:.18s}
+    .menu-card:hover{transform:translateY(-3px)}.icon{font-size:44px}.menu-card h2{color:var(--primary-dark);margin:12px 0 0;font-size:1.25rem}
+    .menu-card p{color:var(--muted);line-height:1.65;margin:9px 0 0}.arrow{display:block;color:var(--primary);font-size:1.7rem;font-weight:900;margin-top:16px}
+    .footer{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:18px}
+    .primary,.secondary{border:0;border-radius:13px;padding:11px 15px;font-weight:900}
+    .primary{background:var(--primary);color:#fff}.secondary{background:#eaf3fb;color:var(--primary-dark)}
+    .version{text-align:center;color:var(--muted);font-size:.8rem;margin-top:17px}
+    @media(max-width:680px){.menu{grid-template-columns:1fr}.countdown{text-align:left}.app{padding:12px 10px 40px}}
+  </style>
+</head>
+<body>
+<main class="app">
+  <section class="topbar">
+    <div class="brand">
+      <img class="logo" src="assets/logo.png?v=20260723" alt="和美智慧校園 LOGO" onerror="this.src='assets/app-icon.png?v=20260723'">
+      <div>
+        <h1>和美智慧校園｜專案首頁</h1>
+        <div class="subtitle">目前選取的專案，可在時間表與工作分配表之間直接切換。</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hero" id="hero">
+    <div class="hero-top">
+      <div>
+        <div class="project-name" id="projectName"></div>
+        <div class="project-date" id="projectDate"></div>
+      </div>
+      <div class="countdown">
+        <strong id="countdownNumber"></strong>
+        <span id="countdownLabel"></span>
+      </div>
+    </div>
+    <div class="note" id="projectNote"></div>
+  </section>
+
+  <section class="menu">
+    <button class="menu-card" type="button" onclick="location.href='project_timeline.html'">
+      <div class="icon">🗓️</div>
+      <h2>專案時間表</h2>
+      <p>管理籌備節點、會議、通知、驗收、彩排、活動日、附件與會後檢討。</p>
+      <span class="arrow">›</span>
+    </button>
+
+    <button class="menu-card" type="button" onclick="location.href='work_assignment.html'">
+      <div class="icon">👥</div>
+      <h2>工作項目及人員分配表</h2>
+      <p>建立工作項目，分配主要負責人與協助人員，設定驗收日期與進度。</p>
+      <span class="arrow">›</span>
+    </button>
+  </section>
+
+  <div class="footer">
+    <button class="primary" type="button" onclick="location.href='project_center.html'">返回專案計畫中心</button>
+  </div>
+  <div class="version">單一專案首頁 v1.0.0｜2026-07-23</div>
+</main>
+
+<script>
+const PROJECTS_KEY='heremay.projects.v2';
+const SELECTED_KEY='heremay.selectedProjectId';
+
+function loadSelectedProject(){
+  try{
+    const projects=JSON.parse(localStorage.getItem(PROJECTS_KEY)||'[]');
+    const id=localStorage.getItem(SELECTED_KEY);
+    return projects.find(p=>p.id===id)||null;
+  }catch(e){return null}
+}
+function daysUntil(v){
+  const a=new Date();a.setHours(0,0,0,0);
+  const b=new Date(v+'T00:00:00');
+  return Math.round((b-a)/86400000);
+}
+function formatDate(v){
+  return new Date(v+'T00:00:00').toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+}
+const project=loadSelectedProject();
+if(!project){
+  location.replace('project_center.html');
+}else{
+  document.title='和美智慧校園｜'+project.name;
+  document.getElementById('projectName').textContent=project.name;
+  document.getElementById('projectDate').textContent='活動日期：'+formatDate(project.activityDate);
+  document.getElementById('projectNote').textContent=project.specialNote
+    ? '特別註記：'+project.specialNote
+    : (project.note||'目前沒有專案備註。');
+
+  const d=daysUntil(project.activityDate);
+  const hero=document.getElementById('hero');
+  if(project.status==='archived'||d<0)hero.classList.add('gray');
+  else if(d<=7)hero.classList.add('red');
+  else if(d<=30)hero.classList.add('orange');
+
+  if(project.status==='archived'){
+    document.getElementById('countdownNumber').textContent='已封存';
+    document.getElementById('countdownLabel').textContent='歷史專案調閱';
+  }else if(d>0){
+    document.getElementById('countdownNumber').textContent='倒數 '+d+' 天';
+    document.getElementById('countdownLabel').textContent=d<=7?'最後衝刺階段':d<=30?'重點準備期':'依序推進';
+  }else if(d===0){
+    document.getElementById('countdownNumber').textContent='今天';
+    document.getElementById('countdownLabel').textContent='今天就是活動日';
+  }else{
+    document.getElementById('countdownNumber').textContent='已結束 '+Math.abs(d)+' 天';
+    document.getElementById('countdownLabel').textContent='請完成會後檢討';
+  }
+}
+</script>
+</body>
+</html>

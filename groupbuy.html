@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.6.13</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.7.3</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -42,7 +42,7 @@ textarea{min-height:95px;resize:vertical}
 .btn.danger{background:#fff0f1;color:var(--red);border:1px solid #ffd0d4}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .hint{background:#f5f9ff;border:1px solid #d8e6f6;border-radius:16px;padding:11px;color:#56718d;line-height:1.55;font-weight:800;font-size:14px;margin:8px 0}
-.templateGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.templateGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
 .templateCategoryGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;align-items:start}
 .templateCategoryBox{display:grid;gap:8px}
 .savedUnderTemplate{display:grid;gap:7px}
@@ -131,6 +131,12 @@ textarea{min-height:95px;resize:vertical}
 }
 
 .quickBuilder{border:2px solid #9fc0ea;border-radius:22px;background:#f8fbff;padding:14px;margin:14px 0}.quickItemList{display:grid;gap:9px;margin-top:10px}.quickItemRow{display:grid;grid-template-columns:minmax(180px,1fr) 130px auto;gap:8px;align-items:center;background:#fff;border:1px solid #d5e4f5;border-radius:16px;padding:9px}.quickItemHead{display:grid;grid-template-columns:minmax(180px,1fr) 130px auto;gap:8px;padding:0 9px;font-size:14px;color:#607b98;font-weight:900}.quickCommon{background:#fff;border:1px solid #d5e4f5;border-radius:18px;padding:12px;margin-top:12px}.quickOrderBox{border-top:1px dashed #dce8f7;margin-top:12px;padding-top:12px}.quickProductList{display:grid;gap:8px}.quickProductChoice{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;border:1px solid #d7e4f4;border-radius:15px;padding:11px;background:#f9fcff}.quickProductChoice input{width:auto}.quickProductChoice strong{color:#173f75}.quickQty{max-width:110px}
+
+.travelPriceBox{margin-top:12px;border:1px solid #cfe0f5;border-radius:18px;padding:13px;background:#f8fbff}
+.travelPriceRow{display:grid;grid-template-columns:minmax(90px,.8fr) minmax(150px,1.4fr) minmax(110px,.8fr);gap:8px;align-items:end;margin-top:9px}
+.travelPriceRow strong{align-self:center;color:#244e7c}
+.travelMoney{font-weight:950;color:#9b5419;background:#fff7e8;border:1px solid #ffdcae;border-radius:13px;padding:12px;text-align:center}
+@media(max-width:760px){.travelPriceRow{grid-template-columns:1fr}.travelPriceRow strong{margin-top:4px}}
 
 .statsTableWrap{overflow-x:auto;margin-top:12px;border:1px solid #dbe7f4;border-radius:18px;background:#fff}
 .statsDetailTable{width:100%;border-collapse:collapse;min-width:920px;font-size:14px}
@@ -261,6 +267,7 @@ textarea{min-height:95px;resize:vertical}
       <button class="templateBtn" onclick="openTemplatePicker('goods',this)">📦 一般商品</button>
       <button class="templateBtn" onclick="openTemplatePicker('travel',this)">🚌 旅遊／聚餐</button>
       <button class="templateBtn" onclick="openTemplatePicker('training',this)">📚 研習／活動</button>
+      <button class="templateBtn" onclick="openTemplatePicker('survey',this)">📋 意願調查</button>
     </div>
 
     <div id="templatePicker" class="templatePicker" style="display:none">
@@ -305,7 +312,7 @@ textarea{min-height:95px;resize:vertical}
       <div><label>候補機制</label><select id="waitlist"><option value="off">不啟用</option><option value="on">額滿後自動候補</option></select></div>
     </div>
     <div class="row" id="companionRow">
-      <div><label>每人最多攜伴</label><input id="maxCompanion" type="number" min="0" value="0" inputmode="numeric"></div>
+      <div><label>每人最多攜伴</label><select id="maxCompanion"><option value="0">0 人</option><option value="1">1 人</option><option value="2">2 人</option><option value="3">3 人</option><option value="4">4 人</option><option value="5">5 人</option><option value="6">6 人</option><option value="7">7 人</option><option value="8">8 人</option><option value="9">9 人</option><option value="10">10 人</option></select></div>
       <div><label>名額計算方式</label><select id="capacityMode"><option value="people">本人＋攜伴都計入</option><option value="registrations">只計報名筆數</option></select></div>
     </div>
     <div class="row">
@@ -342,7 +349,7 @@ textarea{min-height:95px;resize:vertical}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.6.13｜2026-07-22｜手機快速更新與固定欄位版</div>
+<div class="version">團購／報名中心 v1.7.7｜2026-07-23｜移除旅遊明細重複攜伴欄</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -372,7 +379,8 @@ const templateCategoryNames={
  meal:'🍱 餐點類常用模板',
  goods:'📦 一般商品類常用模板',
  travel:'🚌 旅遊／聚餐類常用模板',
- training:'📚 研習／活動類常用模板'
+ training:'📚 研習／活動類常用模板',
+ survey:'📋 意願調查類常用模板'
 };
 
 const templates={
@@ -385,7 +393,9 @@ const templates={
  travel:{title:'旅遊／聚餐報名',desc:'每位受邀者都要回覆參加或不參加。名額依成功送出時間排序。',required:true,visibility:'status',capacity:40,waitlist:'on',maxCompanion:1,
  products:[{name:'活動報名',specs:[['本人參加',0]],prefs:[['餐食','單選','葷食,素食'],['交通','單選','搭車,自行前往'],['其他需求','文字','']]}]},
  training:{title:'研習／活動報名',desc:'請選擇參加場次與餐食。',required:true,visibility:'status',capacity:30,waitlist:'on',maxCompanion:0,
- products:[{name:'研習報名',specs:[['上午場',0],['下午場',0]],prefs:[['餐食','單選','葷食,素食,不需要'],['需要研習時數','單選','需要,不需要']]}]}
+ products:[{name:'研習報名',specs:[['上午場',0],['下午場',0]],prefs:[['餐食','單選','葷食,素食,不需要'],['需要研習時數','單選','需要,不需要']]}]},
+ survey:{title:'旅遊意願調查',desc:'請勾選可參加日期、偏好地點與預期參加人數。此階段僅蒐集意願，不顯示價格；所有填答者可查看公開結果，並可在截止前修改。',required:true,visibility:'full',capacity:0,waitlist:'off',maxCompanion:0,
+ products:[{name:'旅遊意願',specs:[['問卷',0]],prefs:[['參加意願','單選','願意參加,視日期與行程而定,暫不參加'],['可參加日期','複選','日期 A,日期 B,日期 C'],['偏好旅遊地點','單選','地點 A,地點 B,地點 C'],['預期參加總人數','人數','1,20'],['是否攜帶幼兒','單選','是,否'],['其他需求或建議','文字','']]}]}
  };
 
 function quickType(){return activeTemplate==='drink'||activeTemplate==='meal'}
@@ -395,7 +405,8 @@ function resetQuickItems(type){const b=document.getElementById('quickItemList');
 function collectCommonPrefs(){if(activeTemplate==='drink')return[{name:'冷熱',type:'單選',values:csvValues('commonTemp')},{name:'甜度',type:'單選',values:csvValues('commonSweet')},{name:'冰量',type:'單選',values:csvValues('commonIce')}].filter(x=>x.values.length);if(activeTemplate==='meal')return[{name:'辣度',type:'單選',values:csvValues('commonSpicy')},{name:'處理方式',type:'單選',values:csvValues('commonCut')}].filter(x=>x.values.length);return[]}
 function collectAddons(){return csvValues('commonAddons').map(x=>{const m=x.match(/^(.+?)[：:](\d+(?:\.\d+)?)$/);return m?{name:m[1].trim(),price:Number(m[2])}:null}).filter(Boolean)}
 function collectQuickProducts(){const prefs=collectCommonPrefs(),addons=collectAddons();return [...document.querySelectorAll('.quickItemRow')].map((r,i)=>{const n=r.querySelector('.quickName').value.trim(),price=Number(r.querySelector('.quickPrice').value||0);return{id:'p_'+Date.now()+'_'+i,name:n,specs:[{name:'基本價格',price}],prefs,addons}}).filter(x=>x.name&&x.specs.length)}
-function updateCategoryLayout(type,keepItems=false){const q=type==='drink'||type==='meal';document.getElementById('quickBuilder').style.display=q?'block':'none';document.getElementById('legacyProductSection').style.display=q?'none':'block';document.getElementById('capacityRow').style.display=q?'none':'grid';document.getElementById('companionRow').style.display=(type==='travel'||type==='training')?'grid':'none';document.getElementById('visibilityReplyRow').style.display=q?'none':'grid';document.getElementById('drinkCommonFields').style.display=type==='drink'?'block':'none';document.getElementById('mealCommonFields').style.display=type==='meal'?'block':'none';if(q&&!keepItems)resetQuickItems(type)}
+function updateCategoryLayout(type,keepItems=false){const q=type==='drink'||type==='meal';document.getElementById('quickBuilder').style.display=q?'block':'none';document.getElementById('legacyProductSection').style.display=q?'none':'block';document.getElementById('capacityRow').style.display=(q||type==='survey')?'none':'grid';document.getElementById('companionRow').style.display=(type==='travel'||type==='training')?'grid':'none';document.getElementById('visibilityReplyRow').style.display=q?'none':'grid';document.getElementById('drinkCommonFields').style.display=type==='drink'?'block':'none';document.getElementById('mealCommonFields').style.display=type==='meal'?'block':'none';if(q&&!keepItems)resetQuickItems(type);setTimeout(()=>refreshSurveyEditorLayout(),0)}
+function refreshSurveyEditorLayout(){const isSurvey=activeTemplate==='survey';const section=document.getElementById('legacyProductSection');if(!section)return;const title=section.querySelector('h2');const hint=section.querySelector('.hint');if(title)title.textContent=isSurvey?'意願調查題目':'本次開放品項';if(hint)hint.textContent=isSurvey?'請直接設定調查題目，不需建立品名、規格或價格。':'旅遊、研習與一般商品可使用完整品項設定。';section.querySelectorAll('.productEditor').forEach(ed=>{const nameWrap=ed.querySelector('.productTop>div:first-child');const specTitle=[...ed.querySelectorAll('h3')].find(x=>x.textContent.includes('價格規格'));const specHint=specTitle?.nextElementSibling;const specList=ed.querySelector('.specList');const specActions=specList?.nextElementSibling;const prefTitle=[...ed.querySelectorAll('h3')].find(x=>x.textContent.includes('免費偏好'));if(nameWrap)nameWrap.style.display=isSurvey?'none':'';if(specTitle)specTitle.style.display=isSurvey?'none':'';if(specHint)specHint.style.display=isSurvey?'none':'';if(specList)specList.style.display=isSurvey?'none':'';if(specActions)specActions.style.display=isSurvey?'none':'';if(prefTitle)prefTitle.textContent=isSurvey?'調查題目':'免費偏好';const pHint=prefTitle?.nextElementSibling;if(pHint)pHint.textContent=isSurvey?'可設定單選、複選、人數與文字題。':'甜度、冰量、辣度、鹹度、切法等不改變價格。';const num=ed.querySelector('.productNumber');const head=ed.querySelector('.productHeaderTitle');if(isSurvey){if(num)num.textContent='問卷';if(head)head.textContent='旅遊意願調查題目';}})}
 function fillQuickFromData(source){const products=source.products||[];document.getElementById('quickItemList').innerHTML='';products.forEach(p=>addQuickItem({name:p.name,price:p.specs?.[0]?.price||0}));if(!products.length)resetQuickItems(activeTemplate);const prefs=(source.commonPrefs?.length?source.commonPrefs:products[0]?.prefs)||[];const byName=Object.fromEntries(prefs.map(p=>[p.name,(p.values||[]).join(',')]));if(byName['冷熱'])document.getElementById('commonTemp').value=byName['冷熱'];if(byName['甜度'])document.getElementById('commonSweet').value=byName['甜度'];if(byName['冰量'])document.getElementById('commonIce').value=byName['冰量'];if(byName['辣度'])document.getElementById('commonSpicy').value=byName['辣度'];if(byName['處理方式'])document.getElementById('commonCut').value=byName['處理方式'];const addons=(source.addons?.length?source.addons:products[0]?.addons)||[];document.getElementById('commonAddons').value=addons.map(a=>a.name+':'+a.price).join(',')}
 
 function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -491,7 +502,7 @@ async function cloudWrite(action,payload,successMessage){
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
-const APP_VERSION='1.6.13';
+const APP_VERSION='1.7.7';
 async function updateAppNow(){
  toast('正在檢查新版…');
  try{
@@ -526,7 +537,7 @@ function applyTemplate(type,btn){
  document.getElementById('capacity').value=t.capacity;
  document.getElementById('waitlist').value=t.waitlist;
  document.getElementById('maxCompanion').value=t.maxCompanion;
- document.getElementById('retentionMode').value=(type==='travel'||type==='training')?'keep':'delete';
+ document.getElementById('retentionMode').value=(type==='travel'||type==='training'||type==='survey')?'keep':'delete';
  document.getElementById('selectedTemplateNotice').textContent='目前使用：'+(templateCategoryNames[type]||type)+'系統模板';
  document.getElementById('productEditors').innerHTML='';
  updateCategoryLayout(type);
@@ -534,7 +545,7 @@ function applyTemplate(type,btn){
  updateProductHeadings();
 }
 function specRow(name='',price=''){return `<div class="specRow"><input class="specName" placeholder="規格，例如：大杯、熱飲" value="${esc(name)}"><input class="specPrice" type="number" min="0" inputmode="decimal" placeholder="價格" value="${esc(price)}"><button class="btn danger" type="button" onclick="this.closest('.specRow').remove()">移除</button></div>`}
-function prefRow(name='',type='單選',values=''){return `<div class="prefRow"><input class="prefName" placeholder="偏好，例如：甜度、辣度" value="${esc(name)}"><select class="prefType"><option ${type==='單選'?'selected':''}>單選</option><option ${type==='複選'?'selected':''}>複選</option><option ${type==='文字'?'selected':''}>文字</option></select><input class="prefValues" placeholder="選項，以逗號分隔" value="${esc(values)}"><button class="btn danger" type="button" onclick="this.closest('.prefRow').remove()">移除</button></div>`}
+function prefRow(name='',type='單選',values=''){return `<div class="prefRow"><input class="prefName" placeholder="題目，例如：日期、路線" value="${esc(name)}"><select class="prefType"><option ${type==='單選'?'selected':''}>單選</option><option ${type==='複選'?'selected':''}>複選</option><option ${type==='人數'?'selected':''}>人數</option><option ${type==='文字'?'selected':''}>文字</option></select><input class="prefValues" placeholder="選項；人數題請填最小值,最大值" value="${esc(values)}"><button class="btn danger" type="button" onclick="this.closest('.prefRow').remove()">移除</button></div>`}
 function addProductEditor(data={name:'',specs:[['',0]],prefs:[]}){
  const box=document.getElementById('productEditors');
  [...box.querySelectorAll('.productEditor')].forEach(x=>x.classList.add('collapsed'));
@@ -551,6 +562,7 @@ function addProductEditor(data={name:'',specs:[['',0]],prefs:[]}){
  </div>`;
  box.appendChild(d);
  updateProductHeadings();
+ refreshSurveyEditorLayout();
  setTimeout(()=>d.scrollIntoView({behavior:'smooth',block:'start'}),80);
 }
 function toggleProductEditor(header){
@@ -590,7 +602,7 @@ function copyPrefsFromPrevious(btn){
 
 document.getElementById('attachments').addEventListener('change',e=>{for(const f of [...e.target.files])if(!pendingFiles.some(x=>x.name===f.name&&x.size===f.size&&x.lastModified===f.lastModified))pendingFiles.push(f);e.target.value='';renderFiles()});
 function renderFiles(){document.getElementById('fileList').innerHTML=pendingFiles.map((f,i)=>`<div class="fileChip"><span><strong>📎 ${esc(f.name)}</strong><small>${Math.ceil(f.size/1024)} KB</small></span><button class="btn danger" onclick="pendingFiles.splice(${i},1);renderFiles()">移除</button></div>`).join('')}
-function collectProducts(){if(quickType())return collectQuickProducts();return [...document.querySelectorAll('.productEditor')].map(ed=>({id:'p_'+Date.now()+'_'+Math.random().toString(36).slice(2),name:ed.querySelector('.productNameInput').value.trim(),specs:[...ed.querySelectorAll('.specRow')].map(r=>({name:r.querySelector('.specName').value.trim(),price:Number(r.querySelector('.specPrice').value||0)})).filter(x=>x.name),prefs:[...ed.querySelectorAll('.prefRow')].map(r=>({name:r.querySelector('.prefName').value.trim(),type:r.querySelector('.prefType').value,values:r.querySelector('.prefValues').value.split(/[,，、；;\n\r]+/).map(x=>x.trim()).filter(Boolean)})).filter(x=>x.name)})).filter(x=>x.name&&x.specs.length)}
+function collectProducts(){if(quickType())return collectQuickProducts();return [...document.querySelectorAll('.productEditor')].map(ed=>{const prefs=[...ed.querySelectorAll('.prefRow')].map(r=>({name:r.querySelector('.prefName').value.trim(),type:r.querySelector('.prefType').value,values:r.querySelector('.prefValues').value.split(/[,，、；;\n\r]+/).map(x=>x.trim()).filter(Boolean)})).filter(x=>x.name);if(activeTemplate==='survey')return {id:'p_'+Date.now()+'_'+Math.random().toString(36).slice(2),name:'旅遊意願',specs:[{name:'問卷',price:0}],prefs};return {id:'p_'+Date.now()+'_'+Math.random().toString(36).slice(2),name:ed.querySelector('.productNameInput').value.trim(),specs:[...ed.querySelectorAll('.specRow')].map(r=>({name:r.querySelector('.specName').value.trim(),price:Number(r.querySelector('.specPrice').value||0)})).filter(x=>x.name),prefs}}).filter(x=>x.name&&x.specs.length)}
 
 function currentFormSnapshot(){
  return {
@@ -632,7 +644,7 @@ function loadSavedTemplate(id){
  updateCategoryLayout(activeTemplate,true);
  document.getElementById('productEditors').innerHTML='';
  if(quickType())fillQuickFromData(t);else (t.products||[]).forEach(p=>addProductEditor({name:p.name,specs:(p.specs||[]).map(s=>[s.name,s.price]),prefs:(p.prefs||[]).map(pref=>[pref.name,pref.type,(pref.values||[]).join('，')])}));
- document.getElementById('retentionMode').value=t.retentionMode||((activeTemplate==='travel'||activeTemplate==='training')?'keep':'delete');
+ document.getElementById('retentionMode').value=t.retentionMode||((activeTemplate==='travel'||activeTemplate==='training'||activeTemplate==='survey')?'keep':'delete');
  document.getElementById('selectedTemplateNotice').textContent='目前使用：'+t.name;
  document.getElementById('campaignTitle').scrollIntoView({behavior:'smooth',block:'center'});
  toast('常用模板已載入');
@@ -671,7 +683,7 @@ function renderTemplatePicker(){
 function startNewFromCategory(cat){
  activeTemplate=cat;
  const buttons=[...document.querySelectorAll('.templateBtn')];
- const idx={drink:0,meal:1,goods:2,travel:3,training:4}[cat]??0;
+ const idx={drink:0,meal:1,goods:2,travel:3,training:4,survey:5}[cat]??0;
  applyTemplate(cat,buttons[idx]);
  closeTemplatePicker();
  document.getElementById('campaignTitle').scrollIntoView({behavior:'smooth',block:'center'});
@@ -726,7 +738,7 @@ function editCampaign(id){
  editingCampaignId=id;
  activeTemplate=c.template||'drink';
  document.querySelectorAll('.templateBtn').forEach(btn=>btn.classList.remove('active'));
- const templateIndex={drink:0,meal:1,goods:2,travel:3,training:4}[activeTemplate]??0;
+ const templateIndex={drink:0,meal:1,goods:2,travel:3,training:4,survey:5}[activeTemplate]??0;
  document.querySelectorAll('.templateBtn')[templateIndex]?.classList.add('active');
 
  document.getElementById('campaignTitle').value=c.title||'';
@@ -742,7 +754,7 @@ function editCampaign(id){
  document.getElementById('waitlist').value=c.waitlist?'on':'off';
  document.getElementById('maxCompanion').value=Number(c.maxCompanion||0);
  document.getElementById('capacityMode').value=c.capacityMode||'people';
- document.getElementById('retentionMode').value=c.retentionMode||((c.template==='travel'||c.template==='training')?'keep':'delete');
+ document.getElementById('retentionMode').value=c.retentionMode||((c.template==='travel'||c.template==='training'||c.template==='survey')?'keep':'delete');
 
  pendingFiles=[];
  document.getElementById('fileList').innerHTML=(c.files||[]).map(f=>`<div class="fileChip"><span><strong>📎 ${esc(f.name)}</strong><small>既有附件</small></span></div>`).join('');
@@ -764,19 +776,32 @@ function editCampaign(id){
 }
 function renderPreference(p,cid,pid){
  if(p.type==='文字')return `<div class="optionBlock"><div class="optionLabel">${esc(p.name)}</div><input class="prefInput" data-pref="${esc(p.name)}" placeholder="請輸入"></div>`;
+ if(p.type==='人數'){const min=Number(p.values?.[0]||0),max=Number(p.values?.[1]||20);return `<div class="optionBlock"><div class="optionLabel">${esc(p.name)}</div><input class="prefInput" data-pref="${esc(p.name)}" type="number" min="${min}" max="${max}" value="${Math.max(1,min)}" inputmode="numeric"></div>`;}
  if(p.type==='複選')return `<div class="optionBlock"><div class="optionLabel">${esc(p.name)}</div><div class="choiceGrid">${p.values.map(v=>`<label class="choice"><input type="checkbox" class="prefCheck" data-pref="${esc(p.name)}" value="${esc(v)}">${esc(v)}</label>`).join('')}</div></div>`;
  return `<div class="optionBlock"><div class="optionLabel">${esc(p.name)}</div><div class="choiceGrid">${p.values.map(v=>`<label class="choice"><input type="radio" name="${cid}_${pid}_${esc(p.name)}" class="prefInput" data-pref="${esc(p.name)}" value="${esc(v)}">${esc(v)}</label>`).join('')}</div></div>`;
 }
+function surveyProduct(c){return (c.products||[])[0]||{id:'survey',prefs:[]}}
+function surveyExistingReply(c){return getO().filter(o=>o.campaignId===c.id&&o.user===currentName()).sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')))[0]||null}
+function surveyFields(c){const p=surveyProduct(c);return `<div class="productCard surveyForm" data-campaign="${c.id}" data-product="${p.id||'survey'}">${(p.prefs||[]).map(x=>renderPreference(x,c.id,p.id||'survey')).join('')}</div>`}
+function surveyAnswersFromCard(c){const card=document.getElementById('note_'+c.id)?.closest('.eventCard'),answers={};if(!card)return answers;card.querySelectorAll('.surveyForm .prefInput').forEach(el=>{if((el.type==='radio'&&!el.checked)||el.value==='')return;answers[el.dataset.pref]=el.type==='number'?Number(el.value||0):el.value});card.querySelectorAll('.surveyForm .prefCheck:checked').forEach(el=>{answers[el.dataset.pref]=answers[el.dataset.pref]||[];answers[el.dataset.pref].push(el.value)});return answers}
+function prefillSurveyReply(c){const old=surveyExistingReply(c);if(!old)return;const card=document.getElementById('note_'+c.id)?.closest('.eventCard');if(!card)return;const answers=old.surveyAnswers||old.lines?.[0]?.prefs||{};card.querySelectorAll('.surveyForm .prefInput').forEach(el=>{const v=answers[el.dataset.pref];if(el.type==='radio')el.checked=String(v)===el.value;else if(v!==undefined)el.value=v});card.querySelectorAll('.surveyForm .prefCheck').forEach(el=>{const v=answers[el.dataset.pref];el.checked=Array.isArray(v)&&v.includes(el.value)});const note=document.getElementById('note_'+c.id);if(note)note.value=old.note||''}
+function surveyPublicRows(c){const list=getO().filter(o=>o.campaignId===c.id&&o.status!=='not_joining'),questions=surveyProduct(c).prefs||[];return `<div class="statsTableWrap"><table class="statsDetailTable"><thead><tr><th>姓名</th>${questions.map(q=>`<th>${esc(q.name)}</th>`).join('')}<th>最後更新</th></tr></thead><tbody>${list.map(o=>{const a=o.surveyAnswers||o.lines?.[0]?.prefs||{};return `<tr><td>${esc(o.user)}</td>${questions.map(q=>`<td class="wrap">${esc(textValue(a[q.name])||'—')}</td>`).join('')}<td>${new Date(o.updatedAt||o.createdAt).toLocaleString('zh-TW',{hour12:false})}</td></tr>`}).join('')||`<tr><td colspan="${questions.length+2}">尚無填答</td></tr>`}</tbody></table></div>`}
+function surveyStatsSummary(c,list){const questions=surveyProduct(c).prefs||[];const answerOf=o=>o.surveyAnswers||o.lines?.[0]?.prefs||{};return questions.map(q=>{if(q.type==='文字')return '';if(q.type==='人數'){const total=list.reduce((n,o)=>n+Number(answerOf(o)[q.name]||0),0);return `<div class="statsSummaryBox"><strong>${esc(q.name)}</strong><span>預估總人數：${total}</span></div>`}const count={};list.forEach(o=>{const v=answerOf(o)[q.name];(Array.isArray(v)?v:[v]).filter(Boolean).forEach(x=>count[x]=(count[x]||0)+1)});return `<div class="statsSummaryBox"><strong>${esc(q.name)}</strong><span>${Object.entries(count).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${esc(k)}：${v} 票`).join('<br>')||'尚無資料'}</span></div>`}).join('')}
 function quickTypeForCampaign(c){return c.template==='drink'||c.template==='meal'}
+function orderPeopleCount(c,o){
+ if(!o||o.status==='not_joining')return 0;
+ return c.capacityMode==='registrations'?1:(1+Number(o.companions||0));
+}
 function participantCount(c){
  const os=getO().filter(o=>o.campaignId===c.id&&o.status!=='not_joining');
- return os.reduce((s,o)=>s+(c.capacityMode==='registrations'?1:(1+Number(o.companions||0))),0)
+ return os.reduce((s,o)=>s+orderPeopleCount(c,o),0)
 }
 function remaining(c){return c.capacity>0?Math.max(0,c.capacity-participantCount(c)):null}
 function publicRows(c){
  const os=getO().filter(o=>o.campaignId===c.id);
  if(c.visibility==='private')return '';
- return `<table class="publicTable"><thead><tr><th>姓名</th><th>狀態</th>${c.visibility==='full'?'<th>內容</th>':''}</tr></thead><tbody>${os.map(o=>`<tr><td class="colName">${esc(o.user)}</td><td>${o.status==='accepted'?'<span class="badge ok">正取</span>':o.status==='waitlist'?'<span class="badge wait">候補</span>':'<span class="badge no">不參加</span>'}</td>${c.visibility==='full'?`<td>${esc(o.lines.map(l=>`${l.name}／${l.spec}×${l.qty}`).join('、'))}</td>`:''}</tr>`).join('')}</tbody></table>`
+ const showPeople=c.template==='travel'||c.template==='training';
+ return `<table class="publicTable"><thead><tr><th>姓名</th><th>狀態</th>${showPeople?'<th>報名人數</th>':''}${c.visibility==='full'?'<th>內容</th>':''}</tr></thead><tbody>${os.map(o=>`<tr><td class="colName">${esc(o.user)}</td><td>${o.status==='accepted'?'<span class="badge ok">正取</span>':o.status==='waitlist'?'<span class="badge wait">候補</span>':'<span class="badge no">不參加</span>'}</td>${showPeople?`<td><strong>${orderPeopleCount(c,o)} 人</strong></td>`:''}${c.visibility==='full'?`<td>${esc((o.lines||[]).map(l=>`${l.name}／${l.spec}×${l.qty}`).join('、'))}</td>`:''}</tr>`).join('')}</tbody></table>`
 }
 function campaignCommonPrefs(c){return c.commonPrefs?.length?c.commonPrefs:(c.products?.[0]?.prefs||[])}
 function campaignAddons(c){return c.addons?.length?c.addons:(c.products?.[0]?.addons||[])}
@@ -799,23 +824,63 @@ function updateQuickTotal(cid){
  if(box)box.textContent='預估總額：$'+total;
 }
 
+function travelMainProduct(c){return (c.products||[])[0]||{id:'travel',name:'活動報名',specs:[]}}
+function travelHasTextPreference(c){return (travelMainProduct(c).prefs||[]).some(p=>p.type==='文字')}
+function travelPriceOptions(c,selected=''){
+ const specs=travelMainProduct(c).specs||[];
+ return `<option value="">請選擇價別</option>${specs.map((sp,i)=>`<option value="${i}" ${String(selected)===String(i)?'selected':''}>${esc(sp.name)}｜$${Number(sp.price||0)}</option>`).join('')}`;
+}
+function travelCompanionSelect(c){
+ const max=Math.max(0,Number(c.maxCompanion||0));
+ return `<select id="companions_${c.id}" onchange="renderTravelCompanions('${c.id}');updateTravelTotal('${c.id}')">${Array.from({length:max+1},(_,i)=>`<option value="${i}">${i} 人</option>`).join('')}</select>`;
+}
+function travelPricingFields(c){
+ const p=travelMainProduct(c),prefs=p.prefs||[];
+ const prefHtml=prefs.length?`<div class="productCard travelPrefs" data-campaign="${c.id}" data-product="${p.id||'travel'}"><h3 style="margin:0 0 8px">報名偏好</h3><div class="hint">請填寫餐食、交通及其他需求；這些資料會一併送到主辦人統計表。</div>${prefs.map(x=>renderPreference(x,c.id,p.id||'travel')).join('')}</div>`:'';
+ return `<div class="travelPriceBox" data-travel-pricing="${c.id}"><h3 style="margin:0 0 8px">參加人員與費用</h3><div class="hint">本人與每位攜伴可分別選擇成人價、兒童價、親友價等不同價別。</div><div class="travelPriceRow"><strong>本人</strong><select class="travelPriceSelect" data-person="本人" onchange="updateTravelTotal('${c.id}')">${travelPriceOptions(c)}</select><div class="travelMoney">小計：$<span>0</span></div></div><label>攜伴人數（最多 ${Number(c.maxCompanion||0)} 人）</label>${travelCompanionSelect(c)}<div id="travelCompanions_${c.id}"></div><div class="totalBox" id="total_${c.id}">預估總額：$0</div>${prefHtml}</div>`;
+}
+function renderTravelCompanions(cid){
+ const c=getC().find(x=>x.id===cid);if(!c)return;
+ const count=Number(document.getElementById('companions_'+cid)?.value||0),max=Math.max(0,Number(c.maxCompanion||0));
+ const safe=Math.min(Math.max(0,count),max);if(count!==safe)document.getElementById('companions_'+cid).value=String(safe);
+ const box=document.getElementById('travelCompanions_'+cid);if(!box)return;
+ box.innerHTML=Array.from({length:safe},(_,i)=>`<div class="travelPriceRow"><strong>攜伴 ${i+1}</strong><select class="travelPriceSelect" data-person="攜伴 ${i+1}" onchange="updateTravelTotal('${cid}')">${travelPriceOptions(c)}</select><div class="travelMoney">小計：$<span>0</span></div></div>`).join('');
+ updateTravelTotal(cid);
+}
+function updateTravelTotal(cid){
+ const c=getC().find(x=>x.id===cid);if(!c)return;let total=0;
+ const card=document.getElementById('note_'+cid)?.closest('.eventCard');
+ (card?.querySelectorAll('.travelPriceRow')||[]).forEach(row=>{const sel=row.querySelector('.travelPriceSelect'),idx=Number(sel?.value),sp=Number.isInteger(idx)?travelMainProduct(c).specs?.[idx]:null,price=Number(sp?.price||0);row.querySelector('.travelMoney span').textContent=price;total+=price});
+ const out=document.getElementById('total_'+cid);if(out)out.textContent='預估總額：$'+total;
+}
+function collectTravelLines(c){
+ const card=document.getElementById('note_'+c.id)?.closest('.eventCard'),lines=[],prefs={};
+ card?.querySelectorAll('.travelPrefs .prefInput').forEach(el=>{if((el.type==='radio'&&!el.checked)||el.value==='')return;prefs[el.dataset.pref]=el.type==='number'?Number(el.value||0):el.value});
+ card?.querySelectorAll('.travelPrefs .prefCheck:checked').forEach(el=>{prefs[el.dataset.pref]=prefs[el.dataset.pref]||[];prefs[el.dataset.pref].push(el.value)});
+ const selects=[...(card?.querySelectorAll('.travelPriceSelect')||[])];
+ for(const sel of selects){if(sel.value==='')return {error:'請為'+sel.dataset.person+'選擇價別',lines:[]};const sp=travelMainProduct(c).specs?.[Number(sel.value)];if(!sp)return {error:'價格資料不完整',lines:[]};lines.push({name:sel.dataset.person,spec:sp.name,price:Number(sp.price||0),qty:1,prefs:{...prefs},subtotal:Number(sp.price||0)});}
+ return {error:'',lines};
+}
 function eventCard(c){
  const rem=remaining(c),full=rem===0&&c.capacity>0;
+ if(c.template==='survey'){setTimeout(()=>prefillSurveyReply(c),0);return `<article class="eventCard"><h3>${esc(c.title)}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}</div><div class="meta">${esc(c.desc||'')}</div><div class="hint">填答後仍可在截止前再次開啟此頁修改；下方會公開顯示姓名與調查答案。</div>${surveyFields(c)}<label>備註</label><input id="note_${c.id}" placeholder="可留白"><div class="actions"><button class="btn" ${(c.closed||c.cancelled)?'disabled':''} onclick="submitReply('${c.id}')">${surveyExistingReply(c)?'更新我的回答':'送出意願調查'}</button></div><h3 style="margin-top:18px">目前填答狀況</h3>${surveyPublicRows(c)}</article>`;}
  return `<article class="eventCard"><h3>${esc(c.title)}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}｜對象：${esc(c.targets.join('、'))}</div><div class="meta">${esc(c.desc||'')}</div>${c.cancelled?`<div class="hint">活動已取消${c.cancelReason?'：'+esc(c.cancelReason):''}</div>`:''}
  ${c.capacity>0?`<div class="counter">已報名 ${participantCount(c)}／${c.capacity} 人｜剩餘 ${rem} 人</div>`:''}
  ${c.replyRequired?`<div class="optionBlock"><div class="optionLabel">是否參加（必填）</div><div class="choiceGrid"><label class="choice"><input type="radio" name="join_${c.id}" value="yes">參加</label><label class="choice"><input type="radio" name="join_${c.id}" value="no">不參加</label></div></div>`:''}
- ${c.maxCompanion>0?`<label>攜伴人數（最多 ${c.maxCompanion} 人）</label><input id="companions_${c.id}" type="number" min="0" max="${c.maxCompanion}" value="0" inputmode="numeric">`:''}
- ${quickTypeForCampaign(c)?quickOrderFields(c):c.products.map(p=>`<div class="productCard" data-campaign="${c.id}" data-product="${p.id}"><div class="productHead"><div class="productName">${esc(p.name)}</div></div><div class="optionBlock"><div class="optionLabel">規格與價格</div><div class="choiceGrid">${p.specs.map((s,i)=>`<label class="choice"><input type="radio" name="spec_${c.id}_${p.id}" class="specChoice" value="${i}" data-price="${s.price}">${esc(s.name)} $${s.price}</label>`).join('')}</div></div>${p.prefs.map(x=>renderPreference(x,c.id,p.id)).join('')}<div class="qtyGrid"><div><label>數量</label><input class="qty" type="number" min="0" value="0" inputmode="numeric" oninput="updateTotal('${c.id}')"></div><div class="totalBox productSubtotal">小計：$0</div></div></div>`).join('')+`<div class="totalBox" id="total_${c.id}">預估總額：$0</div>`}<label>備註</label><input id="note_${c.id}" placeholder="可留白"><div class="actions"><button class="btn" ${(c.closed||c.cancelled)?'disabled':''} onclick="submitReply('${c.id}')">${c.cancelled?'活動已取消':c.closed?'已結單':'送出回覆'}</button></div>${publicRows(c)}</article>`
+ ${c.template==='travel'?travelPricingFields(c):(c.maxCompanion>0?`<label>攜伴人數（最多 ${c.maxCompanion} 人）</label><select id="companions_${c.id}">${Array.from({length:Number(c.maxCompanion||0)+1},(_,i)=>`<option value="${i}">${i} 人</option>`).join('')}</select>`:'')}
+ ${c.template==='travel'?'':(quickTypeForCampaign(c)?quickOrderFields(c):c.products.map(p=>`<div class="productCard" data-campaign="${c.id}" data-product="${p.id}"><div class="productHead"><div class="productName">${esc(p.name)}</div></div><div class="optionBlock"><div class="optionLabel">規格與價格</div><div class="choiceGrid">${p.specs.map((s,i)=>`<label class="choice"><input type="radio" name="spec_${c.id}_${p.id}" class="specChoice" value="${i}" data-price="${s.price}">${esc(s.name)} $${s.price}</label>`).join('')}</div></div>${p.prefs.map(x=>renderPreference(x,c.id,p.id)).join('')}<div class="qtyGrid"><div><label>數量</label><input class="qty" type="number" min="0" value="0" inputmode="numeric" oninput="updateTotal('${c.id}')"></div><div class="totalBox productSubtotal">小計：$0</div></div></div>`).join('')+`<div class="totalBox" id="total_${c.id}">預估總額：$0</div>`)}${c.template==='travel'&&travelHasTextPreference(c)?`<input type="hidden" id="note_${c.id}" value="">`:`<label>備註</label><input id="note_${c.id}" placeholder="可留白">`}<div class="actions"><button class="btn" ${(c.closed||c.cancelled)?'disabled':''} onclick="submitReply('${c.id}')">${c.cancelled?'活動已取消':c.closed?'已結單':'送出回覆'}</button></div>${publicRows(c)}</article>`
 }
 function updateTotal(cid){let total=0;document.querySelectorAll(`[data-campaign="${cid}"]`).forEach(row=>{const qty=Number(row.querySelector('.qty').value||0),spec=row.querySelector('.specChoice:checked'),price=Number(spec?.dataset.price||0),sub=qty*price;row.querySelector('.productSubtotal').textContent='小計：$'+sub;total+=sub});document.getElementById('total_'+cid).textContent='預估總額：$'+total}
 async function submitReply(cid){
  const c=getC().find(x=>x.id===cid);if(!c)return;
+ if(c.template==='survey'){const answers=surveyAnswersFromCard(c),questions=surveyProduct(c).prefs||[];for(const q of questions){const v=answers[q.name];if(q.type!=='文字'&&(v===undefined||v===''||(Array.isArray(v)&&!v.length)))return toast('請完成：'+q.name)}const old=surveyExistingReply(c),now=new Date().toISOString();await cloudWrite('saveOrder',{id:old?.id||('o_'+Date.now()),campaignId:cid,user:currentName(),status:'accepted',companions:0,surveyAnswers:answers,lines:[{name:'旅遊意願調查',spec:'問卷回答',price:0,qty:1,prefs:answers,subtotal:0}],note:document.getElementById('note_'+cid).value.trim(),createdAt:old?.createdAt||now,updatedAt:now},old?'回答已更新並同步':'意願調查已送出並同步');return;}
  let join='yes';
  if(c.replyRequired){
    join=document.querySelector(`input[name="join_${cid}"]:checked`)?.value||'';
    if(!join)return toast('請先選擇參加或不參加');
  }
- const companions=Number(document.getElementById('companions_'+cid)?.value||0);
+ const maxCompanions=Math.max(0,Number(c.maxCompanion||0));
+ const companions=Math.min(maxCompanions,Math.max(0,Number(document.getElementById('companions_'+cid)?.value||0)));
  if(join==='no'){
    await cloudWrite('saveOrder',{
      id:'o_'+Date.now(),campaignId:cid,user:currentName(),status:'not_joining',
@@ -824,7 +889,8 @@ async function submitReply(cid){
    return;
  }
  const lines=[];
- if(quickTypeForCampaign(c)){
+ if(c.template==='travel'){const result=collectTravelLines(c);if(result.error)return toast(result.error);lines.push(...result.lines);}
+ else if(quickTypeForCampaign(c)){
    const card=document.getElementById('note_'+cid)?.closest('.eventCard');
    (card?.querySelectorAll('.matrixOrderRow')||[]).forEach(row=>{
      const qty=Number(row.querySelector('.matrixQty')?.value||0);if(qty<=0)return;
@@ -845,7 +911,7 @@ async function submitReply(cid){
    });
    lines.push({name:p.name,spec:spec.name,price:spec.price,qty,prefs,subtotal:spec.price*qty});
  });
- if(!lines.length&&c.template!=='travel'&&c.template!=='training')return toast('請至少選擇一個品項');
+ if(!lines.length&&c.template!=='travel'&&c.template!=='training'&&c.template!=='survey')return toast('請至少選擇一個品項');
  await cloudWrite('saveOrder',{
    id:'o_'+Date.now(),campaignId:cid,user:currentName(),status:'accepted',
    companions,lines,note:document.getElementById('note_'+cid).value.trim(),
@@ -861,9 +927,9 @@ function renderAvailable(){
    box.innerHTML=`<div class="actions"><button class="btn secondary" onclick="openedCampaignId='';renderAvailable()">← 返回活動清單</button></div>${eventCard(c)}`;
    return;
  }
- box.innerHTML=cs.length?`<div class="campaignList">${cs.map(c=>`<div class="campaignSummary"><h3>${esc(c.title)} ${c.cancelled?'<span class="badge no">已取消</span>':''}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}</div>${c.capacity>0?`<div class="counter">已報名 ${participantCount(c)}／${c.capacity} 人｜剩餘 ${remaining(c)} 人</div>`:''}<div class="summaryActions"><button class="btn" onclick="openedCampaignId='${c.id}';renderAvailable()">進入${c.template==='travel'||c.template==='training'?'報名':'訂購'}</button>${isHost(c)?`<button class="btn secondary" onclick="editCampaign('${c.id}')">編輯活動</button><button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="finishCampaign('${c.id}')">活動結束</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button>`:''}</div></div>`).join('')}</div>`:'<div class="empty">目前沒有可參加的活動。</div>';
+ box.innerHTML=cs.length?`<div class="campaignList">${cs.map(c=>`<div class="campaignSummary"><h3>${esc(c.title)} ${c.cancelled?'<span class="badge no">已取消</span>':''}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}</div>${c.capacity>0?`<div class="counter">已報名 ${participantCount(c)}／${c.capacity} 人｜剩餘 ${remaining(c)} 人</div>`:''}<div class="summaryActions"><button class="btn" onclick="openedCampaignId='${c.id}';renderAvailable()">進入${c.template==='survey'?'調查':(c.template==='travel'||c.template==='training'?'報名':'訂購')}</button>${isHost(c)?`<button class="btn secondary" onclick="editCampaign('${c.id}')">編輯活動</button><button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="finishCampaign('${c.id}')">活動結束</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button>`:''}</div></div>`).join('')}</div>`:'<div class="empty">目前沒有可參加的活動。</div>';
 }
-function renderMine(){const os=getO().filter(o=>o.user===currentName());document.getElementById('myOrders').innerHTML=os.length?os.map(o=>`<article class="eventCard"><h3>${esc(getC().find(c=>c.id===o.campaignId)?.title||'活動')}</h3><div class="meta">${new Date(o.createdAt).toLocaleString('zh-TW',{hour12:false})}</div><div class="meta">狀態：${o.status==='accepted'?'正取':o.status==='waitlist'?'候補':'不參加'}</div>${o.lines.map(l=>`<div class="meta">${esc(l.name)}｜${esc(l.spec)}｜${esc(Object.entries(l.prefs||{}).map(([k,v])=>k+'：'+(Array.isArray(v)?v.join('、'):v)).join('；'))}｜${l.qty}份｜$${l.subtotal}</div>`).join('')}</article>`).join(''):'<div class="empty">目前沒有回覆紀錄。</div>'}
+function renderMine(){const os=getO().filter(o=>o.user===currentName());document.getElementById('myOrders').innerHTML=os.length?os.map(o=>{const c=getC().find(c=>c.id===o.campaignId);if(c?.template==='survey'){const answers=o.surveyAnswers||o.lines?.[0]?.prefs||{};const questions=surveyProduct(c).prefs||[];const answerRows=questions.map(q=>`<div class="meta"><strong>${esc(q.name)}：</strong>${esc(textValue(answers[q.name])||'—')}</div>`).join('');return `<article class="eventCard"><h3>${esc(c.title)}</h3><div class="meta">最後更新：${new Date(o.updatedAt||o.createdAt).toLocaleString('zh-TW',{hour12:false})}</div>${answerRows}${o.note?`<div class="meta"><strong>備註：</strong>${esc(o.note)}</div>`:''}<div class="actions"><button class="btn secondary" type="button" onclick="openedCampaignId='${c.id}';showPanel('available',document.querySelectorAll('.tab')[0])">查看／修改回答</button></div></article>`;}return `<article class="eventCard"><h3>${esc(c?.title||'活動')}</h3><div class="meta">${new Date(o.createdAt).toLocaleString('zh-TW',{hour12:false})}</div><div class="meta">狀態：${o.status==='accepted'?'正取':o.status==='waitlist'?'候補':'不參加'}</div>${(o.lines||[]).map(l=>`<div class="meta">${esc(l.name)}｜${esc(l.spec)}｜${esc(Object.entries(l.prefs||{}).map(([k,v])=>k+'：'+(Array.isArray(v)?v.join('、'):v)).join('；'))}｜單價 $${Number(l.price||0)}｜${l.qty} 人／份｜小計 $${l.subtotal}</div>`).join('')}</article>`}).join(''):'<div class="empty">目前沒有回覆紀錄。</div>'}
 function textValue(v){return Array.isArray(v)?v.join('、'):String(v??'')}
 function statsPreferenceNames(c,list){
  const names=[];
@@ -882,7 +948,8 @@ function statsDetailTable(c,list){
  const isFoodOrder=c.template==='meal'||c.template==='drink';
  const showStatus=!isFoodOrder;
  const showSpec=!isFoodOrder;
- const showCompanion=!isFoodOrder;
+ const showCompanion=false;
+ const showNote=!(c.template==='travel'&&travelHasTextPreference(c));
  const rows=[];
  list.forEach(o=>{
    const settle=settlementState(c.id,o.user),picked=!!settle.pickedUp;
@@ -893,35 +960,47 @@ function statsDetailTable(c,list){
    if(o.status==='not_joining'){
      const cells=[`<td class="colName">${esc(o.user)}</td>`];
      if(showStatus)cells.push('<td><span class="badge no">不參加</span></td>');
-     cells.push('<td>—</td><td>—</td>');
+     cells.push('<td>—</td>');
      if(showSpec)cells.push('<td>—</td>');
+     cells.push('<td>—</td><td>—</td><td>—</td>');
      prefNames.forEach(()=>cells.push('<td>—</td>'));
      if(showCompanion)cells.push(`<td>${Number(o.companions||0)}</td>`);
-     cells.push(`<td class="wrap">${esc(o.note||'')}</td><td>$0</td><td class="noPrint">${controls}</td><td class="noPrint">${pickup}</td>`);
+     if(showNote)cells.push(`<td class="wrap">${esc(o.note||'')}</td>`);
+     cells.push(`<td class="noPrint">${controls}</td><td class="noPrint">${pickup}</td>`);
      rows.push({key:`~~~~|${o.user}`,html:`<tr${rowClass}>${cells.join('')}</tr>`});return;
    }
    const lines=(o.lines||[]).length?o.lines:[{name:c.template==='travel'||c.template==='training'?'活動報名':'—',spec:'—',qty:1,prefs:{},subtotal:0}];
    lines.forEach(l=>{
      const cells=[`<td class="colName">${esc(o.user)}</td>`];
      if(showStatus)cells.push(`<td>${o.status==='accepted'?'<span class="badge ok">正取</span>':'<span class="badge wait">候補</span>'}</td>`);
-     cells.push(`<td class="colItem">${esc(l.name||'—')}</td><td class="colQty">${Number(l.qty||0)}</td>`);
+     cells.push(`<td class="colItem">${esc(l.name||'—')}</td>`);
      if(showSpec)cells.push(`<td>${esc(l.spec&&l.spec!=='基本價格'?l.spec:'—')}</td>`);
+     cells.push(`<td class="colMoney">$${Number(l.price||0)}</td><td class="colQty">${Number(l.qty||0)}</td><td class="colMoney">$${Number(l.subtotal||0)}</td>`);
      prefNames.forEach(name=>cells.push(`<td class="colPref">${esc(textValue(l.prefs?.[name])||'—')}</td>`));
      if(showCompanion)cells.push(`<td>${Number(o.companions||0)}</td>`);
-     cells.push(`<td class="wrap colNote">${esc(o.note||'')}</td><td class="colMoney">$${Number(l.subtotal||0)}</td><td class="noPrint">${controls}</td><td class="noPrint">${pickup}</td>`);
+     if(showNote)cells.push(`<td class="wrap colNote">${esc(o.note||'')}</td>`);
+     cells.push(`<td class="noPrint">${controls}</td><td class="noPrint">${pickup}</td>`);
      rows.push({key:lineSortKey(l,o.user),html:`<tr${rowClass}>${cells.join('')}</tr>`});
    });
  });
  rows.sort((a,b)=>a.key.localeCompare(b.key,'zh-Hant',{numeric:true,sensitivity:'base'}));
  const headers=['<th class="colName">姓名</th>'];
  if(showStatus)headers.push('<th>狀態</th>');
- headers.push('<th class="colItem">品項／活動</th><th class="colQty">數量</th>');
- if(showSpec)headers.push('<th>規格</th>');
+ headers.push('<th class="colItem">品項／人員</th>');
+ if(showSpec)headers.push('<th>價別／規格</th>');
+ headers.push('<th class="colMoney">單價</th><th class="colQty">數量</th><th class="colMoney">小計</th>');
  prefNames.forEach(n=>headers.push(`<th class="colPref">${esc(n)}</th>`));
  if(showCompanion)headers.push('<th>攜伴</th>');
- headers.push('<th class="colNote">備註</th><th class="colMoney">小計</th><th class="noPrint">收款</th><th class="noPrint">取貨</th>');
+ if(showNote)headers.push('<th class="colNote">備註</th>');
+ headers.push('<th class="noPrint">收款</th><th class="noPrint">取貨</th>');
  const colspan=headers.length;
  return `<div class="statsTableWrap"><table class="statsDetailTable detailOrderTable"><thead><tr>${headers.join('')}</tr></thead><tbody>${rows.map(r=>r.html).join('')||`<tr><td colspan="${colspan}">尚無回覆資料</td></tr>`}</tbody></table></div>`;
+}
+function participantStatsTable(c,list){
+ if(c.template!=='travel'&&c.template!=='training')return '';
+ const rows=list.map(o=>{const companions=o.status==='not_joining'?0:Number(o.companions||0),total=orderPeopleCount(c,o);return `<tr><td>${esc(o.user)}</td><td>${o.status==='not_joining'?'<span class="badge no">不參加</span>':o.status==='waitlist'?'<span class="badge wait">候補</span>':'<span class="badge ok">正取</span>'}</td><td>${total?1:0}</td><td>${companions}</td><td><strong>${total} 人</strong></td></tr>`}).join('');
+ const used=participantCount(c),left=c.capacity>0?remaining(c):null;
+ return `<h3 style="margin-top:16px">報名人數統計</h3><div class="settlementSummary"><span class="settlementChip">總名額 ${c.capacity>0?c.capacity+' 人':'不限'}</span><span class="settlementChip">已報名 ${used} 人</span><span class="settlementChip">剩餘 ${left===null?'不限':left+' 人'}</span></div><div class="statsTableWrap"><table class="statsDetailTable"><thead><tr><th>姓名</th><th>狀態</th><th>本人</th><th>攜伴</th><th>本筆合計</th></tr></thead><tbody>${rows||'<tr><td colspan="5">尚無回覆資料</td></tr>'}</tbody></table></div>`;
 }
 function statsSummary(c,list){
  const grouped=new Map();
@@ -968,6 +1047,7 @@ function renderStats(){
  const c=cs.find(x=>x.id===selectedStatsCampaignId);
  if(!c){selectedStatsCampaignId='';return renderStats()}
  const list=os.filter(o=>o.campaignId===c.id);
+ if(c.template==='survey'){const status=c.cancelled?'已取消':c.closed?'已結束':'進行中';const normalAction=c.closed?`<button class="btn secondary" onclick="toggleClose('${c.id}')">重新開放</button>`:`<button class="btn danger" onclick="finishCampaign('${c.id}')">調查結束</button>`;box.innerHTML=`<div class="statsBackBar noPrint"><button class="btn secondary" type="button" onclick="closeStatsCampaign()">← 返回活動清單</button><button class="btn" type="button" onclick="printStatsCampaign()">🖨️ 列印／另存 PDF</button></div><article class="eventCard"><h3>${esc(c.title)} <span class="badge ${c.closed||c.cancelled?'wait':'ok'}">${status}</span></h3><div class="meta">共 ${list.length} 人填答</div><div class="statsSummaryGrid">${surveyStatsSummary(c,list)}</div><h3 style="margin-top:16px">公開填答明細</h3>${surveyPublicRows(c)}<div class="actions noPrint">${normalAction}<button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button></div></article>`;return;}
  const money=list.reduce((sum,o)=>sum+(o.lines||[]).reduce((a,l)=>a+Number(l.subtotal||0),0),0);
  const status=c.cancelled?'已取消':c.closed?'已結束':'進行中';
  const normalAction=c.closed
@@ -979,6 +1059,7 @@ function renderStats(){
  <div class="meta">正取 ${list.filter(o=>o.status==='accepted').length} 筆｜候補 ${list.filter(o=>o.status==='waitlist').length} 筆｜不參加 ${list.filter(o=>o.status==='not_joining').length} 筆</div>
  <div class="totalBox">總金額：$${money}</div>
  ${(()=>{const people=[...new Set(list.filter(o=>o.status!=='not_joining').map(o=>o.user))],paid=people.filter(u=>settlementState(c.id,u).paid).length,picked=people.filter(u=>settlementState(c.id,u).pickedUp).length;return `<div class="settlementSummary noPrint"><span class="settlementChip">已收款 ${paid}／${people.length} 人</span><span class="settlementChip">已取貨 ${picked}／${people.length} 人</span><span class="settlementChip">待交貨 ${people.length-picked} 人</span></div>`})()}
+ ${participantStatsTable(c,list)}
  ${statsSummary(c,list)}
  <h3 style="margin-top:16px">逐筆完整明細表</h3>
  <div class="hint noPrint">手機左右滑動時，訂購人與品項會固定在左側；品項欄約顯示 4～5 個中文字。列印時會自動使用 A4 直式濃縮表格。</div>

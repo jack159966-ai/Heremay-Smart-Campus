@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v21</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v22</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -475,23 +475,16 @@
     </section>
 
     <section class="dashCard">
-      <h2 class="secretaryHeading">🤖 智慧秘書</h2>
-      <div class="secretaryGrid">
-        <button class="toolCard" type="button" onclick="location.href='notes.html'">
-          <span class="toolIcon">📒</span><span><strong>記事本</strong><p>記事、附件、搜尋與整理。</p></span><span class="go">›</span>
-        </button>
-        <button class="toolCard" type="button" onclick="openModal('smartTask')">
-          <span class="toolIcon">🗓️</span><span><strong>公告／行事曆</strong><p>行程提醒、公告與通知追蹤。</p></span><span class="go">›</span>
-        </button>
-      </div>
+      <button class="patrolButton" type="button" onclick="location.href='secretary.html'">
+        <span class="pIcon">🤖</span>
+        <span><strong>智慧秘書</strong><span>進入筆記本、行事曆與專案計畫中心</span></span>
+        <span class="arrow">›</span>
+      </button>
     </section>
 
     <section class="lowGrid">
       <button class="toolCard" type="button" onclick="location.href='groupbuy.html'">
         <span class="toolIcon">🛒</span><span><strong>團購／報名中心</strong><p>團購、聚餐、旅遊、研習與活動報名。</p></span><span class="go">›</span>
-      </button>
-      <button class="toolCard" type="button" onclick="openModal('project')">
-        <span class="toolIcon">📁</span><span><strong>專案計畫</strong><p>大型活動規劃與進度追蹤。</p></span><span class="go">›</span>
       </button>
       <button class="toolCard" type="button" onclick="openModal('inspection')">
         <span class="toolIcon">🛡️</span><span><strong>定期巡檢</strong><p>安全衛生與週期檢查紀錄。</p></span><span class="go">›</span>
@@ -501,7 +494,7 @@
       </button>
     </section>
 
-    <div class="versionStamp">主管工作台 v21｜2026-07-21｜團購／報名中心獨立化</div>
+    <div class="versionStamp">主管工作台 v22｜2026-07-22｜智慧秘書獨立化</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">

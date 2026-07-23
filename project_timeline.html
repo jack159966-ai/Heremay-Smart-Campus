@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#dceeff">
+  <title>和美智慧校園｜專案時間表</title>
+  <style>
+    :root{
+      --primary:#4f86c6;--primary-dark:#356ba9;--text:#23364d;--muted:#6d7d90;
+      --line:#d9e7f3;--red:#d95757;--shadow:0 10px 28px rgba(49,91,133,.13)
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;
+      background:linear-gradient(180deg,#eaf5ff 0%,#f8fbff 100%);
+      color:var(--text);min-height:100vh
+    }
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    .app{width:min(980px,100%);margin:auto;padding:14px 12px 70px}
+    .topbar,.panel{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)}
+    .topbar{border-radius:26px;padding:15px;margin-bottom:14px}
+    .brand{display:flex;align-items:center;gap:13px}
+    .logo{
+      width:68px;height:68px;border-radius:20px;object-fit:contain;background:#fff;padding:3px;
+      box-shadow:0 5px 14px rgba(49,91,133,.17)
+    }
+    h1{font-size:1.45rem;margin:0;color:var(--primary-dark)}
+    .subtitle{color:var(--muted);font-size:.9rem;margin-top:4px}
+    .status-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .pill{border-radius:999px;padding:7px 11px;background:#f4f8fc;border:1px solid var(--line);
+      color:var(--muted);font-size:.84rem;font-weight:800}
+
+    .hero{border-radius:24px;padding:18px;color:#fff;box-shadow:var(--shadow);margin-bottom:14px}
+    .hero.blue{background:linear-gradient(135deg,#4f86c6,#78afe5)}
+    .hero.orange{background:linear-gradient(135deg,#e39a2f,#f2b45a)}
+    .hero.red{background:linear-gradient(135deg,#d95757,#ef7777)}
+    .hero.gray{background:linear-gradient(135deg,#7c8793,#9aa4ad)}
+    .hero-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}
+    .project-name{font-size:1.55rem;font-weight:950}
+    .activity-date{margin-top:5px;font-weight:800}
+    .countdown{text-align:right}
+    .countdown-number{font-size:2.5rem;font-weight:950;line-height:1}
+    .countdown-label{font-weight:850;margin-top:5px}
+    .hero-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+    .hero-btn{border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,.18);
+      color:#fff;border-radius:12px;padding:9px 12px;font-weight:850}
+
+    .panel{border-radius:20px;overflow:hidden;margin-bottom:14px}
+    .panel-head{padding:14px 16px;border-bottom:1px solid var(--line);
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .panel-head h2{font-size:1.08rem;margin:0;color:var(--primary-dark)}
+    .panel-body{padding:15px}
+    .primary,.secondary,.danger{border:0;border-radius:12px;padding:10px 14px;font-weight:850}
+    .primary{background:var(--primary);color:#fff}
+    .secondary{background:#eaf3fb;color:var(--primary-dark)}
+    .danger{background:#fff0f0;color:var(--red)}
+
+    .timeline{position:relative;display:grid;gap:12px}
+    .timeline:before{content:"";position:absolute;left:21px;top:10px;bottom:10px;width:3px;
+      background:#dce9f5;border-radius:999px}
+    .node{position:relative;display:grid;grid-template-columns:30px 1fr auto;gap:11px;
+      background:#fbfdff;border:1px solid var(--line);border-radius:16px;padding:13px;
+      transition:.18s;cursor:pointer}
+    .node:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(49,91,133,.10);border-color:#b9d1e5}
+    .node-link{margin-top:7px;color:var(--primary-dark);font-size:.84rem;font-weight:900}
+    .dot{width:18px;height:18px;border-radius:50%;background:var(--primary);border:4px solid #eaf4fd;
+      margin-top:2px;z-index:1}
+    .node-title{font-weight:900}
+    .node-date{color:var(--primary-dark);font-weight:850;margin-top:4px}
+    .node-note{color:var(--muted);font-size:.88rem;margin-top:5px;white-space:pre-wrap}
+    .node-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+    .small{border:0;border-radius:10px;padding:7px 9px;background:#edf4fb;color:var(--primary-dark);font-weight:800}
+    .small.delete{background:#fff0f0;color:var(--red)}
+    .empty{text-align:center;color:var(--muted);padding:24px 8px}
+
+    .modal-mask{position:fixed;inset:0;background:rgba(25,45,62,.42);display:none;
+      align-items:center;justify-content:center;padding:14px;z-index:100}
+    .modal-mask.show{display:flex}
+    .modal{width:min(620px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:24px;
+      box-shadow:0 24px 60px rgba(0,0,0,.25)}
+    .modal-head{padding:15px 17px;border-bottom:1px solid var(--line);display:flex;
+      justify-content:space-between;align-items:center}
+    .modal-head h3{margin:0;color:var(--primary-dark)}
+    .modal-body{padding:17px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field.full{grid-column:1/-1}
+    label{font-weight:850;font-size:.9rem}
+    input,select,textarea{width:100%;border:1px solid #cdddeb;border-radius:12px;padding:11px 12px;background:#fff;color:var(--text)}
+    textarea{min-height:90px;resize:vertical}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .detail-card{border:1px solid var(--line);border-radius:15px;padding:13px;background:#fbfdff}
+    .detail-card.full{grid-column:1/-1}
+    .detail-label{font-size:.8rem;color:var(--muted);font-weight:850;margin-bottom:5px}
+    .detail-value{font-weight:800;white-space:pre-wrap;line-height:1.55}
+    .attachment-list{display:flex;flex-wrap:wrap;gap:8px}
+    .attachment-chip{background:#edf4fb;border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:.84rem;font-weight:800}
+    .reminder-box{border:1px solid #f0d394;background:#fff9e9;border-radius:16px;padding:13px;margin-bottom:12px}
+    .reminder-box strong{color:#a96800}
+    .notice-box{border:1px solid #bcd5eb;background:#f4f9fd;border-radius:16px;padding:13px;margin-bottom:12px}
+    .notice-box strong{color:var(--primary-dark)}
+    .home-preview{display:grid;gap:10px}
+    .home-card{border:1px solid var(--line);border-left:6px solid var(--primary);border-radius:14px;padding:12px;background:#fff}
+    .home-card.orange{border-left-color:#e39a2f}
+    .home-card.red{border-left-color:#d95757}
+    .home-card.gray{border-left-color:#8a949d}
+    .home-title{font-weight:950}
+    .home-meta{font-size:.86rem;color:var(--muted);margin-top:4px}
+    .home-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+    .checkline{display:flex;align-items:center;gap:8px}
+    .checkline input{width:auto}
+    .role-switch{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .role-btn{border:1px solid var(--line);background:#f5f9fd;color:var(--primary-dark);
+      border-radius:999px;padding:8px 12px;font-weight:900}
+    .role-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .permission-note{margin-top:10px;font-size:.86rem;color:var(--muted);font-weight:800}
+    .version{text-align:center;color:var(--muted);font-size:.8rem;margin-top:16px}
+    .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#23364d;color:#fff;
+      padding:11px 16px;border-radius:14px;opacity:0;pointer-events:none;transition:.25s;z-index:200}
+    .toast.show{opacity:1}
+    @media(max-width:650px){
+      .app{padding:10px 10px 60px}.logo{width:60px;height:60px}h1{font-size:1.2rem}
+      .hero-top{display:block}.countdown{text-align:left;margin-top:16px}
+      .countdown-number{font-size:2.2rem}.grid{grid-template-columns:1fr}
+      .node{grid-template-columns:28px 1fr}.node-actions{grid-column:2;justify-content:flex-start;margin-top:4px}
+      .detail-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<main class="app">
+  <section class="topbar">
+    <div class="brand">
+      <img class="logo" src="assets/logo.png?v=20260723" alt="和美智慧校園城堡 LOGO">
+      <div>
+        <h1>和美智慧校園｜專案時間表</h1>
+        <div class="subtitle">以活動日期為核心，安排籌備、彩排、驗收與會後檢討</div>
+      </div>
+    </div>
+    <div class="status-row">
+      <span class="pill" id="todayText"></span>
+      <span class="pill">測試版 v0.6.1</span>
+      <span class="pill">資料暫存於本機</span>
+    </div>
+    <div class="role-switch">
+      <button class="role-btn active" id="organizerRoleBtn" onclick="setViewerRole('organizer')">主辦人檢視</button>
+      <button class="role-btn" id="recipientRoleBtn" onclick="setViewerRole('recipient')">接收人檢視</button>
+    </div>
+    <div class="permission-note" id="permissionNote">主辦人可編輯節點、發布與更新正式通知。</div>
+  </section>
+
+  <section class="hero blue" id="hero">
+    <div class="hero-top">
+      <div>
+        <div class="project-name" id="projectNameText"></div>
+        <div class="activity-date" id="activityDateText"></div>
+      </div>
+      <div class="countdown">
+        <div class="countdown-number" id="countdownNumber"></div>
+        <div class="countdown-label" id="countdownLabel"></div>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <button class="hero-btn" id="editProjectBtn" onclick="openProjectForm()">編輯專案名稱與活動日期</button>
+      <button class="hero-btn" id="resetDemoBtn" onclick="resetDemo()">恢復示範資料</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>專案時間表</h2>
+      <button class="primary" id="addNodeBtn" onclick="openNodeForm()">＋ 新增時間節點</button>
+    </div>
+    <div class="panel-body">
+      <div class="timeline" id="timeline"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>入口首頁提醒預覽</h2>
+      <button class="secondary" onclick="refreshReminders()">重新計算提醒</button>
+    </div>
+    <div class="panel-body">
+      <div class="home-preview" id="homePreview"></div>
+    </div>
+  </section>
+
+<div id="projectNavBar" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:14px 0 4px">
+  <button type="button" onclick="location.href='project_home.html'" style="border:0;border-radius:12px;padding:11px 18px;font-weight:900;background:#4f86c6;color:#fff;cursor:pointer">← 返回本專案首頁</button>
+</div>
+  <div class="version">專案時間表測試頁 v0.6.1｜2026-07-23</div>
+</main>
+
+<div class="modal-mask" id="modalMask" onclick="maskClose(event)">
+  <section class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle"></h3>
+      <button class="secondary" onclick="closeModal()">關閉</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const PROJECTS_KEY='heremay.projects.v2';
+const SELECTED_KEY='heremay.selectedProjectId';
+
+function loadSelectedProject(){
+  try{
+    const projects=JSON.parse(localStorage.getItem(PROJECTS_KEY)||'[]');
+    const id=localStorage.getItem(SELECTED_KEY);
+    return projects.find(p=>p.id===id)||projects.find(p=>p.status==='active')||null;
+  }catch(e){return null}
+}
+let selectedProject=loadSelectedProject();
+if(!selectedProject){
+  location.replace('project_center.html');
+  throw new Error('尚未選擇專案');
+}
+const STORAGE_KEY='heremay.project.timeline.'+selectedProject.id;
+
+function uid(){
+  return 'N'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+}
+
+const demoData={
+  name:selectedProject.name,
+  activityDate:selectedProject.activityDate,
+  nodes:[
+    {id:uid(),title:'近期測試籌備會議',date:'2026-07-26',time:'14:00',location:'會議室',audience:'行政組、幼兒部',notice:'請相關人員準時出席，會議議程請見附件。',content:'確認活動流程與工作分配。',note:'用來測試三天前自動提醒。',attachments:['會議議程.pdf'],reminderDays:3,autoReminder:true,formalPublished:false,publishedAt:'',received:false},
+    {id:uid(),title:'開始撰寫新計畫書',date:'2026-10-01',time:'09:00',location:'辦公室',audience:'行政組',notice:'請先整理歷年活動資料與今年初步構想。',content:'整理活動主題、預算、流程草案與可能風險。',note:'整理活動主題、預算與基本構想。',attachments:['歷年聖誕活動資料.pdf']},
+    {id:uid(),title:'第一次籌備會議',date:'2026-10-10',time:'14:00',location:'會議室',audience:'行政組、幼兒部、庶務組',notice:'請相關人員準時出席第一次籌備會議。',content:'確認活動主題、各班演出方向、工作分組與初步時程。',note:'確認活動方向與各組工作。',attachments:['第一次籌備會議議程.docx']},
+    {id:uid(),title:'籌備工作開始',date:'2026-10-15',time:'',location:'',audience:'全體相關人員',notice:'各組依工作分配表開始進行籌備。',content:'依工作分配表執行，並於驗收日前完成準備。',note:'各組依分工開始執行。',attachments:[]},
+    {id:uid(),title:'工作驗收',date:'2026-12-10',time:'15:00',location:'活動會場',audience:'各工作負責人',notice:'請攜帶或備妥各項成果進行驗收。',content:'確認服裝、道具、音響、場地、餐點與流程準備情形。',note:'確認服裝、道具與場地準備。',attachments:['驗收清單.xlsx']},
+    {id:uid(),title:'彩排',date:'2026-12-18',time:'09:30',location:'活動會場',audience:'全體演出與工作人員',notice:'請依正式活動標準完成全流程彩排。',content:'完整走一次進場、演出、轉場、主持、音響與退場流程。',note:'全體流程彩排。',attachments:[]},
+    {id:uid(),title:'活動日',date:'2026-12-24',time:'09:00',location:'和美幼兒園',audience:'全體人員',notice:'今天就是活動日，請依最終流程表執行。',content:'依正式活動流程進行，現場如有異常由各組負責人即時回報。',note:'聖誕節正式活動。',attachments:['最終流程表.pdf']},
+    {id:uid(),title:'會後檢討',date:'2026-12-28',time:'14:00',location:'會議室',audience:'各組負責人',notice:'請各組整理成果、問題與改善建議。',content:'紀錄成功做法、發生問題、解決方式及明年可沿用事項。',note:'記錄成果、問題與明年建議。',attachments:[]}
+  ]
+};
+
+let state=loadState();
+let viewerRole='organizer';
+normalizeState();
+
+function normalizeState(){
+  state.name=selectedProject.name;
+  state.activityDate=selectedProject.activityDate;
+  state.projectId=selectedProject.id;
+  state.nodes=(state.nodes||[]).map(n=>({
+    reminderDays:3,
+    autoReminder:true,
+    formalPublished:false,
+    publishedAt:'',
+    received:false,
+    ...n
+  }));
+}
+
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    return raw?JSON.parse(raw):structuredClone(demoData);
+  }catch(e){
+    return JSON.parse(JSON.stringify(demoData));
+  }
+}
+
+function saveState(){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  renderAll();
+}
+
+function esc(v){
+  return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+
+function formatDate(v){
+  if(!v)return '尚未設定';
+  const d=new Date(v+'T00:00:00');
+  return d.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+}
+
+function daysUntil(dateString){
+  const today=new Date();
+  today.setHours(0,0,0,0);
+  const target=new Date(dateString+'T00:00:00');
+  return Math.round((target-today)/86400000);
+}
+
+
+function setViewerRole(role){
+  viewerRole=role;
+  document.getElementById('organizerRoleBtn').classList.toggle('active',role==='organizer');
+  document.getElementById('recipientRoleBtn').classList.toggle('active',role==='recipient');
+  document.getElementById('permissionNote').textContent=
+    role==='organizer'
+      ?'主辦人可編輯節點、發布與更新正式通知。'
+      :'接收人只能查看通知、附件與確認收到，不能編輯或發布。';
+  renderAll();
+  toast(role==='organizer'?'已切換為主辦人檢視':'已切換為接收人檢視');
+}
+
+function isOrganizer(){
+  return viewerRole==='organizer';
+}
+
+function renderHero(){
+  const days=daysUntil(state.activityDate);
+  const hero=document.getElementById('hero');
+  hero.className='hero '+(days<0?'gray':days<=7?'red':days<=30?'orange':'blue');
+
+  document.getElementById('projectNameText').textContent=state.name||'未命名專案';
+  document.getElementById('activityDateText').textContent='活動日期：'+formatDate(state.activityDate);
+
+  const number=document.getElementById('countdownNumber');
+  const label=document.getElementById('countdownLabel');
+
+  if(days>30){
+    number.textContent='倒數 '+days+' 天';
+    label.textContent='時間尚充裕，依序推進';
+  }else if(days>7){
+    number.textContent='倒數 '+days+' 天';
+    label.textContent='進入重點準備期';
+  }else if(days>0){
+    number.textContent='倒數 '+days+' 天';
+    label.textContent='最後一週，全力衝刺';
+  }else if(days===0){
+    number.textContent='今天';
+    label.textContent='今天就是活動日！';
+  }else{
+    number.textContent='已結束 '+Math.abs(days)+' 天';
+    label.textContent='請進行會後檢討';
+  }
+}
+
+function renderTimeline(){
+  const box=document.getElementById('timeline');
+  const rows=[...state.nodes].sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  if(!rows.length){
+    box.innerHTML='<div class="empty">尚未建立時間節點。</div>';
+    return;
+  }
+  box.innerHTML=rows.map(n=>`
+    <article class="node" onclick="openNodeDetail('${n.id}')">
+      <div class="dot"></div>
+      <div>
+        <div class="node-title">${esc(n.title)}</div>
+        <div class="node-date">${esc(formatDate(n.date))}${n.time?'　'+esc(n.time):''}</div>
+        ${n.note?`<div class="node-note">${esc(n.note)}</div>`:''}
+        <div class="node-link">點擊查看通知、內容與附件 →</div>
+      </div>
+      ${isOrganizer()?`<div class="node-actions" onclick="event.stopPropagation()">
+        <button class="small" onclick="openNodeForm('${n.id}')">編輯</button>
+        <button class="small delete" onclick="deleteNode('${n.id}')">刪除</button>
+      </div>`:''}
+    </article>`).join('');
+}
+
+
+function reminderStatus(n){
+  const d=daysUntil(n.date);
+  if(n.formalPublished) return {type:'formal',days:d};
+  if(n.autoReminder!==false && d>=0 && d<=Number(n.reminderDays??3)) return {type:'auto',days:d};
+  return null;
+}
+
+function renderHomePreview(){
+  const box=document.getElementById('homePreview');
+  const items=[...state.nodes]
+    .map(n=>({n,status:reminderStatus(n)}))
+    .filter(x=>x.status)
+    .sort((a,b)=>String(a.n.date).localeCompare(String(b.n.date)));
+
+  if(!items.length){
+    box.innerHTML='<div class="empty">目前沒有進入提醒範圍的節點。可把某個節點日期改到近日測試。</div>';
+    return;
+  }
+
+  box.innerHTML=items.map(({n,status})=>{
+    const d=status.days;
+    const urgency=d<0?'gray':d<=1?'red':'orange';
+    const when=d===0?'今天':d===1?'明天':d>1?`${d} 天後`:`已過 ${Math.abs(d)} 天`;
+    if(status.type==='auto'){
+      return `<article class="home-card ${urgency}">
+        <div class="home-title">【自動預提醒】${esc(state.name)}｜${esc(n.title)}</div>
+        <div class="home-meta">${esc(when)}｜${esc(formatDate(n.date))}${n.time?' '+esc(n.time):''}</div>
+        <div class="home-meta">請留意後續正式通知。</div>
+        <div class="home-actions">
+          <button class="small" onclick="openNodeDetail('${n.id}')">查看節點</button>
+        </div>
+      </article>`;
+    }
+    return `<article class="home-card ${urgency}">
+      <div class="home-title">【正式通知】${esc(state.name)}｜${esc(n.title)}</div>
+      <div class="home-meta">${esc(when)}｜${esc(formatDate(n.date))}${n.time?' '+esc(n.time):''}${n.location?'｜'+esc(n.location):''}</div>
+      <div class="home-meta">${esc(n.notice||'請點擊查看詳細內容')}</div>
+      <div class="home-actions">
+        <button class="small" onclick="openNodeDetail('${n.id}')">查看詳情</button>
+        <button class="small" onclick="markReceived('${n.id}')">${n.received?'已收到 ✓':'我已收到'}</button>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+function refreshReminders(){
+  renderHomePreview();
+  toast('提醒已重新計算');
+}
+
+function publishFormalNotice(id){
+  if(!isOrganizer()){toast('只有主辦人可以發布或更新通知');return;}
+  const n=state.nodes.find(x=>x.id===id);
+  if(!n)return;
+  if(!n.notice?.trim()){
+    toast('請先填寫正式通知內容');
+    return;
+  }
+  const action=n.formalPublished?'更新並重新發布':'發布';
+  if(!confirm(`確定${action}「${n.title}」正式通知嗎？發布後會同步出現在公佈欄與入口首頁提醒。`))return;
+  n.formalPublished=true;
+  n.publishedAt=new Date().toLocaleString('zh-TW',{hour12:false});
+  n.received=false;
+  saveState();
+  closeModal();
+  toast(n.formalPublished?'正式通知已更新並重新發布':'正式通知已發布');
+}
+
+function markReceived(id){
+  const n=state.nodes.find(x=>x.id===id);
+  if(!n)return;
+  n.received=true;
+  saveState();
+  toast('已記錄收到確認');
+}
+
+function renderAll(){
+  document.getElementById('todayText').textContent=
+    new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+  renderHero();
+  renderTimeline();
+  renderHomePreview();
+  const show=isOrganizer();
+  document.getElementById('editProjectBtn').style.display=show?'':'none';
+  document.getElementById('resetDemoBtn').style.display=show?'':'none';
+  document.getElementById('addNodeBtn').style.display=show?'':'none';
+}
+
+function openModal(title,body){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=body;
+  document.getElementById('modalMask').classList.add('show');
+}
+function closeModal(){document.getElementById('modalMask').classList.remove('show')}
+function maskClose(e){if(e.target.id==='modalMask')closeModal()}
+
+function openProjectForm(){
+  if(!isOrganizer()){toast('接收人沒有編輯專案的權限');return;}
+  openModal('編輯專案基本資料',`
+    <form id="projectForm">
+      <div class="grid">
+        <div class="field full">
+          <label>專案名稱</label>
+          <input name="name" required value="${esc(state.name)}">
+        </div>
+        <div class="field full">
+          <label>活動日期</label>
+          <input type="date" name="activityDate" required value="${esc(state.activityDate)}">
+        </div>
+      </div>
+      <div class="actions">
+        <button class="primary" type="submit">儲存</button>
+      </div>
+    </form>
+  `);
+  document.getElementById('projectForm').addEventListener('submit',e=>{
+    e.preventDefault();
+    const f=new FormData(e.target);
+    state.name=f.get('name').trim();
+    state.activityDate=f.get('activityDate');
+    selectedProject.name=state.name;
+    selectedProject.activityDate=state.activityDate;
+    try{
+      const list=JSON.parse(localStorage.getItem(PROJECTS_KEY)||'[]');
+      const i=list.findIndex(p=>p.id===selectedProject.id);
+      if(i>=0){list[i]={...list[i],name:state.name,activityDate:state.activityDate};localStorage.setItem(PROJECTS_KEY,JSON.stringify(list));}
+    }catch(error){}
+    saveState();
+    closeModal();
+    toast('專案資料已更新');
+  });
+}
+
+function openNodeForm(id=''){
+  if(!isOrganizer()){toast('接收人沒有編輯節點的權限');return;}
+  const node=state.nodes.find(x=>x.id===id)||{id:'',title:'',date:'',time:'',location:'',audience:'',notice:'',content:'',note:'',attachments:[],reminderDays:3,autoReminder:true,formalPublished:false,publishedAt:'',received:false};
+  openModal(id?'編輯時間節點':'新增時間節點',`
+    <form id="nodeForm">
+      <div class="grid">
+        <div class="field full">
+          <label>節點名稱</label>
+          <input list="commonNodes" name="title" required value="${esc(node.title)}" placeholder="例如：第一次籌備會議">
+          <datalist id="commonNodes">
+            <option value="開始撰寫新計畫書">
+            <option value="第一次籌備會議">
+            <option value="籌備工作開始">
+            <option value="工作驗收">
+            <option value="彩排">
+            <option value="活動日">
+            <option value="會後檢討">
+          </datalist>
+        </div>
+        <div class="field">
+          <label>日期</label>
+          <input type="date" name="date" required value="${esc(node.date)}">
+        </div>
+        <div class="field">
+          <label>時間</label>
+          <input type="time" name="time" value="${esc(node.time||'')}">
+        </div>
+        <div class="field full">
+          <label>地點</label>
+          <input name="location" value="${esc(node.location||'')}" placeholder="例如：會議室">
+        </div>
+        <div class="field full">
+          <label>通知對象</label>
+          <input name="audience" value="${esc(node.audience||'')}" placeholder="目前為版型測試，未來改用人員勾選">
+        </div>
+        <div class="field full">
+          <label>會議通知／事件通知</label>
+          <textarea name="notice" placeholder="輸入要通知相關人員的內容">${esc(node.notice||'')}</textarea>
+        </div>
+        <div class="field full">
+          <label>會議內容／事件內容</label>
+          <textarea name="content" placeholder="可記錄議程、決議、執行內容或驗收結果">${esc(node.content||'')}</textarea>
+        </div>
+        <div class="field">
+          <label>提前幾天自動提醒</label>
+          <input type="number" min="0" max="30" name="reminderDays" value="${esc(node.reminderDays ?? 3)}">
+        </div>
+        <div class="field">
+          <label>自動預提醒</label>
+          <div class="checkline">
+            <input type="checkbox" id="autoReminder" name="autoReminder" ${node.autoReminder!==false?'checked':''}>
+            <label for="autoReminder">到期時直接發送簡短提醒</label>
+          </div>
+        </div>
+        <div class="field full">
+          <label>附件</label>
+          <input type="file" name="files" multiple>
+          <div class="subtitle">測試版先保存附件名稱；正式版再串接雲端硬碟。</div>
+        </div>
+        <div class="field full">
+          <label>時間表簡短備註</label>
+          <textarea name="note" placeholder="只顯示在時間表首頁的簡短說明">${esc(node.note)}</textarea>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="primary" type="submit">${id?'儲存修改':'新增節點'}</button>
+      </div>
+    </form>
+  `);
+  document.getElementById('nodeForm').addEventListener('submit',e=>{
+    e.preventDefault();
+    const f=new FormData(e.target);
+    const files=e.target.elements.files?.files?[...e.target.elements.files.files].map(x=>x.name):[];
+    const data={
+      id:id||uid(),
+      title:f.get('title').trim(),
+      date:f.get('date'),
+      time:f.get('time')||'',
+      location:f.get('location').trim(),
+      audience:f.get('audience').trim(),
+      notice:f.get('notice').trim(),
+      content:f.get('content').trim(),
+      note:f.get('note').trim(),
+      attachments:[...(node.attachments||[]),...files],
+      reminderDays:Number(f.get('reminderDays')||0),
+      autoReminder:e.target.elements.autoReminder.checked,
+      formalPublished:node.formalPublished||false,
+      publishedAt:node.publishedAt||'',
+      received:node.received||false
+    };
+    if(id){
+      const index=state.nodes.findIndex(x=>x.id===id);
+      state.nodes[index]=data;
+    }else{
+      state.nodes.push(data);
+    }
+    saveState();
+    closeModal();
+    toast(id?'時間節點已修改':'時間節點已新增');
+  });
+}
+
+
+function openNodeDetail(id){
+  const n=state.nodes.find(x=>x.id===id);
+  if(!n)return;
+  const files=(n.attachments||[]);
+  openModal(n.title,`
+    <div class="detail-grid">
+      <div class="detail-card">
+        <div class="detail-label">日期與時間</div>
+        <div class="detail-value">${esc(formatDate(n.date))}${n.time?'　'+esc(n.time):''}</div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-label">地點</div>
+        <div class="detail-value">${esc(n.location||'尚未設定')}</div>
+      </div>
+      <div class="detail-card full">
+        <div class="detail-label">通知對象</div>
+        <div class="detail-value">${esc(n.audience||'尚未設定')}</div>
+      </div>
+      <div class="detail-card full">
+        <div class="detail-label">會議通知／事件通知</div>
+        <div class="detail-value">${esc(n.notice||'尚未填寫')}</div>
+      </div>
+      <div class="detail-card full">
+        <div class="detail-label">會議內容／事件內容</div>
+        <div class="detail-value">${esc(n.content||'尚未填寫')}</div>
+      </div>
+      <div class="detail-card full">
+        <div class="detail-label">附件</div>
+        <div class="attachment-list">
+          ${files.length?files.map(x=>`<span class="attachment-chip">📎 ${esc(x)}</span>`).join(''):'<span class="detail-value">尚無附件</span>'}
+        </div>
+      </div>
+    </div>
+    <div class="reminder-box">
+      <strong>自動預提醒：</strong>
+      ${n.autoReminder!==false?`提前 ${esc(n.reminderDays ?? 3)} 天，自動發出簡短提醒，不需主辦人核准。`:'未啟用'}
+    </div>
+    <div class="notice-box">
+      <strong>正式通知狀態：</strong>
+      ${n.formalPublished?`已發布${n.publishedAt?'｜'+esc(n.publishedAt):''}`:'尚未發布'}
+    </div>
+    <div class="actions">
+      ${isOrganizer()?`
+        <button class="primary" onclick="closeModal();openNodeForm('${n.id}')">編輯節點內容</button>
+        <button class="secondary" onclick="publishFormalNotice('${n.id}')">${n.formalPublished?'更新並重新發布通知':'發布正式通知'}</button>
+      `:`
+        <button class="primary" onclick="markReceived('${n.id}')">${n.received?'已收到 ✓':'我已收到'}</button>
+        <button class="secondary" onclick="closeModal()">返回首頁</button>
+      `}
+    </div>
+  `);
+}
+
+function deleteNode(id){
+  if(!isOrganizer()){toast('接收人沒有刪除節點的權限');return;}
+  const node=state.nodes.find(x=>x.id===id);
+  if(!node||!confirm(`確定刪除「${node.title}」嗎？`))return;
+  state.nodes=state.nodes.filter(x=>x.id!==id);
+  saveState();
+  toast('時間節點已刪除');
+}
+
+function resetDemo(){
+  if(!isOrganizer()){toast('接收人沒有重設資料的權限');return;}
+  if(!confirm('要恢復示範資料嗎？目前測試內容會被取代。'))return;
+  state=JSON.parse(JSON.stringify(demoData));
+  state.nodes=state.nodes.map(n=>({...n,id:uid()}));
+  saveState();
+  toast('已恢復示範資料');
+}
+
+function toast(message){
+  const el=document.getElementById('toast');
+  el.textContent=message;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),1800);
+}
+
+renderAll();
+</script>
+</body>
+</html>

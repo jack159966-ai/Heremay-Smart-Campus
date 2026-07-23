@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#eaf4ff">
+<title>和美智慧校園｜工作分配表</title>
+<style>
+:root{
+  --primary:#4f86c6;--primary-dark:#356ba9;--text:#24374b;--muted:#6f7f90;
+  --line:#d6e5f2;--soft:#f6fbff;--danger:#d95757;--orange:#e59a2f;
+  --shadow:0 12px 30px rgba(48,87,126,.13)
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;color:var(--text);
+  background:linear-gradient(180deg,#eaf5ff,#f9fcff);min-height:100vh
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.app{width:min(1380px,100%);margin:auto;padding:16px}
+.topbar,.panel{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)}
+.topbar{border-radius:24px;padding:16px;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:70px;height:70px;object-fit:contain;border-radius:20px;background:#fff;padding:4px;box-shadow:0 5px 14px rgba(49,91,133,.15)}
+h1{margin:0;color:var(--primary-dark);font-size:1.5rem}
+.subtitle{color:var(--muted);margin-top:5px}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.pill{padding:7px 11px;border-radius:999px;background:#f4f8fc;border:1px solid var(--line);font-size:.84rem;font-weight:800;color:var(--muted)}
+.panel{border-radius:20px;overflow:hidden;margin-bottom:14px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid var(--line)}
+.panel-head h2{margin:0;font-size:1.08rem;color:var(--primary-dark)}
+.panel-body{padding:16px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.primary,.secondary,.danger{border:0;border-radius:12px;padding:10px 14px;font-weight:900}
+.primary{background:var(--primary);color:white}
+.secondary{background:#eaf3fb;color:var(--primary-dark)}
+.danger{background:#fff0f0;color:var(--danger)}
+.project-card{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}
+.project-name{font-size:1.35rem;font-weight:950;color:var(--primary-dark)}
+.project-date{margin-top:6px;color:var(--muted);font-weight:800}
+.count{text-align:right}
+.count strong{font-size:2rem;color:var(--primary-dark)}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:separate;border-spacing:0;min-width:1080px}
+th{position:sticky;top:0;background:#eef6fd;color:var(--primary-dark);font-size:.88rem;text-align:left;padding:11px;border-bottom:1px solid var(--line)}
+td{padding:11px;border-bottom:1px solid #e8f0f6;vertical-align:top}
+tr:hover td{background:#fbfdff}
+.badge{display:inline-block;padding:6px 9px;border-radius:999px;font-size:.8rem;font-weight:900}
+.badge.blue{background:#e7f1fb;color:#326aa6}
+.badge.orange{background:#fff2dc;color:#a56200}
+.badge.red{background:#ffe6e6;color:#b93838}
+.badge.gray{background:#eceff2;color:#68727b}
+.person-chip{display:inline-flex;align-items:center;gap:5px;background:#eef5fb;border:1px solid var(--line);border-radius:999px;padding:5px 8px;margin:2px;font-size:.82rem;font-weight:800}
+.small{border:0;border-radius:9px;padding:7px 9px;background:#edf4fb;color:var(--primary-dark);font-weight:850}
+.small.delete{background:#fff0f0;color:var(--danger)}
+.empty{text-align:center;color:var(--muted);padding:24px}
+.modal-mask{position:fixed;inset:0;background:rgba(28,44,59,.44);display:none;align-items:center;justify-content:center;padding:16px;z-index:100}
+.modal-mask.show{display:flex}
+.modal{width:min(980px,100%);max-height:94vh;overflow:auto;background:#fff;border-radius:24px;box-shadow:0 25px 70px rgba(0,0,0,.25)}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:15px 18px;border-bottom:1px solid var(--line)}
+.modal-head h3{margin:0;color:var(--primary-dark)}
+.modal-body{padding:18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1/-1}
+label{font-weight:850;font-size:.9rem}
+input,select,textarea{width:100%;border:1px solid #cdddeb;border-radius:12px;padding:11px;background:white;color:var(--text)}
+textarea{min-height:90px;resize:vertical}
+.selector{display:grid;grid-template-columns:240px 1fr 280px;gap:14px;margin-top:8px}
+.selector-box{border:1px solid var(--line);border-radius:16px;padding:13px;background:#fbfdff;min-height:280px}
+.selector-box h4{margin:0 0 10px;color:var(--primary-dark)}
+.level-list,.people-list,.selected-list{display:grid;gap:8px}
+.level-btn{width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 10px;font-weight:800;color:var(--text)}
+.level-btn.active{background:#e8f2fb;border-color:#9fc1df;color:var(--primary-dark)}
+.person-row{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff}
+.person-row input{width:auto}
+.selected-item{display:flex;justify-content:space-between;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:9px;background:#fff}
+.help{font-size:.82rem;color:var(--muted);line-height:1.5}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#24374b;color:#fff;padding:11px 16px;border-radius:14px;opacity:0;pointer-events:none;transition:.25s;z-index:200}
+.toast.show{opacity:1}
+.version{text-align:center;color:var(--muted);font-size:.8rem;margin:16px}
+@media(max-width:900px){
+  .selector{grid-template-columns:1fr}
+  .project-card{grid-template-columns:1fr}
+  .count{text-align:left}
+}
+
+.countdown-card{
+  border-radius:16px;
+  padding:12px 16px;
+  color:#ffffff !important;
+  min-width:190px;
+  box-shadow:0 8px 18px rgba(49,91,133,.14)
+}
+.countdown-card *{color:#ffffff !important}
+.countdown-card.blue{background:linear-gradient(135deg,#4f86c6,#78afe5)}
+.countdown-card.orange{background:linear-gradient(135deg,#e39a2f,#f2b45a)}
+.countdown-card.red{background:linear-gradient(135deg,#d95757,#ef7777)}
+.countdown-card.gray{background:linear-gradient(135deg,#7c8793,#9aa4ad)}
+.countdown-number{font-size:1.9rem;font-weight:950;line-height:1}
+.countdown-label{margin-top:5px;font-size:.84rem;font-weight:850}
+
+</style>
+</head>
+<body>
+<main class="app">
+  <section class="topbar">
+    <div class="brand">
+      <img class="logo" src="assets/logo.png?v=20260723" alt="和美智慧校園城堡 LOGO">
+      <div>
+        <h1>和美智慧校園｜工作項目及人員分配表</h1>
+        <div class="subtitle">電腦版主管作業｜建立工作、分配人員、設定驗收日期</div>
+      </div>
+    </div>
+    <div class="meta">
+      <span class="pill" id="todayText"></span>
+      <span class="pill">測試版 v0.4.1</span>
+      <span class="pill">資料暫存於本機</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-body project-card">
+      <div>
+        <div class="project-name" id="projectName">2026 聖誕節活動</div>
+        <div class="project-date">活動日期：2026年12月24日</div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+        <div class="countdown-card blue" id="countdownCard">
+          <div class="countdown-number" id="countdownNumber"></div>
+          <div class="countdown-label" id="countdownLabel"></div>
+        </div>
+        <div class="count"><strong id="taskCount">0</strong><div>項工作</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>工作分配表</h2>
+      <div class="actions">
+        <button class="secondary" onclick="resetDemo()">恢復示範資料</button>
+        <button class="primary" onclick="openTaskForm()">＋ 新增工作項目</button>
+      </div>
+    </div>
+    <div class="panel-body table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>工作類別</th>
+            <th>工作項目</th>
+            <th>主要負責人</th>
+            <th>協助人員</th>
+            <th>驗收日期</th>
+            <th>狀態</th>
+            <th>備註</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="taskBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+<div id="projectNavBar" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:14px 0 4px">
+  <button type="button" onclick="location.href='project_home.html'" style="border:0;border-radius:12px;padding:11px 18px;font-weight:900;background:#4f86c6;color:#fff;cursor:pointer">← 返回本專案首頁</button>
+</div>
+  <div class="version">工作分配表測試頁 v0.4.1｜2026-07-23</div>
+</main>
+
+<div class="modal-mask" id="modalMask" onclick="maskClose(event)">
+  <section class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle"></h3>
+      <button class="secondary" onclick="closeModal()">關閉</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const PROJECTS_KEY='heremay.projects.v2';
+const SELECTED_KEY='heremay.selectedProjectId';
+
+function loadSelectedProject(){
+  try{
+    const projects=JSON.parse(localStorage.getItem(PROJECTS_KEY)||'[]');
+    const id=localStorage.getItem(SELECTED_KEY);
+    return projects.find(p=>p.id===id)||projects.find(p=>p.status==='active')||null;
+  }catch(e){return null}
+}
+const selectedProject=loadSelectedProject();
+if(!selectedProject){
+  location.replace('project_center.html');
+  throw new Error('尚未選擇專案');
+}
+const STORAGE_KEY='heremay.work.assignment.'+selectedProject.id;
+const PROJECT_ACTIVITY_DATE=selectedProject.activityDate;
+
+const staffTree={
+  '幼兒部':{
+    '大班':{
+      'A1班':[
+        {id:'E001',name:'張老師',title:'導師'},
+        {id:'E002',name:'李老師',title:'教保員'}
+      ],
+      'A2班':[
+        {id:'E003',name:'王老師',title:'導師'},
+        {id:'E004',name:'陳老師',title:'教保員'}
+      ]
+    },
+    '中班':{
+      'B1班':[
+        {id:'E005',name:'林老師',title:'導師'},
+        {id:'E006',name:'黃老師',title:'教保員'}
+      ]
+    },
+    '小班':{
+      'C1班':[
+        {id:'E007',name:'吳老師',title:'導師'},
+        {id:'E008',name:'劉老師',title:'教保員'}
+      ]
+    }
+  },
+  '安親部':{
+    '安親班':{
+      'P1班':[
+        {id:'E009',name:'周老師',title:'安親老師'}
+      ],
+      'P2班':[
+        {id:'E010',name:'鄭老師',title:'安親老師'}
+      ]
+    }
+  },
+  '行政組':{
+    '行政':{
+      '主管':[
+        {id:'E011',name:'謝子元',title:'負責人'},
+        {id:'E012',name:'吳玉瑩',title:'園長'},
+        {id:'E013',name:'謝秉儒',title:'主任'}
+      ]
+    }
+  },
+  '庶務組':{
+    '庶務':{
+      '庶務人員':[
+        {id:'E014',name:'劉淑娟',title:'庶務人員'},
+        {id:'E015',name:'陳小姐',title:'廚房人員'}
+      ]
+    }
+  }
+};
+
+function uid(){return 'T'+Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+
+const demoData=[
+  {id:uid(),category:'節目',title:'舞蹈表演',owner:'E001',helpers:['E002'],checkDate:'2026-09-06',status:'進行中',note:'先確認音樂與服裝。'},
+  {id:uid(),category:'設備',title:'燈光音響',owner:'E013',helpers:['E014'],checkDate:'2026-08-12',status:'未開始',note:'確認廠商與設備位置。'},
+  {id:uid(),category:'餐飲',title:'餐點與飲料',owner:'E015',helpers:['E014'],checkDate:'2026-07-29',status:'待驗收',note:'統計人數後確認數量。'}
+];
+
+let tasks=loadTasks();
+let editingId='';
+let selectedOwner='';
+let selectedHelpers=[];
+let currentDept='幼兒部';
+let currentGrade='大班';
+let currentClass='A1班';
+let selectorMode='owner';
+
+function loadTasks(){
+  try{const raw=localStorage.getItem(STORAGE_KEY);return raw?JSON.parse(raw):JSON.parse(JSON.stringify(demoData))}
+  catch(e){return JSON.parse(JSON.stringify(demoData))}
+}
+function saveTasks(){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(tasks));
+  renderTasks();
+}
+function esc(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
+function allStaff(){
+  const out=[];
+  Object.values(staffTree).forEach(g=>Object.values(g).forEach(c=>Object.values(c).forEach(arr=>out.push(...arr))));
+  return out;
+}
+function personById(id){return allStaff().find(x=>x.id===id)}
+function formatDate(v){
+  if(!v)return '尚未設定';
+  return new Date(v+'T00:00:00').toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'});
+}
+function daysUntil(v){
+  const a=new Date();a.setHours(0,0,0,0);
+  const b=new Date(v+'T00:00:00');
+  return Math.round((b-a)/86400000);
+}
+function dateBadge(v){
+  const d=daysUntil(v);
+  let cls='blue',text=`${d} 天後`;
+  if(d<0){cls='gray';text=`逾期 ${Math.abs(d)} 天`}
+  else if(d<=7){cls='red';text=d===0?'今天驗收':`${d} 天後`}
+  else if(d<=30){cls='orange';text=`${d} 天後`}
+  return `<span class="badge ${cls}">${esc(text)}</span>`;
+}
+function personChip(id){
+  const p=personById(id);
+  return p?`<span class="person-chip">${esc(p.name)}｜${esc(p.title)}</span>`:'';
+}
+
+function renderProjectCountdown(){
+  const d=daysUntil(PROJECT_ACTIVITY_DATE);
+  const card=document.getElementById('countdownCard');
+  const number=document.getElementById('countdownNumber');
+  const label=document.getElementById('countdownLabel');
+
+  let cls='blue';
+  if(d<0) cls='gray';
+  else if(d<=7) cls='red';
+  else if(d<=30) cls='orange';
+  card.className='countdown-card '+cls;
+
+  if(d>30){
+    number.textContent='倒數 '+d+' 天';
+    label.textContent='時間尚充裕';
+  }else if(d>7){
+    number.textContent='倒數 '+d+' 天';
+    label.textContent='進入重點準備期';
+  }else if(d>0){
+    number.textContent='倒數 '+d+' 天';
+    label.textContent='最後一週衝刺';
+  }else if(d===0){
+    number.textContent='今天';
+    label.textContent='今天就是活動日！';
+  }else{
+    number.textContent='已結束 '+Math.abs(d)+' 天';
+    label.textContent='請進行會後檢討';
+  }
+}
+
+function renderTasks(){
+  document.getElementById('taskCount').textContent=tasks.length;
+  const body=document.getElementById('taskBody');
+  if(!tasks.length){
+    body.innerHTML='<tr><td colspan="8" class="empty">尚未建立工作項目。</td></tr>';return;
+  }
+  body.innerHTML=[...tasks].sort((a,b)=>a.checkDate.localeCompare(b.checkDate)).map(t=>`
+    <tr>
+      <td>${esc(t.category)}</td>
+      <td><strong>${esc(t.title)}</strong></td>
+      <td>${personChip(t.owner)}</td>
+      <td>${(t.helpers||[]).map(personChip).join('')||'—'}</td>
+      <td><div>${esc(formatDate(t.checkDate))}</div><div style="margin-top:5px">${dateBadge(t.checkDate)}</div></td>
+      <td>${esc(t.status)}</td>
+      <td>${esc(t.note||'')}</td>
+      <td>
+        <button class="small" onclick="openTaskForm('${t.id}')">編輯</button>
+        <button class="small delete" onclick="deleteTask('${t.id}')">刪除</button>
+      </td>
+    </tr>`).join('');
+}
+function openModal(title,body){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=body;
+  document.getElementById('modalMask').classList.add('show');
+}
+function closeModal(){document.getElementById('modalMask').classList.remove('show')}
+function maskClose(e){if(e.target.id==='modalMask')closeModal()}
+
+function openTaskForm(id=''){
+  editingId=id;
+  const task=tasks.find(x=>x.id===id)||{category:'節目',title:'',owner:'',helpers:[],checkDate:'',status:'未開始',note:''};
+  selectedOwner=task.owner||'';
+  selectedHelpers=[...(task.helpers||[])];
+
+  openModal(id?'編輯工作項目':'新增工作項目',`
+    <form id="taskForm">
+      <div class="grid">
+        <div class="field">
+          <label>工作類別</label>
+          <select name="category">
+            ${['節目','服裝道具','設備','場地','餐飲','攝影紀錄','行政','其他'].map(x=>`<option ${x===task.category?'selected':''}>${x}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>狀態</label>
+          <select name="status">
+            ${['未開始','進行中','待驗收','已完成'].map(x=>`<option ${x===task.status?'selected':''}>${x}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field full">
+          <label>工作項目</label>
+          <input name="title" required value="${esc(task.title)}" placeholder="例如：各班級走秀">
+        </div>
+        <div class="field">
+          <label>驗收日期</label>
+          <input type="date" name="checkDate" required value="${esc(task.checkDate)}">
+        </div>
+        <div class="field">
+          <label>目前選擇</label>
+          <div class="help">主要負責人 1 位；協助人員可複選。</div>
+        </div>
+        <div class="field full">
+          <label>人員分配</label>
+          <div class="actions" style="margin-bottom:10px">
+            <button type="button" class="secondary" onclick="setSelectorMode('owner')">選擇主要負責人</button>
+            <button type="button" class="secondary" onclick="setSelectorMode('helpers')">選擇協助人員</button>
+          </div>
+          <div class="selector">
+            <div class="selector-box">
+              <h4>組織層級</h4>
+              <div class="level-list" id="levelList"></div>
+            </div>
+            <div class="selector-box">
+              <h4 id="peopleTitle">可選人員</h4>
+              <div class="people-list" id="peopleList"></div>
+            </div>
+            <div class="selector-box">
+              <h4>已選人員</h4>
+              <div class="selected-list" id="selectedList"></div>
+            </div>
+          </div>
+        </div>
+        <div class="field full">
+          <label>備註</label>
+          <textarea name="note" placeholder="補充工作內容、注意事項或驗收標準">${esc(task.note||'')}</textarea>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:14px">
+        <button class="primary" type="submit">${id?'儲存修改':'新增工作'}</button>
+      </div>
+    </form>
+  `);
+
+  renderSelector();
+  document.getElementById('taskForm').addEventListener('submit',e=>{
+    e.preventDefault();
+    if(!selectedOwner){toast('請先選擇主要負責人');return}
+    const f=new FormData(e.target);
+    const data={
+      id:id||uid(),category:f.get('category'),title:f.get('title').trim(),
+      owner:selectedOwner,helpers:selectedHelpers,checkDate:f.get('checkDate'),
+      status:f.get('status'),note:f.get('note').trim()
+    };
+    if(id){
+      const i=tasks.findIndex(x=>x.id===id);tasks[i]=data;
+    }else tasks.push(data);
+    saveTasks();closeModal();toast(id?'工作項目已更新':'工作項目已新增');
+  });
+}
+
+function setSelectorMode(mode){selectorMode=mode;renderSelector()}
+function setDept(v){
+  currentDept=v;
+  currentGrade=Object.keys(staffTree[currentDept])[0];
+  currentClass=Object.keys(staffTree[currentDept][currentGrade])[0];
+  renderSelector();
+}
+function setGrade(v){
+  currentGrade=v;
+  currentClass=Object.keys(staffTree[currentDept][currentGrade])[0];
+  renderSelector();
+}
+function setClass(v){currentClass=v;renderSelector()}
+function renderSelector(){
+  const levels=document.getElementById('levelList');
+  if(!levels)return;
+  const deptButtons=Object.keys(staffTree).map(x=>`<button type="button" class="level-btn ${x===currentDept?'active':''}" onclick="setDept('${x}')">${x}</button>`).join('');
+  const gradeButtons=Object.keys(staffTree[currentDept]).map(x=>`<button type="button" class="level-btn ${x===currentGrade?'active':''}" onclick="setGrade('${x}')">${x}</button>`).join('');
+  const classButtons=Object.keys(staffTree[currentDept][currentGrade]).map(x=>`<button type="button" class="level-btn ${x===currentClass?'active':''}" onclick="setClass('${x}')">${x}</button>`).join('');
+  levels.innerHTML=`<div class="help">第一層：部門</div>${deptButtons}<div class="help" style="margin-top:10px">第二層：年段／單位</div>${gradeButtons}<div class="help" style="margin-top:10px">第三層：班級／職務</div>${classButtons}`;
+
+  document.getElementById('peopleTitle').textContent=selectorMode==='owner'?'選擇主要負責人':'勾選協助人員';
+  const people=staffTree[currentDept][currentGrade][currentClass];
+  document.getElementById('peopleList').innerHTML=people.map(p=>{
+    const checked=selectorMode==='owner'?selectedOwner===p.id:selectedHelpers.includes(p.id);
+    return `<label class="person-row">
+      <input type="${selectorMode==='owner'?'radio':'checkbox'}" ${checked?'checked':''}
+        onchange="togglePerson('${p.id}',this.checked)">
+      <span><strong>${esc(p.name)}</strong><br><span class="help">${esc(p.title)}｜${esc(p.id)}</span></span>
+    </label>`;
+  }).join('');
+
+  const owner=selectedOwner?personById(selectedOwner):null;
+  const helpers=selectedHelpers.map(personById).filter(Boolean);
+  document.getElementById('selectedList').innerHTML=`
+    <div class="help">主要負責人</div>
+    ${owner?`<div class="selected-item"><span>${esc(owner.name)}｜${esc(owner.title)}</span><button type="button" class="small delete" onclick="removeOwner()">移除</button></div>`:'<div class="help">尚未選擇</div>'}
+    <div class="help" style="margin-top:10px">協助人員</div>
+    ${helpers.length?helpers.map(p=>`<div class="selected-item"><span>${esc(p.name)}｜${esc(p.title)}</span><button type="button" class="small delete" onclick="removeHelper('${p.id}')">移除</button></div>`).join(''):'<div class="help">尚未選擇</div>'}
+  `;
+}
+function togglePerson(id,checked){
+  if(selectorMode==='owner'){selectedOwner=checked?id:''}
+  else{
+    if(checked&&!selectedHelpers.includes(id))selectedHelpers.push(id);
+    if(!checked)selectedHelpers=selectedHelpers.filter(x=>x!==id);
+  }
+  renderSelector();
+}
+function removeOwner(){selectedOwner='';renderSelector()}
+function removeHelper(id){selectedHelpers=selectedHelpers.filter(x=>x!==id);renderSelector()}
+
+function deleteTask(id){
+  const t=tasks.find(x=>x.id===id);
+  if(!t||!confirm(`確定刪除「${t.title}」嗎？`))return;
+  tasks=tasks.filter(x=>x.id!==id);saveTasks();toast('工作項目已刪除');
+}
+function resetDemo(){
+  if(!confirm('要恢復示範資料嗎？目前測試內容會被取代。'))return;
+  tasks=JSON.parse(JSON.stringify(demoData));saveTasks();toast('已恢復示範資料');
+}
+function toast(msg){
+  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),1800);
+}
+document.getElementById('todayText').textContent=new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+document.getElementById('projectName').textContent=selectedProject.name;
+const projectDateEl=document.querySelector('.project-date');
+if(projectDateEl)projectDateEl.textContent='活動日期：'+new Date(selectedProject.activityDate+'T00:00:00').toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+renderProjectCountdown();
+renderTasks();
+</script>
+</body>
+</html>
