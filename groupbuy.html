@@ -152,10 +152,10 @@ textarea{min-height:95px;resize:vertical}
  .statsTableWrap{overflow-x:auto;position:relative;-webkit-overflow-scrolling:touch}
  .statsDetailTable{font-size:14px;min-width:720px}
  .detailOrderTable .colName{position:sticky;left:0;width:78px;min-width:78px;max-width:78px;background:#fff;z-index:3;white-space:normal;word-break:keep-all}
- .detailOrderTable .colItem{position:sticky;left:78px;width:88px;min-width:88px;max-width:88px;background:#fff;z-index:2;white-space:normal;word-break:break-all;line-height:1.35}
+ .detailOrderTable .colItem{position:sticky;left:78px;width:132px;min-width:132px;max-width:132px;background:#fff;z-index:2;white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.4}
  .detailOrderTable th.colName,.detailOrderTable th.colItem{background:#edf4ff;z-index:6}
  .detailOrderTable tr.pickedUpRow .colName,.detailOrderTable tr.pickedUpRow .colItem{background:#eceff2!important}
- .detailOrderTable .colQty{width:46px;min-width:46px;padding-left:5px;padding-right:5px}
+ .detailOrderTable .colQty{width:52px;min-width:46px;padding-left:5px;padding-right:5px}
  .detailOrderTable .colMoney{width:62px;min-width:62px;padding-left:5px;padding-right:5px}
  .settlementBtn{padding:7px 8px;font-size:12px}
 }
@@ -349,7 +349,7 @@ textarea{min-height:95px;resize:vertical}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.7.7｜2026-07-23｜移除旅遊明細重複攜伴欄</div>
+<div class="version">團購／報名中心 v1.7.8｜2026-07-23｜修正一般商品多品項顯示與品名欄寬</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -502,7 +502,7 @@ async function cloudWrite(action,payload,successMessage){
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
-const APP_VERSION='1.7.7';
+const APP_VERSION='1.7.8';
 async function updateAppNow(){
  toast('正在檢查新版…');
  try{
@@ -787,6 +787,22 @@ function surveyAnswersFromCard(c){const card=document.getElementById('note_'+c.i
 function prefillSurveyReply(c){const old=surveyExistingReply(c);if(!old)return;const card=document.getElementById('note_'+c.id)?.closest('.eventCard');if(!card)return;const answers=old.surveyAnswers||old.lines?.[0]?.prefs||{};card.querySelectorAll('.surveyForm .prefInput').forEach(el=>{const v=answers[el.dataset.pref];if(el.type==='radio')el.checked=String(v)===el.value;else if(v!==undefined)el.value=v});card.querySelectorAll('.surveyForm .prefCheck').forEach(el=>{const v=answers[el.dataset.pref];el.checked=Array.isArray(v)&&v.includes(el.value)});const note=document.getElementById('note_'+c.id);if(note)note.value=old.note||''}
 function surveyPublicRows(c){const list=getO().filter(o=>o.campaignId===c.id&&o.status!=='not_joining'),questions=surveyProduct(c).prefs||[];return `<div class="statsTableWrap"><table class="statsDetailTable"><thead><tr><th>姓名</th>${questions.map(q=>`<th>${esc(q.name)}</th>`).join('')}<th>最後更新</th></tr></thead><tbody>${list.map(o=>{const a=o.surveyAnswers||o.lines?.[0]?.prefs||{};return `<tr><td>${esc(o.user)}</td>${questions.map(q=>`<td class="wrap">${esc(textValue(a[q.name])||'—')}</td>`).join('')}<td>${new Date(o.updatedAt||o.createdAt).toLocaleString('zh-TW',{hour12:false})}</td></tr>`}).join('')||`<tr><td colspan="${questions.length+2}">尚無填答</td></tr>`}</tbody></table></div>`}
 function surveyStatsSummary(c,list){const questions=surveyProduct(c).prefs||[];const answerOf=o=>o.surveyAnswers||o.lines?.[0]?.prefs||{};return questions.map(q=>{if(q.type==='文字')return '';if(q.type==='人數'){const total=list.reduce((n,o)=>n+Number(answerOf(o)[q.name]||0),0);return `<div class="statsSummaryBox"><strong>${esc(q.name)}</strong><span>預估總人數：${total}</span></div>`}const count={};list.forEach(o=>{const v=answerOf(o)[q.name];(Array.isArray(v)?v:[v]).filter(Boolean).forEach(x=>count[x]=(count[x]||0)+1)});return `<div class="statsSummaryBox"><strong>${esc(q.name)}</strong><span>${Object.entries(count).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${esc(k)}：${v} 票`).join('<br>')||'尚無資料'}</span></div>`}).join('')}
+function campaignProducts(c){
+ let products=c?.products;
+ if(typeof products==='string'){
+   try{products=JSON.parse(products)}catch(e){products=[]}
+ }
+ if(!Array.isArray(products)){
+   products=products&&typeof products==='object'?Object.values(products):[];
+ }
+ return products.filter(p=>p&&typeof p==='object'&&String(p.name||'').trim()).map((p,index)=>({
+   ...p,
+   id:p.id||('product_'+index),
+   name:String(p.name||'').trim(),
+   specs:Array.isArray(p.specs)?p.specs:[],
+   prefs:Array.isArray(p.prefs)?p.prefs:[]
+ }));
+}
 function quickTypeForCampaign(c){return c.template==='drink'||c.template==='meal'}
 function orderPeopleCount(c,o){
  if(!o||o.status==='not_joining')return 0;
@@ -803,12 +819,12 @@ function publicRows(c){
  const showPeople=c.template==='travel'||c.template==='training';
  return `<table class="publicTable"><thead><tr><th>姓名</th><th>狀態</th>${showPeople?'<th>報名人數</th>':''}${c.visibility==='full'?'<th>內容</th>':''}</tr></thead><tbody>${os.map(o=>`<tr><td class="colName">${esc(o.user)}</td><td>${o.status==='accepted'?'<span class="badge ok">正取</span>':o.status==='waitlist'?'<span class="badge wait">候補</span>':'<span class="badge no">不參加</span>'}</td>${showPeople?`<td><strong>${orderPeopleCount(c,o)} 人</strong></td>`:''}${c.visibility==='full'?`<td>${esc((o.lines||[]).map(l=>`${l.name}／${l.spec}×${l.qty}`).join('、'))}</td>`:''}</tr>`).join('')}</tbody></table>`
 }
-function campaignCommonPrefs(c){return c.commonPrefs?.length?c.commonPrefs:(c.products?.[0]?.prefs||[])}
+function campaignCommonPrefs(c){const products=campaignProducts(c);return c.commonPrefs?.length?c.commonPrefs:(products[0]?.prefs||[])}
 function campaignAddons(c){return c.addons?.length?c.addons:(c.products?.[0]?.addons||[])}
 function matrixSelectHtml(cid,rowKey,pref,index){return `<select class="matrixPref" data-pref="${esc(pref.name)}" data-row="${esc(rowKey)}" onchange="updateQuickTotal('${cid}')"><option value="">—</option>${(pref.values||[]).map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('')}</select>`}
 function quickOrderFields(c){
  const prefs=campaignCommonPrefs(c);
- const productRows=(c.products||[]).map((p,i)=>({kind:'product',key:'p'+i,name:p.name,price:Number(p.specs?.[0]?.price||0),prefs}));
+ const productRows=campaignProducts(c).map((p,i)=>({kind:'product',key:'p'+i,name:p.name,price:Number(p.specs?.[0]?.price||0),prefs}));
  const addonRows=campaignAddons(c).map((a,i)=>({kind:'addon',key:'a'+i,name:a.name,price:Number(a.price||0),prefs:[]}));
  const rows=[...productRows,...addonRows];
  const prefHeads=prefs.map(p=>`<th>${esc(p.name)}</th>`).join('');
@@ -824,7 +840,7 @@ function updateQuickTotal(cid){
  if(box)box.textContent='預估總額：$'+total;
 }
 
-function travelMainProduct(c){return (c.products||[])[0]||{id:'travel',name:'活動報名',specs:[]}}
+function travelMainProduct(c){return campaignProducts(c)[0]||{id:'travel',name:'活動報名',specs:[]}}
 function travelHasTextPreference(c){return (travelMainProduct(c).prefs||[]).some(p=>p.type==='文字')}
 function travelPriceOptions(c,selected=''){
  const specs=travelMainProduct(c).specs||[];
@@ -868,7 +884,7 @@ function eventCard(c){
  ${c.capacity>0?`<div class="counter">已報名 ${participantCount(c)}／${c.capacity} 人｜剩餘 ${rem} 人</div>`:''}
  ${c.replyRequired?`<div class="optionBlock"><div class="optionLabel">是否參加（必填）</div><div class="choiceGrid"><label class="choice"><input type="radio" name="join_${c.id}" value="yes">參加</label><label class="choice"><input type="radio" name="join_${c.id}" value="no">不參加</label></div></div>`:''}
  ${c.template==='travel'?travelPricingFields(c):(c.maxCompanion>0?`<label>攜伴人數（最多 ${c.maxCompanion} 人）</label><select id="companions_${c.id}">${Array.from({length:Number(c.maxCompanion||0)+1},(_,i)=>`<option value="${i}">${i} 人</option>`).join('')}</select>`:'')}
- ${c.template==='travel'?'':(quickTypeForCampaign(c)?quickOrderFields(c):c.products.map(p=>`<div class="productCard" data-campaign="${c.id}" data-product="${p.id}"><div class="productHead"><div class="productName">${esc(p.name)}</div></div><div class="optionBlock"><div class="optionLabel">規格與價格</div><div class="choiceGrid">${p.specs.map((s,i)=>`<label class="choice"><input type="radio" name="spec_${c.id}_${p.id}" class="specChoice" value="${i}" data-price="${s.price}">${esc(s.name)} $${s.price}</label>`).join('')}</div></div>${p.prefs.map(x=>renderPreference(x,c.id,p.id)).join('')}<div class="qtyGrid"><div><label>數量</label><input class="qty" type="number" min="0" value="0" inputmode="numeric" oninput="updateTotal('${c.id}')"></div><div class="totalBox productSubtotal">小計：$0</div></div></div>`).join('')+`<div class="totalBox" id="total_${c.id}">預估總額：$0</div>`)}${c.template==='travel'&&travelHasTextPreference(c)?`<input type="hidden" id="note_${c.id}" value="">`:`<label>備註</label><input id="note_${c.id}" placeholder="可留白">`}<div class="actions"><button class="btn" ${(c.closed||c.cancelled)?'disabled':''} onclick="submitReply('${c.id}')">${c.cancelled?'活動已取消':c.closed?'已結單':'送出回覆'}</button></div>${publicRows(c)}</article>`
+ ${c.template==='travel'?'':(quickTypeForCampaign(c)?quickOrderFields(c):campaignProducts(c).map(p=>`<div class="productCard" data-campaign="${c.id}" data-product="${p.id}"><div class="productHead"><div class="productName">${esc(p.name)}</div></div><div class="optionBlock"><div class="optionLabel">規格與價格</div><div class="choiceGrid">${p.specs.map((s,i)=>`<label class="choice"><input type="radio" name="spec_${c.id}_${p.id}" class="specChoice" value="${i}" data-price="${s.price}">${esc(s.name)} $${s.price}</label>`).join('')}</div></div>${p.prefs.map(x=>renderPreference(x,c.id,p.id)).join('')}<div class="qtyGrid"><div><label>數量</label><input class="qty" type="number" min="0" value="0" inputmode="numeric" oninput="updateTotal('${c.id}')"></div><div class="totalBox productSubtotal">小計：$0</div></div></div>`).join('')+`<div class="totalBox" id="total_${c.id}">預估總額：$0</div>`)}${c.template==='travel'&&travelHasTextPreference(c)?`<input type="hidden" id="note_${c.id}" value="">`:`<label>備註</label><input id="note_${c.id}" placeholder="可留白">`}<div class="actions"><button class="btn" ${(c.closed||c.cancelled)?'disabled':''} onclick="submitReply('${c.id}')">${c.cancelled?'活動已取消':c.closed?'已結單':'送出回覆'}</button></div>${publicRows(c)}</article>`
 }
 function updateTotal(cid){let total=0;document.querySelectorAll(`[data-campaign="${cid}"]`).forEach(row=>{const qty=Number(row.querySelector('.qty').value||0),spec=row.querySelector('.specChoice:checked'),price=Number(spec?.dataset.price||0),sub=qty*price;row.querySelector('.productSubtotal').textContent='小計：$'+sub;total+=sub});document.getElementById('total_'+cid).textContent='預估總額：$'+total}
 async function submitReply(cid){
@@ -900,7 +916,8 @@ async function submitReply(cid){
    });
  }else document.querySelectorAll(`[data-campaign="${cid}"]`).forEach(row=>{
    const qty=Number(row.querySelector('.qty').value||0);if(qty<=0)return;
-   const p=c.products.find(x=>x.id===row.dataset.product);
+   const p=campaignProducts(c).find(x=>String(x.id)===String(row.dataset.product));
+   if(!p)return;
    const si=Number(row.querySelector('.specChoice:checked')?.value);
    if(!Number.isInteger(si))return;
    const spec=p.specs[si],prefs={};
@@ -935,7 +952,7 @@ function statsPreferenceNames(c,list){
  const names=[];
  const add=n=>{if(n&&!names.includes(n))names.push(n)};
  campaignCommonPrefs(c).forEach(p=>add(p.name));
- (c.products||[]).forEach(p=>(p.prefs||[]).forEach(pref=>add(pref.name)));
+ campaignProducts(c).forEach(p=>(p.prefs||[]).forEach(pref=>add(pref.name)));
  list.forEach(o=>(o.lines||[]).forEach(l=>Object.keys(l.prefs||{}).forEach(add)));
  return names;
 }

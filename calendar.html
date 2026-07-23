@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#dceeff" />
+  <title>和美智慧校園｜行事曆</title>
+  <style>
+    :root{
+      --bg:#eef7ff;
+      --card:#ffffff;
+      --primary:#4f86c6;
+      --primary-dark:#356ba9;
+      --text:#23364d;
+      --muted:#6d7d90;
+      --line:#d9e7f3;
+      --success:#2f9d69;
+      --danger:#d65b5b;
+      --warning:#d89a33;
+      --shadow:0 10px 28px rgba(49,91,133,.13);
+      --radius:20px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;
+      background:linear-gradient(180deg,#eaf5ff 0%,#f8fbff 100%);
+      color:var(--text);
+      min-height:100vh;
+    }
+    button,input,select,textarea{font:inherit}
+    .app{width:min(980px,100%);margin:0 auto;padding:16px 12px 70px}
+    .topbar{
+      background:rgba(255,255,255,.94);
+      border:1px solid var(--line);
+      border-radius:26px;
+      box-shadow:var(--shadow);
+      padding:16px;
+      margin-bottom:14px;
+    }
+    .brand{display:flex;align-items:center;gap:13px}
+    .logo{
+      width:66px;height:66px;border-radius:18px;object-fit:contain;
+      background:#fff;padding:3px;box-shadow:0 5px 14px rgba(49,91,133,.15)
+    }
+    h1{font-size:1.45rem;margin:0;color:var(--primary-dark)}
+    .subtitle{color:var(--muted);font-size:.92rem;margin-top:4px}
+    .status-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}
+    .pill{
+      border-radius:999px;padding:7px 11px;background:#f4f8fc;
+      border:1px solid var(--line);color:var(--muted);font-size:.85rem;font-weight:700
+    }
+    .pill.ok{color:var(--success);background:#eefaf4}
+    .pill.warn{color:var(--warning);background:#fff8ec}
+    .toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}
+    .toolbtn,.btn{
+      border:0;border-radius:13px;padding:11px 15px;cursor:pointer;font-weight:800;
+      background:#e9f2fb;color:var(--primary-dark)
+    }
+    .toolbtn{background:#fff;box-shadow:var(--shadow)}
+    .toolbtn.primary,.btn.primary{background:var(--primary);color:#fff}
+    .btn.danger{background:#fff0f0;color:var(--danger)}
+    .panel{
+      background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+      box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden
+    }
+    .panel-head{
+      padding:14px 16px;border-bottom:1px solid var(--line);
+      display:flex;align-items:center;justify-content:space-between;gap:10px
+    }
+    .panel-head h2{font-size:1.1rem;margin:0}
+    .panel-body{padding:16px}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field.full{grid-column:1/-1}
+    label{font-weight:800;font-size:.9rem}
+    input,select,textarea{
+      width:100%;border:1px solid #cdddeb;border-radius:12px;
+      padding:11px 12px;background:#fff;color:var(--text)
+    }
+    textarea{min-height:90px;resize:vertical}
+    .reminder-box{
+      background:#f8fbff;border:1px solid var(--line);border-radius:16px;
+      padding:12px;margin-top:4px
+    }
+    .reminder-row{
+      display:grid;grid-template-columns:120px 150px auto;gap:8px;
+      align-items:center;margin-top:8px
+    }
+    .reminder-row:first-child{margin-top:0}
+    .hint{color:var(--muted);font-size:.84rem;line-height:1.5;margin-top:6px}
+    .checks{display:flex;gap:12px;flex-wrap:wrap}
+    .check{display:flex;align-items:center;gap:6px;font-weight:600}
+    .check input{width:auto}
+    .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .item{
+      border:1px solid var(--line);border-radius:14px;padding:13px;background:#fbfdff
+    }
+    .item-title{font-weight:900;margin-bottom:5px}
+    .meta{font-size:.85rem;color:var(--muted);line-height:1.65}
+    .empty{text-align:center;color:var(--muted);padding:24px 10px}
+    .toast{
+      position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+      min-width:240px;max-width:88vw;background:#23364d;color:#fff;
+      padding:12px 16px;border-radius:14px;box-shadow:var(--shadow);
+      opacity:0;pointer-events:none;transition:.25s;z-index:99;text-align:center
+    }
+    .toast.show{opacity:1}
+    .version{text-align:center;color:var(--muted);font-size:.8rem;margin-top:16px}
+    @media(max-width:700px){
+      .grid{grid-template-columns:1fr}
+      .reminder-row{grid-template-columns:1fr 1fr}
+      .reminder-row .remove{grid-column:1/-1}
+    }
+  </style>
+</head>
+<body>
+<main class="app">
+  <section class="topbar">
+    <div class="brand">
+      <img class="logo" src="assets/logo.png?v=20260722" alt="和美智慧校園 LOGO"
+           onerror="this.src='assets/app-icon.png?v=20260722'">
+      <div>
+        <h1>和美智慧校園｜行事曆</h1>
+        <div class="subtitle">行程、提醒、週期事項與 Google 日曆同步</div>
+      </div>
+    </div>
+    <div class="status-row">
+      <span class="pill" id="todayText">今日</span>
+      <span class="pill warn" id="cloudStatus">尚未同步</span>
+      <span class="pill" id="versionStatus">版本 v1.0.0</span>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <button class="toolbtn primary" type="button" onclick="startNewEvent()">＋ 新增行程</button>
+    <button class="toolbtn" type="button" onclick="syncAll()">重新同步</button>
+    <button class="toolbtn" type="button" onclick="checkVersion()">檢查新版</button>
+    <button class="toolbtn" type="button" onclick="location.href='secretary.html'">返回智慧秘書</button>
+  </div>
+
+  <section class="panel" id="eventPanel">
+    <div class="panel-head">
+      <h2 id="eventFormTitle">新增行程</h2>
+      <button class="btn" type="button" onclick="collapseForm()">收合</button>
+    </div>
+    <div class="panel-body" id="eventFormBody">
+      <form id="eventForm">
+        <input type="hidden" name="行程ID">
+        <input type="hidden" name="Google日曆事件ID">
+        <input type="hidden" name="建立時間">
+
+        <div class="grid">
+          <div class="field full">
+            <label>標題</label>
+            <input name="標題" required placeholder="例如：園務會議">
+          </div>
+
+          <div class="field">
+            <label>開始日期</label>
+            <input type="date" name="開始日期" required>
+          </div>
+          <div class="field">
+            <label>開始時間</label>
+            <input type="time" name="開始時間">
+          </div>
+
+          <div class="field">
+            <label>結束日期</label>
+            <input type="date" name="結束日期">
+          </div>
+          <div class="field">
+            <label>結束時間</label>
+            <input type="time" name="結束時間">
+          </div>
+
+          <div class="field full">
+            <label>地點</label>
+            <input name="地點" placeholder="可填地址、餐廳或活動場所">
+          </div>
+
+          <div class="field full">
+            <label>說明</label>
+            <textarea name="說明" placeholder="補充內容"></textarea>
+          </div>
+
+          <div class="field full">
+            <label>提前提醒（可設定多組）</label>
+            <div class="reminder-box">
+              <div id="reminderList"></div>
+              <div class="actions">
+                <button class="btn" type="button" onclick="addReminderRow()">＋ 新增另一個提醒時間</button>
+              </div>
+              <div class="hint">每一組都可以分別設定分鐘、小時、天或週；不需要提醒時，可把所有提醒列刪除。</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>類型</label>
+            <select name="私人／公務">
+              <option>公務</option>
+              <option>私人</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>重複</label>
+            <select name="重複規則">
+              <option value="">不重複</option>
+              <option value="daily">每天</option>
+              <option value="weekdays">每週一至週五</option>
+              <option value="weekly">每週</option>
+              <option value="monthly">每月</option>
+              <option value="yearly">每年</option>
+            </select>
+          </div>
+
+          <div class="field full">
+            <div class="checks">
+              <label class="check"><input type="checkbox" name="強提醒"> 啟用強提醒</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn primary" id="eventSubmitBtn" type="submit">儲存行程</button>
+          <button class="btn" type="button" onclick="resetEventForm()">清除</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>行程列表</h2>
+      <span class="pill" id="eventCount">0 筆</span>
+    </div>
+    <div class="panel-body">
+      <div class="list" id="eventList"><div class="empty">正在讀取資料…</div></div>
+    </div>
+  </section>
+
+  <div class="version">行事曆 v1.0.0｜2026-07-22｜多組提醒獨立版</div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
+const state={events:[]};
+
+document.getElementById('todayText').textContent=
+  new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+
+function showToast(message){
+  const el=document.getElementById('toast');
+  el.textContent=message;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2200);
+}
+function esc(v){
+  return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+function escAttr(v){
+  return String(v??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+function jsonp(action){
+  return new Promise((resolve,reject)=>{
+    const cb='cb_'+Date.now()+'_'+Math.floor(Math.random()*9999);
+    const script=document.createElement('script');
+    const timer=setTimeout(()=>{cleanup();reject(new Error('連線逾時'))},15000);
+    function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
+    window[cb]=(data)=>{cleanup();resolve(data)};
+    script.onerror=()=>{cleanup();reject(new Error('連線失敗'))};
+    script.src=`${API_URL}?action=${encodeURIComponent(action)}&callback=${cb}&t=${Date.now()}`;
+    document.body.appendChild(script);
+  });
+}
+async function postAction(action,payload){
+  const body=new URLSearchParams();
+  body.set('action',action);
+  body.set('payload',JSON.stringify(payload));
+  const res=await fetch(API_URL,{method:'POST',body});
+  return await res.json();
+}
+async function syncAll(){
+  const status=document.getElementById('cloudStatus');
+  status.textContent='同步中…';
+  status.className='pill warn';
+  try{
+    const data=await jsonp('syncAll');
+    if(!data.ok) throw new Error(data.message||'同步失敗');
+    state.events=Array.isArray(data.events)?data.events:[];
+    renderEvents();
+    status.textContent='雲端已同步';
+    status.className='pill ok';
+    showToast('資料同步完成');
+  }catch(err){
+    status.textContent='同步失敗';
+    status.className='pill warn';
+    document.getElementById('eventList').innerHTML='<div class="empty">同步失敗，請稍後重試</div>';
+    showToast(err.message);
+  }
+}
+async function checkVersion(){
+  try{
+    const data=await jsonp('checkVersion');
+    if(data.ok){
+      document.getElementById('versionStatus').textContent=`版本 v${data.version}`;
+      showToast(`雲端版本 v${data.version}`);
+    }else{
+      showToast('版本資訊讀取失敗');
+    }
+  }catch(err){showToast('版本檢查失敗')}
+}
+function addReminderRow(value=10,unit='分鐘'){
+  const box=document.getElementById('reminderList');
+  const row=document.createElement('div');
+  row.className='reminder-row';
+  row.innerHTML=`
+    <input class="reminder-value" type="number" min="0" value="${Number(value)||0}" aria-label="提醒數值">
+    <select class="reminder-unit" aria-label="提醒單位">
+      <option ${unit==='分鐘'?'selected':''}>分鐘</option>
+      <option ${unit==='小時'?'selected':''}>小時</option>
+      <option ${unit==='天'?'selected':''}>天</option>
+      <option ${unit==='週'?'selected':''}>週</option>
+    </select>
+    <button class="btn danger remove" type="button" onclick="this.closest('.reminder-row').remove()">移除</button>`;
+  box.appendChild(row);
+}
+function getReminderSettings(){
+  return [...document.querySelectorAll('#reminderList .reminder-row')].map(row=>({
+    value:Number(row.querySelector('.reminder-value').value||0),
+    unit:row.querySelector('.reminder-unit').value
+  })).filter(r=>r.value>=0 && r.unit);
+}
+function setReminderSettings(reminders){
+  const box=document.getElementById('reminderList');
+  box.innerHTML='';
+  (Array.isArray(reminders)?reminders:[]).forEach(r=>addReminderRow(r.value,r.unit));
+}
+function startNewEvent(){
+  resetEventForm();
+  document.getElementById('eventFormBody').style.display='';
+  document.getElementById('eventPanel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function collapseForm(){
+  const body=document.getElementById('eventFormBody');
+  body.style.display=body.style.display==='none'?'':'none';
+}
+function resetEventForm(){
+  const form=document.getElementById('eventForm');
+  form.reset();
+  form.elements['行程ID'].value='';
+  form.elements['Google日曆事件ID'].value='';
+  form.elements['建立時間'].value='';
+  document.getElementById('eventFormTitle').textContent='新增行程';
+  document.getElementById('eventSubmitBtn').textContent='儲存行程';
+  setReminderSettings([{value:10,unit:'分鐘'}]);
+}
+function getEventById(id){
+  return state.events.find(item=>String(item.行程ID)===String(id));
+}
+function editEvent(id){
+  const item=getEventById(id);
+  if(!item){showToast('找不到這筆行程');return}
+  const form=document.getElementById('eventForm');
+  const set=(name,value)=>{const el=form.elements[name];if(el)el.value=value??''};
+  set('行程ID',item.行程ID);
+  set('Google日曆事件ID',item.Google日曆事件ID);
+  set('建立時間',item.建立時間);
+  set('標題',item.標題);
+  set('開始日期',item.開始日期);
+  set('開始時間',item.開始時間);
+  set('結束日期',item.結束日期);
+  set('結束時間',item.結束時間);
+  set('地點',item.地點);
+  set('說明',item.說明);
+  set('私人／公務',item['私人／公務']||'公務');
+  set('重複規則',item.重複規則||'');
+  form.elements['強提醒'].checked=String(item.強提醒)==='是'||item.強提醒===true;
+  setReminderSettings(Array.isArray(item.提醒設定JSON)?item.提醒設定JSON:[]);
+  document.getElementById('eventFormTitle').textContent='編輯行程';
+  document.getElementById('eventSubmitBtn').textContent='儲存修改';
+  document.getElementById('eventFormBody').style.display='';
+  document.getElementById('eventPanel').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function deleteEventItem(id){
+  const item=getEventById(id);
+  if(!item)return;
+  if(!confirm(`確定刪除「${item.標題}」嗎？Google 日曆中的對應行程也會一併刪除。`))return;
+  try{
+    const result=await postAction('deleteEvent',{id});
+    if(!result.ok)throw new Error(result.message||'刪除失敗');
+    showToast('行程已刪除');
+    await syncAll();
+  }catch(err){showToast('刪除失敗：'+err.message)}
+}
+function renderEvents(){
+  document.getElementById('eventCount').textContent=`${state.events.length} 筆`;
+  const el=document.getElementById('eventList');
+  if(!state.events.length){
+    el.innerHTML='<div class="empty">目前沒有行程</div>';
+    return;
+  }
+  el.innerHTML=state.events.map(item=>{
+    const reminders=Array.isArray(item.提醒設定JSON)?item.提醒設定JSON:[];
+    const reminderText=reminders.length?reminders.map(r=>`${r.value}${r.unit}前`).join('、'):'不提醒';
+    return `<article class="item">
+      <div class="item-title">${esc(item.標題||'未命名行程')}</div>
+      <div class="meta">
+        日期：${esc(item.開始日期||'')} ${esc(item.開始時間||'')}
+        ～ ${esc(item.結束日期||'')} ${esc(item.結束時間||'')}<br>
+        地點：${esc(item.地點||'未填寫')}<br>
+        提醒：${esc(reminderText)}<br>
+        同步狀態：${esc(item.同步狀態||'待同步')}
+      </div>
+      <div class="actions">
+        <button class="btn primary" type="button" onclick="editEvent('${escAttr(item.行程ID)}')">編輯</button>
+        <button class="btn danger" type="button" onclick="deleteEventItem('${escAttr(item.行程ID)}')">刪除</button>
+      </div>
+    </article>`;
+  }).join('');
+}
+function formObject(form){
+  const fd=new FormData(form),obj={};
+  fd.forEach((v,k)=>obj[k]=v);
+  form.querySelectorAll('input[type=checkbox]').forEach(c=>obj[c.name]=c.checked);
+  return obj;
+}
+document.getElementById('eventForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const form=e.target;
+  const submitBtn=document.getElementById('eventSubmitBtn');
+  if(submitBtn.disabled)return;
+  const data=formObject(form);
+  data.提醒設定JSON=getReminderSettings();
+
+  submitBtn.disabled=true;
+  const oldText=submitBtn.textContent;
+  submitBtn.textContent='儲存中…';
+
+  try{
+    const result=await postAction('saveEvent',data);
+    if(!result.ok)throw new Error(result.message||'儲存失敗');
+    await syncAll();
+    resetEventForm();
+    if(result.calendarSynced){
+      showToast('行程已儲存並同步 Google 日曆');
+    }else{
+      showToast(result.warning||'行程已保存，但日曆同步失敗');
+    }
+  }catch(err){
+    showToast('儲存失敗：'+err.message);
+  }finally{
+    submitBtn.disabled=false;
+    submitBtn.textContent=oldText;
+  }
+});
+
+window.addEventListener('load',()=>{
+  resetEventForm();
+  syncAll();
+  checkVersion();
+});
+</script>
+</body>
+</html>
