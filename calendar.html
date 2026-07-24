@@ -108,6 +108,17 @@
     }
     .toast.show{opacity:1}
     .version{text-align:center;color:var(--muted);font-size:.8rem;margin-top:16px}
+
+    .notice{background:#fff8ec;border:1px solid #efd39d;color:#76551e;border-radius:14px;padding:11px 13px;line-height:1.55;margin-bottom:12px}
+    .section-box{background:#f8fbff;border:1px solid var(--line);border-radius:16px;padding:12px}
+    .section-title{font-weight:900;color:var(--primary-dark);margin-bottom:8px}
+    .tag{display:inline-block;font-size:.78rem;padding:4px 8px;border-radius:999px;background:#edf5fc;color:var(--primary-dark);margin:5px 5px 0 0}
+    .alarm-mask{position:fixed;inset:0;background:rgba(25,38,55,.72);display:none;align-items:center;justify-content:center;padding:18px;z-index:110}
+    .alarm-mask.show{display:flex}.alarm-card{width:min(520px,100%);background:#fff;border-radius:24px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.28);text-align:center}.alarm-icon{font-size:64px}.alarm-card h2{color:var(--danger)}
+
+    .share-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}.share-summary-text{font-weight:800;color:var(--primary-dark);line-height:1.5}
+    .modal-mask{position:fixed;inset:0;background:rgba(26,39,56,.62);display:none;align-items:center;justify-content:center;padding:16px;z-index:130}.modal-mask.show{display:flex}.modal-card{width:min(520px,100%);max-height:82vh;overflow:auto;background:#fff;border-radius:22px;padding:18px;box-shadow:0 24px 70px rgba(0,0,0,.28)}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.modal-head h3{margin:0;color:var(--primary-dark)}.choice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.choice-btn{border:1px solid var(--line);border-radius:14px;padding:14px 12px;background:#f8fbff;color:var(--text);font-weight:850;cursor:pointer;text-align:left}.sound-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
     @media(max-width:700px){
       .grid{grid-template-columns:1fr}
       .reminder-row{grid-template-columns:1fr 1fr}
@@ -119,8 +130,8 @@
 <main class="app">
   <section class="topbar">
     <div class="brand">
-      <img class="logo" src="assets/logo.png?v=20260722" alt="和美智慧校園 LOGO"
-           onerror="this.src='assets/app-icon.png?v=20260722'">
+      <img class="logo" src="assets/logo.png?v=20260724" alt="和美智慧校園 LOGO"
+           onerror="this.src='assets/app-icon.png?v=20260724'">
       <div>
         <h1>和美智慧校園｜行事曆</h1>
         <div class="subtitle">行程、提醒、週期事項與 Google 日曆同步</div>
@@ -129,7 +140,7 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v1.0.0</span>
+      <span class="pill" id="versionStatus">版本 v1.2.0</span>
     </div>
   </section>
 
@@ -137,6 +148,9 @@
     <button class="toolbtn primary" type="button" onclick="startNewEvent()">＋ 新增行程</button>
     <button class="toolbtn" type="button" onclick="syncAll()">重新同步</button>
     <button class="toolbtn" type="button" onclick="checkVersion()">檢查新版</button>
+    <button class="toolbtn" type="button" onclick="requestNotifyPermission()">允許通知</button>
+    <button class="toolbtn" type="button" onclick="testAlarm()">測試鈴聲</button>
+    <button class="toolbtn" type="button" onclick="downloadBackup()">下載備份</button>
     <button class="toolbtn" type="button" onclick="location.href='secretary.html'">返回智慧秘書</button>
   </div>
 
@@ -146,6 +160,7 @@
       <button class="btn" type="button" onclick="collapseForm()">收合</button>
     </div>
     <div class="panel-body" id="eventFormBody">
+      <div class="notice">手機鎖定或瀏覽器被系統完全關閉時，本頁鈴聲可能受限制；Google 日曆通知仍由 Google 日曆 App 負責。</div>
       <form id="eventForm">
         <input type="hidden" name="行程ID">
         <input type="hidden" name="Google日曆事件ID">
@@ -216,9 +231,14 @@
             </select>
           </div>
 
+          <div class="field full"><div class="section-box"><div class="section-title">📣 分享與通知對象</div><input type="hidden" name="分享對象"><input type="hidden" name="主管分類"><input type="hidden" name="指定分享對象"><input type="hidden" name="分享路徑"><div class="share-summary"><div><div class="share-summary-text" id="shareSummaryText">僅自己</div><div class="hint">主管與庶務組直接選人；教保員依年級、班級、個人逐層選擇。</div></div><button class="btn purple" type="button" onclick="openShareLevel1()">選擇分享對象</button></div></div></div>
+          </div>
+          <div class="field full"><div class="section-box"><div class="section-title">🎵 提醒聲音</div><div class="sound-row"><select name="提醒聲音" id="alarmSound"><option value="gentle">柔和提示</option><option value="meeting">會議鐘聲</option><option value="urgent">緊急提醒</option><option value="school">校園鐘聲</option><option value="message">訊息提示</option><option value="task">任務完成</option><option value="bright">清亮鈴聲</option><option value="deep">低沉提醒</option></select><button class="btn success" type="button" onclick="previewSelectedSound()">試聽鈴聲</button></div><div class="hint">手機與手錶的系統通知聲由 Google 日曆 App／裝置設定控制；此處聲音用於網頁到時提醒。</div></div></div>
           <div class="field full">
             <div class="checks">
-              <label class="check"><input type="checkbox" name="強提醒"> 啟用強提醒</label>
+              <label class="check"><input type="checkbox" name="強提醒"> 啟用強提醒（全畫面並持續響鈴）</label>
+              <label class="check"><input type="checkbox" name="瀏覽器通知" checked> 發送瀏覽器通知</label>
+              <label class="check"><input type="checkbox" name="同步Google日曆" checked> 同步 Google 日曆</label>
             </div>
           </div>
         </div>
@@ -241,14 +261,18 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v1.0.0｜2026-07-22｜多組提醒獨立版</div>
+  <div class="version">行事曆 v1.1.0｜2026-07-24｜提醒與分享功能重建版</div>
 </main>
 
+<div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
+<div class="alarm-mask" id="alarmMask"><div class="alarm-card"><div class="alarm-icon">⏰</div><h2>行程提醒</h2><div id="alarmTitle" style="font-weight:900;font-size:1.2rem"></div><div id="alarmDetail" style="margin-top:8px"></div><div class="actions" style="justify-content:center"><button class="btn primary" type="button" onclick="stopAlarm()">停止鈴聲</button><button class="btn" type="button" onclick="snoozeAlarm()">5 分鐘後再提醒</button></div></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const state={events:[]};
+const APP_VERSION='1.2.0';
+const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null};
+const FIRED_KEY='heremay_calendar_fired_v120';
 
 document.getElementById('todayText').textContent=
   new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
@@ -269,7 +293,7 @@ function jsonp(action){
   return new Promise((resolve,reject)=>{
     const cb='cb_'+Date.now()+'_'+Math.floor(Math.random()*9999);
     const script=document.createElement('script');
-    const timer=setTimeout(()=>{cleanup();reject(new Error('連線逾時'))},15000);
+    const timer=setTimeout(()=>{cleanup();reject(new Error('連線逾時'))},30000);
     function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
     window[cb]=(data)=>{cleanup();resolve(data)};
     script.onerror=()=>{cleanup();reject(new Error('連線失敗'))};
@@ -357,7 +381,9 @@ function resetEventForm(){
   form.elements['建立時間'].value='';
   document.getElementById('eventFormTitle').textContent='新增行程';
   document.getElementById('eventSubmitBtn').textContent='儲存行程';
-  setReminderSettings([{value:10,unit:'分鐘'}]);
+  setReminderSettings([{value:10,unit:'分鐘'}]);document.getElementById('shareSummaryText').textContent='僅自己';
+  form.elements['瀏覽器通知'].checked=true;
+  form.elements['同步Google日曆'].checked=true;
 }
 function getEventById(id){
   return state.events.find(item=>String(item.行程ID)===String(id));
@@ -379,7 +405,12 @@ function editEvent(id){
   set('說明',item.說明);
   set('私人／公務',item['私人／公務']||'公務');
   set('重複規則',item.重複規則||'');
+  set('分享對象',item.分享對象||'僅自己');
+  set('主管分類',item.主管分類||'');
+  set('指定分享對象',item.指定分享對象||'');
   form.elements['強提醒'].checked=String(item.強提醒)==='是'||item.強提醒===true;
+  form.elements['瀏覽器通知'].checked=item.瀏覽器通知===undefined?true:(String(item.瀏覽器通知)==='是'||item.瀏覽器通知===true);
+  form.elements['同步Google日曆'].checked=item.同步Google日曆===undefined?true:(String(item.同步Google日曆)==='是'||item.同步Google日曆===true);
   setReminderSettings(Array.isArray(item.提醒設定JSON)?item.提醒設定JSON:[]);
   document.getElementById('eventFormTitle').textContent='編輯行程';
   document.getElementById('eventSubmitBtn').textContent='儲存修改';
@@ -409,6 +440,7 @@ function renderEvents(){
     const reminderText=reminders.length?reminders.map(r=>`${r.value}${r.unit}前`).join('、'):'不提醒';
     return `<article class="item">
       <div class="item-title">${esc(item.標題||'未命名行程')}</div>
+      <div><span class="tag">${esc(item.分享對象||'僅自己')}</span>${item.主管分類?`<span class="tag">${esc(item.主管分類)}</span>`:''}${(String(item.強提醒)==='是'||item.強提醒===true)?'<span class="tag">強提醒</span>':''}</div>
       <div class="meta">
         日期：${esc(item.開始日期||'')} ${esc(item.開始時間||'')}
         ～ ${esc(item.結束日期||'')} ${esc(item.結束時間||'')}<br>
@@ -429,6 +461,19 @@ function formObject(form){
   form.querySelectorAll('input[type=checkbox]').forEach(c=>obj[c.name]=c.checked);
   return obj;
 }
+
+const SHARE_TREE={主管:['園長','副園長','主任','組長','行政主管'],庶務組:['庶務組長','總務人員','廚房人員','司機','清潔人員'],教保員:{幼幼班:['幼幼A班','幼幼B班'],小班:['小A班','小B班','小C班'],中班:['中A班','中B班','中C班'],大班:['大A班','大B班','大C班']}};
+const SHARE_PEOPLE={'幼幼A班':['幼幼A班教師1','幼幼A班教師2'],'幼幼B班':['幼幼B班教師1','幼幼B班教師2'],'小A班':['小A班教師1','小A班教師2'],'小B班':['小B班教師1','小B班教師2'],'小C班':['小C班教師1','小C班教師2'],'中A班':['中A班教師1','中A班教師2'],'中B班':['中B班教師1','中B班教師2'],'中C班':['中C班教師1','中C班教師2'],'大A班':['大A班教師1','大A班教師2'],'大B班':['大B班教師1','大B班教師2'],'大C班':['大C班教師1','大C班教師2']};
+function openShareModal(title,choices,onPick,allowAll=false){document.getElementById('shareModalTitle').textContent=title;const box=document.getElementById('shareChoices');box.innerHTML='';choices.forEach(v=>{const b=document.createElement('button');b.type='button';b.className='choice-btn';b.textContent=v;b.onclick=()=>onPick(v);box.appendChild(b)});const a=document.getElementById('shareModalActions');a.innerHTML='';if(allowAll){const b=document.createElement('button');b.type='button';b.className='btn primary';b.textContent='選擇整個群組';b.onclick=()=>onPick('__ALL__');a.appendChild(b)}document.getElementById('shareModal').classList.add('show')}
+function closeShareModal(){document.getElementById('shareModal').classList.remove('show')}
+function setShareSelection(type,path,target){const f=document.getElementById('eventForm');f.elements['分享對象'].value=type||'僅自己';f.elements['主管分類'].value=type==='主管'?(path[0]||''):'';f.elements['指定分享對象'].value=target||'';f.elements['分享路徑'].value=path.join('／');document.getElementById('shareSummaryText').textContent=type==='僅自己'?'僅自己':[type,...path,target].filter(Boolean).join('／');closeShareModal()}
+function openShareLevel1(){openShareModal('第 1 層：選擇群組',['僅自己','主管','教保員','庶務組'],g=>{if(g==='僅自己')return setShareSelection('僅自己',[],'');if(g==='主管')return openDirectPeople('主管',SHARE_TREE.主管);if(g==='庶務組')return openDirectPeople('庶務組',SHARE_TREE.庶務組);openTeacherGrades()})}
+function openDirectPeople(g,p){openShareModal(g+'：直接選擇人員',p,v=>setShareSelection(g,[],v),true);document.querySelector('#shareModalActions .btn').onclick=()=>setShareSelection(g,[],g+'全體')}
+function openTeacherGrades(){const g=Object.keys(SHARE_TREE.教保員);openShareModal('第 2 層：選擇年級',g,v=>openTeacherClasses(v),true);document.querySelector('#shareModalActions .btn').onclick=()=>setShareSelection('教保員',[],'教保員全體')}
+function openTeacherClasses(g){const c=SHARE_TREE.教保員[g]||[];openShareModal('第 3 層：'+g+'班級',c,v=>openTeacherPeople(g,v),true);document.querySelector('#shareModalActions .btn').onclick=()=>setShareSelection('教保員',[g],g+'全體')}
+function openTeacherPeople(g,c){const p=SHARE_PEOPLE[c]||[];openShareModal('第 4 層：'+c+'個人',p,v=>setShareSelection('教保員',[g,c],v),true);document.querySelector('#shareModalActions .btn').onclick=()=>setShareSelection('教保員',[g,c],c+'全體')}
+function restoreShareSummary(item){const t=item.分享對象||'僅自己',p=String(item.分享路徑||'').split('／').filter(Boolean),x=item.指定分享對象||'';document.getElementById('shareSummaryText').textContent=t==='僅自己'?'僅自己':[t,...p,x].filter(Boolean).join('／')}
+
 document.getElementById('eventForm').addEventListener('submit',async e=>{
   e.preventDefault();
   const form=e.target;
@@ -436,6 +481,8 @@ document.getElementById('eventForm').addEventListener('submit',async e=>{
   if(submitBtn.disabled)return;
   const data=formObject(form);
   data.提醒設定JSON=getReminderSettings();
+  data.提醒設定=JSON.stringify(data.提醒設定JSON);
+  data.Google日曆提醒分鐘=data.提醒設定JSON.map(reminderToMinutes);
 
   submitBtn.disabled=true;
   const oldText=submitBtn.textContent;
@@ -459,10 +506,34 @@ document.getElementById('eventForm').addEventListener('submit',async e=>{
   }
 });
 
+
+function reminderToMinutes(r){const n=Number(r.value||0);return r.unit==='週'?n*10080:r.unit==='天'?n*1440:r.unit==='小時'?n*60:n}
+function eventDate(item){const d=new Date(`${item.開始日期||''}T${item.開始時間||'00:00'}:00`);return isNaN(d)?null:d}
+function getFired(){try{return JSON.parse(localStorage.getItem(FIRED_KEY)||'{}')}catch(_){return {}}}
+function saveFired(v){localStorage.setItem(FIRED_KEY,JSON.stringify(v))}
+function checkDueReminders(){
+  const now=Date.now(),fired=getFired();
+  state.events.forEach(item=>{const start=eventDate(item);if(!start)return;(Array.isArray(item.提醒設定JSON)?item.提醒設定JSON:[]).forEach((r,i)=>{const due=start.getTime()-reminderToMinutes(r)*60000;const key=`${item.行程ID||item.標題}_${start.getTime()}_${i}`;if(now>=due&&now<due+90000&&!fired[key]){fired[key]=now;triggerReminder(item,r)}})});saveFired(fired)
+}
+async function requestNotifyPermission(){if(!('Notification'in window)){showToast('此瀏覽器不支援通知');return}const p=await Notification.requestPermission();showToast(p==='granted'?'通知已允許':'通知未允許')}
+function ensureAudio(){if(!state.audioCtx)state.audioCtx=new (window.AudioContext||window.webkitAudioContext)();if(state.audioCtx.state==='suspended')state.audioCtx.resume();return state.audioCtx}
+function beep(freq=880,duration=.3,delay=0){try{const c=ensureAudio(),o=c.createOscillator(),g=c.createGain();o.frequency.value=freq;g.gain.setValueAtTime(.0001,c.currentTime+delay);g.gain.exponentialRampToValueAtTime(.18,c.currentTime+delay+.02);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+delay+duration);o.connect(g).connect(c.destination);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+duration+.03)}catch(_){}}
+function playSoundPattern(name='gentle',repeats=1){const patterns={gentle:[[660,.20,0],[880,.24,.25]],meeting:[[523,.26,0],[659,.26,.32],[784,.34,.64]],urgent:[[980,.18,0],[980,.18,.28],[980,.28,.56]],school:[[440,.28,0],[554,.28,.34],[659,.45,.68]],message:[[1046,.16,0],[1318,.20,.2]],task:[[523,.18,0],[659,.18,.2],[784,.25,.4]],bright:[[880,.20,0],[1174,.20,.24],[1396,.26,.48]],deep:[[330,.30,0],[262,.36,.38]]};const p=patterns[name]||patterns.gentle;for(let r=0;r<repeats;r++)p.forEach(([f,d,delay])=>beep(f,d,r*1.25+delay))}
+function playChime(n=4,name){playSoundPattern(name||document.getElementById('alarmSound')?.value||'gentle',n)}
+function previewSelectedSound(){ensureAudio();playSoundPattern(document.getElementById('alarmSound').value,2);showToast('正在試聽提醒聲音')}
+function triggerReminder(item,r){const body=`${r.value}${r.unit}後開始｜${item.開始日期||''} ${item.開始時間||''}`;if(item.瀏覽器通知!==false&&'Notification'in window&&Notification.permission==='granted'){try{new Notification(`和美智慧校園｜${item.標題||'行程提醒'}`,{body,icon:'assets/app-icon.png'})}catch(_){}}if(String(item.強提醒)==='是'||item.強提醒===true)showStrongAlarm(item,body);else{playChime(3,item.提醒聲音||'gentle');showToast(`${item.標題||'行程提醒'}：${body}`)}}
+function showStrongAlarm(item,body){state.currentAlarm=item;document.getElementById('alarmTitle').textContent=item.標題||'行程時間到了';document.getElementById('alarmDetail').textContent=body;document.getElementById('alarmMask').classList.add('show');playChime(4,item.提醒聲音||'urgent');clearInterval(state.alarmTimer);state.alarmTimer=setInterval(()=>playChime(3,item.提醒聲音||'urgent'),5000);if(navigator.vibrate)navigator.vibrate([500,250,500,250,900])}
+function stopAlarm(){clearInterval(state.alarmTimer);state.alarmTimer=null;state.currentAlarm=null;document.getElementById('alarmMask').classList.remove('show');if(navigator.vibrate)navigator.vibrate(0)}
+function snoozeAlarm(){const item=state.currentAlarm;stopAlarm();if(item){showToast('已延後 5 分鐘');setTimeout(()=>showStrongAlarm(item,'這是 5 分鐘延後提醒'),300000)}}
+function testAlarm(){showStrongAlarm({標題:'測試提醒',提醒聲音:document.getElementById('alarmSound').value},'這是鈴聲與強提醒測試')}
+function downloadBackup(){const blob=new Blob([JSON.stringify({version:APP_VERSION,exportedAt:new Date().toISOString(),events:state.events},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`calendar-backup-v${APP_VERSION}-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+
 window.addEventListener('load',()=>{
   resetEventForm();
   syncAll();
   checkVersion();
+  checkDueReminders();
+  setInterval(checkDueReminders,30000);
 });
 </script>
 </body>
