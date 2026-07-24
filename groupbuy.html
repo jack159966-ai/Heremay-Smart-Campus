@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.8.9</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.9.3</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -348,7 +348,7 @@ textarea{min-height:95px;resize:vertical}
       <div><label>說明</label><div class="hint" style="margin:0">這只是提醒；活動結束後仍可選擇保留或永久刪除。</div></div>
     </div>
 
-    <label>附件：圖片與 PDF，可分批累加</label>
+    <label>附件：圖片與 PDF，可分批累加</label><div class="hint">JPG／JPEG 照片會在手機端先自動縮小再上傳；PDF 與其他檔案維持原檔。</div>
     <input id="attachments" type="file" accept="image/*,.pdf" multiple>
     <div id="fileList" class="fileList"></div><div id="uploadProgress" class="uploadProgress"></div>
 
@@ -372,7 +372,7 @@ textarea{min-height:95px;resize:vertical}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.9.2｜2026-07-24｜手機四欄同屏版</div>
+<div class="version">團購／報名中心 v1.9.3｜2026-07-24｜JPG 手機端自動壓縮</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -553,6 +553,44 @@ function postCloudResponse(action,payload,timeoutMs=180000){
    document.body.append(iframe,form);form.submit();
  });
 }
+function isJpegFile(file){
+ return /^image\/jpe?g$/i.test(file.type||'')||/\.(jpe?g)$/i.test(file.name||'');
+}
+function compressedJpegName(name){
+ return String(name||'photo.jpg').replace(/\.(jpe?g)$/i,'')+'_mobile.jpg';
+}
+async function compressJpegForMobile(file){
+ if(!isJpegFile(file))return file;
+ const bitmap=await createImageBitmap(file,{imageOrientation:'from-image'});
+ const portrait=bitmap.height>bitmap.width;
+
+ // 橫式照片以手機畫面寬度為主；直式照片限制為約手機畫面三分之一高度。
+ // 為避免不同裝置尺寸差異過大，另設合理上下限。
+ const screenW=Math.max(320,Math.min(480,window.innerWidth||screen.width||390));
+ const screenH=Math.max(640,Math.min(960,window.innerHeight||screen.height||780));
+ const maxWidth=Math.round(screenW);
+ const maxHeight=portrait?Math.round(screenH/3):Math.round(screenH);
+
+ let scale=Math.min(1,maxWidth/bitmap.width,maxHeight/bitmap.height);
+ let width=Math.max(1,Math.round(bitmap.width*scale));
+ let height=Math.max(1,Math.round(bitmap.height*scale));
+
+ const canvas=document.createElement('canvas');
+ canvas.width=width;canvas.height=height;
+ const ctx=canvas.getContext('2d',{alpha:false});
+ ctx.fillStyle='#fff';ctx.fillRect(0,0,width,height);
+ ctx.drawImage(bitmap,0,0,width,height);
+ bitmap.close();
+
+ const blob=await new Promise((resolve,reject)=>{
+   canvas.toBlob(b=>b?resolve(b):reject(new Error('照片壓縮失敗')),'image/jpeg',0.82);
+ });
+ if(blob.size>=file.size)return file;
+ return new File([blob],compressedJpegName(file.name),{
+   type:'image/jpeg',
+   lastModified:Date.now()
+ });
+}
 function fileToBase64(file){
  return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||'').split(',')[1]||'');reader.onerror=()=>reject(new Error('無法讀取檔案：'+file.name));reader.readAsDataURL(file)});
 }
@@ -560,11 +598,30 @@ async function prepareAttachmentPayloads(){
  const payloads=[];
  const progress=document.getElementById('uploadProgress');
  for(let i=0;i<pendingFiles.length;i++){
-   const file=pendingFiles[i];
+   const original=pendingFiles[i];
+   let file=original;
+   if(isJpegFile(original)){
+     if(progress)progress.textContent=`正在壓縮照片 ${i+1}／${pendingFiles.length}：${original.name}`;
+     try{file=await compressJpegForMobile(original)}
+     catch(e){console.warn('照片壓縮失敗，改傳原檔',e);file=original}
+   }
    if(file.size>8*1024*1024)throw new Error(file.name+' 超過 8MB，請先壓縮');
-   if(progress)progress.textContent=`正在讀取附件 ${i+1}／${pendingFiles.length}：${file.name}`;
+   if(progress){
+     const before=Math.ceil(original.size/1024),after=Math.ceil(file.size/1024);
+     progress.textContent=file!==original
+       ?`照片已縮小 ${before} KB → ${after} KB，正在準備上傳…`
+       :`正在讀取附件 ${i+1}／${pendingFiles.length}：${file.name}`;
+   }
    const base64=await fileToBase64(file);
-   payloads.push({name:file.name,type:file.type||'application/octet-stream',size:file.size,base64});
+   payloads.push({
+     name:file.name,
+     type:file.type||'application/octet-stream',
+     size:file.size,
+     originalName:original.name,
+     originalSize:original.size,
+     compressed:file!==original,
+     base64
+   });
  }
  return payloads;
 }
@@ -684,7 +741,7 @@ async function cloudWrite(action,payload,successMessage){
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
-const APP_VERSION='1.9.2';
+const APP_VERSION='1.9.3';
 async function updateAppNow(){
  toast('正在檢查新版…');
  try{
