@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.9.5</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.9.6</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -168,19 +168,49 @@ body.pdf-export #available,body.pdf-export #create,body.pdf-export #mine,
 body.pdf-export .noPrint,body.pdf-export .statsBackBar,body.pdf-export .actions{display:none!important}
 body.pdf-export .app{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
 body.pdf-export #stats{display:block!important}
-body.pdf-export #stats>.card{box-shadow:none!important;border:0!important;padding:10px!important;margin:0!important}
+body.pdf-export #stats>.card{box-shadow:none!important;border:0!important;padding:8px!important;margin:0!important;background:#fff!important}
 body.pdf-export #stats>.card>h2{display:none!important}
-body.pdf-export .printOnly{display:block!important;text-align:center;margin-bottom:12px}
-body.pdf-export .statsTableWrap{overflow:visible!important}
-body.pdf-export .statsDetailTable{min-width:0!important;width:100%!important;font-size:10px!important}
-body.pdf-export .statsDetailTable th,body.pdf-export .statsDetailTable td{
- padding:4px!important;white-space:normal!important;word-break:break-word!important;overflow-wrap:anywhere!important
+body.pdf-export .printOnly{display:block!important;text-align:center;margin-bottom:8px}
+body.pdf-export .eventCard{border:0!important;padding:0!important;margin:0!important;box-shadow:none!important;background:#fff!important}
+body.pdf-export .statsBackBar,
+body.pdf-export .hint.noPrint,
+body.pdf-export .settlementSummary.noPrint,
+body.pdf-export .settlementBtn,
+body.pdf-export .matrixOptionToggle{display:none!important}
+body.pdf-export .statsTableWrap{overflow:visible!important;border:0!important;border-radius:0!important;margin-top:8px!important;background:#fff!important}
+body.pdf-export .statsDetailTable{min-width:0!important;width:100%!important;table-layout:fixed!important;font-size:8.5px!important;border-collapse:collapse!important}
+body.pdf-export .statsDetailTable th,
+body.pdf-export .statsDetailTable td{
+ padding:2px 3px!important;
+ white-space:normal!important;
+ word-break:break-word!important;
+ overflow-wrap:anywhere!important;
+ line-height:1.18!important;
+ vertical-align:top!important
 }
 body.pdf-export .summaryTable .colSummaryItem,
 body.pdf-export .detailOrderTable .colName,
 body.pdf-export .detailOrderTable .colItem{
- position:static!important;width:auto!important;min-width:0!important;max-width:none!important;box-shadow:none!important
+ position:static!important;
+ width:auto!important;min-width:0!important;max-width:none!important;
+ box-shadow:none!important;background:transparent!important
 }
+body.pdf-export .summaryTable .colSummaryItem{width:24%!important}
+body.pdf-export .summaryTable .colSummaryPref{width:42%!important}
+body.pdf-export .summaryTable .colSummaryQty{width:12%!important}
+body.pdf-export .summaryTable .colSummaryMoney{width:22%!important}
+body.pdf-export .detailOrderTable .colName{width:8%!important}
+body.pdf-export .detailOrderTable .colItem{width:14%!important}
+body.pdf-export .detailOrderTable .colMoney{width:8%!important}
+body.pdf-export .detailOrderTable .colQty{width:6%!important}
+body.pdf-export .detailOrderTable .colPref{width:9%!important}
+body.pdf-export .detailOrderTable .colNote{width:14%!important}
+body.pdf-export .badge{padding:2px 5px!important;font-size:8px!important}
+body.pdf-export .totalBox{padding:6px 8px!important;margin:6px 0!important;font-size:12px!important}
+body.pdf-export .meta{font-size:9px!important;line-height:1.35!important}
+body.pdf-export h3{margin:8px 0 4px!important;font-size:13px!important}
+body.pdf-export .statsSummaryGrid{gap:4px!important}
+body.pdf-export .statsSummaryBox{padding:6px!important}
 .statsCampaignList{display:grid;gap:10px}.statsCampaignItem{border:1px solid #dce8f7;border-radius:20px;padding:15px;background:#fff}.statsCampaignItem h3{margin:0;color:#173f75;font-size:20px}.statsCampaignMeta{margin-top:6px;color:#71879d;font-weight:800;line-height:1.55}.statsBackBar{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.printOnly{display:none}
 @media print{
  body.print-stats{background:#fff!important}
@@ -394,7 +424,7 @@ body.pdf-export .detailOrderTable .colItem{
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.9.5｜2026-07-24｜直接下載統計 PDF</div>
+<div class="version">團購／報名中心 v1.9.6｜2026-07-24｜PDF 改為 A4 橫式緊湊排版</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -763,7 +793,7 @@ async function cloudWrite(action,payload,successMessage){
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
-const APP_VERSION='1.9.5';
+const APP_VERSION='1.9.6';
 async function updateAppNow(){
  toast('正在檢查新版…');
  try{
@@ -1336,31 +1366,46 @@ async function printStatsCampaign(){
    await loadExternalScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js','html2canvasLib');
    await loadExternalScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js','jsPdfLib');
    document.body.classList.add('pdf-export');
-   await new Promise(r=>setTimeout(r,180));
+   await new Promise(r=>setTimeout(r,220));
    const target=document.querySelector('#stats>.card');
    const canvas=await window.html2canvas(target,{
-     scale:1.5,
+     scale:2,
      backgroundColor:'#ffffff',
      useCORS:true,
      logging:false,
      windowWidth:target.scrollWidth,
      windowHeight:target.scrollHeight
    });
+
    const {jsPDF}=window.jspdf;
-   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
-   const pageWidth=210,pageHeight=297,margin=8;
-   const imageWidth=pageWidth-margin*2;
-   const imageHeight=canvas.height*imageWidth/canvas.width;
-   const img=canvas.toDataURL('image/jpeg',0.9);
-   let y=margin,remaining=imageHeight;
-   pdf.addImage(img,'JPEG',margin,y,imageWidth,imageHeight,undefined,'FAST');
-   remaining-=pageHeight-margin*2;
-   while(remaining>0){
-     pdf.addPage();
-     y=margin-(imageHeight-remaining);
-     pdf.addImage(img,'JPEG',margin,y,imageWidth,imageHeight,undefined,'FAST');
-     remaining-=pageHeight-margin*2;
+   const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});
+   const pageWidth=297,pageHeight=210,margin=6;
+   const usableWidth=pageWidth-margin*2;
+   const usableHeight=pageHeight-margin*2;
+
+   // 依 A4 橫式比例，把大畫布切成多張頁面，避免整張圖縮得太小或被邊界裁切
+   const pageSliceHeightPx=Math.floor(canvas.width*(usableHeight/usableWidth));
+   let offsetY=0,pageIndex=0;
+
+   while(offsetY<canvas.height){
+     const sliceHeight=Math.min(pageSliceHeightPx,canvas.height-offsetY);
+     const pageCanvas=document.createElement('canvas');
+     pageCanvas.width=canvas.width;
+     pageCanvas.height=sliceHeight;
+     const ctx=pageCanvas.getContext('2d');
+     ctx.fillStyle='#fff';
+     ctx.fillRect(0,0,pageCanvas.width,pageCanvas.height);
+     ctx.drawImage(canvas,0,offsetY,canvas.width,sliceHeight,0,0,canvas.width,sliceHeight);
+
+     const imgData=pageCanvas.toDataURL('image/jpeg',0.92);
+     const imgHeightMm=sliceHeight*usableWidth/canvas.width;
+     if(pageIndex>0)pdf.addPage();
+     pdf.addImage(imgData,'JPEG',margin,margin,usableWidth,imgHeightMm,undefined,'FAST');
+
+     offsetY+=sliceHeight;
+     pageIndex++;
    }
+
    pdf.save(safePdfFileName(c.title)+'_統計報表.pdf');
    toast('PDF 已下載');
  }catch(error){
@@ -1401,7 +1446,7 @@ function renderStats(){
  ${participantStatsTable(c,list)}
  ${statsSummary(c,list)}
  <h3 style="margin-top:16px">逐筆完整明細表</h3>
- <div class="hint noPrint">手機左右滑動時，訂購人與品項會固定在左側；品項欄約顯示 4～5 個中文字。列印時會自動使用 A4 直式濃縮表格。</div>
+ <div class="hint noPrint">手機左右滑動時，訂購人與品項會固定在左側；品項欄約顯示 4～5 個中文字。下載 PDF 時會自動改為 A4 橫式緊湊排版，以免表格被邊界截掉。</div>
  ${statsDetailTable(c,list)}
  ${isHost(c)?`<div class="actions noPrint">${normalAction}<button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button></div>`:''}
  </article>`;
