@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.9.6</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.9.7</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -199,12 +199,12 @@ body.pdf-export .summaryTable .colSummaryItem{width:24%!important}
 body.pdf-export .summaryTable .colSummaryPref{width:42%!important}
 body.pdf-export .summaryTable .colSummaryQty{width:12%!important}
 body.pdf-export .summaryTable .colSummaryMoney{width:22%!important}
-body.pdf-export .detailOrderTable .colName{width:8%!important}
-body.pdf-export .detailOrderTable .colItem{width:14%!important}
-body.pdf-export .detailOrderTable .colMoney{width:8%!important}
-body.pdf-export .detailOrderTable .colQty{width:6%!important}
-body.pdf-export .detailOrderTable .colPref{width:9%!important}
-body.pdf-export .detailOrderTable .colNote{width:14%!important}
+body.pdf-export .detailOrderTable .colName{width:10%!important}
+body.pdf-export .detailOrderTable .colItem{width:22%!important}
+body.pdf-export .detailOrderTable .colMoney{width:10%!important}
+body.pdf-export .detailOrderTable .colQty{width:8%!important}
+body.pdf-export .detailOrderTable .colPref{width:12%!important}
+body.pdf-export .detailOrderTable .colNote{width:18%!important}
 body.pdf-export .badge{padding:2px 5px!important;font-size:8px!important}
 body.pdf-export .totalBox{padding:6px 8px!important;margin:6px 0!important;font-size:12px!important}
 body.pdf-export .meta{font-size:9px!important;line-height:1.35!important}
@@ -424,7 +424,7 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.9.6｜2026-07-24｜PDF 改為 A4 橫式緊湊排版</div>
+<div class="version">團購／報名中心 v1.9.7｜2026-07-24｜直式 PDF 與精簡明細欄位</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -793,7 +793,7 @@ async function cloudWrite(action,payload,successMessage){
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
-const APP_VERSION='1.9.6';
+const APP_VERSION='1.9.7';
 async function updateAppNow(){
  toast('正在檢查新版…');
  try{
@@ -1266,8 +1266,8 @@ function lineSortKey(line,user=''){
 function statsDetailTable(c,list){
  const prefNames=statsPreferenceNames(c,list);
  const isFoodOrder=c.template==='meal'||c.template==='drink';
- const showStatus=!isFoodOrder;
- const showSpec=!isFoodOrder;
+ const showStatus=false;
+ const showSpec=false;
  const showCompanion=false;
  const showNote=!(c.template==='travel'&&travelHasTextPreference(c));
  const rows=[];
@@ -1294,8 +1294,10 @@ function statsDetailTable(c,list){
    lines.forEach(l=>{
      const cells=[`<td class="colName">${esc(o.user)}</td>`];
      if(showStatus)cells.push(`<td>${o.status==='accepted'?'<span class="badge ok">正取</span>':'<span class="badge wait">候補</span>'}</td>`);
-     cells.push(`<td class="colItem">${esc(l.name||'—')}</td>`);
-     if(showSpec)cells.push(`<td>${esc(l.spec&&l.spec!=='基本價格'?l.spec:'—')}</td>`);
+     const specText=(l.spec&&l.spec!=='基本價格'&&l.spec!=='單價'&&l.spec!=='—')?String(l.spec):'';
+     const itemText=specText?`${l.name||'—'}／${specText}`:(l.name||'—');
+     cells.push(`<td class="colItem">${esc(itemText)}</td>`);
+     if(showSpec)cells.push(`<td>${esc(specText||'—')}</td>`);
      cells.push(`<td class="colMoney">$${Number(l.price||0)}</td><td class="colQty">${Number(l.qty||0)}</td><td class="colMoney">$${Number(l.subtotal||0)}</td>`);
      prefNames.forEach(name=>cells.push(`<td class="colPref">${esc(textValue(l.prefs?.[name])||'—')}</td>`));
      if(showCompanion)cells.push(`<td>${Number(o.companions||0)}</td>`);
@@ -1378,8 +1380,8 @@ async function printStatsCampaign(){
    });
 
    const {jsPDF}=window.jspdf;
-   const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});
-   const pageWidth=297,pageHeight=210,margin=6;
+   const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+   const pageWidth=210,pageHeight=297,margin=8;
    const usableWidth=pageWidth-margin*2;
    const usableHeight=pageHeight-margin*2;
 
@@ -1446,7 +1448,7 @@ function renderStats(){
  ${participantStatsTable(c,list)}
  ${statsSummary(c,list)}
  <h3 style="margin-top:16px">逐筆完整明細表</h3>
- <div class="hint noPrint">手機左右滑動時，訂購人與品項會固定在左側；品項欄約顯示 4～5 個中文字。下載 PDF 時會自動改為 A4 橫式緊湊排版，以免表格被邊界截掉。</div>
+ <div class="hint noPrint">手機左右滑動時，訂購人與品項會固定在左側；品項欄約顯示 4～5 個中文字。下載 PDF 時會使用 A4 直式緊湊排版；狀態欄會省略，價別／規格會直接併入品項欄。</div>
  ${statsDetailTable(c,list)}
  ${isHost(c)?`<div class="actions noPrint">${normalAction}<button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button></div>`:''}
  </article>`;
