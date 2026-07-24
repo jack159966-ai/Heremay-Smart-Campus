@@ -140,7 +140,7 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v2.4.1</span>
+      <span class="pill" id="versionStatus">版本 v2.4.2</span>
       <span class="pill" id="timezoneStatus">時區檢查中</span>
       <span class="pill" id="travelStatus">出國模式：關</span>
     </div>
@@ -150,6 +150,7 @@
     <button class="toolbtn primary" type="button" onclick="startNewEvent()">＋ 新增行程</button>
     <button class="toolbtn" type="button" onclick="syncAll()">重新同步</button>
     <button class="toolbtn" type="button" onclick="checkVersion()">檢查新版</button>
+    <button class="toolbtn" type="button" onclick="forceUpdateApp()">強制更新</button>
     <button class="toolbtn" type="button" onclick="requestNotifyPermission()">允許通知</button>
     <button class="toolbtn" type="button" onclick="testAlarm()">測試鈴聲</button>
     <button class="toolbtn" type="button" onclick="downloadBackup()">下載備份</button>
@@ -281,7 +282,7 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v2.4.1｜2026-07-24｜修復同步與鈴聲失效</div>
+  <div class="version">行事曆 v2.4.2｜2026-07-24｜強制更新與快取修正版</div>
 </main>
 
 <div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
@@ -290,9 +291,9 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='2.4.1';
+const APP_VERSION='2.4.2';
 const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null};
-const FIRED_KEY='heremay_calendar_fired_v241';
+const FIRED_KEY='heremay_calendar_fired_v242';
 
 document.getElementById('todayText').textContent=
   new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
@@ -313,7 +314,7 @@ function jsonp(action){
   return new Promise((resolve,reject)=>{
     const cb='cb_'+Date.now()+'_'+Math.floor(Math.random()*9999);
     const script=document.createElement('script');
-    const timer=setTimeout(()=>{cleanup();reject(new Error('連線逾時'))},30000);
+    const timer=setTimeout(()=>{cleanup();reject(new Error('連線逾時'))},15000);
     function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
     window[cb]=(data)=>{cleanup();resolve(data)};
     script.onerror=()=>{cleanup();reject(new Error('連線失敗'))};
@@ -331,7 +332,7 @@ async function postAction(action,payload){
 async function syncAll(){
   const status=document.getElementById('cloudStatus');
   status.textContent='同步中…';
-  document.getElementById('eventList').innerHTML='<div class="empty">正在連接雲端，最多等待 30 秒…</div>';
+  document.getElementById('eventList').innerHTML='<div class="empty">正在連接雲端，最多等待 15 秒…</div>';
   status.className='pill warn';
   try{
     const data=await jsonp('syncAll');
@@ -344,10 +345,39 @@ async function syncAll(){
   }catch(err){
     status.textContent='同步失敗';
     status.className='pill warn';
-    document.getElementById('eventList').innerHTML='<div class="empty">同步失敗，請稍後重試</div>';
+    document.getElementById('eventList').innerHTML=`<div class="empty">同步失敗：${esc(err.message||'請稍後重試')}</div>`;
     showToast(err.message);
   }
 }
+
+async function forceUpdateApp(){
+  showToast('正在清除舊快取並載入最新版…');
+
+  try{
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations();
+
+      regs.forEach(reg=>{
+        if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+        if(reg.active) reg.active.postMessage({type:'CLEAR_CACHES'});
+      });
+
+      await Promise.all(regs.map(reg=>reg.update().catch(()=>{})));
+    }
+
+    if('caches' in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.map(key=>caches.delete(key)));
+    }
+  }catch(error){
+    console.warn('清除快取時發生問題',error);
+  }
+
+  const url=new URL(location.href);
+  url.searchParams.set('update',Date.now());
+  setTimeout(()=>location.replace(url.toString()),500);
+}
+
 async function checkVersion(){
   document.getElementById('versionStatus').textContent=`版本 v${APP_VERSION}`;
   try{
@@ -808,6 +838,23 @@ function downloadBackup(){
   a.download=`calendar-backup-v${APP_VERSION}-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js?v=242',{updateViaCache:'none'})
+    .then(reg=>{
+      reg.update().catch(()=>{});
+      if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+    })
+    .catch(error=>console.warn('Service Worker 註冊失敗',error));
+
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!sessionStorage.getItem('heremay_sw_reloaded_242')){
+      sessionStorage.setItem('heremay_sw_reloaded_242','1');
+      location.reload();
+    }
+  });
 }
 
 window.addEventListener('load',()=>{
