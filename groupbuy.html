@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.9.3</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.9.4</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -151,6 +151,8 @@ textarea{min-height:95px;resize:vertical}
  .statsSummaryGrid{grid-template-columns:1fr}
  .statsTableWrap{overflow-x:auto;position:relative;-webkit-overflow-scrolling:touch}
  .statsDetailTable{font-size:14px;min-width:720px}
+ .summaryTable .colSummaryItem{position:sticky;left:0;width:105px;min-width:105px;max-width:105px;background:#fff;z-index:4;white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.35;box-shadow:2px 0 0 #dbe7f4}
+ .summaryTable th.colSummaryItem{background:#edf4ff;z-index:7}
  .detailOrderTable .colName{position:sticky;left:0;width:78px;min-width:78px;max-width:78px;background:#fff;z-index:3;white-space:normal;word-break:keep-all}
  .detailOrderTable .colItem{position:sticky;left:78px;width:132px;min-width:132px;max-width:132px;background:#fff;z-index:2;white-space:normal;word-break:break-word;overflow-wrap:anywhere;line-height:1.4}
  .detailOrderTable th.colName,.detailOrderTable th.colItem{background:#edf4ff;z-index:6}
@@ -372,7 +374,7 @@ textarea{min-height:95px;resize:vertical}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.9.3｜2026-07-24｜JPG 手機端自動壓縮</div>
+<div class="version">團購／報名中心 v1.9.4｜2026-07-24｜品項統計表凍結品名欄</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -741,7 +743,7 @@ async function cloudWrite(action,payload,successMessage){
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
-const APP_VERSION='1.9.3';
+const APP_VERSION='1.9.4';
 async function updateAppNow(){
  toast('正在檢查新版…');
  try{
