@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v22.2</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v22.3</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -327,7 +327,7 @@
     body{background:linear-gradient(180deg,#f6f9ff 0%,#eef7ff 52%,#f9fbff 100%)}
     .app{width:min(820px,100%);padding:14px 12px 36px}
     .dashboardHeader{
-      display:grid;grid-template-columns:68px 1fr auto;gap:14px;align-items:center;
+      display:grid;grid-template-columns:68px 1fr auto auto;gap:14px;align-items:center;
       padding:10px 6px 16px;
     }
     .dashboardLogo{
@@ -405,7 +405,7 @@
     .secretaryHeading{margin:0 0 13px;color:#153e72;font-size:24px;font-weight:950}
     .versionStamp{text-align:center;color:#7890a6;font-size:12px;font-weight:800;margin-top:8px}
     @media(max-width:620px){
-      .dashboardHeader{grid-template-columns:58px 1fr auto;gap:10px}
+      .dashboardHeader{grid-template-columns:58px 1fr auto;gap:10px}.refreshVersionBtn{grid-column:1/-1;width:100%}
       .dashboardLogo{width:58px;height:58px}
       .dashboardIdentity small{font-size:13px}
       .dashboardName{font-size:34px}
@@ -427,9 +427,23 @@
     }
     @media(max-width:390px){
       .dashboardName{font-size:30px}
-      .dashboardClock .dateLine{display:none}
+      .dashboardClock .dateLine{display:none}.refreshVersionBtn{grid-column:1/-1}
       .secretaryGrid,.lowGrid{grid-template-columns:1fr}
     }
+
+  
+    .refreshVersionBtn{
+      border:1px solid #cfe2ff;
+      background:#edf4ff;
+      color:#245fc2;
+      border-radius:14px;
+      padding:10px 13px;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow:0 6px 16px rgba(47,104,216,.10);
+      white-space:nowrap;
+    }
+    .refreshVersionBtn:active{transform:scale(.98)}
 
   </style>
 </head>
@@ -443,6 +457,7 @@
         <div class="dashboardName" id="adminName">主管</div>
       </div>
       <div class="dashboardClock" id="clock">--</div>
+      <button class="refreshVersionBtn" type="button" onclick="refreshLatestVersion()">重新整理新版</button>
     </header>
 
     <section class="dashCard">
@@ -493,7 +508,7 @@
       </button>
     </section>
 
-    <div class="versionStamp">主管工作台 v22.2｜2026-07-24｜行事曆統一由智慧秘書進入</div>
+    <div class="versionStamp">主管工作台 v22.3｜2026-07-24｜新增重新整理新版按鍵</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
@@ -1188,6 +1203,33 @@ window.addEventListener('message', event => {
 
 function loadCloudAckRecords(){
   postToService({action:'getAckRecords'});
+}
+
+
+async function refreshLatestVersion(){
+  showToast('正在檢查並重新載入最新版…');
+
+  try{
+    if('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(reg => reg.update().catch(()=>{})));
+    }
+
+    if('caches' in window){
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter(key => /heremay|smart|campus|cache/i.test(key))
+          .map(key => caches.delete(key))
+      );
+    }
+  }catch(error){
+    console.warn('更新快取時發生問題', error);
+  }
+
+  const url = new URL(location.href);
+  url.searchParams.set('refresh', Date.now());
+  setTimeout(() => location.replace(url.toString()), 450);
 }
 
 if(requireAdminAccess()){
