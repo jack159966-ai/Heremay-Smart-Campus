@@ -140,7 +140,9 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v2.3.1</span>
+      <span class="pill" id="versionStatus">版本 v2.4.0</span>
+      <span class="pill" id="timezoneStatus">時區檢查中</span>
+      <span class="pill" id="travelStatus">出國模式：關</span>
     </div>
   </section>
 
@@ -151,6 +153,7 @@
     <button class="toolbtn" type="button" onclick="requestNotifyPermission()">允許通知</button>
     <button class="toolbtn" type="button" onclick="testAlarm()">測試鈴聲</button>
     <button class="toolbtn" type="button" onclick="downloadBackup()">下載備份</button>
+    <button class="toolbtn" id="travelModeBtn" type="button" onclick="toggleTravelMode()">開啟出國／休假模式</button>
     <button class="toolbtn" type="button" onclick="location.href='secretary.html'">返回智慧秘書</button>
   </div>
 
@@ -160,7 +163,7 @@
       <button class="btn" type="button" onclick="collapseForm()">收合</button>
     </div>
     <div class="panel-body" id="eventFormBody">
-      <div class="notice">手機鎖定或瀏覽器被系統完全關閉時，本頁鈴聲可能受限制；Google 日曆通知仍由 Google 日曆 App 負責。</div>
+      <div class="notice">公務與固定巡檢預設採台灣時間。人在海外且當地為夜間時，系統只顯示靜音通知；開啟出國／休假模式可暫停固定巡檢強提醒。</div>
       <form id="eventForm">
         <input type="hidden" name="行程ID">
         <input type="hidden" name="Google日曆事件ID">
@@ -233,6 +236,23 @@
 
           <div class="field full"><div class="section-box"><div class="section-title">📣 分享與通知對象</div><input type="hidden" name="分享對象"><input type="hidden" name="主管分類"><input type="hidden" name="指定分享對象"><input type="hidden" name="分享路徑"><div class="share-summary"><div><div class="share-summary-text" id="shareSummaryText">僅自己</div><div class="hint">主管與庶務組直接選人；教保員依年級、班級、個人逐層選擇。</div></div><button class="btn purple" type="button" onclick="openShareLevel1()">選擇分享對象</button></div></div></div>
           </div>
+
+          <div class="field">
+            <label>時區規則</label>
+            <select name="時區規則">
+              <option value="taipei">台灣時間（適合公務／巡檢）</option>
+              <option value="local">所在地時間（適合私人行程）</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>固定巡檢</label>
+            <select name="固定巡檢">
+              <option value="否">一般行程</option>
+              <option value="是">固定巡堂／巡檢提醒</option>
+            </select>
+          </div>
+
           <div class="field full"><div class="section-box"><div class="section-title">🎵 提醒聲音</div><div class="sound-row"><select name="提醒聲音" id="alarmSound"><option value="gentle">柔和提示</option><option value="meeting">會議鐘聲</option><option value="urgent">緊急提醒</option><option value="school">校園鐘聲</option><option value="message">訊息提示</option><option value="task">任務完成</option><option value="bright">清亮鈴聲</option><option value="deep">低沉提醒</option></select><button class="btn success" type="button" onclick="previewSelectedSound()">試聽鈴聲</button></div><div class="hint">此處鈴聲已提高音量並加大差異；手機仍需開啟媒體音量。手錶通知聲由 Google 日曆 App／裝置設定控制。</div></div></div>
           <div class="field full">
             <div class="checks">
@@ -261,7 +281,7 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v2.3.1｜2026-07-24｜高音量多鈴聲修正版</div>
+  <div class="version">行事曆 v2.4.0｜2026-07-24｜台灣時區巡檢與出國模式版</div>
 </main>
 
 <div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
@@ -270,9 +290,9 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='2.3.1';
+const APP_VERSION='2.4.0';
 const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null};
-const FIRED_KEY='heremay_calendar_fired_v231';
+const FIRED_KEY='heremay_calendar_fired_v240';
 
 document.getElementById('todayText').textContent=
   new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
@@ -386,6 +406,8 @@ function resetEventForm(){
   setReminderSettings([{value:10,unit:'分鐘'}]);document.getElementById('shareSummaryText').textContent='僅自己';
   form.elements['瀏覽器通知'].checked=true;
   form.elements['同步Google日曆'].checked=true;
+  form.elements['時區規則'].value='taipei';
+  form.elements['固定巡檢'].value='否';
 }
 function getEventById(id){
   return state.events.find(item=>String(item.行程ID)===String(id));
@@ -407,6 +429,8 @@ function editEvent(id){
   set('說明',item.說明);
   set('私人／公務',item['私人／公務']||'公務');
   set('重複規則',item.重複規則||'');
+  set('時區規則',item.時區規則||((item['私人／公務']||'公務')==='公務'?'taipei':'local'));
+  set('固定巡檢',item.固定巡檢||'否');
   set('分享對象',item.分享對象||'僅自己');
   set('主管分類',item.主管分類||'');
   set('指定分享對象',item.指定分享對象||'');
@@ -442,7 +466,7 @@ function renderEvents(){
     const reminderText=reminders.length?reminders.map(r=>`${r.value}${r.unit}前`).join('、'):'不提醒';
     return `<article class="item">
       <div class="item-title">${esc(item.標題||'未命名行程')}</div>
-      <div><span class="tag">${esc(item.分享對象||'僅自己')}</span>${item.主管分類?`<span class="tag">${esc(item.主管分類)}</span>`:''}${(String(item.強提醒)==='是'||item.強提醒===true)?'<span class="tag">強提醒</span>':''}</div>
+      <div><span class="tag">${esc(item.分享對象||'僅自己')}</span>${item.主管分類?`<span class="tag">${esc(item.主管分類)}</span>`:''}${(String(item.強提醒)==='是'||item.強提醒===true)?'<span class="tag">強提醒</span>':''}${String(item.固定巡檢)==='是'?'<span class="tag">固定巡檢</span>':''}</div>
       <div class="meta">
         日期：${esc(item.開始日期||'')} ${esc(item.開始時間||'')}
         ～ ${esc(item.結束日期||'')} ${esc(item.結束時間||'')}<br>
@@ -485,6 +509,7 @@ document.getElementById('eventForm').addEventListener('submit',async e=>{
   data.提醒設定JSON=getReminderSettings();
   data.提醒設定=JSON.stringify(data.提醒設定JSON);
   data.Google日曆提醒分鐘=data.提醒設定JSON.map(reminderToMinutes);
+  data.基準時區=data.時區規則==='local'?localTimeZone():'Asia/Taipei';
 
   submitBtn.disabled=true;
   const oldText=submitBtn.textContent;
@@ -510,7 +535,74 @@ document.getElementById('eventForm').addEventListener('submit',async e=>{
 
 
 function reminderToMinutes(r){const n=Number(r.value||0);return r.unit==='週'?n*10080:r.unit==='天'?n*1440:r.unit==='小時'?n*60:n}
-function eventDate(item){const d=new Date(`${item.開始日期||''}T${item.開始時間||'00:00'}:00`);return isNaN(d)?null:d}
+function localTimeZone(){
+  return Intl.DateTimeFormat().resolvedOptions().timeZone||'Asia/Taipei';
+}
+function getTimeZoneOffsetMs(date,timeZone){
+  const parts=new Intl.DateTimeFormat('en-US',{
+    timeZone,year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'
+  }).formatToParts(date);
+  const obj={};
+  parts.forEach(p=>{if(p.type!=='literal')obj[p.type]=p.value});
+  const asUTC=Date.UTC(+obj.year,+obj.month-1,+obj.day,+obj.hour,+obj.minute,+obj.second);
+  return asUTC-date.getTime();
+}
+function zonedWallTimeToDate(dateText,timeText,timeZone){
+  if(!dateText)return null;
+  const [y,m,d]=dateText.split('-').map(Number);
+  const [hh,mm]=String(timeText||'00:00').split(':').map(Number);
+  let utc=Date.UTC(y,m-1,d,hh||0,mm||0,0);
+  for(let i=0;i<3;i++){
+    const offset=getTimeZoneOffsetMs(new Date(utc),timeZone);
+    utc=Date.UTC(y,m-1,d,hh||0,mm||0,0)-offset;
+  }
+  const result=new Date(utc);
+  return isNaN(result)?null:result;
+}
+function isTaipeiBased(item){
+  return String(item.固定巡檢)==='是' ||
+         (item.時區規則||((item['私人／公務']||'公務')==='公務'?'taipei':'local'))==='taipei';
+}
+function eventDate(item){
+  const zone=isTaipeiBased(item)?'Asia/Taipei':localTimeZone();
+  return zonedWallTimeToDate(item.開始日期||'',item.開始時間||'00:00',zone);
+}
+function isAbroad(){
+  return localTimeZone()!=='Asia/Taipei';
+}
+function isLocalQuietHours(){
+  const hour=new Date().getHours();
+  return hour>=22||hour<7;
+}T${item.開始時間||'00:00'}:00`);return isNaN(d)?null:d}
+
+const TRAVEL_MODE_KEY='heremay.calendar.travelMode';
+function travelModeEnabled(){
+  return localStorage.getItem(TRAVEL_MODE_KEY)==='1';
+}
+function updateTravelUI(){
+  const enabled=travelModeEnabled();
+  const status=document.getElementById('travelStatus');
+  const btn=document.getElementById('travelModeBtn');
+  if(status){
+    status.textContent=`出國模式：${enabled?'開':'關'}`;
+    status.className=`pill ${enabled?'warn':''}`;
+  }
+  if(btn)btn.textContent=enabled?'關閉出國／休假模式':'開啟出國／休假模式';
+  const tz=document.getElementById('timezoneStatus');
+  if(tz){
+    const zone=localTimeZone();
+    tz.textContent=zone==='Asia/Taipei'?'目前：台灣時區':`目前：${zone}`;
+    tz.className=`pill ${zone==='Asia/Taipei'?'ok':'warn'}`;
+  }
+}
+function toggleTravelMode(){
+  const next=!travelModeEnabled();
+  localStorage.setItem(TRAVEL_MODE_KEY,next?'1':'0');
+  updateTravelUI();
+  showToast(next?'已開啟：固定巡檢只保留靜音通知':'已關閉：固定巡檢恢復正常提醒');
+}
+
 function getFired(){try{return JSON.parse(localStorage.getItem(FIRED_KEY)||'{}')}catch(_){return {}}}
 function saveFired(v){localStorage.setItem(FIRED_KEY,JSON.stringify(v))}
 function checkDueReminders(){
@@ -631,19 +723,35 @@ function previewSelectedSound(){
   if(navigator.vibrate) navigator.vibrate([180,80,180]);
   showToast('正在試聽較大聲提醒');
 }
-function triggerReminder(item,r){const body=`${r.value}${r.unit}後開始｜${item.開始日期||''} ${item.開始時間||''}`;if(item.瀏覽器通知!==false&&'Notification'in window&&Notification.permission==='granted'){try{new Notification(`和美智慧校園｜${item.標題||'行程提醒'}`,{body,icon:'assets/app-icon.png'})}catch(_){}}if(String(item.強提醒)==='是'||item.強提醒===true)showStrongAlarm(item,body);else{playChime(3,item.提醒聲音||'gentle');showToast(`${item.標題||'行程提醒'}：${body}`)}}
-function showStrongAlarm(item,body){state.currentAlarm=item;document.getElementById('alarmTitle').textContent=item.標題||'行程時間到了';document.getElementById('alarmDetail').textContent=body;document.getElementById('alarmMask').classList.add('show');playChime(3,item.提醒聲音||'urgent');clearInterval(state.alarmTimer);state.alarmTimer=setInterval(()=>playChime(2,item.提醒聲音||'urgent'),3600);if(navigator.vibrate)navigator.vibrate([500,250,500,250,900])}
-function stopAlarm(){clearInterval(state.alarmTimer);state.alarmTimer=null;state.currentAlarm=null;document.getElementById('alarmMask').classList.remove('show');if(navigator.vibrate)navigator.vibrate(0)}
-function snoozeAlarm(){const item=state.currentAlarm;stopAlarm();if(item){showToast('已延後 5 分鐘');setTimeout(()=>showStrongAlarm(item,'這是 5 分鐘延後提醒'),300000)}}
-function testAlarm(){showStrongAlarm({標題:'測試提醒',提醒聲音:document.getElementById('alarmSound').value},'這是鈴聲與強提醒測試')}
-function downloadBackup(){const blob=new Blob([JSON.stringify({version:APP_VERSION,exportedAt:new Date().toISOString(),events:state.events},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`calendar-backup-v${APP_VERSION}-${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function triggerReminder(item,r){
+  const body=`${r.value}${r.unit}後開始｜${item.開始日期||''} ${item.開始時間||''}`;
+  const fixed=String(item.固定巡檢)==='是';
+  const silentBecauseTravel=fixed && travelModeEnabled();
+  const silentBecauseNight=isTaipeiBased(item) && isAbroad() && isLocalQuietHours();
+  const silent=silentBecauseTravel||silentBecauseNight;
 
-window.addEventListener('load',()=>{
-  resetEventForm();
-  syncAll();
-  checkVersion();
-  checkDueReminders();
-  setInterval(checkDueReminders,30000);
+  if(item.瀏覽器通知!==false&&'Notification'in window&&Notification.permission==='granted'){
+    try{
+      new Notification(`和美智慧校園｜${item.標題||'行程提醒'}`,{
+        body:silent?`${body}｜目前為海外休息時段，已改為靜音通知`:body,
+        icon:'assets/app-icon.png',
+        silent:silent
+      });
+    }catch(_){}
+  }
+
+  if(silent){
+    const reason=silentBecauseTravel?'出國／休假模式':'海外夜間勿擾';
+    showToast(`${item.標題||'巡檢提醒'}：${reason}，不播放鬧鈴`);
+    return;
+  }
+
+  if(String(item.強提醒)==='是'||item.強提醒===true){
+    showStrongAlarm(item,body);
+  }else{
+    playChime(3,item.提醒聲音||'gentle');
+    showToast(`${item.標題||'行程提醒'}：${body}`);
+  }
 });
 </script>
 </body>
