@@ -191,15 +191,18 @@ textarea{min-height:95px;resize:vertical}
 .orderMatrix tr.matrixAddonRow{background:#fffaf0}.orderMatrix tr.matrixAddonRow .itemName{color:#9b6419}
 .matrixHint{font-size:14px;font-weight:850;color:#56718d;line-height:1.55;margin-top:8px}
 @media(max-width:760px){
- .orderMatrix{min-width:590px}
  .orderMatrixWrap{margin-left:-4px;margin-right:-4px;overflow-x:auto;position:relative;-webkit-overflow-scrolling:touch}
- .orderMatrix .itemName{position:sticky;left:0;width:5.6em;min-width:5.6em;max-width:5.6em;background:#fff;z-index:3;white-space:normal;word-break:break-all;overflow-wrap:anywhere;line-height:1.35;padding-left:8px;padding-right:8px;box-shadow:2px 0 0 #dce8f7}
+ .orderMatrix{width:var(--matrix-mobile-width,100%);min-width:var(--matrix-mobile-width,100%);table-layout:fixed;font-size:14px}
+ .orderMatrix th,.orderMatrix td{padding:6px 3px}
+ .orderMatrix .itemName{position:sticky;left:0;width:38%;min-width:0;max-width:none;background:#fff;z-index:3;white-space:normal;word-break:break-all;overflow-wrap:anywhere;line-height:1.3;padding-left:5px;padding-right:5px;box-shadow:2px 0 0 #dce8f7}
  .orderMatrix th.itemName{background:#edf4ff;z-index:6;text-align:center}
  .orderMatrix tr.matrixAddonRow .itemName{background:#fffaf0}
- .orderMatrix .itemPrice{width:4.8em;min-width:4.8em;max-width:4.8em;padding-left:4px;padding-right:4px;text-align:center}
- .orderMatrix .matrixQty{width:4.2em;min-width:4.2em;max-width:4.2em;padding:7px 4px}
- .orderMatrix .qtyCell{width:4.6em;min-width:4.6em;max-width:4.6em;padding-left:4px;padding-right:4px}
- .orderMatrix .matrixSubtotal{width:5.2em;min-width:5.2em;max-width:5.2em;padding-left:4px;padding-right:4px;text-align:center}
+ .orderMatrix .itemPrice{width:18%;min-width:0;max-width:none;padding-left:2px;padding-right:2px;text-align:center;overflow:hidden}
+ .orderMatrix .qtyCell{width:18%;min-width:0;max-width:none;padding-left:2px;padding-right:2px}
+ .orderMatrix .matrixQty{display:block;width:100%;min-width:0;max-width:100%;padding:6px 2px;text-align:center;font-size:14px}
+ .orderMatrix .matrixSubtotal{width:26%;min-width:0;max-width:none;padding-left:2px;padding-right:2px;text-align:center;overflow:hidden}
+ .orderMatrix .matrixPrefCol{width:105px;min-width:105px}
+ .orderMatrix .matrixPrefCol select{min-width:95px}
  .matrixHint{font-size:15px}
 }
 
@@ -369,7 +372,7 @@ textarea{min-height:95px;resize:vertical}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.9.1｜2026-07-24｜手機小計欄位縮窄</div>
+<div class="version">團購／報名中心 v1.9.2｜2026-07-24｜手機四欄同屏版</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -681,7 +684,7 @@ async function cloudWrite(action,payload,successMessage){
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
-const APP_VERSION='1.9.1';
+const APP_VERSION='1.9.2';
 async function updateAppNow(){
  toast('正在檢查新版…');
  try{
@@ -1017,9 +1020,10 @@ function quickOrderFields(c){
  const productRows=campaignProducts(c).map((p,i)=>({kind:'product',key:'p'+i,name:p.name,price:Number(p.specs?.[0]?.price||0),prefs}));
  const addonRows=campaignAddons(c).map((a,i)=>({kind:'addon',key:'a'+i,name:a.name,price:Number(a.price||0),prefs:[]}));
  const rows=[...productRows,...addonRows];
- const prefHeads=prefs.map(p=>`<th>${esc(p.name)}</th>`).join('');
- const body=rows.map(r=>`<tr class="matrixOrderRow ${r.kind==='addon'?'matrixAddonRow':''}" data-kind="${r.kind}" data-key="${r.key}" data-name="${esc(r.name)}" data-price="${r.price}"><td class="itemName">${r.kind==='addon'?'＋ ':''}${esc(r.name)}</td><td class="itemPrice">${r.price}</td><td class="qtyCell"><input class="matrixQty" type="number" min="0" max="999" value="0" inputmode="numeric" oninput="if(Number(this.value)>999)this.value=999;updateQuickTotal('${c.id}')"></td>${prefs.map((p,pi)=>`<td class="matrixPrefCol">${r.kind==='product'?matrixSelectHtml(c.id,r.key,p,pi):'—'}</td>`).join('')}<td class="matrixSubtotal">0</td></tr>`).join('');
- const simpleGoods=c.template==='goods';return `<div class="quickOrderBox"><div class="matrixHint">${simpleGoods?'請直接填寫各商品數量；數量為 0 的商品不會送出。':'請在需要的品項填寫數量；數量為 0 的項目不會送出。冷熱、冰量、甜度或辣度可直接在同一列選擇。'}</div>${simpleGoods?'':`<button class="btn secondary matrixOptionToggle" type="button" onclick="toggleMatrixOptions(this)">收合口味選項</button>`}<div class="orderMatrixWrap"><table class="orderMatrix"><thead><tr><th class="itemName">品名</th><th class="itemPrice">價格</th><th class="qtyCell">數量</th>${prefs.map(p=>`<th class="matrixPrefCol">${esc(p.name)}</th>`).join('')}<th class="matrixSubtotal">小計</th></tr></thead><tbody>${body}</tbody></table></div><div class="totalBox" id="total_${c.id}">預估總額：$0</div></div>`
+ const body=rows.map(r=>`<tr class="matrixOrderRow ${r.kind==='addon'?'matrixAddonRow':''}" data-kind="${r.kind}" data-key="${r.key}" data-name="${esc(r.name)}" data-price="${r.price}"><td class="itemName">${r.kind==='addon'?'＋ ':''}${esc(r.name)}</td><td class="itemPrice">${r.price}</td><td class="qtyCell"><input class="matrixQty" type="number" min="0" max="999" value="0" inputmode="numeric" oninput="if(Number(this.value)>999)this.value=999;updateQuickTotal('${c.id}')"></td><td class="matrixSubtotal">0</td>${prefs.map((p,pi)=>`<td class="matrixPrefCol">${r.kind==='product'?matrixSelectHtml(c.id,r.key,p,pi):'—'}</td>`).join('')}</tr>`).join('');
+ const simpleGoods=c.template==='goods';
+ const mobileWidth=prefs.length?Math.max(430,330+(prefs.length*105)):330;
+ return `<div class="quickOrderBox"><div class="matrixHint">${simpleGoods?'請直接填寫各商品數量；數量為 0 的商品不會送出。':'請在需要的品項填寫數量；數量為 0 的項目不會送出。品名、單價、數量與小計固定排在前四欄，口味選項可再向右滑動。'}</div>${simpleGoods?'':`<button class="btn secondary matrixOptionToggle" type="button" onclick="toggleMatrixOptions(this)">收合口味選項</button>`}<div class="orderMatrixWrap"><table class="orderMatrix" style="--matrix-mobile-width:${mobileWidth}px"><thead><tr><th class="itemName">品名</th><th class="itemPrice">單價</th><th class="qtyCell">數量</th><th class="matrixSubtotal">小計</th>${prefs.map(p=>`<th class="matrixPrefCol">${esc(p.name)}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div><div class="totalBox" id="total_${c.id}">預估總額：$0</div></div>`
 }
 function renderQuickSpecs(cid){updateQuickTotal(cid)}
 function selectedAddonData(c,cid){return []}
