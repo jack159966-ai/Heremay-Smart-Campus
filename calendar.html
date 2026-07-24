@@ -140,7 +140,7 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v1.2.0</span>
+      <span class="pill" id="versionStatus">版本 v2.3.1</span>
     </div>
   </section>
 
@@ -233,7 +233,7 @@
 
           <div class="field full"><div class="section-box"><div class="section-title">📣 分享與通知對象</div><input type="hidden" name="分享對象"><input type="hidden" name="主管分類"><input type="hidden" name="指定分享對象"><input type="hidden" name="分享路徑"><div class="share-summary"><div><div class="share-summary-text" id="shareSummaryText">僅自己</div><div class="hint">主管與庶務組直接選人；教保員依年級、班級、個人逐層選擇。</div></div><button class="btn purple" type="button" onclick="openShareLevel1()">選擇分享對象</button></div></div></div>
           </div>
-          <div class="field full"><div class="section-box"><div class="section-title">🎵 提醒聲音</div><div class="sound-row"><select name="提醒聲音" id="alarmSound"><option value="gentle">柔和提示</option><option value="meeting">會議鐘聲</option><option value="urgent">緊急提醒</option><option value="school">校園鐘聲</option><option value="message">訊息提示</option><option value="task">任務完成</option><option value="bright">清亮鈴聲</option><option value="deep">低沉提醒</option></select><button class="btn success" type="button" onclick="previewSelectedSound()">試聽鈴聲</button></div><div class="hint">手機與手錶的系統通知聲由 Google 日曆 App／裝置設定控制；此處聲音用於網頁到時提醒。</div></div></div>
+          <div class="field full"><div class="section-box"><div class="section-title">🎵 提醒聲音</div><div class="sound-row"><select name="提醒聲音" id="alarmSound"><option value="gentle">柔和提示</option><option value="meeting">會議鐘聲</option><option value="urgent">緊急提醒</option><option value="school">校園鐘聲</option><option value="message">訊息提示</option><option value="task">任務完成</option><option value="bright">清亮鈴聲</option><option value="deep">低沉提醒</option></select><button class="btn success" type="button" onclick="previewSelectedSound()">試聽鈴聲</button></div><div class="hint">此處鈴聲已提高音量並加大差異；手機仍需開啟媒體音量。手錶通知聲由 Google 日曆 App／裝置設定控制。</div></div></div>
           <div class="field full">
             <div class="checks">
               <label class="check"><input type="checkbox" name="強提醒"> 啟用強提醒（全畫面並持續響鈴）</label>
@@ -261,7 +261,7 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v1.1.0｜2026-07-24｜提醒與分享功能重建版</div>
+  <div class="version">行事曆 v2.3.1｜2026-07-24｜高音量多鈴聲修正版</div>
 </main>
 
 <div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
@@ -270,9 +270,9 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='1.2.0';
+const APP_VERSION='2.3.1';
 const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null};
-const FIRED_KEY='heremay_calendar_fired_v120';
+const FIRED_KEY='heremay_calendar_fired_v231';
 
 document.getElementById('todayText').textContent=
   new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
@@ -328,15 +328,17 @@ async function syncAll(){
   }
 }
 async function checkVersion(){
+  document.getElementById('versionStatus').textContent=`版本 v${APP_VERSION}`;
   try{
     const data=await jsonp('checkVersion');
-    if(data.ok){
-      document.getElementById('versionStatus').textContent=`版本 v${data.version}`;
-      showToast(`雲端版本 v${data.version}`);
+    if(data.ok && data.version && String(data.version)!==APP_VERSION){
+      showToast(`目前頁面 v${APP_VERSION}｜雲端後端 v${data.version}`);
     }else{
-      showToast('版本資訊讀取失敗');
+      showToast(`目前為最新版 v${APP_VERSION}`);
     }
-  }catch(err){showToast('版本檢查失敗')}
+  }catch(err){
+    showToast(`目前頁面版本 v${APP_VERSION}`);
+  }
 }
 function addReminderRow(value=10,unit='分鐘'){
   const box=document.getElementById('reminderList');
@@ -517,12 +519,120 @@ function checkDueReminders(){
 }
 async function requestNotifyPermission(){if(!('Notification'in window)){showToast('此瀏覽器不支援通知');return}const p=await Notification.requestPermission();showToast(p==='granted'?'通知已允許':'通知未允許')}
 function ensureAudio(){if(!state.audioCtx)state.audioCtx=new (window.AudioContext||window.webkitAudioContext)();if(state.audioCtx.state==='suspended')state.audioCtx.resume();return state.audioCtx}
-function beep(freq=880,duration=.3,delay=0){try{const c=ensureAudio(),o=c.createOscillator(),g=c.createGain();o.frequency.value=freq;g.gain.setValueAtTime(.0001,c.currentTime+delay);g.gain.exponentialRampToValueAtTime(.18,c.currentTime+delay+.02);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+delay+duration);o.connect(g).connect(c.destination);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+duration+.03)}catch(_){}}
-function playSoundPattern(name='gentle',repeats=1){const patterns={gentle:[[660,.20,0],[880,.24,.25]],meeting:[[523,.26,0],[659,.26,.32],[784,.34,.64]],urgent:[[980,.18,0],[980,.18,.28],[980,.28,.56]],school:[[440,.28,0],[554,.28,.34],[659,.45,.68]],message:[[1046,.16,0],[1318,.20,.2]],task:[[523,.18,0],[659,.18,.2],[784,.25,.4]],bright:[[880,.20,0],[1174,.20,.24],[1396,.26,.48]],deep:[[330,.30,0],[262,.36,.38]]};const p=patterns[name]||patterns.gentle;for(let r=0;r<repeats;r++)p.forEach(([f,d,delay])=>beep(f,d,r*1.25+delay))}
-function playChime(n=4,name){playSoundPattern(name||document.getElementById('alarmSound')?.value||'gentle',n)}
-function previewSelectedSound(){ensureAudio();playSoundPattern(document.getElementById('alarmSound').value,2);showToast('正在試聽提醒聲音')}
+function beep(freq=880,duration=.3,delay=0,options={}){
+  try{
+    const c=ensureAudio();
+    const o=c.createOscillator();
+    const g=c.createGain();
+    const master=c.createGain();
+    const volume=Math.min(Number(options.volume ?? .72),.95);
+    o.type=options.type||'sine';
+    o.frequency.setValueAtTime(freq,c.currentTime+delay);
+    if(options.endFreq){
+      o.frequency.exponentialRampToValueAtTime(
+        Math.max(40,options.endFreq),c.currentTime+delay+duration
+      );
+    }
+    g.gain.setValueAtTime(.0001,c.currentTime+delay);
+    g.gain.exponentialRampToValueAtTime(volume,c.currentTime+delay+.015);
+    g.gain.setValueAtTime(volume,c.currentTime+delay+Math.max(.02,duration-.06));
+    g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+delay+duration);
+    master.gain.value=.92;
+    o.connect(g).connect(master).connect(c.destination);
+    o.start(c.currentTime+delay);
+    o.stop(c.currentTime+delay+duration+.04);
+  }catch(_){}
+}
+
+function noiseBurst(duration=.22,delay=0,volume=.55){
+  try{
+    const c=ensureAudio();
+    const len=Math.floor(c.sampleRate*duration);
+    const buffer=c.createBuffer(1,len,c.sampleRate);
+    const data=buffer.getChannelData(0);
+    for(let i=0;i<len;i++) data[i]=(Math.random()*2-1)*(1-i/len);
+    const src=c.createBufferSource();
+    const filter=c.createBiquadFilter();
+    const gain=c.createGain();
+    filter.type='bandpass';
+    filter.frequency.value=1300;
+    filter.Q.value=.8;
+    gain.gain.setValueAtTime(.0001,c.currentTime+delay);
+    gain.gain.exponentialRampToValueAtTime(volume,c.currentTime+delay+.01);
+    gain.gain.exponentialRampToValueAtTime(.0001,c.currentTime+delay+duration);
+    src.buffer=buffer;
+    src.connect(filter).connect(gain).connect(c.destination);
+    src.start(c.currentTime+delay);
+  }catch(_){}
+}
+
+function playSoundPattern(name='gentle',repeats=1){
+  const baseGap={
+    gentle:1.25,meeting:1.8,urgent:1.15,school:2.25,
+    message:.9,task:1.3,bright:1.15,deep:1.75
+  }[name]||1.25;
+
+  for(let r=0;r<repeats;r++){
+    const t=r*baseGap;
+    switch(name){
+      case 'gentle':
+        beep(660,.34,t,{type:'sine',volume:.62});
+        beep(990,.42,t+.38,{type:'sine',volume:.68});
+        break;
+      case 'meeting':
+        beep(392,.55,t,{type:'triangle',volume:.8});
+        beep(523,.55,t+.62,{type:'triangle',volume:.84});
+        beep(659,.75,t+1.24,{type:'triangle',volume:.88});
+        break;
+      case 'urgent':
+        beep(1200,.22,t,{type:'square',volume:.92});
+        beep(780,.22,t+.27,{type:'square',volume:.92});
+        beep(1200,.30,t+.54,{type:'square',volume:.95});
+        noiseBurst(.20,t+.86,.62);
+        break;
+      case 'school':
+        beep(330,.9,t,{type:'sine',volume:.9});
+        beep(494,.9,t+.92,{type:'sine',volume:.9});
+        break;
+      case 'message':
+        beep(1568,.12,t,{type:'sine',volume:.76});
+        beep(2093,.18,t+.16,{type:'sine',volume:.82});
+        break;
+      case 'task':
+        beep(523,.18,t,{type:'triangle',volume:.72});
+        beep(659,.18,t+.2,{type:'triangle',volume:.78});
+        beep(784,.18,t+.4,{type:'triangle',volume:.84});
+        beep(1046,.34,t+.6,{type:'triangle',volume:.9});
+        break;
+      case 'bright':
+        beep(880,.18,t,{type:'sawtooth',volume:.8});
+        beep(1320,.18,t+.22,{type:'sawtooth',volume:.84});
+        beep(1760,.28,t+.44,{type:'sawtooth',volume:.88});
+        break;
+      case 'deep':
+        beep(220,.7,t,{type:'square',volume:.9,endFreq:160});
+        noiseBurst(.26,t+.78,.5);
+        beep(196,.7,t+1.05,{type:'square',volume:.92,endFreq:140});
+        break;
+      default:
+        beep(880,.3,t,{type:'sine',volume:.75});
+    }
+  }
+}
+
+function playChime(n=3,name){
+  playSoundPattern(name||document.getElementById('alarmSound')?.value||'gentle',n);
+}
+
+function previewSelectedSound(){
+  ensureAudio();
+  const selected=document.getElementById('alarmSound').value;
+  playSoundPattern(selected,selected==='school'||selected==='meeting'||selected==='deep'?1:2);
+  if(navigator.vibrate) navigator.vibrate([180,80,180]);
+  showToast('正在試聽較大聲提醒');
+}
 function triggerReminder(item,r){const body=`${r.value}${r.unit}後開始｜${item.開始日期||''} ${item.開始時間||''}`;if(item.瀏覽器通知!==false&&'Notification'in window&&Notification.permission==='granted'){try{new Notification(`和美智慧校園｜${item.標題||'行程提醒'}`,{body,icon:'assets/app-icon.png'})}catch(_){}}if(String(item.強提醒)==='是'||item.強提醒===true)showStrongAlarm(item,body);else{playChime(3,item.提醒聲音||'gentle');showToast(`${item.標題||'行程提醒'}：${body}`)}}
-function showStrongAlarm(item,body){state.currentAlarm=item;document.getElementById('alarmTitle').textContent=item.標題||'行程時間到了';document.getElementById('alarmDetail').textContent=body;document.getElementById('alarmMask').classList.add('show');playChime(4,item.提醒聲音||'urgent');clearInterval(state.alarmTimer);state.alarmTimer=setInterval(()=>playChime(3,item.提醒聲音||'urgent'),5000);if(navigator.vibrate)navigator.vibrate([500,250,500,250,900])}
+function showStrongAlarm(item,body){state.currentAlarm=item;document.getElementById('alarmTitle').textContent=item.標題||'行程時間到了';document.getElementById('alarmDetail').textContent=body;document.getElementById('alarmMask').classList.add('show');playChime(3,item.提醒聲音||'urgent');clearInterval(state.alarmTimer);state.alarmTimer=setInterval(()=>playChime(2,item.提醒聲音||'urgent'),3600);if(navigator.vibrate)navigator.vibrate([500,250,500,250,900])}
 function stopAlarm(){clearInterval(state.alarmTimer);state.alarmTimer=null;state.currentAlarm=null;document.getElementById('alarmMask').classList.remove('show');if(navigator.vibrate)navigator.vibrate(0)}
 function snoozeAlarm(){const item=state.currentAlarm;stopAlarm();if(item){showToast('已延後 5 分鐘');setTimeout(()=>showStrongAlarm(item,'這是 5 分鐘延後提醒'),300000)}}
 function testAlarm(){showStrongAlarm({標題:'測試提醒',提醒聲音:document.getElementById('alarmSound').value},'這是鈴聲與強提醒測試')}
