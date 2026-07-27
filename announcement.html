@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#dceeff">
+<title>和美智慧校園｜公布欄管理 v1.0.0</title>
+<style>
+:root{--bg:#eef7ff;--card:#fff;--primary:#4f86c6;--deep:#356ba9;--text:#23364d;--muted:#6d7d90;--line:#d9e7f3;--danger:#d65b5b;--shadow:0 10px 28px rgba(49,91,133,.13)}
+*{box-sizing:border-box}body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:linear-gradient(180deg,#eaf5ff,#f8fbff);color:var(--text);min-height:100vh}
+button,input,textarea,select{font:inherit}.app{width:min(850px,100%);margin:auto;padding:16px 12px 46px}.top,.panel{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+.brand{display:flex;gap:12px;align-items:center}.logo{width:62px;height:62px;object-fit:contain}.brand h1{margin:0;color:var(--deep);font-size:1.4rem}.sub{color:var(--muted);margin-top:4px}
+.toolbar,.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.btn{border:0;border-radius:13px;padding:11px 14px;font-weight:900;cursor:pointer;background:#eaf3fb;color:var(--deep)}.btn.primary{background:var(--primary);color:#fff}.btn.danger{background:#fff0f0;color:var(--danger)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.full{grid-column:1/-1}label{display:block;font-weight:900;margin-bottom:6px;color:#355d7d}input,textarea,select{width:100%;border:1px solid #cdddeb;border-radius:13px;padding:11px 12px;background:#fff}textarea{min-height:100px;resize:vertical}
+.targets{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.check{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:14px;padding:10px;background:#f8fbff;font-weight:800}.check input{width:auto}
+.item{border:1px solid var(--line);border-radius:16px;padding:13px;background:#fbfdff;margin-top:10px}.item h3{margin:0;color:var(--deep)}.meta{font-size:.84rem;color:var(--muted);line-height:1.6;margin-top:7px}.empty{text-align:center;color:var(--muted);padding:24px 10px}.version{text-align:center;color:var(--muted);font-size:.8rem}
+@media(max-width:620px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.targets{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="app">
+<section class="top">
+  <div class="brand"><img class="logo" src="assets/logo.png?v=20260727" alt="Logo"><div><h1>📣 公布欄管理</h1><div class="sub">快速發布臨時消息，並設定對象與自動下架時間</div></div></div>
+  <div class="toolbar"><button class="btn" onclick="location.href='secretary.html'">返回智慧秘書</button><button class="btn" onclick="location.href='admin.html'">返回主管首頁</button></div>
+</section>
+<section class="panel">
+  <h2 id="formTitle">新增公告</h2>
+  <input type="hidden" id="noticeId">
+  <div class="grid">
+    <div class="full"><label>公告標題</label><input id="noticeTitle" placeholder="例如：今天下午三點停水"></div>
+    <div class="full"><label>公告內容</label><textarea id="noticeContent" placeholder="簡短說明需要大家知道的事情"></textarea></div>
+    <div class="full"><label>推播對象（可複選）</label><div class="targets">
+      <label class="check"><input type="checkbox" name="target" value="主管">主管</label>
+      <label class="check"><input type="checkbox" name="target" value="幼兒部">幼兒部</label>
+      <label class="check"><input type="checkbox" name="target" value="安親部">安親部</label>
+      <label class="check"><input type="checkbox" name="target" value="庶務部">庶務部</label>
+    </div></div>
+    <div><label>下架方式</label><select id="expireMode" onchange="toggleExpire()"><option value="manual">手動刪除</option><option value="scheduled">設定時間自動下架</option></select></div>
+    <div><label>自動下架時間</label><input type="datetime-local" id="expiresAt" disabled></div>
+  </div>
+  <div class="actions"><button class="btn primary" onclick="saveNotice()">儲存公告</button><button class="btn" onclick="resetForm()">清除</button></div>
+</section>
+<section class="panel"><h2>目前公告</h2><div id="noticeList"></div></section>
+<div class="version">公布欄管理 v1.0.0｜前端整合測試版</div>
+</main>
+<script>
+const STORE_KEY='heremay.announcements';
+function getData(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'[]')}catch(e){return []}}
+function setData(v){localStorage.setItem(STORE_KEY,JSON.stringify(v))}
+function esc(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
+function currentName(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}').name||'主管'}catch(e){return '主管'}}
+function cleanExpired(){const now=Date.now();const list=getData();const next=list.filter(x=>!x.expiresAt||new Date(x.expiresAt).getTime()>now);if(next.length!==list.length)setData(next);return next}
+function toggleExpire(){expiresAt.disabled=expireMode.value!=='scheduled';if(expiresAt.disabled)expiresAt.value=''}
+function resetForm(){noticeId.value='';noticeTitle.value='';noticeContent.value='';document.querySelectorAll('[name=target]').forEach(x=>x.checked=false);expireMode.value='manual';toggleExpire();formTitle.textContent='新增公告'}
+function saveNotice(){
+ const title=noticeTitle.value.trim(),content=noticeContent.value.trim(),targets=[...document.querySelectorAll('[name=target]:checked')].map(x=>x.value);
+ if(!title)return alert('請輸入公告標題');
+ if(!content)return alert('請輸入公告內容');
+ if(!targets.length)return alert('請至少選擇一個推播對象');
+ if(expireMode.value==='scheduled'&&!expiresAt.value)return alert('請設定自動下架時間');
+ const list=cleanExpired(),id=noticeId.value||'notice_'+Date.now(),old=list.find(x=>x.id===id);
+ const item={id,title,content,targets,createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),createdBy:old?.createdBy||currentName(),expiresAt:expireMode.value==='scheduled'?expiresAt.value:''};
+ const idx=list.findIndex(x=>x.id===id);if(idx>=0)list[idx]=item;else list.unshift(item);setData(list);resetForm();render();alert(idx>=0?'公告已修改':'公告已發布');
+}
+function editNotice(id){const x=getData().find(n=>n.id===id);if(!x)return;noticeId.value=x.id;noticeTitle.value=x.title;noticeContent.value=x.content;document.querySelectorAll('[name=target]').forEach(c=>c.checked=x.targets.includes(c.value));expireMode.value=x.expiresAt?'scheduled':'manual';expiresAt.value=x.expiresAt||'';toggleExpire();formTitle.textContent='修改公告';scrollTo({top:0,behavior:'smooth'})}
+function deleteNotice(id){const x=getData().find(n=>n.id===id);if(!x||!confirm(`確定刪除「${x.title}」嗎？刪除後無法復原。`))return;setData(getData().filter(n=>n.id!==id));render()}
+function render(){const list=cleanExpired(),box=document.getElementById('noticeList');box.innerHTML=list.length?list.map(x=>`<article class="item"><h3>${esc(x.title)}</h3><div>${esc(x.content).replace(/\n/g,'<br>')}</div><div class="meta">對象：${x.targets.join('、')}｜發布：${new Date(x.createdAt).toLocaleString('zh-TW',{hour12:false})}${x.expiresAt?'｜下架：'+x.expiresAt.replace('T',' '):'｜手動下架'}</div><div class="actions"><button class="btn" onclick="editNotice('${x.id}')">修改</button><button class="btn danger" onclick="deleteNotice('${x.id}')">刪除</button></div></article>`).join(''):'<div class="empty">目前沒有公告</div>'}
+toggleExpire();render();setInterval(render,60000);
+</script>
+</body></html>

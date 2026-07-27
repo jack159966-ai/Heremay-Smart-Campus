@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v22.5</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v23.0</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -514,6 +514,26 @@
       </div>
     </section>
 
+
+    <section class="dashCard">
+      <h2 class="dashTitle">📣 公布欄 <span class="count" id="adminNoticeCount">0 則</span></h2>
+      <div id="adminNoticeList"></div>
+      <button class="completedToggle" type="button" onclick="location.href='announcement.html'">管理公告 ›</button>
+    </section>
+
+    <section class="dashCard">
+      <h2 class="dashTitle">🏖️ 請假名單</h2>
+      <div class="futureGrid">
+        <article class="futureBox"><h3>今天請假</h3><div id="todayLeaveList"></div></article>
+        <article class="futureBox"><h3>明天請假</h3><div id="tomorrowLeaveList"></div></article>
+      </div>
+    </section>
+
+    <section class="dashCard">
+      <h2 class="dashTitle">🛠️ 下屬回報 <span class="count" id="adminReportCount">0 件</span></h2>
+      <div id="adminReportList"></div>
+    </section>
+
     <section class="dashCard">
       <button class="patrolButton" type="button" onclick="location.href='patrol.html'">
         <span class="pIcon">📋</span>
@@ -541,7 +561,7 @@
       </button>
     </section>
 
-    <div class="versionStamp">主管工作台 v22.5｜2026-07-27｜修正 Logo 黑邊並恢復更新按鍵</div>
+    <div class="versionStamp">主管工作台 v23.0｜2026-07-27｜移除正式版預設範例資料</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
@@ -669,19 +689,42 @@ function postToService(fields){
   }, 15000);
 }
 
-const reminders = [
-  {id:'morning-admin',time:'08:30', title:'晨間行政確認', text:'查看今日請假、人力與園務提醒。'},
-  {id:'meeting-notice',time:'09:00', title:'中午會議通知', text:'確認應參加人員已收到通知。'},
-  {id:'meeting-reminder',time:'13:25', title:'會前提醒', text:'提醒參加會議的人到辦公室，攜帶筆記本與筆。'},
-  {id:'afternoon-patrol',time:'14:30', title:'下午巡堂管理', text:'依班級順序進行下午巡堂。'}
-];
-const tomorrowItems = [
-  {time:'09:00', title:'教保員在職研習'},
-  {time:'14:00', title:'場地清潔作業'}
-];
-const afterTomorrowItems = [
-  {time:'09:00', title:'全體教師會議'}
-];
+let reminders = [];
+let tomorrowItems = [];
+let afterTomorrowItems = [];
+
+
+function adminEsc(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
+function dateKey(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+function loadSharedCalendar(){
+  let events=[];try{events=JSON.parse(localStorage.getItem('heremay.calendar.sharedEvents')||'[]')}catch(e){}
+  const make=(day)=>events.filter(x=>x.開始日期===day).sort((a,b)=>String(a.開始時間||'').localeCompare(String(b.開始時間||''))).map(x=>({id:x.行程ID||x.標題,time:x.開始時間||'全天',title:x.標題||'未命名行程',text:[x.地點,x.說明].filter(Boolean).join('｜')}));
+  reminders=make(dateKey(0));tomorrowItems=make(dateKey(1));afterTomorrowItems=make(dateKey(2));renderToday();renderFuture();
+}
+function activeAnnouncements(){
+  let list=[];try{list=JSON.parse(localStorage.getItem('heremay.announcements')||'[]')}catch(e){}
+  const now=Date.now();return list.filter(x=>(!x.expiresAt||new Date(x.expiresAt).getTime()>now)&&x.targets?.includes('主管'));
+}
+function renderAdminNotices(){
+  const list=activeAnnouncements(),box=document.getElementById('adminNoticeList');if(!box)return;
+  adminNoticeCount.textContent=`${list.length} 則`;
+  box.innerHTML=list.length?list.map(x=>`<div class="item"><div class="time">公告</div><div><h5>${adminEsc(x.title)}</h5><p>${adminEsc(x.content)}<br>對象：${x.targets.join('、')}</p></div></div>`).join(''):'<div class="hintBox">目前沒有公告。</div>';
+}
+function getSharedLeaves(){try{return JSON.parse(localStorage.getItem('heremay.sharedLeaveRecords')||'[]')}catch(e){return []}}
+function renderLeavesFor(day,id){
+ const rows=getSharedLeaves().filter(x=>x.date===day&&!['已取消','駁回'].includes(String(x.status||''))),box=document.getElementById(id);if(!box)return;
+ box.innerHTML=rows.length?rows.map(x=>`<div class="futureItem"><time>${adminEsc(x.period||'全天')}</time><span>${adminEsc(x.employeeName||'未具名')}｜${adminEsc(x.pool||'')}｜${adminEsc(x.type||'請假')}</span></div>`).join(''):'<div class="hintBox">無人請假。</div>';
+}
+function getReports(){try{return JSON.parse(localStorage.getItem('heremay.reports')||'[]')}catch(e){return []}}
+function setReports(v){localStorage.setItem('heremay.reports',JSON.stringify(v))}
+function renderAdminReports(){
+ const list=getReports(),box=document.getElementById('adminReportList');if(!box)return;adminReportCount.textContent=`${list.filter(x=>x.status!=='已完成').length} 件`;
+ box.innerHTML=list.length?list.map(x=>`<div class="noticeItem"><div><h5>${adminEsc(x.type)}｜${adminEsc(x.title)}</h5><p>${adminEsc(x.reporter)}｜${adminEsc(x.department)}｜${adminEsc(x.content)}<br>狀態：${adminEsc(x.status)}</p></div><div><button class="miniBtn secondary" onclick="editAdminReport('${x.id}')">處理</button><button class="miniBtn secondary" onclick="deleteAdminReport('${x.id}')">刪除</button></div></div>`).join(''):'<div class="hintBox">目前沒有下屬回報。</div>';
+}
+function editAdminReport(id){const list=getReports(),x=list.find(r=>r.id===id);if(!x)return;const next=prompt('請輸入處理狀態：未處理、處理中、已完成',x.status||'未處理');if(!next)return;x.status=next;x.updatedAt=new Date().toISOString();setReports(list);renderAdminReports();showToast('回報狀態已更新')}
+function deleteAdminReport(id){const x=getReports().find(r=>r.id===id);if(!x||!confirm(`確定刪除「${x.title}」嗎？刪除後無法復原。`))return;setReports(getReports().filter(r=>r.id!==id));renderAdminReports()}
+function refreshDashboardData(){loadSharedCalendar();renderAdminNotices();renderLeavesFor(dateKey(0),'todayLeaveList');renderLeavesFor(dateKey(1),'tomorrowLeaveList');renderAdminReports()}
+window.addEventListener('storage',refreshDashboardData);
 
 function pad(n){return String(n).padStart(2,'0')}
 function tick(){
@@ -725,7 +768,7 @@ function renderToday(){
   const done=reminders.filter(r=>doneIds.includes(r.id));
   const pendingBox=document.getElementById('todayList');
   const doneBox=document.getElementById('completedList');
-  if(pendingBox) pendingBox.innerHTML=pending.length?pending.map(r=>taskMarkup(r,false)).join(''):'<div class="hintBox">🎉 今天的待辦都完成了。</div>';
+  if(pendingBox) pendingBox.innerHTML=pending.length?pending.map(r=>taskMarkup(r,false)).join(''):'<div class="hintBox">今天目前沒有待辦事項。</div>';
   if(doneBox) doneBox.innerHTML=done.map(r=>taskMarkup(r,true)).join('');
   const count=document.getElementById('todayCount');
   if(count) count.textContent=`${pending.length} 件`;
@@ -739,7 +782,7 @@ function renderFuture(){
   const render=(list,id)=>{
     const box=document.getElementById(id);
     if(!box) return;
-    box.innerHTML=list.length?list.map(x=>`<div class="futureItem"><time>${x.time}</time><span>${x.title}</span></div>`).join(''):'<div class="hintBox">目前沒有安排</div>';
+    box.innerHTML=list.length?list.map(x=>`<div class="futureItem"><time>${x.time}</time><span>${x.title}</span></div>`).join(''):'<div class="hintBox">目前沒有安排。</div>';
   };
   render(tomorrowItems,'tomorrowList');
   render(afterTomorrowItems,'afterTomorrowList');
@@ -961,43 +1004,20 @@ function renderSecretaryFields(){
   }
 }
 
-let noticeTracks = [
-  {
-    id:1,
-    title:'下午 4:10 請協助整理戶外玩具',
-    target:'教保人員',
-    sent:'今天 09:10',
-    must:true,
-    people:[
-      {name:'王老師', group:'幼幼班', ack:true, time:'09:18'},
-      {name:'林老師', group:'小班', ack:true, time:'09:21'},
-      {name:'陳老師', group:'中班', ack:true, time:'09:34'},
-      {name:'李老師', group:'大班', ack:false, time:''},
-      {name:'黃老師', group:'課後照顧', ack:false, time:''},
-      {name:'張老師', group:'機動支援', ack:false, time:''}
-    ]
-  },
-  {
-    id:2,
-    title:'明日拍攝活動照片提醒',
-    target:'全體教保人員',
-    sent:'今天 08:20',
-    must:false,
-    people:[
-      {name:'王老師', group:'幼幼班', ack:true, time:'08:41'},
-      {name:'林老師', group:'小班', ack:true, time:'08:45'},
-      {name:'陳老師', group:'中班', ack:true, time:'08:52'},
-      {name:'李老師', group:'大班', ack:true, time:'09:03'},
-      {name:'黃老師', group:'課後照顧', ack:false, time:''},
-      {name:'張老師', group:'機動支援', ack:false, time:''}
-    ]
-  }
-];
+let noticeTracks = [];
 
 function renderNoticeTrack(){
   const list=document.getElementById('noticeTrackList');
   if(!list) return;
   let ackTotal=0, missTotal=0;
+  if(!noticeTracks.length){
+    list.innerHTML='<div class="hintBox">目前沒有公告追蹤資料。</div>';
+    document.getElementById('noticeTotal').textContent='0';
+    document.getElementById('ackTotal').textContent='0';
+    document.getElementById('missTotal').textContent='0';
+    return;
+  }
+
   list.innerHTML = noticeTracks.map(n=>{
     const ack=n.people.filter(p=>p.ack).length;
     const total=n.people.length;
@@ -1267,6 +1287,7 @@ async function refreshLatestVersion(){
 
 if(requireAdminAccess()){
   refreshQuickNotebookOptions();
+  refreshDashboardData();
   renderNoticeTrack();
   loadCloudAckRecords();
 }

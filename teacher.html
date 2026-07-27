@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v11 權限修正</title>
+  <title>和美智慧校園｜教保人員首頁 v12 公告與回報整合</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -514,40 +514,8 @@
     </section>
 
     <section class="section board">
-      <div class="section-title">
-        <span>📌 園方公佈欄</span>
-        <span class="tag yellow">可確認收到</span>
-      </div>
-
-      <div class="pin-row">
-        <div class="pin">📍</div>
-        <div class="announce">
-          <strong>下午 4:10 請協助整理戶外玩具 <span class="new-badge">NEW</span><span class="must-badge">需確認</span></strong>
-          <p>今日戶外活動後，請各班協助確認球類、呼拉圈與三輪車歸位，並留意是否有破損需要回報。</p>
-          <div class="meta">發布：智慧秘書中心｜對象：教保人員｜今天 09:10</div>
-          <div class="ack-panel">
-            <div class="ack-row">
-              <span class="ack-stat" id="ackStat1">已收到 3 / 6 人</span>
-              <button class="ack-btn" id="ackBtn1" onclick="ackNotice(1)">我已收到</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="pin-row">
-        <div class="pin">📍</div>
-        <div class="announce">
-          <strong>明日拍攝活動照片提醒</strong>
-          <p>請各班明天上午活動時協助拍攝 3～5 張照片，供本週班級紀錄使用。</p>
-          <div class="meta">發布：園長室｜對象：全體教保人員｜今天 08:20</div>
-          <div class="ack-panel">
-            <div class="ack-row">
-              <span class="ack-stat" id="ackStat2">已收到 4 / 6 人</span>
-              <button class="ack-btn" id="ackBtn2" onclick="ackNotice(2)">我已收到</button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div class="section-title"><span>📌 園方公佈欄</span><span class="tag yellow">即時公告</span></div>
+      <div id="dynamicNoticeBoard"><div class="announce"><p>正在讀取公告…</p></div></div>
     </section>
 
     <section class="section">
@@ -624,7 +592,7 @@
           <span>園方或主管給個人的通知與提醒</span>
         </button>
 
-        <button class="btn" onclick="openFeature('通知與回報')">
+        <button class="btn" onclick="openReportCenter()">
           <div class="icon">📣</div>
           <strong>通知與回報</strong>
           <span>回報報修、採購需求或現場問題</span>
@@ -655,7 +623,25 @@
   </main>
 
   <div class="toast" id="toast">功能測試</div>
-<div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
+<div class="modal" id="reportCenterModal" onclick="if(event.target===this)hideReportCenter()">
+    <div class="sheet" onclick="event.stopPropagation()">
+      <h2>🛠️ 回報中心</h2>
+      <input type="hidden" id="staffReportId">
+      <label style="display:block;font-weight:900;margin:8px 0 5px">回報類型</label>
+      <select id="staffReportType" class="input">
+        <option>報修</option><option>物品缺少</option><option>安全問題</option><option>行政協助</option><option>採購需求</option><option>其他回報</option>
+      </select>
+      <label style="display:block;font-weight:900;margin:10px 0 5px">標題</label>
+      <input id="staffReportTitle" class="input" placeholder="請簡短說明">
+      <label style="display:block;font-weight:900;margin:10px 0 5px">內容</label>
+      <textarea id="staffReportContent" placeholder="位置、數量、狀況或需要協助的內容"></textarea>
+      <button class="close" style="background:linear-gradient(135deg,var(--pink, var(--green)),var(--pink2, var(--green2)));margin-top:12px" onclick="saveStaffReport()">儲存回報</button>
+      <div class="listbox"><h3>我的回報</h3><div id="myReportList"></div></div>
+      <button class="close" onclick="hideReportCenter()">關閉</button>
+    </div>
+  </div>
+
+  <div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
     <div class="sheet" onclick="event.stopPropagation()">
       <h2>⚙️ 個人設定</h2>
 
@@ -703,6 +689,39 @@
     let currentEmployee = null;
     let pendingAckId = null;
 
+
+    const ANNOUNCEMENT_KEY='heremay.announcements';
+    const REPORT_KEY='heremay.reports';
+    const CURRENT_DEPARTMENT='幼兒部';
+
+    function safeHtml(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
+    function getAnnouncements(){try{return JSON.parse(localStorage.getItem(ANNOUNCEMENT_KEY)||'[]')}catch(e){return []}}
+    function renderDynamicNotices(){
+      const now=Date.now();
+      const all=getAnnouncements();
+      const active=all.filter(x=>(!x.expiresAt||new Date(x.expiresAt).getTime()>now)&&Array.isArray(x.targets)&&x.targets.includes(CURRENT_DEPARTMENT));
+      const box=document.getElementById('dynamicNoticeBoard');if(!box)return;
+      box.innerHTML=active.length?active.map(x=>`<div class="pin-row"><div class="pin">📍</div><div class="announce"><strong>${safeHtml(x.title)}</strong><p>${safeHtml(x.content).replace(/\n/g,'<br>')}</p><div class="meta">發布：${safeHtml(x.createdBy||'智慧秘書')}｜對象：${x.targets.join('、')}｜${new Date(x.createdAt).toLocaleString('zh-TW',{hour12:false})}</div></div></div>`).join(''):'<div class="announce"><p>目前沒有公告。</p></div>';
+    }
+
+    function getReports(){try{return JSON.parse(localStorage.getItem(REPORT_KEY)||'[]')}catch(e){return []}}
+    function setReports(v){localStorage.setItem(REPORT_KEY,JSON.stringify(v))}
+    function openReportCenter(){document.getElementById('reportCenterModal').classList.add('show');resetStaffReport();renderMyReports()}
+    function hideReportCenter(){document.getElementById('reportCenterModal').classList.remove('show')}
+    function resetStaffReport(){staffReportId.value='';staffReportTitle.value='';staffReportContent.value='';staffReportType.value='報修'}
+    function saveStaffReport(){
+      const title=staffReportTitle.value.trim(),content=staffReportContent.value.trim();if(!title||!content){showToast('請完整填寫標題與內容');return}
+      const list=getReports(),id=staffReportId.value||'report_'+Date.now(),idx=list.findIndex(x=>x.id===id),old=idx>=0?list[idx]:null;
+      const item={id,type:staffReportType.value,title,content,department:CURRENT_DEPARTMENT,reporter:currentUser,employeeId:currentEmployee?.employeeId||'',createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),status:old?.status||'未處理'};
+      if(idx>=0)list[idx]=item;else list.unshift(item);setReports(list);resetStaffReport();renderMyReports();showToast(idx>=0?'回報已修改':'回報已送出');
+    }
+    function renderMyReports(){
+      const box=document.getElementById('myReportList');if(!box)return;const mine=getReports().filter(x=>x.reporter===currentUser);
+      box.innerHTML=mine.length?mine.map(x=>`<div class="record"><strong>${safeHtml(x.type)}｜${safeHtml(x.title)}<span class="state">${safeHtml(x.status)}</span></strong><div class="meta">${safeHtml(x.content)}｜${new Date(x.createdAt).toLocaleString('zh-TW',{hour12:false})}</div><button class="cancel-leave" onclick="editStaffReport('${x.id}')">修改</button><button class="cancel-leave" onclick="deleteStaffReport('${x.id}')">刪除</button></div>`).join(''):'<div class="person">目前沒有回報</div>';
+    }
+    function editStaffReport(id){const x=getReports().find(r=>r.id===id);if(!x)return;staffReportId.value=x.id;staffReportType.value=x.type;staffReportTitle.value=x.title;staffReportContent.value=x.content}
+    function deleteStaffReport(id){const x=getReports().find(r=>r.id===id);if(!x||!confirm(`確定刪除「${x.title}」嗎？刪除後無法復原。`))return;setReports(getReports().filter(r=>r.id!==id));renderMyReports();showToast('回報已刪除')}
+    
     function loadCurrentEmployee(){
       try{
         const raw = localStorage.getItem('heremay.currentEmployee');
@@ -1095,6 +1114,8 @@
     }
 
     loadCurrentEmployee();
+    renderDynamicNotices();
+    window.addEventListener('storage',renderDynamicNotices);
 
     Object.values(notices).forEach(notice => {
       notice.total = notice.total.map(name =>
@@ -1105,11 +1126,6 @@
     restoreLocalAcks();
     loadCloudAckRecords();
     loadReminderRecords();
-
-    setTimeout(()=>{
-      showToast('📌 新公告：下午 4:10 請協助整理戶外玩具。這則公告需要點選「我已收到」。', 4500);
-      beep();
-    }, 2000);
   </script>
 </body>
 </html>

@@ -40,7 +40,7 @@
   <header class="top">
     <button class="back" onclick="goBack()">← 返回</button>
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
-    <span class="version">v1.0 雲端版</span>
+    <span class="version">v1.1 雲端版</span>
   </header>
 
   <section class="card who">
@@ -170,7 +170,8 @@
     const pmRemaining=Math.max(0,base.pmLimit-u.pm);
     return {...base,am:amRemaining,pm:pmRemaining,amUsed:u.am,pmUsed:u.pm,rows:u.rows};
   }
-  function renderCalendar(){const y=viewDate.getFullYear(),m=viewDate.getMonth();monthTitle.textContent=`${y} 年 ${m+1} 月｜${leavePool()}`;calendar.innerHTML='';const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();for(let i=0;i<first;i++){const e=document.createElement('div');e.className='day empty';calendar.append(e)}for(let n=1;n<=days;n++){const d=new Date(y,m,n),key=`${y}-${pad(m+1)}-${pad(n)}`,q=availability(key),el=document.createElement('button');const isFull=!q.off&&q.am===0&&q.pm===0;el.className='day'+(q.off?' off':'')+(selectedDates.has(key)?' selected':'')+(isFull?' full':'');const people=q.rows?.length?`<span class="mark">${q.rows.length}人</span>`:(selectedDates.has(key)?'<span class="mark">✓</span>':'');el.innerHTML=`<span class="num">${n}</span>${people}`;el.disabled=q.off;el.onclick=()=>selectDate(key);calendar.append(el)}renderSelected()}
+  function publishSharedLeaves(){try{localStorage.setItem('heremay.sharedLeaveRecords',JSON.stringify(sharedLeaves()))}catch(e){}}
+  function renderCalendar(){publishSharedLeaves();const y=viewDate.getFullYear(),m=viewDate.getMonth();monthTitle.textContent=`${y} 年 ${m+1} 月｜${leavePool()}`;calendar.innerHTML='';const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();for(let i=0;i<first;i++){const e=document.createElement('div');e.className='day empty';calendar.append(e)}for(let n=1;n<=days;n++){const d=new Date(y,m,n),key=`${y}-${pad(m+1)}-${pad(n)}`,q=availability(key),el=document.createElement('button');const isFull=!q.off&&q.am===0&&q.pm===0;el.className='day'+(q.off?' off':'')+(selectedDates.has(key)?' selected':'')+(isFull?' full':'');const people=q.rows?.length?`<span class="mark">${q.rows.length}人</span>`:(selectedDates.has(key)?'<span class="mark">✓</span>':'');el.innerHTML=`<span class="num">${n}</span>${people}`;el.disabled=q.off;el.onclick=()=>selectDate(key);calendar.append(el)}renderSelected()}
   function selectDate(key){
     if(selectedDates.has(key)){selectedDates.delete(key);renderCalendar();return}
     const mine=myActiveLeaveOn(key);
