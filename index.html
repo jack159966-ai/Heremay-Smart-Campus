@@ -3,18 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜Heremay Smart Campus v1.3.5</title>
+  <title>和美智慧校園｜Heremay Smart Campus v1.3.8</title>
 
   <!-- 手機桌面圖示與 PWA 設定 -->
   <meta name="theme-color" content="#fff6fb" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="和美智慧校園" />
-  <link rel="apple-touch-icon" sizes="180x180" href="assets/app-icon.png?v=20260717" />
-  <link rel="icon" type="image/png" href="assets/app-icon.png?v=20260717" />
-  <link rel="manifest" href="manifest.webmanifest?v=20260717b" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/app-icon.png?v=20260727" />
+  <link rel="icon" type="image/png" href="assets/app-icon.png?v=20260727" />
+  <link rel="manifest" href="manifest.webmanifest?v=20260727" />
 
-  <!-- 2026-07 登入頁響應式版面優化：電腦雙欄、手機精簡單欄 -->
   <style>
     :root{
       --bg1:#fff8fc;
@@ -40,6 +39,7 @@
       min-height:100dvh;
       font-family:"Microsoft JhengHei","Noto Sans TC",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       color:var(--ink);
+      overflow-x:hidden;
       background:
         radial-gradient(circle at 12% 12%, rgba(255,216,232,.82), transparent 31%),
         radial-gradient(circle at 88% 18%, rgba(195,232,255,.84), transparent 34%),
@@ -125,7 +125,8 @@
     .divider{display:flex;align-items:center;gap:12px;margin:22px 0 6px;color:#987686;font-size:13px;font-weight:900}
     .divider:before,.divider:after{content:"";height:1px;background:#edd1dc;flex:1}
     .face-setup{display:block;margin:10px auto 0;font-size:13px}
-    .status-stack{grid-area:status;display:grid;gap:12px;align-self:start}
+    .access-note{margin:15px 0 0;text-align:center;color:#8b9ca4;font-size:12px;font-weight:800}
+    .system-status{grid-area:status;align-self:start}
     footer{grid-area:footer;text-align:center;color:#78909b;font-size:12px;font-weight:800;line-height:1.6;padding-top:2px}
     footer span{color:#9aaeb7}
     .update-card{background:rgba(255,255,255,.76);border:1px solid rgba(255,255,255,.95);border-radius:18px;padding:12px 14px;box-shadow:0 10px 28px rgba(117,91,124,.09)}
@@ -137,17 +138,17 @@
     .role-list{display:grid;gap:10px}.role-btn{text-align:left;color:#314753;background:#f8fcff;border:1px solid #d7edf8}.role-btn.admin{background:#eef9ff;border-color:#bfe8fb}.role-btn.teacher{background:#fff1f7;border-color:#f4bfd4}.role-btn.support{background:#f0fff6;border-color:#bfe8ce}.role-btn span{display:block;margin-top:4px;color:#78909b;font-size:13px;font-weight:800}.close-btn{margin-top:12px;width:100%;border:0;border-radius:18px;padding:13px;background:#f3f7fa;color:#647d89;font-weight:900;cursor:pointer}
     @media (max-width:760px){
       .app-shell{width:min(100%,500px);padding:22px 18px 24px;display:flex;justify-content:flex-start;gap:14px}
-      .logo-area{text-align:center;padding:12px 0 2px}
-      .logo-wrap{width:116px;height:116px;margin:0 auto 12px;border-radius:31px}
-      .school-name{font-size:28px}.school-sub{margin-top:5px;font-size:13px}.brand-note{display:none}
-      .login-card{padding:22px 18px;border-radius:27px}
-      h1{text-align:center;font-size:22px;margin-bottom:16px}
+      .logo-area{text-align:center;padding:6px 0 0}
+      .logo-wrap{width:102px;height:102px;margin:0 auto 10px;border-radius:28px}
+      .school-name{font-size:26px}.school-sub{margin-top:4px;font-size:12px}.brand-note{display:none}
+      .login-card{padding:20px 18px;border-radius:27px}
+      h1{text-align:center;font-size:21px;margin-bottom:14px}
       .input-box{min-height:54px;margin-top:11px;border-radius:17px}
       .input-box input{font-size:16px}
       .login-btn,.face-btn{padding:14px 15px;border-radius:18px}
       .login-options{margin-top:12px}
       .divider{margin:17px 0 4px}
-      .status-stack{display:grid;gap:10px}
+      .system-status{display:block}
       footer{padding-top:0}
     }
     @media (max-width:380px){
@@ -167,11 +168,13 @@
       </div>
       <h2 class="school-name">和美智慧校園</h2>
       <p class="school-sub">Heremay Smart Campus</p>
-      <p class="brand-note">整合校務、行事曆、專案與日常行政，讓每位夥伴都能快速找到需要的功能。</p>
+      <p class="brand-note">整合校務、行事曆、專案與日常行政，無論在園內或外出，都能快速找到需要的功能。</p>
     </section>
 
     <section class="login-card">
       <h1>♡ 歡迎回到和美大家庭！</h1>
+
+      <form id="loginForm" onsubmit="handleLoginSubmit(event)">
 
       <div class="input-box">
         <span class="icon">👤</span>
@@ -187,10 +190,10 @@
           onclick="togglePassword()" aria-label="顯示密碼" title="顯示密碼">👁️</button>
       </div>
 
-      <button class="login-btn" type="button" onclick="demoLogin()">登入 →</button>
+      <button class="login-btn" type="submit">登入 →</button>
 
       <div class="login-options">
-        <label><input type="checkbox" checked /> 記住我</label>
+        <label><input id="keepSignedIn" type="checkbox" checked /> 在這台裝置保持登入</label>
         <button type="button" class="text-btn" onclick="showToast('正式版會交由管理者協助重設密碼')">忘記密碼？</button>
       </div>
 
@@ -198,25 +201,17 @@
 
       <button class="face-btn" type="button" onclick="faceLogin()">Face ID／生物辨識登入</button>
       <button class="text-btn face-setup" type="button" onclick="registerFaceLogin()">首次使用：設定刷臉登入</button>
+      <p class="access-note">可於園內或園外安全登入使用</p>
+      </form>
     </section>
 
-    <div class="status-stack">
-    <section class="update-card" id="wifiCard" aria-live="polite">
-      <div class="update-row">
-        <div class="update-icon" id="wifiIcon">📶</div>
-        <div class="update-copy">
-          <div class="update-title">園內網路驗證</div>
-          <div class="update-status" id="wifiStatus">尚未驗證</div>
-        </div>
-        <button class="update-btn show" id="wifiBtn" type="button" onclick="checkCampusWifi(true)">立即檢查</button>
-      </div>
-    </section>
+    <div class="system-status">
 
     <section class="update-card" id="updateCard" aria-live="polite">
       <div class="update-row">
         <div class="update-icon" id="updateIcon">🔄</div>
         <div class="update-copy">
-          <div class="update-title">系統更新</div>
+          <div class="update-title">系統狀態</div>
           <div class="update-status" id="updateStatus">正在確認是否有新版本……</div>
         </div>
         <button class="update-btn" id="updateBtn" type="button" onclick="applyUpdate()">立即更新</button>
@@ -226,7 +221,7 @@
 
     <footer>
       資料安全・隱私保護・安心使用<br />
-      <span id="versionText">Heremay Smart Campus v1.3.5</span>
+      <span id="versionText">Heremay Smart Campus v1.3.7</span>
     </footer>
   </main>
 
@@ -247,24 +242,21 @@
 
 
   <script>
-    const APP_VERSION = '1.3.5';
+    const APP_VERSION = '1.3.8';
 
     /*
       正式登入架構說明
       1. 帳號密碼、Passkey 註冊與驗證，皆交由後端伺服器判斷。
       2. 瀏覽器只保存「上次使用帳號」，不保存角色、密碼或通行權限。
-      3. 新 NAS 到位後，只要把 API_BASE 與 WIFI_ENDPOINT 改成正式網址即可。
+      3. 新 NAS 到位後，只要把 API_BASE 改成正式網址即可。
     */
     const CONFIG = {
       API_BASE: 'https://script.google.com/macros/s/AKfycbzbZ6r6c8XjHuKad0U5TIJXr8i141fCBwNJcVsKnoGa1-NXG_JOzapeRF5cVlnGI4F7/exec',
-      WIFI_ENDPOINT: '', // 新 NAS 完成後再填入園內網路驗證網址
-      WIFI_TIMEOUT_MS: 5000,
       TEMP_DEMO_MODE: false
     };
 
     let waitingWorker = null;
     let refreshing = false;
-    let campusWifiVerified = false;
 
     const routes = {
       admin: 'admin.html',
@@ -388,80 +380,6 @@
       }else{
         location.reload();
       }
-    }
-
-    function setWifiStatus(message, state='normal'){
-      const card = document.getElementById('wifiCard');
-      const status = document.getElementById('wifiStatus');
-      const icon = document.getElementById('wifiIcon');
-      if(!card || !status || !icon) return;
-
-      card.classList.toggle('available', state === 'ok');
-      card.classList.toggle('error', state === 'error');
-      status.textContent = message;
-      icon.textContent = state === 'ok' ? '✅' :
-                         state === 'error' ? '⚠️' : '📶';
-    }
-
-    async function fetchWithTimeout(url, options={}, timeoutMs=5000){
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-      try{
-        return await fetch(url, {
-          ...options,
-          signal: controller.signal
-        });
-      }finally{
-        clearTimeout(timer);
-      }
-    }
-
-    async function checkCampusWifi(showResult=false){
-      campusWifiVerified = false;
-
-      if(!CONFIG.WIFI_ENDPOINT){
-        setWifiStatus('園內網路驗證尚未啟用｜目前可正常登入');
-        campusWifiVerified = true;
-        if(showResult) showToast('園內網路驗證尚未啟用，目前不影響登入。');
-        return true;
-      }
-
-      setWifiStatus('正在確認是否位於園內網路……');
-
-      try{
-        const response = await fetchWithTimeout(
-          `${CONFIG.WIFI_ENDPOINT}?_=${Date.now()}`,
-          {
-            cache:'no-store',
-            credentials:'include'
-          },
-          CONFIG.WIFI_TIMEOUT_MS
-        );
-
-        if(!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const result = await response.json();
-        if(result && result.ok === true){
-          campusWifiVerified = true;
-          setWifiStatus('園內網路驗證成功', 'ok');
-          if(showResult) showToast('園內網路驗證成功。');
-          return true;
-        }
-      }catch(err){
-        console.warn('園內網路驗證失敗：', err);
-      }
-
-      setWifiStatus('無法驗證園內網路，請確認已連接 HEREMAY Wi-Fi', 'error');
-      if(showResult){
-        showToast('無法驗證園內網路，請確認裝置已連接園內 Wi-Fi。');
-      }
-      return false;
-    }
-
-    async function requireCampusWifi(){
-      if(campusWifiVerified) return true;
-      return await checkCampusWifi(false);
     }
 
     function bytesToBase64url(bytes){
@@ -667,12 +585,6 @@
         return;
       }
 
-      const wifiOk = await requireCampusWifi();
-      if(!wifiOk){
-        showToast('請先連接園內網路，再設定刷臉登入。');
-        return;
-      }
-
       if(CONFIG.TEMP_DEMO_MODE && !CONFIG.API_BASE){
         localStorage.setItem('heremay.lastFaceAccount', account);
         showToast('入口頁已準備完成；新 NAS 登入伺服器完成後即可正式綁定 Face ID。');
@@ -724,12 +636,6 @@
 
       if(!window.PublicKeyCredential || !navigator.credentials){
         showToast('這個瀏覽器不支援 Face ID／指紋登入。');
-        return;
-      }
-
-      const wifiOk = await requireCampusWifi();
-      if(!wifiOk){
-        showToast('請先連接園內網路，才能登入。');
         return;
       }
 
@@ -794,6 +700,12 @@
       p.setSelectionRange(p.value.length, p.value.length);
     }
 
+
+    function handleLoginSubmit(event){
+      event.preventDefault();
+      demoLogin();
+    }
+
     async function demoLogin(){
       const account = document.getElementById('account').value.trim();
       const password = document.getElementById('password').value;
@@ -806,12 +718,6 @@
 
       if(!/^\d{6}$/.test(password)){
         showToast('密碼請輸入 6 位數字。');
-        return;
-      }
-
-      const wifiOk = await requireCampusWifi();
-      if(!wifiOk){
-        showToast('請先連接園內網路，才能登入。');
         return;
       }
 
@@ -891,7 +797,6 @@
 
     window.addEventListener('load', () => {
       registerUpdateSystem();
-      checkCampusWifi(false);
 
       const lastAccount = localStorage.getItem('heremay.lastFaceAccount');
       if(lastAccount){
