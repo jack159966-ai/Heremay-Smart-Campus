@@ -80,7 +80,7 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.1.6｜2026-07-27｜新增亮點分享／一般觀察／改善提醒</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.1.7｜2026-07-27｜保留亮點分享／改善提醒</p></div></header>
 
 <section id="screenHome" class="screen active">
   <button class="light full no-print" type="button" onclick="returnToPreviousPage()" style="margin:0 0 10px">← 返回主管首頁</button>
@@ -112,17 +112,16 @@ button{display:none!important}
   <div class="card hero">
     <span class="pill currentTag" id="currentStep">第 1 班</span>
     <h2 id="currentClass">班級名稱</h2>
-    <p class="muted">沒有特別事項可按「本班全部合格」；拍照或備註時，請選擇「亮點分享／一般觀察／改善提醒」。</p>
+    <p class="muted">沒有特別事項可按「本班全部合格」；拍照或備註時，請選擇「亮點分享」或「改善提醒」。</p>
     <div id="currentStatusBox" class="cloud-box">目前狀態：尚未填寫</div>
     <div class="row no-print"><button class="success" id="allPassBtn" onclick="markAllPass()">✅ 本班全部合格</button><button class="gray" onclick="clearCurrent()">清除本班</button></div>
     <div class="row no-print" style="margin-top:10px"><button id="prevClassBtn" class="light" onclick="stepClass(-1)">← 上一班</button><button id="nextClassBtn" class="light" onclick="stepClass(1)">下一班 →</button></div>
   </div>
-  <div class="card"><h3>改善提醒項目：3 類 × 5 項</h3><p class="small">只有需要改善時才勾選；亮點分享與一般觀察不必勾選。</p><div id="defectList" class="defects"></div></div>
+  <div class="card"><h3>改善提醒項目：3 類 × 5 項</h3><p class="small">只有需要改善時才勾選；亮點分享不必勾選。</p><div id="defectList" class="defects"></div></div>
   <div class="card"><h3>照片與巡堂紀錄</h3>
 <div class="small">請先選擇這筆紀錄的性質：</div>
 <div class="record-type-grid" id="recordTypeGrid">
   <button type="button" class="record-type-btn highlight" data-type="highlight" onclick="setRecordType('highlight')">⭐ 亮點分享</button>
-  <button type="button" class="record-type-btn observation" data-type="observation" onclick="setRecordType('observation')">📝 一般觀察</button>
   <button type="button" class="record-type-btn improvement" data-type="improvement" onclick="setRecordType('improvement')">💡 改善提醒</button>
 </div>
 <label for="photoInput" class="btn light full">📷 拍照／選擇照片</label>
@@ -218,12 +217,12 @@ function cloudToLocalRecord(item,sessionKey){
     time:item.updatedAt||item.createdAt||'',
     status:item.result==='合格'?'pass':
            item.result==='亮點分享'?'highlight':
-           item.result==='一般觀察'?'observation':'needs_improvement',
+           item.result==='一般觀察'?'pass':'needs_improvement',
     recordType:item.recordType==='亮點分享'?'highlight':
-               item.recordType==='一般觀察'?'observation':
+               item.recordType==='一般觀察'?'pass':
                item.recordType==='改善提醒'?'improvement':
                item.result==='亮點分享'?'highlight':
-               item.result==='一般觀察'?'observation':
+               item.result==='一般觀察'?'pass':
                item.result==='合格'?'pass':'improvement',
     defects:splitCloudDefectCodes(item.defectCodes),
     note:item.notes||'',
@@ -474,6 +473,26 @@ function repairAndRestoreClassList(x){
 }
 
 let data=loadData();
+
+function migrateObservationToPass(){
+  const fixRecord=rec=>{
+    if(!rec)return;
+    if(rec.recordType==='observation' || rec.status==='observation'){
+      rec.recordType='pass';
+      rec.status='pass';
+      rec.defects=[];
+    }
+  };
+  ['morning','afternoon'].forEach(session=>{
+    Object.values(data.records?.[session]||{}).forEach(fixRecord);
+  });
+  Object.values(data.history||{}).forEach(day=>{
+    ['morning','afternoon'].forEach(session=>{
+      Object.values(day?.[session]||{}).forEach(fixRecord);
+    });
+  });
+}
+migrateObservationToPass();
 data.history=data.history||{};
 data.selectedWeekStart=data.selectedWeekStart||isoDate(startOfWeek(new Date()));
 let currentSession=data.currentSession||'morning';
@@ -623,14 +642,14 @@ function normalizeRecordType(rec){
   if(rec?.status==='pass')return 'pass';
   if(rec?.status==='needs_improvement'||(rec?.defects||[]).length)return 'improvement';
   if(rec?.status==='highlight')return 'highlight';
-  if(rec?.status==='observation')return 'observation';
-  return 'observation';
+  if(rec?.status==='observation')return 'pass';
+  return 'draft';
 }
 function recordTypeLabel(rec){
   const type=normalizeRecordType(rec);
   return type==='pass'?'合格':
          type==='highlight'?'亮點分享':
-         type==='observation'?'一般觀察':'改善提醒';
+         type==='draft'?'尚未完成':'改善提醒';
 }
 function renderRecordType(rec){
   const type=normalizeRecordType(rec);
@@ -642,12 +661,11 @@ function setRecordType(type){
   const cls=data.classes[currentIndex];
   const rec=ensureRec(cls);
   if(type!=='improvement'&&(rec.defects||[]).length){
-    alert('目前已有改善提醒項目。請先取消勾選項目，才能改成亮點分享或一般觀察。');
+    alert('目前已有改善提醒項目。請先取消勾選項目，才能改成亮點分享。');
     return;
   }
   rec.recordType=type;
   if(type==='highlight')rec.status='highlight';
-  else if(type==='observation')rec.status='observation';
   else rec.status=(rec.defects||[]).length?'needs_improvement':'draft';
   rec.time=nowTime();
   markRecordChanged(rec);
@@ -678,10 +696,6 @@ function updateCurrentStatus(){
   }else if(rec?.status==='highlight'){
     box.className='cloud-box success';
     box.textContent=`目前狀態：亮點分享｜照片 ${photos} 張`;
-    if(passBtn)passBtn.disabled=true;
-  }else if(rec?.status==='observation'){
-    box.className='cloud-box syncing';
-    box.textContent=`目前狀態：一般觀察｜照片 ${photos} 張`;
     if(passBtn)passBtn.disabled=true;
   }else if(photos||note){
     box.className='cloud-box syncing';
@@ -729,15 +743,15 @@ function getReportRecord(dateISO,session,cls){
   if(dateISO===isoDate())return data.records?.[session]?.[cls];
   return null;
 }
-function ensureRec(cls){const r=recs();if(!r[cls])r[cls]={className:cls,session:sessionName(),date:today(),isoDate:isoDate(),time:'',status:'draft',recordType:'observation',defects:[],note:'',notifyTargets:['本班教保人員'],photos:[]};return r[cls]}
+function ensureRec(cls){const r=recs();if(!r[cls])r[cls]={className:cls,session:sessionName(),date:today(),isoDate:isoDate(),time:'',status:'draft',recordType:'draft',defects:[],note:'',notifyTargets:['本班教保人員'],photos:[]};return r[cls]}
 function toggleDefect(code){
   const cls=data.classes[currentIndex];
   const rec=ensureRec(cls);
   const s=new Set(rec.defects||[]);
   s.has(code)?s.delete(code):s.add(code);
   rec.defects=[...s];
-  rec.recordType=rec.defects.length?'improvement':(rec.recordType==='improvement'?'observation':rec.recordType||'observation');
-  rec.status=rec.defects.length?'needs_improvement':(rec.recordType==='highlight'?'highlight':rec.recordType==='observation'?'observation':'draft');
+  rec.recordType=rec.defects.length?'improvement':(rec.recordType==='improvement'?'draft':rec.recordType||'draft');
+  rec.status=rec.defects.length?'needs_improvement':(rec.recordType==='highlight'?'highlight':'draft');
   rec.time=nowTime();
   markRecordChanged(rec);
   archiveRecord(rec);
@@ -839,9 +853,11 @@ function savePhotoDraft(){
     rec.status='needs_improvement';
   }else if(rec.recordType==='highlight'){
     rec.status='highlight';
+  }else if(rec.status==='pass'){
+    rec.recordType='pass';
   }else{
-    rec.recordType=rec.recordType||'observation';
-    rec.status='observation';
+    rec.recordType=rec.recordType||'draft';
+    rec.status=rec.recordType==='highlight'?'highlight':'draft';
   }
   markRecordChanged(rec);
   archiveRecord(rec);
@@ -892,8 +908,8 @@ function saveCurrent(update=true){
     rec.recordType='improvement';
     rec.status='needs_improvement';
   }else if(rec.status!=='pass'){
-    rec.recordType=rec.recordType||'observation';
-    rec.status=rec.recordType==='highlight'?'highlight':'observation';
+    rec.recordType=rec.recordType||'draft';
+    rec.status=rec.recordType==='highlight'?'highlight':'draft';
   }
 
   markRecordChanged(rec);
@@ -924,10 +940,10 @@ function saveAndNext(){
     alert('本班尚未完成。\n沒有紀錄請按「本班全部合格」；有照片或內容請先選擇紀錄類型。');
     return;
   }
-  if(['highlight','observation'].includes(rec.status) &&
+  if(rec.status==='highlight' &&
      !String(rec.note||'').trim() &&
      !displayPhotoCount(rec)){
-    alert('亮點分享或一般觀察請至少加入照片或填寫巡堂內容。');
+    alert('亮點分享請至少加入照片或填寫巡堂內容。');
     return;
   }
   goNextClass();
