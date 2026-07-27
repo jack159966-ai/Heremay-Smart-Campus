@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#dceeff">
-<title>和美智慧校園｜公布欄管理 v1.0.0</title>
+<title>和美智慧校園｜公布欄管理 v1.1.0</title>
 <style>
 :root{--bg:#eef7ff;--card:#fff;--primary:#4f86c6;--deep:#356ba9;--text:#23364d;--muted:#6d7d90;--line:#d9e7f3;--danger:#d65b5b;--shadow:0 10px 28px rgba(49,91,133,.13)}
 *{box-sizing:border-box}body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:linear-gradient(180deg,#eaf5ff,#f8fbff);color:var(--text);min-height:100vh}
@@ -41,30 +41,111 @@ button,input,textarea,select{font:inherit}.app{width:min(850px,100%);margin:auto
   <div class="actions"><button class="btn primary" onclick="saveNotice()">儲存公告</button><button class="btn" onclick="resetForm()">清除</button></div>
 </section>
 <section class="panel"><h2>目前公告</h2><div id="noticeList"></div></section>
-<div class="version">公布欄管理 v1.0.0｜前端整合測試版</div>
+<div class="version">公布欄管理 v1.1.0｜雲端同步版</div>
 </main>
 <script>
-const STORE_KEY='heremay.announcements';
-function getData(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'[]')}catch(e){return []}}
-function setData(v){localStorage.setItem(STORE_KEY,JSON.stringify(v))}
+const SERVICE_URL='https://script.google.com/macros/s/AKfycbzbZ6r6c8XjHuKad0U5TIJXr8i141fCBwNJcVsKnoGa1-NXG_JOzapeRF5cVlnGI4F7/exec';
+const LOCAL_KEY='heremay.announcements';
+
 function esc(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
 function currentName(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}').name||'主管'}catch(e){return '主管'}}
-function cleanExpired(){const now=Date.now();const list=getData();const next=list.filter(x=>!x.expiresAt||new Date(x.expiresAt).getTime()>now);if(next.length!==list.length)setData(next);return next}
+function jsonp(action,params={}){
+  return new Promise((resolve,reject)=>{
+    const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    const timer=setTimeout(()=>{cleanup();reject(new Error('雲端讀取逾時'))},15000);
+    function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
+    window[cb]=data=>{cleanup();resolve(data)};
+    script.onerror=()=>{cleanup();reject(new Error('雲端連線失敗'))};
+    const q=new URLSearchParams({action,callback:cb,...params,_:Date.now()});
+    script.src=SERVICE_URL+'?'+q.toString();
+    document.head.appendChild(script);
+  });
+}
+async function postAction(action,payload){
+  const body=new URLSearchParams();
+  body.set('action',action);
+  body.set('payload',JSON.stringify(payload));
+  const res=await fetch(SERVICE_URL,{method:'POST',body});
+  return await res.json();
+}
 function toggleExpire(){expiresAt.disabled=expireMode.value!=='scheduled';if(expiresAt.disabled)expiresAt.value=''}
 function resetForm(){noticeId.value='';noticeTitle.value='';noticeContent.value='';document.querySelectorAll('[name=target]').forEach(x=>x.checked=false);expireMode.value='manual';toggleExpire();formTitle.textContent='新增公告'}
-function saveNotice(){
+let cloudNotices=[];
+
+async function loadNotices(showMessage=false){
+  noticeList.innerHTML='<div class="empty">正在讀取雲端公告…</div>';
+  try{
+    const result=await jsonp('getAnnouncements');
+    if(!result.ok)throw new Error(result.message||'讀取失敗');
+    cloudNotices=Array.isArray(result.announcements)?result.announcements:(result.notices||[]);
+    localStorage.setItem(LOCAL_KEY,JSON.stringify(cloudNotices));
+    render();
+    if(showMessage)alert('雲端公告已更新');
+  }catch(err){
+    try{cloudNotices=JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]')}catch(e){cloudNotices=[]}
+    render();
+    alert('暫時無法連接雲端，先顯示本機備份：'+err.message);
+  }
+}
+async function migrateLocalNotices(){
+  if(localStorage.getItem('heremay.announcementCloudMigratedV110')==='1')return;
+  let local=[];try{local=JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]')}catch(e){}
+  if(!local.length){localStorage.setItem('heremay.announcementCloudMigratedV110','1');return}
+  const cloudIds=new Set(cloudNotices.map(x=>String(x.id)));
+  for(const x of local){
+    if(cloudIds.has(String(x.id)))continue;
+    try{
+      await postAction('saveAnnouncement',{
+        id:x.id,title:x.title,content:x.content,targets:x.targets||[],
+        createdBy:x.createdBy||currentName(),createdAt:x.createdAt||new Date().toISOString(),
+        expiresAt:x.expiresAt||'',status:x.status||'發布中'
+      });
+    }catch(e){console.warn('舊公告移轉失敗',e)}
+  }
+  localStorage.setItem('heremay.announcementCloudMigratedV110','1');
+  await loadNotices(false);
+}
+async function saveNotice(){
  const title=noticeTitle.value.trim(),content=noticeContent.value.trim(),targets=[...document.querySelectorAll('[name=target]:checked')].map(x=>x.value);
  if(!title)return alert('請輸入公告標題');
  if(!content)return alert('請輸入公告內容');
  if(!targets.length)return alert('請至少選擇一個推播對象');
  if(expireMode.value==='scheduled'&&!expiresAt.value)return alert('請設定自動下架時間');
- const list=cleanExpired(),id=noticeId.value||'notice_'+Date.now(),old=list.find(x=>x.id===id);
- const item={id,title,content,targets,createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),createdBy:old?.createdBy||currentName(),expiresAt:expireMode.value==='scheduled'?expiresAt.value:''};
- const idx=list.findIndex(x=>x.id===id);if(idx>=0)list[idx]=item;else list.unshift(item);setData(list);resetForm();render();alert(idx>=0?'公告已修改':'公告已發布');
+ const id=noticeId.value||'notice_'+Date.now();
+ const old=cloudNotices.find(x=>String(x.id)===String(id));
+ try{
+   const result=await postAction(old?'updateAnnouncement':'saveAnnouncement',{
+     id,title,content,targets,createdBy:old?.createdBy||currentName(),
+     createdAt:old?.createdAt||new Date().toISOString(),
+     expiresAt:expireMode.value==='scheduled'?expiresAt.value:'',
+     status:'發布中'
+   });
+   if(!result.ok)throw new Error(result.message||'儲存失敗');
+   resetForm();await loadNotices(false);alert(result.message||'公告已儲存');
+ }catch(err){alert('公告儲存失敗：'+err.message)}
 }
-function editNotice(id){const x=getData().find(n=>n.id===id);if(!x)return;noticeId.value=x.id;noticeTitle.value=x.title;noticeContent.value=x.content;document.querySelectorAll('[name=target]').forEach(c=>c.checked=x.targets.includes(c.value));expireMode.value=x.expiresAt?'scheduled':'manual';expiresAt.value=x.expiresAt||'';toggleExpire();formTitle.textContent='修改公告';scrollTo({top:0,behavior:'smooth'})}
-function deleteNotice(id){const x=getData().find(n=>n.id===id);if(!x||!confirm(`確定刪除「${x.title}」嗎？刪除後無法復原。`))return;setData(getData().filter(n=>n.id!==id));render()}
-function render(){const list=cleanExpired(),box=document.getElementById('noticeList');box.innerHTML=list.length?list.map(x=>`<article class="item"><h3>${esc(x.title)}</h3><div>${esc(x.content).replace(/\n/g,'<br>')}</div><div class="meta">對象：${x.targets.join('、')}｜發布：${new Date(x.createdAt).toLocaleString('zh-TW',{hour12:false})}${x.expiresAt?'｜下架：'+x.expiresAt.replace('T',' '):'｜手動下架'}</div><div class="actions"><button class="btn" onclick="editNotice('${x.id}')">修改</button><button class="btn danger" onclick="deleteNotice('${x.id}')">刪除</button></div></article>`).join(''):'<div class="empty">目前沒有公告</div>'}
-toggleExpire();render();setInterval(render,60000);
+function editNotice(id){
+ const x=cloudNotices.find(n=>String(n.id)===String(id));if(!x)return;
+ noticeId.value=x.id;noticeTitle.value=x.title;noticeContent.value=x.content;
+ document.querySelectorAll('[name=target]').forEach(c=>c.checked=(x.targets||[]).includes(c.value));
+ expireMode.value=x.expiresAt?'scheduled':'manual';expiresAt.value=x.expiresAt?String(x.expiresAt).slice(0,16):'';
+ toggleExpire();formTitle.textContent='修改公告';scrollTo({top:0,behavior:'smooth'});
+}
+async function deleteNotice(id){
+ const x=cloudNotices.find(n=>String(n.id)===String(id));
+ if(!x||!confirm(`確定刪除「${x.title}」嗎？刪除後無法復原。`))return;
+ try{
+   const result=await postAction('deleteAnnouncement',{id});
+   if(!result.ok)throw new Error(result.message||'刪除失敗');
+   await loadNotices(false);alert(result.message||'公告已刪除');
+ }catch(err){alert('刪除失敗：'+err.message)}
+}
+function render(){
+ const box=document.getElementById('noticeList');
+ box.innerHTML=cloudNotices.length?cloudNotices.map(x=>`<article class="item"><h3>${esc(x.title)}</h3><div>${esc(x.content).replace(/\n/g,'<br>')}</div><div class="meta">對象：${(x.targets||[]).join('、')}｜發布：${x.createdAt?new Date(x.createdAt).toLocaleString('zh-TW',{hour12:false}):''}${x.expiresAt?'｜下架：'+String(x.expiresAt).replace('T',' '):'｜手動下架'}</div><div class="actions"><button class="btn" onclick="editNotice('${x.id}')">修改</button><button class="btn danger" onclick="deleteNotice('${x.id}')">刪除</button></div></article>`).join(''):'<div class="empty">目前沒有公告</div>';
+}
+toggleExpire();
+(async()=>{await loadNotices(false);await migrateLocalNotices();})();
 </script>
 </body></html>

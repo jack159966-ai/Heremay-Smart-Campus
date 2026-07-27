@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜庶務人員首頁 v12 公告與回報整合</title>
+  <title>和美智慧校園｜庶務人員首頁 v13.1 部門公告篩選修正</title>
   <style>
     :root{
       --bg1:#f1fff6;
@@ -738,35 +738,62 @@
     const ANNOUNCEMENT_KEY='heremay.announcements';
     const REPORT_KEY='heremay.reports';
     const CURRENT_DEPARTMENT='庶務部';
+    let cloudAnnouncements=[];
+    let cloudReports=[];
 
     function safeHtml(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
-    function getAnnouncements(){try{return JSON.parse(localStorage.getItem(ANNOUNCEMENT_KEY)||'[]')}catch(e){return []}}
-    function renderDynamicNotices(){
-      const now=Date.now();
-      const all=getAnnouncements();
-      const active=all.filter(x=>(!x.expiresAt||new Date(x.expiresAt).getTime()>now)&&Array.isArray(x.targets)&&x.targets.includes(CURRENT_DEPARTMENT));
-      const box=document.getElementById('dynamicNoticeBoard');if(!box)return;
-      box.innerHTML=active.length?active.map(x=>`<div class="pin-row"><div class="pin">📍</div><div class="announce"><strong>${safeHtml(x.title)}</strong><p>${safeHtml(x.content).replace(/\n/g,'<br>')}</p><div class="meta">發布：${safeHtml(x.createdBy||'智慧秘書')}｜對象：${x.targets.join('、')}｜${new Date(x.createdAt).toLocaleString('zh-TW',{hour12:false})}</div></div></div>`).join(''):'<div class="announce"><p>目前沒有公告。</p></div>';
+    function staffJsonp(action,params={}){
+      return new Promise((resolve,reject)=>{
+        const cb='staffCb_'+Date.now()+'_'+Math.random().toString(36).slice(2),script=document.createElement('script');
+        const timer=setTimeout(()=>{cleanup();reject(new Error('雲端讀取逾時'))},15000);
+        function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
+        window[cb]=data=>{cleanup();resolve(data)};script.onerror=()=>{cleanup();reject(new Error('雲端連線失敗'))};
+        script.src=SERVICE_URL+'?'+new URLSearchParams({action,callback:cb,...params,_:Date.now()}).toString();document.head.appendChild(script);
+      });
     }
-
-    function getReports(){try{return JSON.parse(localStorage.getItem(REPORT_KEY)||'[]')}catch(e){return []}}
-    function setReports(v){localStorage.setItem(REPORT_KEY,JSON.stringify(v))}
+    async function staffPost(action,payload){const body=new URLSearchParams();body.set('action',action);body.set('payload',JSON.stringify(payload));const res=await fetch(SERVICE_URL,{method:'POST',body});return await res.json()}
+    async function loadCloudStaffData(){
+      try{
+        const [nr,rr]=await Promise.all([
+          staffJsonp('getAnnouncements',{target:CURRENT_DEPARTMENT}),
+          staffJsonp('getReports',{employeeId:currentEmployee?.employeeId||'',reporter:currentUser})
+        ]);
+        if(!nr.ok)throw new Error(nr.message||'公告讀取失敗');
+        cloudAnnouncements=(Array.isArray(nr.announcements)?nr.announcements:(nr.notices||[]))
+          .filter(x=>Array.isArray(x.targets)&&x.targets.includes(CURRENT_DEPARTMENT));
+        cloudReports=rr.ok&&Array.isArray(rr.reports)?rr.reports:[];
+        localStorage.setItem(ANNOUNCEMENT_KEY,JSON.stringify(cloudAnnouncements));
+        localStorage.setItem(REPORT_KEY,JSON.stringify(cloudReports));
+        renderDynamicNotices();renderMyReports();
+      }catch(err){
+        console.warn(err);
+        try{cloudAnnouncements=JSON.parse(localStorage.getItem(ANNOUNCEMENT_KEY)||'[]')}catch(e){cloudAnnouncements=[]}
+        try{cloudReports=JSON.parse(localStorage.getItem(REPORT_KEY)||'[]')}catch(e){cloudReports=[]}
+        renderDynamicNotices();renderMyReports();
+      }
+    }
+    function renderDynamicNotices(){
+      const box=document.getElementById('dynamicNoticeBoard');if(!box)return;
+      box.innerHTML=cloudAnnouncements.length?cloudAnnouncements.map(x=>`<div class="pin-row"><div class="pin">📍</div><div class="announce"><strong>${safeHtml(x.title)}</strong><p>${safeHtml(x.content).replace(/\n/g,'<br>')}</p><div class="meta">發布：${safeHtml(x.createdBy||'智慧秘書')}｜對象：${(x.targets||[]).join('、')}</div></div></div>`).join(''):'<div class="announce"><p>目前沒有公告。</p></div>';
+    }
     function openReportCenter(){document.getElementById('reportCenterModal').classList.add('show');resetStaffReport();renderMyReports()}
     function hideReportCenter(){document.getElementById('reportCenterModal').classList.remove('show')}
     function resetStaffReport(){staffReportId.value='';staffReportTitle.value='';staffReportContent.value='';staffReportType.value='報修'}
-    function saveStaffReport(){
+    async function saveStaffReport(){
       const title=staffReportTitle.value.trim(),content=staffReportContent.value.trim();if(!title||!content){showToast('請完整填寫標題與內容');return}
-      const list=getReports(),id=staffReportId.value||'report_'+Date.now(),idx=list.findIndex(x=>x.id===id),old=idx>=0?list[idx]:null;
-      const item={id,type:staffReportType.value,title,content,department:CURRENT_DEPARTMENT,reporter:currentUser,employeeId:currentEmployee?.employeeId||'',createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString(),status:old?.status||'未處理'};
-      if(idx>=0)list[idx]=item;else list.unshift(item);setReports(list);resetStaffReport();renderMyReports();showToast(idx>=0?'回報已修改':'回報已送出');
+      const id=staffReportId.value||'report_'+Date.now(),old=cloudReports.find(x=>String(x.id)===String(id));
+      try{
+        const result=await staffPost(old?'updateReport':'saveReport',{id,type:staffReportType.value,title,content,department:CURRENT_DEPARTMENT,reporter:currentUser,employeeId:currentEmployee?.employeeId||'',createdAt:old?.createdAt||new Date().toISOString(),status:old?.status||'未處理'});
+        if(!result.ok)throw new Error(result.message||'儲存失敗');resetStaffReport();await loadCloudStaffData();showToast(result.message||'回報已送出');
+      }catch(err){showToast('回報儲存失敗：'+err.message)}
     }
     function renderMyReports(){
-      const box=document.getElementById('myReportList');if(!box)return;const mine=getReports().filter(x=>x.reporter===currentUser);
-      box.innerHTML=mine.length?mine.map(x=>`<div class="record"><strong>${safeHtml(x.type)}｜${safeHtml(x.title)}<span class="state">${safeHtml(x.status)}</span></strong><div class="meta">${safeHtml(x.content)}｜${new Date(x.createdAt).toLocaleString('zh-TW',{hour12:false})}</div><button class="cancel-leave" onclick="editStaffReport('${x.id}')">修改</button><button class="cancel-leave" onclick="deleteStaffReport('${x.id}')">刪除</button></div>`).join(''):'<div class="person">目前沒有回報</div>';
+      const box=document.getElementById('myReportList');if(!box)return;
+      box.innerHTML=cloudReports.length?cloudReports.map(x=>`<div class="record"><strong>${safeHtml(x.type)}｜${safeHtml(x.title)}<span class="state">${safeHtml(x.status)}</span></strong><div class="meta">${safeHtml(x.content)}｜${x.createdAt?new Date(x.createdAt).toLocaleString('zh-TW',{hour12:false}):''}</div><button class="cancel-leave" onclick="editStaffReport('${x.id}')">修改</button><button class="cancel-leave" onclick="deleteStaffReport('${x.id}')">刪除</button></div>`).join(''):'<div class="person">目前沒有回報</div>';
     }
-    function editStaffReport(id){const x=getReports().find(r=>r.id===id);if(!x)return;staffReportId.value=x.id;staffReportType.value=x.type;staffReportTitle.value=x.title;staffReportContent.value=x.content}
-    function deleteStaffReport(id){const x=getReports().find(r=>r.id===id);if(!x||!confirm(`確定刪除「${x.title}」嗎？刪除後無法復原。`))return;setReports(getReports().filter(r=>r.id!==id));renderMyReports();showToast('回報已刪除')}
-    
+    function editStaffReport(id){const x=cloudReports.find(r=>String(r.id)===String(id));if(!x)return;staffReportId.value=x.id;staffReportType.value=x.type;staffReportTitle.value=x.title;staffReportContent.value=x.content}
+    async function deleteStaffReport(id){const x=cloudReports.find(r=>String(r.id)===String(id));if(!x||!confirm(`確定刪除「${x.title}」嗎？刪除後無法復原。`))return;try{const result=await staffPost('deleteReport',{id});if(!result.ok)throw new Error(result.message||'刪除失敗');await loadCloudStaffData();showToast('回報已刪除')}catch(err){showToast('刪除失敗：'+err.message)}}
+
     function loadCurrentEmployee(){
       try{
         const raw = localStorage.getItem('heremay.currentEmployee');
@@ -1171,8 +1198,8 @@
     }
 
     loadCurrentEmployee();
-    renderDynamicNotices();
-    window.addEventListener('storage',renderDynamicNotices);
+    loadCloudStaffData();
+    window.addEventListener('pageshow',loadCloudStaffData);
 
     Object.values(notices).forEach(notice => {
       notice.total = notice.total.map(name =>

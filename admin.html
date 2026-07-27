@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v23.0</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v23.3</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -701,30 +701,71 @@ function loadSharedCalendar(){
   const make=(day)=>events.filter(x=>x.開始日期===day).sort((a,b)=>String(a.開始時間||'').localeCompare(String(b.開始時間||''))).map(x=>({id:x.行程ID||x.標題,time:x.開始時間||'全天',title:x.標題||'未命名行程',text:[x.地點,x.說明].filter(Boolean).join('｜')}));
   reminders=make(dateKey(0));tomorrowItems=make(dateKey(1));afterTomorrowItems=make(dateKey(2));renderToday();renderFuture();
 }
-function activeAnnouncements(){
-  let list=[];try{list=JSON.parse(localStorage.getItem('heremay.announcements')||'[]')}catch(e){}
-  const now=Date.now();return list.filter(x=>(!x.expiresAt||new Date(x.expiresAt).getTime()>now)&&x.targets?.includes('主管'));
+let cloudAnnouncements=[];
+let cloudReports=[];
+
+function adminJsonp(action,params={}){
+ return new Promise((resolve,reject)=>{
+  const cb='adminCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+  const script=document.createElement('script');
+  const timer=setTimeout(()=>{cleanup();reject(new Error('雲端讀取逾時'))},15000);
+  function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
+  window[cb]=data=>{cleanup();resolve(data)};
+  script.onerror=()=>{cleanup();reject(new Error('雲端連線失敗'))};
+  script.src=SERVICE_URL+'?'+new URLSearchParams({action,callback:cb,...params,_:Date.now()}).toString();
+  document.head.appendChild(script);
+ });
+}
+async function adminPost(action,payload){
+ const body=new URLSearchParams();body.set('action',action);body.set('payload',JSON.stringify(payload));
+ const res=await fetch(SERVICE_URL,{method:'POST',body});return await res.json();
 }
 function renderAdminNotices(){
-  const list=activeAnnouncements(),box=document.getElementById('adminNoticeList');if(!box)return;
-  adminNoticeCount.textContent=`${list.length} 則`;
-  box.innerHTML=list.length?list.map(x=>`<div class="item"><div class="time">公告</div><div><h5>${adminEsc(x.title)}</h5><p>${adminEsc(x.content)}<br>對象：${x.targets.join('、')}</p></div></div>`).join(''):'<div class="hintBox">目前沒有公告。</div>';
+ const list=cloudAnnouncements;
+ const box=document.getElementById('adminNoticeList'),count=document.getElementById('adminNoticeCount');
+ if(count)count.textContent=`${list.length} 則`;if(!box)return;
+ box.innerHTML=list.length?list.map(x=>`<div class="item"><div class="time">公告</div><div><h5>${adminEsc(x.title)}</h5><p>${adminEsc(x.content)}<br>對象：${(x.targets||[]).join('、')}</p></div></div>`).join(''):'<div class="hintBox">目前沒有公告。</div>';
 }
 function getSharedLeaves(){try{return JSON.parse(localStorage.getItem('heremay.sharedLeaveRecords')||'[]')}catch(e){return []}}
 function renderLeavesFor(day,id){
  const rows=getSharedLeaves().filter(x=>x.date===day&&!['已取消','駁回'].includes(String(x.status||''))),box=document.getElementById(id);if(!box)return;
  box.innerHTML=rows.length?rows.map(x=>`<div class="futureItem"><time>${adminEsc(x.period||'全天')}</time><span>${adminEsc(x.employeeName||'未具名')}｜${adminEsc(x.pool||'')}｜${adminEsc(x.type||'請假')}</span></div>`).join(''):'<div class="hintBox">無人請假。</div>';
 }
-function getReports(){try{return JSON.parse(localStorage.getItem('heremay.reports')||'[]')}catch(e){return []}}
-function setReports(v){localStorage.setItem('heremay.reports',JSON.stringify(v))}
 function renderAdminReports(){
- const list=getReports(),box=document.getElementById('adminReportList');if(!box)return;adminReportCount.textContent=`${list.filter(x=>x.status!=='已完成').length} 件`;
+ const list=cloudReports,box=document.getElementById('adminReportList'),count=document.getElementById('adminReportCount');
+ if(count)count.textContent=`${list.filter(x=>x.status!=='已完成').length} 件`;if(!box)return;
  box.innerHTML=list.length?list.map(x=>`<div class="noticeItem"><div><h5>${adminEsc(x.type)}｜${adminEsc(x.title)}</h5><p>${adminEsc(x.reporter)}｜${adminEsc(x.department)}｜${adminEsc(x.content)}<br>狀態：${adminEsc(x.status)}</p></div><div><button class="miniBtn secondary" onclick="editAdminReport('${x.id}')">處理</button><button class="miniBtn secondary" onclick="deleteAdminReport('${x.id}')">刪除</button></div></div>`).join(''):'<div class="hintBox">目前沒有下屬回報。</div>';
 }
-function editAdminReport(id){const list=getReports(),x=list.find(r=>r.id===id);if(!x)return;const next=prompt('請輸入處理狀態：未處理、處理中、已完成',x.status||'未處理');if(!next)return;x.status=next;x.updatedAt=new Date().toISOString();setReports(list);renderAdminReports();showToast('回報狀態已更新')}
-function deleteAdminReport(id){const x=getReports().find(r=>r.id===id);if(!x||!confirm(`確定刪除「${x.title}」嗎？刪除後無法復原。`))return;setReports(getReports().filter(r=>r.id!==id));renderAdminReports()}
-function refreshDashboardData(){loadSharedCalendar();renderAdminNotices();renderLeavesFor(dateKey(0),'todayLeaveList');renderLeavesFor(dateKey(1),'tomorrowLeaveList');renderAdminReports()}
+async function editAdminReport(id){
+ const x=cloudReports.find(r=>String(r.id)===String(id));if(!x)return;
+ const next=prompt('請輸入處理狀態：未處理、處理中、已完成',x.status||'未處理');if(!next)return;
+ try{const result=await adminPost('updateReportStatus',{id,status:next});if(!result.ok)throw new Error(result.message||'更新失敗');await loadCloudDashboard();showToast('回報狀態已更新')}catch(err){showToast('更新失敗：'+err.message)}
+}
+async function deleteAdminReport(id){
+ const x=cloudReports.find(r=>String(r.id)===String(id));if(!x||!confirm(`確定刪除「${x.title}」嗎？刪除後無法復原。`))return;
+ try{const result=await adminPost('deleteReport',{id});if(!result.ok)throw new Error(result.message||'刪除失敗');await loadCloudDashboard();showToast('回報已刪除')}catch(err){showToast('刪除失敗：'+err.message)}
+}
+async function loadCloudDashboard(){
+ try{
+  const result=await adminJsonp('getDashboardBundle',{target:'主管'});
+  if(!result.ok)throw new Error(result.message||'讀取失敗');
+  cloudAnnouncements=(Array.isArray(result.announcements)?result.announcements:[])
+    .filter(x=>Array.isArray(x.targets)&&x.targets.includes('主管'));
+  cloudReports=Array.isArray(result.reports)?result.reports:[];
+  renderAdminNotices();renderAdminReports();
+ }catch(err){
+  console.warn(err);
+  try{cloudAnnouncements=JSON.parse(localStorage.getItem('heremay.announcements')||'[]')}catch(e){cloudAnnouncements=[]}
+  try{cloudReports=JSON.parse(localStorage.getItem('heremay.reports')||'[]')}catch(e){cloudReports=[]}
+  renderAdminNotices();renderAdminReports();
+ }
+}
+function refreshDashboardData(){loadSharedCalendar();renderLeavesFor(dateKey(0),'todayLeaveList');renderLeavesFor(dateKey(1),'tomorrowLeaveList');loadCloudDashboard()}
 window.addEventListener('storage',refreshDashboardData);
+window.addEventListener('pageshow',refreshDashboardData);
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible') refreshDashboardData();
+});
 
 function pad(n){return String(n).padStart(2,'0')}
 function tick(){
