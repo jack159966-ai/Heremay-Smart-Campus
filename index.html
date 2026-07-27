@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜Heremay Smart Campus v1.3.9</title>
+  <title>和美智慧校園｜Heremay Smart Campus v1.4.1</title>
 
   <!-- 手機桌面圖示與 PWA 設定 -->
   <meta name="theme-color" content="#fff6fb" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="和美智慧校園" />
-  <link rel="apple-touch-icon" sizes="180x180" href="assets/app-icon.png?v=20260727" />
-  <link rel="icon" type="image/png" href="assets/app-icon.png?v=20260727" />
-  <link rel="manifest" href="manifest.webmanifest?v=20260727" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/app-icon.png?v=20260727c" />
+  <link rel="icon" type="image/png" href="assets/app-icon.png?v=20260727c" />
+  <link rel="manifest" href="manifest.webmanifest?v=20260727c" />
 
   <style>
     :root{
@@ -165,6 +165,83 @@
       .logo-area,.login-card,.system-status,footer{grid-area:auto!important}
     }
     @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+    /* v1.4.1：入口頁一律採用單欄，電腦與手機使用相同排列。 */
+    html{
+      width:100%;
+      min-height:100%;
+      -webkit-text-size-adjust:100%;
+      text-size-adjust:100%;
+      overflow-x:hidden;
+    }
+    body{width:100%;max-width:100%;overflow-x:hidden;}
+    .app-shell{
+      width:min(100%,480px)!important;
+      max-width:480px!important;
+      min-height:100vh!important;
+      min-height:100dvh!important;
+      margin:0 auto!important;
+      padding:24px 18px 26px!important;
+      display:flex!important;
+      flex-direction:column!important;
+      justify-content:flex-start!important;
+      align-content:initial!important;
+      gap:15px!important;
+    }
+    .app-shell>*{
+      width:100%!important;
+      max-width:100%!important;
+      min-width:0!important;
+      grid-area:auto!important;
+    }
+    .logo-area{
+      order:1!important;
+      align-self:auto!important;
+      text-align:center!important;
+      padding:4px 0 0!important;
+    }
+    .logo-wrap{
+      width:106px!important;
+      height:106px!important;
+      margin:0 auto 10px!important;
+      border-radius:29px!important;
+    }
+    .school-name{font-size:27px!important;line-height:1.2!important;}
+    .school-sub{margin:4px 0 0!important;font-size:12px!important;}
+    .brand-note{display:none!important;}
+    .login-card{
+      order:2!important;
+      align-self:auto!important;
+      padding:21px 18px!important;
+      border-radius:28px!important;
+    }
+    h1{
+      margin:0 0 15px!important;
+      text-align:center!important;
+      font-size:21px!important;
+      line-height:1.4!important;
+      white-space:normal!important;
+    }
+    .input-box{min-height:54px!important;margin-top:11px!important;}
+    .input-box input{font-size:16px!important;min-width:0!important;}
+    .login-options{
+      display:flex!important;
+      flex-wrap:wrap!important;
+      gap:10px 14px!important;
+      font-size:14px!important;
+    }
+    .login-options label{min-width:0!important;}
+    .access-note{line-height:1.5!important;}
+    .system-status{order:3!important;align-self:auto!important;}
+    .update-row{min-width:0!important;}
+    .update-copy{min-width:0!important;}
+    .update-status{overflow-wrap:anywhere!important;}
+    footer{order:4!important;padding-top:0!important;}
+    @media (max-width:380px){
+      .app-shell{padding-left:14px!important;padding-right:14px!important;}
+      .school-name{font-size:25px!important;}
+      .login-options{font-size:13px!important;}
+    }
   </style>
 </head>
 <body>
@@ -225,7 +302,7 @@
 
     <footer>
       資料安全・隱私保護・安心使用<br />
-      <span id="versionText">Heremay Smart Campus v1.3.7</span>
+      <span id="versionText">Heremay Smart Campus v1.4.1</span>
     </footer>
   </main>
 
@@ -246,7 +323,7 @@
 
 
   <script>
-    const APP_VERSION = '1.3.9';
+    const APP_VERSION = '1.4.1';
 
     /*
       正式登入架構說明
