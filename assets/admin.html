@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v22.4</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v22.5</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -333,21 +333,23 @@
     .dashboardLogo{
       width:68px;
       height:68px;
-      border-radius:14px;
-      overflow:hidden;
-      background:#fffaf0;
-      border:1px solid rgba(255,255,255,.95);
-      box-shadow:0 8px 22px rgba(49,91,150,.14);
+      border-radius:0;
+      overflow:visible;
+      background:transparent;
+      box-shadow:none;
       display:grid;
       place-items:center;
     }
     .dashboardLogo img{
       width:100%;
       height:100%;
-      object-fit:cover;
+      object-fit:contain;
       display:block;
       padding:0;
+      border:0;
+      border-radius:0;
       background:#fffaf0;
+      box-shadow:none;
     }
     .dashboardIdentity small{display:block;color:#52708d;font-weight:850;font-size:15px;margin-bottom:3px}
     .dashboardName{font-size:38px;line-height:1.05;font-weight:950;color:#12386f;letter-spacing:.5px}
@@ -420,7 +422,7 @@
     .versionStamp{text-align:center;color:#7890a6;font-size:12px;font-weight:800;margin-top:8px}
     @media(max-width:620px){
       .dashboardHeader{grid-template-columns:58px 1fr auto;gap:10px}.refreshVersionBtn{grid-column:1/-1;width:100%}
-      .dashboardLogo{width:58px;height:58px}
+      .dashboardLogo{width:58px;height:58px;border-radius:0;overflow:visible}
       .dashboardIdentity small{font-size:13px}
       .dashboardName{font-size:34px}
       .dashboardClock .dateLine{font-size:14px}
@@ -458,6 +460,19 @@
       white-space:nowrap;
     }
     .refreshVersionBtn:active{transform:scale(.98)}
+    .refreshVersionWide{
+      display:block!important;
+      width:100%!important;
+      margin:0 0 14px!important;
+      padding:13px 16px!important;
+      font-size:16px!important;
+      text-align:center!important;
+      background:#edf4ff!important;
+      color:#245fc2!important;
+      border:1px solid #cfe2ff!important;
+      border-radius:16px!important;
+      box-shadow:0 6px 16px rgba(47,104,216,.10)!important;
+    }
 
   </style>
 </head>
@@ -465,14 +480,18 @@
   <div class="toast" id="toast"></div>
   <main class="app" id="home">
     <header class="dashboardHeader">
-      <div class="dashboardLogo"><img src="assets/logo.png?v=20260727e" alt="和美智慧校園 Logo" onerror="this.parentElement.textContent='🏰'"></div>
+      <div class="dashboardLogo"><img src="assets/logo.png?v=20260727f" alt="和美智慧校園 Logo" onerror="this.parentElement.textContent='🏰'"></div>
       <div class="dashboardIdentity">
         <small>Heremay 和美智慧校園</small>
         <div class="dashboardName" id="adminName">主管</div>
       </div>
       <div class="dashboardClock" id="clock">--</div>
-      <button class="refreshVersionBtn" type="button" onclick="refreshLatestVersion()">重新整理新版</button>
+      
     </header>
+
+    <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
+      🔄 檢查並重新整理最新版
+    </button>
 
     <section class="dashCard">
       <h2 class="dashTitle">📅 今天待辦 <span class="count" id="todayCount">0 件</span></h2>
@@ -522,7 +541,7 @@
       </button>
     </section>
 
-    <div class="versionStamp">主管工作台 v22.4｜2026-07-27｜更新 Logo 與手機快取</div>
+    <div class="versionStamp">主管工作台 v22.5｜2026-07-27｜修正 Logo 黑邊並恢復更新按鍵</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
