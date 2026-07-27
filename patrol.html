@@ -80,7 +80,7 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.1.7｜2026-07-27｜保留亮點分享／改善提醒</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.1.8｜2026-07-27｜統一巡堂紀錄儲存按鍵</p></div></header>
 
 <section id="screenHome" class="screen active">
   <button class="light full no-print" type="button" onclick="returnToPreviousPage()" style="margin:0 0 10px">← 返回主管首頁</button>
@@ -131,8 +131,7 @@ button{display:none!important}
 <div id="photoGrid" class="photo-grid"></div><label class="small">巡堂內容</label><textarea id="note" placeholder="例如：學習區布置很有巧思，值得分享；或記錄需要協助改善的事項。" oninput="saveCurrent(false)"></textarea><label class="small">通知對象，可複選</label><div id="notifyTargets" class="notify-options"></div></div>
   <div class="card no-print">
 <button class="light full" onclick="shareCurrent()">📤 分享這筆巡堂紀錄</button>
-<button class="danger full" style="margin-top:10px" onclick="saveDefectAndNext()">💡 儲存改善提醒並前往下一班</button>
-<button class="primary full" style="margin-top:10px" onclick="saveAndNext()">儲存巡堂紀錄並前往下一班</button>
+<button class="primary full" style="margin-top:10px" onclick="savePatrolRecordAndNext()">💾 儲存本班巡堂紀錄並前往下一班</button>
 <button class="gray full" style="margin-top:10px" onclick="finishAndSave()">☁️ 結束／同步本時段</button>
 <button class="light full" style="margin-top:10px" onclick="show('Home')">← 返回巡堂首頁</button>
 </div>
@@ -917,6 +916,48 @@ function saveCurrent(update=true){
   if(update)persist();
   updateCurrentStatus();
   return rec;
+}
+
+function savePatrolRecordAndNext(){
+  const rec=saveCurrent(true);
+
+  if(!rec){
+    alert('本班尚未填寫巡堂紀錄。\n沒有特殊事項時，請按「本班全部合格」。');
+    return;
+  }
+
+  if((rec.defects||[]).length){
+    rec.recordType='improvement';
+    rec.status='needs_improvement';
+    markRecordChanged(rec);
+    archiveRecord(rec);
+    persist();
+    toast('已儲存改善提醒');
+    goNextClass();
+    return;
+  }
+
+  if(rec.recordType==='highlight' || rec.status==='highlight'){
+    if(!displayPhotoCount(rec) && !(rec.note||'').trim()){
+      alert('亮點分享請至少加入照片或填寫巡堂內容。');
+      return;
+    }
+    rec.recordType='highlight';
+    rec.status='highlight';
+    markRecordChanged(rec);
+    archiveRecord(rec);
+    persist();
+    toast('已儲存亮點分享');
+    goNextClass();
+    return;
+  }
+
+  if(rec.status==='pass'){
+    goNextClass();
+    return;
+  }
+
+  alert('請先選擇「亮點分享」，或勾選改善提醒項目。\n沒有特殊事項時，請按「本班全部合格」。');
 }
 
 function saveDefectAndNext(){
