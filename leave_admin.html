@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>和美智慧校園｜請假管理 v1.0</title>
+<style>
+:root{--blue:#2f68d8;--deep:#173f75;--line:#dfe8f6;--bg:#f4f8ff}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background:linear-gradient(180deg,#f6f9ff,#eef7ff);color:#20323d;min-height:100vh}
+.app{width:min(820px,100%);margin:auto;padding:14px 12px 34px}
+.header{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;margin-bottom:14px}
+.back{border:1px solid #cfe2ff;background:#edf4ff;color:#245fc2;border-radius:14px;padding:10px 13px;font-weight:900;cursor:pointer}
+.header h1{margin:0;color:#12386f;font-size:28px}.header small{color:#6d8095;font-weight:800}
+.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:16px;margin-bottom:14px;box-shadow:0 10px 28px rgba(45,82,132,.10)}
+.title{margin:0 0 12px;color:#153e72;font-size:23px;font-weight:950;display:flex;align-items:center;gap:8px}
+.count{margin-left:auto;background:#fff2e8;color:#e86f1d;border-radius:999px;padding:6px 12px;font-size:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.box{border:1px solid var(--line);border-radius:18px;padding:13px}.box h3{margin:0 0 8px;color:#2461c6}
+.item{border-top:1px dashed #e3eaf4;padding:9px 0;font-weight:800;color:#294e62}.item:first-child{border-top:0}
+.hint{background:#f5fbff;border:1px solid #d7edf8;border-radius:16px;padding:12px;color:#607987;font-weight:800}
+.calHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.calHead button{border:1px solid #cfe2ff;background:#edf4ff;color:#245fc2;border-radius:12px;padding:8px 12px;font-weight:900;cursor:pointer}
+.week,.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.week div{text-align:center;color:#6d8095;font-size:12px;font-weight:900;padding:4px}
+.day{min-height:76px;border:1px solid var(--line);border-radius:14px;background:#fff;padding:7px;text-align:left;cursor:pointer}.day.empty{visibility:hidden}.day.has{background:#f4f9ff;border-color:#bdd8ff}.num{font-weight:950;color:#183f73}.people{display:block;margin-top:8px;color:#2f68d8;font-weight:950;font-size:14px}.split{display:block;margin-top:3px;color:#6d8095;font-size:11px;font-weight:800}
+.mask{position:fixed;inset:0;background:rgba(18,42,58,.32);display:none;align-items:flex-end;justify-content:center;padding:12px}.mask.show{display:flex}.modal{width:min(620px,100%);max-height:85vh;overflow:auto;background:#fff;border-radius:26px;padding:18px}.modalHead{display:flex;justify-content:space-between;align-items:center}.close{border:0;background:#edf4ff;color:#245fc2;border-radius:12px;padding:8px 11px;font-weight:900}
+.version{text-align:center;color:#7890a6;font-size:12px;font-weight:800}
+@media(max-width:620px){.grid2{grid-template-columns:1fr}.day{min-height:64px;padding:5px}.header h1{font-size:23px}}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="header">
+    <button class="back" onclick="location.href='admin.html'">‹ 返回</button>
+    <div><h1>🏖️ 請假管理</h1><small>主管專用｜今天、明天與每月請假總覽</small></div>
+    <button class="back" onclick="loadData()">重新整理</button>
+  </header>
+
+  <section class="card">
+    <h2 class="title">近期請假</h2>
+    <div class="grid2">
+      <article class="box"><h3>今天請假</h3><div id="today"></div></article>
+      <article class="box"><h3>明天請假</h3><div id="tomorrow"></div></article>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="title">請假月曆 <span class="count" id="count">0 筆</span></h2>
+    <div class="calHead"><button onclick="changeMonth(-1)">‹ 上個月</button><strong id="monthTitle"></strong><button onclick="changeMonth(1)">下個月 ›</button></div>
+    <div class="week"><div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div></div>
+    <div class="calendar" id="calendar"></div>
+  </section>
+
+  <div class="version">請假管理 v1.0｜2026-07-27</div>
+</main>
+
+<div class="mask" id="mask" onclick="if(event.target.id==='mask')closeModal()"><section class="modal" id="modal"></section></div>
+
+<script>
+const SERVICE_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
+let leaves=[],view=new Date();
+const pad=n=>String(n).padStart(2,'0');
+const esc=v=>String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+function dateKey(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
+function jsonp(action,params={}){return new Promise((resolve,reject)=>{const cb='leaveCb_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script'),t=setTimeout(()=>{cleanup();reject(new Error('讀取逾時'))},15000);function cleanup(){clearTimeout(t);delete window[cb];s.remove()}window[cb]=d=>{cleanup();resolve(d)};s.onerror=()=>{cleanup();reject(new Error('雲端連線失敗'))};s.src=SERVICE_URL+'?'+new URLSearchParams({action,callback:cb,...params,_:Date.now()});document.head.appendChild(s)})}
+function active(x){return !['已取消','駁回','已駁回'].includes(String(x.status||''))}
+async function loadData(){try{const r=await jsonp('getDashboardBundle',{target:'主管'});if(!r.ok)throw new Error(r.message||'讀取失敗');leaves=Array.isArray(r.leaves)?r.leaves:[];localStorage.setItem('heremay.sharedLeaveRecords',JSON.stringify(leaves))}catch(e){try{leaves=JSON.parse(localStorage.getItem('heremay.sharedLeaveRecords')||'[]')}catch(_){leaves=[]}}renderAll()}
+function renderList(day,id){const rows=leaves.filter(x=>x.date===day&&active(x)),box=document.getElementById(id);box.innerHTML=rows.length?rows.map(x=>`<div class="item">${esc(x.employeeName||'未具名')}｜${esc(x.period||'全天')}｜${esc(x.type||'請假')}｜${esc(x.status||'')}</div>`).join(''):'<div class="hint">無人請假。</div>'}
+function changeMonth(n){view.setMonth(view.getMonth()+n);renderCalendar()}
+function renderCalendar(){const y=view.getFullYear(),m=view.getMonth(),key=`${y}-${pad(m+1)}`,rows=leaves.filter(x=>String(x.date||'').startsWith(key));document.getElementById('count').textContent=`${rows.length} 筆`;document.getElementById('monthTitle').textContent=`${y} 年 ${m+1} 月`;const box=document.getElementById('calendar');box.innerHTML='';const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();for(let i=0;i<first;i++){const e=document.createElement('div');e.className='day empty';box.appendChild(e)}for(let d=1;d<=days;d++){const dk=`${y}-${pad(m+1)}-${pad(d)}`,dr=rows.filter(x=>x.date===dk&&active(x));let am=0,pm=0;dr.forEach(x=>{const p=String(x.period||'');if(p==='全天'){am++;pm++}else if(p==='上午')am++;else if(p==='下午')pm++});const b=document.createElement('button');b.className='day'+(dr.length?' has':'');b.innerHTML=`<span class="num">${d}</span>${dr.length?`<span class="people">${dr.length} 人</span><span class="split">上午 ${am}｜下午 ${pm}</span>`:''}`;b.onclick=()=>showDay(dk,dr);box.appendChild(b)}}
+function showDay(date,rows){document.getElementById('modal').innerHTML=`<div class="modalHead"><h3>${esc(date)} 請假名單</h3><button class="close" onclick="closeModal()">關閉</button></div>${rows.length?rows.map(x=>`<div class="item"><strong>${esc(x.employeeName||'未具名')}</strong>｜${esc(x.type||'請假')}｜${esc(x.period||'全天')}<br><small>部門：${esc(x.pool||'')}｜狀態：${esc(x.status||'')}｜申請：${esc(x.created||'')}</small></div>`).join(''):'<div class="hint">當天沒有人請假。</div>'}`;document.getElementById('mask').classList.add('show')}
+function closeModal(){document.getElementById('mask').classList.remove('show')}
+function renderAll(){renderList(dateKey(0),'today');renderList(dateKey(1),'tomorrow');renderCalendar()}
+loadData();
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v23.5</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.2</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -474,6 +474,17 @@
       box-shadow:0 6px 16px rgba(47,104,216,.10)!important;
     }
 
+  
+    .leaveCalHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .leaveCalHead button{border:1px solid #cfe2ff;background:#edf4ff;color:#245fc2;border-radius:12px;padding:8px 12px;font-weight:900;cursor:pointer}
+    .leaveWeek,.leaveCalendar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+    .leaveWeek div{text-align:center;color:#6d8095;font-size:12px;font-weight:900;padding:4px}
+    .leaveDay{min-height:76px;border:1px solid #dfe8f6;border-radius:14px;background:#fff;padding:7px;text-align:left;cursor:pointer;position:relative}
+    .leaveDay.empty{visibility:hidden}.leaveDay.off{background:#f7f7f7;color:#aaa}.leaveDay.hasLeave{background:#f4f9ff;border-color:#bdd8ff}
+    .leaveDay .dnum{font-weight:950;color:#183f73}.leaveDay .leaveCount{display:block;margin-top:8px;color:#2f68d8;font-weight:950;font-size:14px}
+    .leaveDay .leaveSplit{display:block;margin-top:3px;color:#6d8095;font-size:11px;font-weight:800}
+    @media(max-width:520px){.leaveDay{min-height:64px;padding:5px}.leaveDay .leaveCount{font-size:12px}.leaveDay .leaveSplit{font-size:10px}}
+
   </style>
 </head>
 <body class="auth-pending">
@@ -522,19 +533,6 @@
     </section>
 
     <section class="dashCard">
-      <h2 class="dashTitle">🏖️ 請假名單</h2>
-      <div class="futureGrid">
-        <article class="futureBox"><h3>今天請假</h3><div id="todayLeaveList"></div></article>
-        <article class="futureBox"><h3>明天請假</h3><div id="tomorrowLeaveList"></div></article>
-      </div>
-    </section>
-
-    <section class="dashCard">
-      <h2 class="dashTitle">🛠️ 下屬回報 <span class="count" id="adminReportCount">0 件</span></h2>
-      <div id="adminReportList"></div>
-    </section>
-
-    <section class="dashCard">
       <button class="patrolButton" type="button" onclick="location.href='patrol.html'">
         <span class="pIcon">📋</span>
         <span><strong>巡堂</strong><span>上午／下午巡堂、紀錄與週報表</span></span>
@@ -542,7 +540,24 @@
       </button>
     </section>
 
+
     <section class="dashCard">
+      <h2 class="dashTitle">💬 同仁反饋 <span class="count" id="adminReportCount">0 件</span></h2>
+      <div id="adminReportList"></div>
+    </section>
+
+    
+    <section class="dashCard">
+      <button class="patrolButton" type="button" onclick="location.href='leave_admin.html'">
+        <span class="pIcon">🏖️</span>
+        <span><strong>請假管理／請假日曆</strong><span>查看今天、明天與每月請假名單</span></span>
+        <span class="arrow">›</span>
+      </button>
+    </section>
+
+
+
+<section class="dashCard">
       <button class="patrolButton" type="button" onclick="location.href='secretary.html'">
         <span class="pIcon">🤖</span>
         <span><strong>智慧秘書</strong><span>進入筆記本、行事曆與專案計畫中心</span></span>
@@ -550,18 +565,12 @@
       </button>
     </section>
 <section class="lowGrid">
-      <button class="toolCard" type="button" onclick="location.href='groupbuy.html'">
-        <span class="toolIcon">🛒</span><span><strong>團購／報名中心</strong><p>團購、聚餐、旅遊、研習與活動報名。</p></span><span class="go">›</span>
-      </button>
-      <button class="toolCard" type="button" onclick="openModal('inspection')">
-        <span class="toolIcon">🛡️</span><span><strong>定期巡檢</strong><p>安全衛生與週期檢查紀錄。</p></span><span class="go">›</span>
-      </button>
-      <button class="toolCard" type="button" onclick="openModal('system')">
+<button class="toolCard" type="button" onclick="openModal('system')">
         <span class="toolIcon">⚙️</span><span><strong>系統管理</strong><p>人員、班級、權限與設定。</p></span><span class="go">›</span>
       </button>
     </section>
 
-    <div class="versionStamp">主管工作台 v23.0｜2026-07-27｜移除正式版預設範例資料</div>
+    <div class="versionStamp">主管工作台 v24.2｜2026-07-27｜移除團購與定期巡檢入口</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
@@ -711,6 +720,8 @@ function loadSharedCalendar(){
 }
 let cloudAnnouncements=[];
 let cloudReports=[];
+let cloudLeaves=[];
+let leaveViewDate=new Date();
 
 function adminJsonp(action,params={}){
  return new Promise((resolve,reject)=>{
@@ -734,10 +745,60 @@ function renderAdminNotices(){
  if(count)count.textContent=`${list.length} 則`;if(!box)return;
  box.innerHTML=list.length?list.map(x=>`<div class="item"><div class="time">公告</div><div><h5>${adminEsc(x.title)}</h5><p>${adminEsc(x.content)}<br>對象：${adminNoticeTargets(x).join('、')}</p></div></div>`).join(''):'<div class="hintBox">目前沒有公告。</div>';
 }
-function getSharedLeaves(){try{return JSON.parse(localStorage.getItem('heremay.sharedLeaveRecords')||'[]')}catch(e){return []}}
+function getSharedLeaves(){
+  if(cloudLeaves.length) return cloudLeaves;
+  try{return JSON.parse(localStorage.getItem('heremay.sharedLeaveRecords')||'[]')}catch(e){return []}
+}
+function activeAdminLeave(x){return !['已取消','駁回','已駁回'].includes(String(x.status||''))}
 function renderLeavesFor(day,id){
- const rows=getSharedLeaves().filter(x=>x.date===day&&!['已取消','駁回'].includes(String(x.status||''))),box=document.getElementById(id);if(!box)return;
- box.innerHTML=rows.length?rows.map(x=>`<div class="futureItem"><time>${adminEsc(x.period||'全天')}</time><span>${adminEsc(x.employeeName||'未具名')}｜${adminEsc(x.pool||'')}｜${adminEsc(x.type||'請假')}</span></div>`).join(''):'<div class="hintBox">無人請假。</div>';
+ const rows=getSharedLeaves().filter(x=>x.date===day&&activeAdminLeave(x)),box=document.getElementById(id);if(!box)return;
+ box.innerHTML=rows.length?rows.map(x=>`<div class="futureItem"><time>${adminEsc(x.period||'全天')}</time><span>${adminEsc(x.employeeName||'未具名')}｜${adminEsc(x.pool||'')}｜${adminEsc(x.type||'請假')}｜${adminEsc(x.status||'')}</span></div>`).join(''):'<div class="hintBox">無人請假。</div>';
+}
+function changeLeaveMonth(delta){
+  leaveViewDate.setMonth(leaveViewDate.getMonth()+delta);
+  renderAllLeaves();
+}
+function renderAllLeaves(){
+  const rows=getSharedLeaves();
+  const y=leaveViewDate.getFullYear(),m=leaveViewDate.getMonth();
+  const monthKey=`${y}-${pad(m+1)}`;
+  const monthRows=rows.filter(x=>String(x.date||'').startsWith(monthKey));
+  const count=document.getElementById('allLeaveCount');
+  const title=document.getElementById('leaveMonthTitle');
+  const box=document.getElementById('leaveCalendar');
+  if(count)count.textContent=`${monthRows.length} 筆`;
+  if(title)title.textContent=`${y} 年 ${m+1} 月`;
+  if(!box)return;
+  box.innerHTML='';
+  const first=new Date(y,m,1).getDay();
+  const days=new Date(y,m+1,0).getDate();
+  for(let i=0;i<first;i++){
+    const e=document.createElement('div');e.className='leaveDay empty';box.appendChild(e);
+  }
+  for(let d=1;d<=days;d++){
+    const key=`${y}-${pad(m+1)}-${pad(d)}`;
+    const dayRows=monthRows.filter(x=>x.date===key&&activeAdminLeave(x));
+    let am=0,pm=0;
+    dayRows.forEach(x=>{
+      const p=String(x.period||'').trim();
+      if(p==='全天'){am++;pm++}
+      else if(p==='上午')am++;
+      else if(p==='下午')pm++;
+    });
+    const el=document.createElement('button');
+    el.type='button';
+    el.className='leaveDay'+(dayRows.length?' hasLeave':'');
+    el.innerHTML=`<span class="dnum">${d}</span>${dayRows.length?`<span class="leaveCount">${dayRows.length} 人</span><span class="leaveSplit">上午 ${am}｜下午 ${pm}</span>`:''}`;
+    el.onclick=()=>showLeaveDay(key,dayRows);
+    box.appendChild(el);
+  }
+}
+function showLeaveDay(date,rows){
+  document.getElementById('modal').innerHTML=`
+    <div class="modalHeader"><h3>🏖️ ${adminEsc(date)} 請假名單</h3><button class="x" onclick="closeModal()">關閉</button></div>
+    ${rows.length?rows.map(x=>`<div class="noticeItem"><div><h5>${adminEsc(x.employeeName||'未具名')}｜${adminEsc(x.type||'請假')}｜${adminEsc(x.period||'全天')}</h5><p>部門：${adminEsc(x.pool||'')}｜狀態：${adminEsc(x.status||'')}<br>申請時間：${adminEsc(x.created||'')}${x.reason?`<br>原因：${adminEsc(x.reason)}`:''}</p></div></div>`).join(''):'<div class="hintBox">當天沒有人請假。</div>'}
+  `;
+  document.getElementById('modalMask').classList.add('show');
 }
 function renderAdminReports(){
  const list=cloudReports,box=document.getElementById('adminReportList'),count=document.getElementById('adminReportCount');
@@ -760,7 +821,11 @@ async function loadCloudDashboard(){
   cloudAnnouncements=(Array.isArray(result.announcements)?result.announcements:[])
     .filter(x=>adminNoticeTargets(x).includes('主管'));
   cloudReports=Array.isArray(result.reports)?result.reports:[];
-  renderAdminNotices();renderAdminReports();
+  cloudLeaves=Array.isArray(result.leaves)?result.leaves:[];
+  localStorage.setItem('heremay.sharedLeaveRecords',JSON.stringify(cloudLeaves));
+  renderAdminNotices();renderAdminReports();renderAllLeaves();
+  renderLeavesFor(dateKey(0),'todayLeaveList');
+  renderLeavesFor(dateKey(1),'tomorrowLeaveList');
  }catch(err){
   console.warn(err);
   try{
@@ -768,10 +833,10 @@ async function loadCloudDashboard(){
       .filter(x=>adminNoticeTargets(x).includes('主管'));
   }catch(e){cloudAnnouncements=[]}
   try{cloudReports=JSON.parse(localStorage.getItem('heremay.reports')||'[]')}catch(e){cloudReports=[]}
-  renderAdminNotices();renderAdminReports();
+  renderAdminNotices();renderAdminReports();renderAllLeaves();
  }
 }
-function refreshDashboardData(){loadSharedCalendar();renderLeavesFor(dateKey(0),'todayLeaveList');renderLeavesFor(dateKey(1),'tomorrowLeaveList');loadCloudDashboard()}
+function refreshDashboardData(){loadSharedCalendar();renderLeavesFor(dateKey(0),'todayLeaveList');renderLeavesFor(dateKey(1),'tomorrowLeaveList');renderAllLeaves();loadCloudDashboard()}
 window.addEventListener('storage',refreshDashboardData);
 window.addEventListener('pageshow',refreshDashboardData);
 document.addEventListener('visibilitychange',()=>{

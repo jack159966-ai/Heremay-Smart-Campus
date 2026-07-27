@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v1.0</title>
+  <title>和美智慧校園｜打卡與出勤 v1.6</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -40,7 +40,7 @@
   <header class="top">
     <button class="back" onclick="goBack()">← 返回</button>
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
-    <span class="version">v1.1 雲端版</span>
+    <span class="version">v1.6 時段選擇流程修正版</span>
   </header>
 
   <section class="card who">
@@ -110,7 +110,7 @@
 <div class="toast" id="toast"></div>
 <script>
   const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-  const employee = readEmployee();
+  let employee = readEmployee();
   let cloudSharedLeaves = [];
   let cloudMyLeaves = [];
   let cloudPunches = [];
@@ -121,8 +121,22 @@
   let pendingDate = '';
 
   function readEmployee(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'null')||{}}catch(e){return{}}}
-  function employeeKey(){return String(employee.employeeId||employee.name||localStorage.getItem('heremay.lastFaceAccount')||'demo')}
-  function employeeNameText(){return String(employee.name||'測試員工')}
+  function employeeKey(){
+    // 登入首頁最後確認的帳號才是本次登入身分。
+    // 必須優先於 currentEmployee，避免切換帳號後讀到上一位員工的 employeeId。
+    return String(
+      localStorage.getItem('heremay.lastFaceAccount') ||
+      employee.account ||
+      employee.loginAccount ||
+      employee.username ||
+      employee.employeeId ||
+      employee.id ||
+      employee['員工編號'] ||
+      employee.name ||
+      'demo'
+    ).trim();
+  }
+  function employeeNameText(){return String(employee.name||employee['姓名']||'測試員工').trim()}
   function todayKey(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
   function punchKey(date=todayKey()){return `heremay.attendance.${employeeKey()}.${date}`}
   function leaveKey(){return `heremay.leaveRecords.${employeeKey()}`}
@@ -130,7 +144,44 @@
   function leavePool(){const text=String(employee.group||employee.department||employee.jobTitle||'').trim();if(text.includes('安親'))return '安親部';if(text.includes('幼兒')||text.includes('教保'))return '幼兒部';if(text.includes('庶務')||text.includes('廚')||text.includes('清潔'))return '庶務組';return '其他人員'}
   function pad(n){return String(n).padStart(2,'0')}
   function updateClock(){const d=new Date(),w='日一二三四五六';dateText.textContent=`${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}（${w[d.getDay()]}）`;timeText.textContent=`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`}
-  function initUser(){const name=employee.name||'測試員工',title=employee.jobTitle||'員工',group=employee.group||'';employeeName.textContent=name;employeeInfo.textContent=[employee.employeeId,title,group].filter(Boolean).join('｜')||'測試模式';avatar.textContent=String(employee.homeType||'').includes('庶務')?'🏡':'👩‍🏫'}
+  function initUser(){
+    const name=employeeNameText();
+    const id=employeeKey();
+    const title=employee.jobTitle||employee.title||employee['職稱']||'員工';
+    const group=employee.group||employee.department||employee['編組']||'';
+    employeeName.textContent=name;
+    employeeInfo.textContent=[`登入帳號：${id}`,title,group].filter(Boolean).join('｜')||'測試模式';
+    avatar.textContent=String(employee.homeType||'').includes('庶務')?'🏡':'👩‍🏫';
+  }
+  async function refreshLoggedInEmployee(force=false){
+    const latest=readEmployee();
+    const oldId=employeeKey();
+    employee=latest;
+    const loginAccount=String(localStorage.getItem('heremay.lastFaceAccount')||'').trim();
+    const objectAccount=String(
+      latest.account||latest.loginAccount||latest.username||
+      latest.employeeId||latest.id||latest['員工編號']||''
+    ).trim();
+    const newId=employeeKey();
+    if(loginAccount && objectAccount && loginAccount!==objectAccount){
+      console.warn('登入帳號與 currentEmployee 不一致，改以登入帳號為準：',loginAccount,objectAccount);
+    }
+    if(force||oldId!==newId){
+      cloudReady=false;
+      cloudMyLeaves=[];
+      cloudSharedLeaves=[];
+      cloudPunches=[];
+      selectedDates.clear();
+      pendingDate='';
+      initUser();
+      renderCalendar();
+      renderMyLeaves();
+      renderRecords();
+      renderAttendance();
+      loadPunch();
+      await loadCloudData(false);
+    }
+  }
   function loadPunch(){const x=(cloudPunches.find(p=>p.date===todayKey())||JSON.parse(localStorage.getItem(punchKey())||'{}'));inTime.textContent=x.in||'--:--';outTime.textContent=x.out||'--:--';lateMinutes.textContent=x.late||0;clockInBtn.disabled=!!x.in;clockOutBtn.disabled=!x.in||!!x.out;todayStatus.textContent=x.out?'今日已完成上下班打卡':x.in?'已上班，尚未下班':'今日尚未打卡'}
   function clockIn(){postAttendance('attendanceClockIn',{employeeId:employeeKey(),employeeName:employeeNameText(),identity:employee.identityCategory||employee.role||'',pool:leavePool(),date:todayKey(),scheduledIn:'08:00',scheduledOut:'17:00',isTest:employee.isTest||'否'},'clockIn')}
   function clockOut(){postAttendance('attendanceClockOut',{employeeId:employeeKey(),employeeName:employeeNameText(),pool:leavePool(),date:todayKey()},'clockOut')}
@@ -150,9 +201,38 @@
     }
     return {off:false,amUnlimited:false,amLimit:3,pmLimit:3};
   }
-  function sharedLeaves(){return cloudReady?cloudSharedLeaves:JSON.parse(localStorage.getItem(sharedLeaveKey())||'[]')}
-  function seedDemoSharedLeaves(){if(localStorage.getItem('heremay.sharedLeaveSeeded'))return;const now=new Date(),y=now.getFullYear(),m=now.getMonth()+1;const d1=`${y}-${pad(m)}-${pad(Math.min(10,new Date(y,m,0).getDate()))}`;const d2=`${y}-${pad(m)}-${pad(Math.min(15,new Date(y,m,0).getDate()))}`;const demo=[{date:d1,period:'全天',type:'特休',employeeName:'王老師',employeeId:'DEMO01',pool:'幼兒部',status:'自動成立'},{date:d1,period:'上午',type:'特休',employeeName:'林老師',employeeId:'DEMO02',pool:'幼兒部',status:'自動成立'},{date:d1,period:'下午',type:'特休',employeeName:'李老師',employeeId:'DEMO04',pool:'安親班',status:'自動成立'},{date:d2,period:'下午',type:'事假',employeeName:'陳老師',employeeId:'DEMO03',pool:'幼兒部',status:'已核准'}];localStorage.setItem(sharedLeaveKey(),JSON.stringify(demo));localStorage.setItem('heremay.sharedLeaveSeeded','yes')}
-  function leavesOn(date){const pool=leavePool();return sharedLeaves().filter(x=>x.date===date&&(x.pool||'幼兒部')===pool&&!['已取消','駁回'].includes(x.status))}
+  function normalizeLeaveRow(x){
+    return {
+      ...x,
+      leaveId:String(x?.leaveId||x?.申請ID||'').trim(),
+      employeeId:String(x?.employeeId||x?.員工編號||'').trim(),
+      employeeName:String(x?.employeeName||x?.姓名||'').trim(),
+      pool:String(x?.pool||x?.申請時編組||x?.編組||'幼兒部').trim(),
+      date:String(x?.date||x?.請假日期||'').trim(),
+      period:String(x?.period||x?.時段||'').trim(),
+      type:String(x?.type||x?.假別||'請假').trim(),
+      status:String(x?.status||x?.申請狀態||'').trim()
+    };
+  }
+  function sharedLeaves(){
+    let rows=cloudReady?cloudSharedLeaves:JSON.parse(localStorage.getItem(sharedLeaveKey())||'[]');
+    const seen=new Set();
+    return (Array.isArray(rows)?rows:[]).map(normalizeLeaveRow).filter(x=>{
+      const key=x.leaveId||[x.employeeId,x.date,x.period,x.created||''].join('|');
+      if(seen.has(key))return false;
+      seen.add(key);
+      return true;
+    });
+  }
+  function seedDemoSharedLeaves(){if(localStorage.getItem('heremay.sharedLeaveSeeded'))return;localStorage.setItem('heremay.sharedLeaveSeeded','yes')}
+  function leavesOn(date){
+    const pool=leavePool();
+    return sharedLeaves().filter(x=>
+      x.date===date&&
+      x.pool===pool&&
+      !['已取消','駁回','已駁回'].includes(x.status)
+    );
+  }
   function myActiveLeaveOn(date){
     const id=String(employeeKey());
     return sharedLeaves().find(x=>
@@ -161,7 +241,17 @@
       !['已取消','駁回'].includes(String(x.status||''))
     )||null;
   }
-  function periodUsage(date){const rows=leavesOn(date);let am=0,pm=0;rows.forEach(x=>{if(x.period==='全天'){am++;pm++}else if(x.period==='上午')am++;else if(x.period==='下午')pm++});return {am,pm,rows}}
+  function periodUsage(date){
+    const rows=leavesOn(date);
+    let am=0,pm=0;
+    rows.forEach(x=>{
+      const p=String(x.period||'').trim();
+      if(p==='全天'){am++;pm++}
+      else if(p==='上午')am++;
+      else if(p==='下午')pm++;
+    });
+    return {am,pm,rows};
+  }
   function availability(date){
     const [y,m,d]=date.split('-').map(Number),base=baseQuotaFor(new Date(y,m-1,d));
     if(base.off)return {...base,am:0,pm:0,rows:[]};
@@ -179,7 +269,23 @@
       toastMsg(`${key} 已有您送出的${mine.type}（${mine.period}），請先取消原申請後再重新申請`);
       return;
     }
-    pendingDate=key;renderDayLeaveInfo(key);periodModal.classList.add('show')
+
+    // 直接採用表單中已選好的時段，避免使用者還要在彈窗再選一次。
+    const chosen=String(period.value||'全天').trim();
+    const q=availability(key);
+
+    if(!isPeriodFull(q,chosen)){
+      selectedDates.set(key,chosen);
+      renderCalendar();
+      toastMsg(`已選擇 ${key} ${chosen}`);
+      return;
+    }
+
+    // 選定時段已滿時，才開啟名額視窗，讓使用者查看並改選仍有名額的時段。
+    pendingDate=key;
+    renderDayLeaveInfo(key);
+    periodModal.classList.add('show');
+    toastMsg(`${chosen}名額已滿，可改選其他仍有名額的時段`);
   }
   function renderDayLeaveInfo(key){
     const q=availability(key),pool=leavePool();
@@ -213,14 +319,34 @@
   function setDatePeriod(p){
     const mine=myActiveLeaveOn(pendingDate);
     if(mine){toastMsg(`這一天已有您送出的${mine.type}（${mine.period}），不能重複申請`);hidePeriodModal();return}
-    const q=availability(pendingDate);if(isPeriodFull(q,p)){toastMsg('該時段名額已滿，無法選取');return}selectedDates.set(pendingDate,p);hidePeriodModal();renderCalendar()
+    const q=availability(pendingDate);if(isPeriodFull(q,p)){toastMsg(`${p}名額已滿｜上午已 ${q.amUsed} 人、下午已 ${q.pmUsed} 人`);return}
+    period.value=p;
+    selectedDates.set(pendingDate,p);
+    hidePeriodModal();
+    renderCalendar();
+    toastMsg(`已選擇 ${pendingDate} ${p}`);
   }
   function hidePeriodModal(){periodModal.classList.remove('show')}
   function closePeriodModal(e){if(e.target.id==='periodModal')hidePeriodModal()}
   function renderSelected(){selectedList.innerHTML='';[...selectedDates.entries()].sort().forEach(([d,p])=>{const el=document.createElement('div');el.className='selected-item';el.innerHTML=`<div><strong>${d}</strong><span>${p}</span></div><button class="remove" onclick="removeDate('${d}')">移除</button>`;selectedList.append(el)})}
   function removeDate(d){selectedDates.delete(d);renderCalendar()}
   function submitLeave(){if(!selectedDates.size){toastMsg('請先從月曆選擇日期');return}const type=leaveType.value,reasonText=reason.value.trim();if(type!=='特休'&&!reasonText){toastMsg('其他假別請填寫申請原因');return}const items=[...selectedDates.entries()];submitLeaveQueue(items,type,reasonText,0)}
-  function submitLeaveQueue(items,type,reasonText,index){if(index>=items.length){selectedDates.clear();reason.value='';loadCloudData(true);toastMsg(type==='特休'?'✅ 特休已依名額自動成立':'✅ 申請已送出，等待主管審核');return}const [date,period]=items[index];postAttendance('submitLeave',{employeeId:employeeKey(),employeeName:employeeNameText(),identity:employee.identityCategory||'',pool:leavePool(),date,period,type,reason:reasonText,dailyHours:employee.dailyHours||8,isTest:employee.isTest||'否'},'submitLeave',{next:()=>submitLeaveQueue(items,type,reasonText,index+1)})}
+  async function submitLeaveQueue(items,type,reasonText,index){
+    if(index>=items.length){
+      selectedDates.clear();
+      reason.value='';
+      await loadCloudData(true);
+      renderMyLeaves();
+      toastMsg(type==='特休'?'✅ 特休已成立，已顯示在「我的已送出請假」':'✅ 申請已送出，已顯示在「我的已送出請假」');
+      return;
+    }
+    const [date,period]=items[index];
+    postAttendance('submitLeave',{
+      employeeId:employeeKey(),employeeName:employeeNameText(),identity:employee.identityCategory||'',
+      pool:leavePool(),date,period,type,reason:reasonText,dailyHours:employee.dailyHours||8,
+      isTest:employee.isTest||'否'
+    },'submitLeave',{next:()=>submitLeaveQueue(items,type,reasonText,index+1)});
+  }
   function addRecord(title,note){const key=`heremay.activityRecords.${employeeKey()}`,arr=JSON.parse(localStorage.getItem(key)||'[]');arr.unshift({title,note,time:new Date().toLocaleString('zh-TW',{hour12:false})});localStorage.setItem(key,JSON.stringify(arr.slice(0,30)))}
   function allPunches(){if(cloudReady)return cloudPunches;const prefix=`heremay.attendance.${employeeKey()}.`;const rows=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(prefix)){try{const x=JSON.parse(localStorage.getItem(k)||'{}');x.date=x.date||k.slice(prefix.length);rows.push(x)}catch(e){}}}return rows}
   function renderAttendance(){const now=new Date(),ym=`${now.getFullYear()}-${pad(now.getMonth()+1)}`;attendanceMonthTag.textContent=`${now.getFullYear()} 年 ${now.getMonth()+1} 月`;const punches=allPunches().filter(x=>String(x.date||'').startsWith(ym)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));const leaves=(cloudReady?cloudMyLeaves:JSON.parse(localStorage.getItem(leaveKey())||'[]')).filter(x=>String(x.date||'').startsWith(ym)&&!['已取消','駁回'].includes(x.status));workDaysCount.textContent=punches.filter(x=>x.in).length;lateCount.textContent=punches.filter(x=>Number(x.late)>0).length;lateTotal.textContent=punches.reduce((s,x)=>s+Number(x.late||0),0);leaveDaysCount.textContent=leaves.reduce((s,x)=>s+(x.period==='全天'?1:.5),0);const rows=[...punches.map(x=>({date:x.date,title:'出勤',note:`上班 ${x.in||'--:--'}｜下班 ${x.out||'--:--'}${x.late?`｜遲到 ${x.late} 分鐘`:''}`})),...leaves.map(x=>({date:x.date,title:x.type,note:`${x.period}｜${x.status}`}))].sort((a,b)=>b.date.localeCompare(a.date));attendanceMonthList.innerHTML=rows.length?rows.map(x=>`<div class="month-row"><strong>${x.date}</strong><span>${x.title}</span><span>${x.note}</span></div>`).join(''):'<div class="empty-note">本月尚無出勤或請假資料</div>'}
@@ -246,10 +372,49 @@
   }
   function jsonp(url){return new Promise((resolve,reject)=>{const cb='heremayCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);const script=document.createElement('script');const timer=setTimeout(()=>{cleanup();reject(new Error('雲端讀取逾時'))},15000);function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}window[cb]=data=>{cleanup();resolve(data)};script.onerror=()=>{cleanup();reject(new Error('雲端連線失敗'))};script.src=url+(url.includes('?')?'&':'?')+'callback='+encodeURIComponent(cb)+'&_='+Date.now();document.head.append(script)})}
   async function loadCloudData(silent=false){try{const month=`${viewDate.getFullYear()}-${pad(viewDate.getMonth()+1)}`;const url=`${SERVICE_URL}?action=getAttendanceBundle&employeeId=${encodeURIComponent(employeeKey())}&pool=${encodeURIComponent(leavePool())}&month=${encodeURIComponent(month)}`;const result=await jsonp(url);if(!result.ok)throw new Error(result.message||'讀取失敗');cloudSharedLeaves=Array.isArray(result.sharedLeaves)?result.sharedLeaves:[];cloudMyLeaves=Array.isArray(result.myLeaves)?result.myLeaves:[];cloudPunches=Array.isArray(result.punches)?result.punches:[];cloudReady=true;localStorage.setItem(sharedLeaveKey(),JSON.stringify(cloudSharedLeaves));localStorage.setItem(leaveKey(),JSON.stringify(cloudMyLeaves));renderCalendar();renderMyLeaves();renderRecords();renderAttendance();loadPunch();if(!silent)toastMsg('☁️ 已同步雲端出勤與請假資料')}catch(err){console.warn(err);if(!silent)toastMsg('⚠️ 暫時無法同步雲端，先顯示本機資料')}}
-  async function postAttendance(action,fields,kind,options={}){if(pendingCloudAction){toastMsg('上一項資料正在處理，請稍候');return}pendingCloudAction={kind,options};toastMsg('正在寫入雲端…');try{const url=`${SERVICE_URL}?action=${encodeURIComponent(action)}&payload=${encodeURIComponent(JSON.stringify(fields))}`;const result=await jsonp(url);const current=pendingCloudAction;pendingCloudAction=null;if(!result.ok)throw new Error(result.message||'雲端儲存失敗');if(current&&current.options&&typeof current.options.next==='function'){current.options.next();return}toastMsg('✅ '+(result.message||'雲端資料已更新'));await loadCloudData(true)}catch(error){pendingCloudAction=null;toastMsg('⚠️ '+(error.message||'雲端儲存失敗'));loadCloudData(true)}}
+  async function postAttendance(action,fields,kind,options={}){
+    if(pendingCloudAction){toastMsg('上一項資料正在處理，請稍候');return}
+    pendingCloudAction={kind,options};
+    toastMsg('正在寫入雲端…');
+    try{
+      const url=`${SERVICE_URL}?action=${encodeURIComponent(action)}&payload=${encodeURIComponent(JSON.stringify(fields))}`;
+      const result=await jsonp(url);
+      const current=pendingCloudAction;
+      pendingCloudAction=null;
+      if(!result.ok)throw new Error(result.message||'雲端儲存失敗');
+
+      if(result.leave){
+        cloudMyLeaves=[result.leave,...cloudMyLeaves.filter(x=>String(x.leaveId)!==String(result.leave.leaveId))];
+        cloudSharedLeaves=[result.leave,...cloudSharedLeaves.filter(x=>String(x.leaveId)!==String(result.leave.leaveId))];
+        cloudReady=true;
+        localStorage.setItem(leaveKey(),JSON.stringify(cloudMyLeaves));
+        localStorage.setItem(sharedLeaveKey(),JSON.stringify(cloudSharedLeaves));
+        renderMyLeaves();
+        renderCalendar();
+      }
+
+      if(current&&current.options&&typeof current.options.next==='function'){
+        current.options.next();
+        return;
+      }
+      toastMsg('✅ '+(result.message||'雲端資料已更新'));
+      await loadCloudData(true);
+    }catch(error){
+      pendingCloudAction=null;
+      toastMsg('⚠️ '+(error.message||'雲端儲存失敗'));
+      await loadCloudData(true);
+    }
+  }
   function toastMsg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2800)}
   function goBack(){const role=localStorage.getItem('heremay.currentRole');location.href=role==='support'?'support.html':'teacher.html'}
   initUser();updateClock();setInterval(updateClock,1000);loadPunch();renderCalendar();renderMyLeaves();renderRecords();renderAttendance();loadCloudData(false);
+  window.addEventListener('pageshow',event=>refreshLoggedInEmployee(Boolean(event.persisted)));
+  window.addEventListener('storage',event=>{
+    if(event.key==='heremay.currentEmployee'||event.key==='heremay.lastFaceAccount')refreshLoggedInEmployee(true);
+  });
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible')refreshLoggedInEmployee(false);
+  });
 </script>
 </body>
 </html>

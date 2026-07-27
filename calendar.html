@@ -118,7 +118,7 @@
 
     .share-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}.share-summary-text{font-weight:800;color:var(--primary-dark);line-height:1.5}
     .modal-mask{position:fixed;inset:0;background:rgba(26,39,56,.62);display:none;align-items:center;justify-content:center;padding:16px;z-index:130}.modal-mask.show{display:flex}.modal-card{width:min(520px,100%);max-height:82vh;overflow:auto;background:#fff;border-radius:22px;padding:18px;box-shadow:0 24px 70px rgba(0,0,0,.28)}
-    .modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.modal-head h3{margin:0;color:var(--primary-dark)}.choice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.choice-btn{border:1px solid var(--line);border-radius:14px;padding:14px 12px;background:#f8fbff;color:var(--text);font-weight:850;cursor:pointer;text-align:left}.sound-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.modal-head h3{margin:0;color:var(--primary-dark)}.choice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.choice-btn{border:1px solid var(--line);border-radius:14px;padding:14px 12px;background:#f8fbff;color:var(--text);font-weight:850;cursor:pointer;text-align:left}.choice-check{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:14px;padding:12px;background:#f8fbff;font-weight:800}.choice-check input{width:auto;transform:scale(1.15)}.sound-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
     @media(max-width:700px){
       .grid{grid-template-columns:1fr}
       .reminder-row{grid-template-columns:1fr 1fr}
@@ -140,7 +140,7 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v2.4.3</span>
+      <span class="pill" id="versionStatus">版本 v2.4.4</span>
       <span class="pill" id="timezoneStatus">時區檢查中</span>
       <span class="pill" id="travelStatus">出國模式：關</span>
     </div>
@@ -235,7 +235,7 @@
             </select>
           </div>
 
-          <div class="field full"><div class="section-box"><div class="section-title">📣 分享與通知對象</div><input type="hidden" name="分享對象"><input type="hidden" name="主管分類"><input type="hidden" name="指定分享對象"><input type="hidden" name="分享路徑"><div class="share-summary"><div><div class="share-summary-text" id="shareSummaryText">僅自己</div><div class="hint">主管與庶務組直接選人；教保員依年級、班級、個人逐層選擇。</div></div><button class="btn purple" type="button" onclick="openShareLevel1()">選擇分享對象</button></div></div></div>
+          <div class="field full"><div class="section-box"><div class="section-title">📣 分享與通知對象</div><input type="hidden" name="分享對象JSON"><input type="hidden" name="分享對象"><input type="hidden" name="主管分類"><input type="hidden" name="指定分享對象"><input type="hidden" name="分享路徑"><div class="share-summary"><div><div class="share-summary-text" id="shareSummaryText">僅自己</div><div class="hint">可同時勾選主管、幼兒部、安親部與庶務部；再次開啟可繼續增減，不會覆蓋前一次選擇。</div></div><button class="btn purple" type="button" onclick="openShareLevel1()">選擇分享對象</button></div></div></div>
           </div>
 
           <div class="field">
@@ -282,7 +282,7 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v2.4.3｜2026-07-27｜主管首頁資料橋接</div>
+  <div class="version">行事曆 v2.4.4｜2026-07-27｜部門複選分享</div>
 </main>
 
 <div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
@@ -291,9 +291,9 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='2.4.3';
-const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null};
-const FIRED_KEY='heremay_calendar_fired_v243';
+const APP_VERSION='2.4.4';
+const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null,shareTargets:[]};
+const FIRED_KEY='heremay_calendar_fired_v244';
 
 document.getElementById('todayText').textContent=
   new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
@@ -435,7 +435,7 @@ function resetEventForm(){
   form.elements['建立時間'].value='';
   document.getElementById('eventFormTitle').textContent='新增行程';
   document.getElementById('eventSubmitBtn').textContent='儲存行程';
-  setReminderSettings([{value:10,unit:'分鐘'}]);document.getElementById('shareSummaryText').textContent='僅自己';
+  setReminderSettings([{value:10,unit:'分鐘'}]);setShareTargets([]);
   form.elements['瀏覽器通知'].checked=true;
   form.elements['同步Google日曆'].checked=true;
   form.elements['時區規則'].value='taipei';
@@ -466,6 +466,9 @@ function editEvent(id){
   set('分享對象',item.分享對象||'僅自己');
   set('主管分類',item.主管分類||'');
   set('指定分享對象',item.指定分享對象||'');
+  set('分享路徑',item.分享路徑||'');
+  const savedTargets=Array.isArray(item.分享對象JSON)?item.分享對象JSON:normalizeShareTargets(item.分享對象JSON||item.分享對象||'');
+  setShareTargets(savedTargets);
   form.elements['強提醒'].checked=String(item.強提醒)==='是'||item.強提醒===true;
   form.elements['瀏覽器通知'].checked=item.瀏覽器通知===undefined?true:(String(item.瀏覽器通知)==='是'||item.瀏覽器通知===true);
   form.elements['同步Google日曆'].checked=item.同步Google日曆===undefined?true:(String(item.同步Google日曆)==='是'||item.同步Google日曆===true);
@@ -498,7 +501,7 @@ function renderEvents(){
     const reminderText=reminders.length?reminders.map(r=>`${r.value}${r.unit}前`).join('、'):'不提醒';
     return `<article class="item">
       <div class="item-title">${esc(item.標題||'未命名行程')}</div>
-      <div><span class="tag">${esc(item.分享對象||'僅自己')}</span>${item.主管分類?`<span class="tag">${esc(item.主管分類)}</span>`:''}${(String(item.強提醒)==='是'||item.強提醒===true)?'<span class="tag">強提醒</span>':''}${String(item.固定巡檢)==='是'?'<span class="tag">固定巡檢</span>':''}</div>
+      <div>${(Array.isArray(item.分享對象JSON)?item.分享對象JSON:normalizeShareTargets(item.分享對象JSON||item.分享對象||'')).length?(Array.isArray(item.分享對象JSON)?item.分享對象JSON:normalizeShareTargets(item.分享對象JSON||item.分享對象||'')).map(v=>`<span class="tag">${esc(v)}</span>`).join(''):'<span class="tag">僅自己</span>'}${(String(item.強提醒)==='是'||item.強提醒===true)?'<span class="tag">強提醒</span>':''}${String(item.固定巡檢)==='是'?'<span class="tag">固定巡檢</span>':''}</div>
       <div class="meta">
         日期：${esc(item.開始日期||'')} ${esc(item.開始時間||'')}
         ～ ${esc(item.結束日期||'')} ${esc(item.結束時間||'')}<br>
@@ -520,17 +523,77 @@ function formObject(form){
   return obj;
 }
 
-const SHARE_TREE={主管:['園長','副園長','主任','組長','行政主管'],庶務組:['庶務組長','總務人員','廚房人員','司機','清潔人員'],教保員:{幼幼班:['幼幼A班','幼幼B班'],小班:['小A班','小B班','小C班'],中班:['中A班','中B班','中C班'],大班:['大A班','大B班','大C班']}};
-const SHARE_PEOPLE={'幼幼A班':['幼幼A班教師1','幼幼A班教師2'],'幼幼B班':['幼幼B班教師1','幼幼B班教師2'],'小A班':['小A班教師1','小A班教師2'],'小B班':['小B班教師1','小B班教師2'],'小C班':['小C班教師1','小C班教師2'],'中A班':['中A班教師1','中A班教師2'],'中B班':['中B班教師1','中B班教師2'],'中C班':['中C班教師1','中C班教師2'],'大A班':['大A班教師1','大A班教師2'],'大B班':['大B班教師1','大B班教師2'],'大C班':['大C班教師1','大C班教師2']};
-function openShareModal(title,choices,onPick,allowAll=false){document.getElementById('shareModalTitle').textContent=title;const box=document.getElementById('shareChoices');box.innerHTML='';choices.forEach(v=>{const b=document.createElement('button');b.type='button';b.className='choice-btn';b.textContent=v;b.onclick=()=>onPick(v);box.appendChild(b)});const a=document.getElementById('shareModalActions');a.innerHTML='';if(allowAll){const b=document.createElement('button');b.type='button';b.className='btn primary';b.textContent='選擇整個群組';b.onclick=()=>onPick('__ALL__');a.appendChild(b)}document.getElementById('shareModal').classList.add('show')}
+const SHARE_OPTIONS=[
+  {group:'主管',items:['主管全體','園長','副園長','主任','組長','行政主管']},
+  {group:'幼兒部',items:['幼兒部全體','幼幼班全體','小班全體','中班全體','大班全體']},
+  {group:'安親部',items:['安親部全體']},
+  {group:'庶務部',items:['庶務部全體','庶務組長','總務人員','廚房人員','司機','清潔人員']}
+];
+
+function normalizeShareTargets(value){
+  if(Array.isArray(value)) return [...new Set(value.map(v=>String(v).trim()).filter(Boolean))];
+  const text=String(value||'').trim();
+  if(!text||text==='僅自己') return [];
+  try{
+    const parsed=JSON.parse(text);
+    if(Array.isArray(parsed)) return normalizeShareTargets(parsed);
+  }catch(_){}
+  return [...new Set(text.split(/[、,，|]/).map(v=>v.trim()).filter(Boolean))];
+}
+
+function setShareTargets(targets){
+  state.shareTargets=normalizeShareTargets(targets);
+  const form=document.getElementById('eventForm');
+  form.elements['分享對象JSON'].value=JSON.stringify(state.shareTargets);
+  form.elements['分享對象'].value=state.shareTargets.length?state.shareTargets.join('、'):'僅自己';
+  form.elements['主管分類'].value=state.shareTargets.filter(v=>['主管全體','園長','副園長','主任','組長','行政主管'].includes(v)).join('、');
+  form.elements['指定分享對象'].value=state.shareTargets.join('、');
+  form.elements['分享路徑'].value=state.shareTargets.join('／');
+  document.getElementById('shareSummaryText').textContent=state.shareTargets.length?state.shareTargets.join('、'):'僅自己';
+}
+
+function openShareLevel1(){
+  document.getElementById('shareModalTitle').textContent='選擇分享對象（可複選）';
+  const box=document.getElementById('shareChoices');
+  box.innerHTML='';
+  SHARE_OPTIONS.forEach(section=>{
+    const title=document.createElement('div');
+    title.className='section-title';
+    title.style.gridColumn='1 / -1';
+    title.textContent=section.group;
+    box.appendChild(title);
+    section.items.forEach(value=>{
+      const label=document.createElement('label');
+      label.className='choice-check';
+      const checked=state.shareTargets.includes(value)?'checked':'';
+      label.innerHTML=`<input type="checkbox" value="${esc(value)}" ${checked}> <span>${esc(value)}</span>`;
+      box.appendChild(label);
+    });
+  });
+  const actions=document.getElementById('shareModalActions');
+  actions.innerHTML='';
+  const clear=document.createElement('button');
+  clear.type='button';
+  clear.className='btn';
+  clear.textContent='改為僅自己';
+  clear.onclick=()=>{setShareTargets([]);closeShareModal()};
+  const save=document.createElement('button');
+  save.type='button';
+  save.className='btn primary';
+  save.textContent='套用所選對象';
+  save.onclick=()=>{
+    const selected=[...box.querySelectorAll('input[type=checkbox]:checked')].map(input=>input.value);
+    setShareTargets(selected);
+    closeShareModal();
+  };
+  actions.append(clear,save);
+  document.getElementById('shareModal').classList.add('show');
+}
+
 function closeShareModal(){document.getElementById('shareModal').classList.remove('show')}
-function setShareSelection(type,path,target){const f=document.getElementById('eventForm');f.elements['分享對象'].value=type||'僅自己';f.elements['主管分類'].value=type==='主管'?(path[0]||''):'';f.elements['指定分享對象'].value=target||'';f.elements['分享路徑'].value=path.join('／');document.getElementById('shareSummaryText').textContent=type==='僅自己'?'僅自己':[type,...path,target].filter(Boolean).join('／');closeShareModal()}
-function openShareLevel1(){openShareModal('第 1 層：選擇群組',['僅自己','主管','教保員','庶務組'],g=>{if(g==='僅自己')return setShareSelection('僅自己',[],'');if(g==='主管')return openDirectPeople('主管',SHARE_TREE.主管);if(g==='庶務組')return openDirectPeople('庶務組',SHARE_TREE.庶務組);openTeacherGrades()})}
-function openDirectPeople(g,p){openShareModal(g+'：直接選擇人員',p,v=>setShareSelection(g,[],v),true);document.querySelector('#shareModalActions .btn').onclick=()=>setShareSelection(g,[],g+'全體')}
-function openTeacherGrades(){const g=Object.keys(SHARE_TREE.教保員);openShareModal('第 2 層：選擇年級',g,v=>openTeacherClasses(v),true);document.querySelector('#shareModalActions .btn').onclick=()=>setShareSelection('教保員',[],'教保員全體')}
-function openTeacherClasses(g){const c=SHARE_TREE.教保員[g]||[];openShareModal('第 3 層：'+g+'班級',c,v=>openTeacherPeople(g,v),true);document.querySelector('#shareModalActions .btn').onclick=()=>setShareSelection('教保員',[g],g+'全體')}
-function openTeacherPeople(g,c){const p=SHARE_PEOPLE[c]||[];openShareModal('第 4 層：'+c+'個人',p,v=>setShareSelection('教保員',[g,c],v),true);document.querySelector('#shareModalActions .btn').onclick=()=>setShareSelection('教保員',[g,c],c+'全體')}
-function restoreShareSummary(item){const t=item.分享對象||'僅自己',p=String(item.分享路徑||'').split('／').filter(Boolean),x=item.指定分享對象||'';document.getElementById('shareSummaryText').textContent=t==='僅自己'?'僅自己':[t,...p,x].filter(Boolean).join('／')}
+function restoreShareSummary(item){
+  setShareTargets(Array.isArray(item?.分享對象JSON)?item.分享對象JSON:normalizeShareTargets(item?.分享對象JSON||item?.分享對象||''));
+}
 
 document.getElementById('eventForm').addEventListener('submit',async e=>{
   e.preventDefault();
@@ -539,6 +602,7 @@ document.getElementById('eventForm').addEventListener('submit',async e=>{
   if(submitBtn.disabled)return;
   const data=formObject(form);
   data.提醒設定JSON=getReminderSettings();
+  data.分享對象JSON=[...state.shareTargets];
   data.提醒設定=JSON.stringify(data.提醒設定JSON);
   data.Google日曆提醒分鐘=data.提醒設定JSON.map(reminderToMinutes);
   data.基準時區=data.時區規則==='local'?localTimeZone():'Asia/Taipei';
@@ -843,7 +907,7 @@ function downloadBackup(){
 
 
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js?v=243',{updateViaCache:'none'})
+  navigator.serviceWorker.register('./sw.js?v=244',{updateViaCache:'none'})
     .then(reg=>{
       reg.update().catch(()=>{});
       if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -851,8 +915,8 @@ if('serviceWorker' in navigator){
     .catch(error=>console.warn('Service Worker 註冊失敗',error));
 
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(!sessionStorage.getItem('heremay_sw_reloaded_243')){
-      sessionStorage.setItem('heremay_sw_reloaded_243','1');
+    if(!sessionStorage.getItem('heremay_sw_reloaded_244')){
+      sessionStorage.setItem('heremay_sw_reloaded_244','1');
       location.reload();
     }
   });
