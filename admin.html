@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v23.3</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v23.5</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -569,7 +569,7 @@
   </div>
 
 <script>
-const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzbZ6r6c8XjHuKad0U5TIJXr8i141fCBwNJcVsKnoGa1-NXG_JOzapeRF5cVlnGI4F7/exec';
+const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
 
 let currentAdminEmployee = null;
 
@@ -694,6 +694,14 @@ let tomorrowItems = [];
 let afterTomorrowItems = [];
 
 
+function adminNoticeTargets(x){
+  if(Array.isArray(x?.targets)) return x.targets.map(String);
+  if(Array.isArray(x?.通知對象JSON)) return x.通知對象JSON.map(String);
+  const raw=x?.targets ?? x?.通知對象JSON ?? '';
+  if(!raw) return [];
+  try{const parsed=JSON.parse(raw);if(Array.isArray(parsed))return parsed.map(String)}catch(e){}
+  return String(raw).split(/[、,，|]/).map(v=>v.trim()).filter(Boolean);
+}
 function adminEsc(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
 function dateKey(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
 function loadSharedCalendar(){
@@ -724,7 +732,7 @@ function renderAdminNotices(){
  const list=cloudAnnouncements;
  const box=document.getElementById('adminNoticeList'),count=document.getElementById('adminNoticeCount');
  if(count)count.textContent=`${list.length} 則`;if(!box)return;
- box.innerHTML=list.length?list.map(x=>`<div class="item"><div class="time">公告</div><div><h5>${adminEsc(x.title)}</h5><p>${adminEsc(x.content)}<br>對象：${(x.targets||[]).join('、')}</p></div></div>`).join(''):'<div class="hintBox">目前沒有公告。</div>';
+ box.innerHTML=list.length?list.map(x=>`<div class="item"><div class="time">公告</div><div><h5>${adminEsc(x.title)}</h5><p>${adminEsc(x.content)}<br>對象：${adminNoticeTargets(x).join('、')}</p></div></div>`).join(''):'<div class="hintBox">目前沒有公告。</div>';
 }
 function getSharedLeaves(){try{return JSON.parse(localStorage.getItem('heremay.sharedLeaveRecords')||'[]')}catch(e){return []}}
 function renderLeavesFor(day,id){
@@ -750,12 +758,15 @@ async function loadCloudDashboard(){
   const result=await adminJsonp('getDashboardBundle',{target:'主管'});
   if(!result.ok)throw new Error(result.message||'讀取失敗');
   cloudAnnouncements=(Array.isArray(result.announcements)?result.announcements:[])
-    .filter(x=>Array.isArray(x.targets)&&x.targets.includes('主管'));
+    .filter(x=>adminNoticeTargets(x).includes('主管'));
   cloudReports=Array.isArray(result.reports)?result.reports:[];
   renderAdminNotices();renderAdminReports();
  }catch(err){
   console.warn(err);
-  try{cloudAnnouncements=JSON.parse(localStorage.getItem('heremay.announcements')||'[]')}catch(e){cloudAnnouncements=[]}
+  try{
+    cloudAnnouncements=JSON.parse(localStorage.getItem('heremay.announcements')||'[]')
+      .filter(x=>adminNoticeTargets(x).includes('主管'));
+  }catch(e){cloudAnnouncements=[]}
   try{cloudReports=JSON.parse(localStorage.getItem('heremay.reports')||'[]')}catch(e){cloudReports=[]}
   renderAdminNotices();renderAdminReports();
  }

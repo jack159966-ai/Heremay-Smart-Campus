@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.1.6</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.1.9</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -22,7 +22,16 @@ button,.btn{border:0;border-radius:16px;padding:13px 14px;font-size:16px;font-we
 .nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);border-top:1px solid var(--line);display:flex;justify-content:center;z-index:5;backdrop-filter:blur(12px)}.nav-inner{max-width:480px;width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 8px 12px}.nav button{font-size:12px;min-height:54px;border-radius:16px;flex-direction:column;padding:8px}.nav .active{background:#dbeafe;color:#1d4ed8}
 .screen{display:none}.screen.active{display:block}.pill{display:inline-flex;padding:6px 10px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:13px;font-weight:800}.progress{height:12px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin:12px 0}.bar{height:100%;width:0;background:linear-gradient(90deg,#60a5fa,#2563eb);transition:.25s}
 .class-list{display:grid;gap:10px}.class-item{display:flex;align-items:center;justify-content:space-between;padding:13px;border:1px solid #bfdbfe;border-radius:16px;background:#dbeafe;color:#1e3a8a;gap:10px}.class-info{min-width:0;flex:1}.class-item.done{background:#f0fdf4;border-color:#bbf7d0;color:#166534}.class-item.needs{background:#fff1f1;border-color:#fecaca;color:#991b1b}.class-item.current{outline:3px solid rgba(59,130,246,.28)}.status{font-size:13px;font-weight:900;border-radius:999px;padding:5px 9px;background:#1d4ed8;color:white;white-space:nowrap}.done .status{background:#dcfce7;color:#166534}.needs .status{background:#fee2e2;color:#991b1b}.currentTag{background:#dbeafe;color:#1e40af}.order-actions{display:flex;align-items:center;gap:6px;flex:0 0 auto}.order-actions button{min-height:36px;width:36px;padding:0;border-radius:12px;font-size:16px;background:#eef2ff;color:#1e40af}.order-actions button:disabled{opacity:.35;cursor:not-allowed;background:#f3f4f6;color:#9ca3af}.class-main{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
-.defects{display:grid;gap:10px}.category{border:1px solid var(--line);border-radius:18px;padding:12px;background:#fff}.category-title{font-weight:900;margin-bottom:8px;color:#111827}.items{display:grid;gap:8px}.defect{border:1px solid #e5e7eb;background:#f9fafb;color:#374151;text-align:left;justify-content:flex-start;font-size:14px;font-weight:700;line-height:1.35;min-height:44px}.defect.selected{background:#fff1f1;border-color:#fecaca;color:#b91c1c}.defect code{font-size:13px;background:white;border-radius:8px;padding:2px 6px;margin-right:5px;color:#2563eb}.defect.selected code{color:#b91c1c}
+.defects{display:grid;gap:10px}
+.defect-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:stretch}
+.defect-label{border:1px solid #e5e7eb;background:#f9fafb;color:#374151;text-align:left;justify-content:flex-start;font-size:14px;font-weight:700;line-height:1.35;min-height:48px;padding:11px 12px;border-radius:14px;display:flex;align-items:center}
+.defect-label code{font-size:13px;background:white;border-radius:8px;padding:2px 6px;margin-right:7px;color:#2563eb}
+.defect-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:132px}
+.item-mark-btn{min-height:48px;padding:8px 7px;border-radius:13px;font-size:13px;border:1px solid var(--line);background:#fff;color:#4b5563}
+.item-mark-btn.active.highlight{background:#fff8db;border-color:#f6d96a;color:#8a5a00}
+.item-mark-btn.active.improvement{background:#fff1f1;border-color:#fca5a5;color:#b91c1c}
+@media(max-width:430px){.defect-row{grid-template-columns:1fr}.defect-actions{min-width:0}}
+.category{border:1px solid var(--line);border-radius:18px;padding:12px;background:#fff}.category-title{font-weight:900;margin-bottom:8px;color:#111827}.items{display:grid;gap:8px}.defect{border:1px solid #e5e7eb;background:#f9fafb;color:#374151;text-align:left;justify-content:flex-start;font-size:14px;font-weight:700;line-height:1.35;min-height:44px}.defect.selected{background:#fff1f1;border-color:#fecaca;color:#b91c1c}.defect code{font-size:13px;background:white;border-radius:8px;padding:2px 6px;margin-right:5px;color:#2563eb}.defect.selected code{color:#b91c1c}
 textarea,input,select{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px;font-size:15px;background:white;color:var(--text)}textarea{min-height:86px;resize:vertical}.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.photo{position:relative;border-radius:14px;overflow:hidden;background:#f3f4f6;aspect-ratio:1/1}.photo img{width:100%;height:100%;object-fit:cover}.photo button{position:absolute;right:5px;top:5px;min-height:26px;padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.55);color:white;font-size:12px}.record{border-left:5px solid #93c5fd;background:#f8fbff;border-radius:16px;padding:12px;margin:10px 0}.record.bad{border-left-color:#f87171;background:#fff7f7}.codes{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.codechip{font-size:12px;border-radius:999px;padding:5px 8px;background:#fee2e2;color:#991b1b;font-weight:900}.empty{padding:22px;text-align:center;color:var(--muted);background:#f9fafb;border-radius:18px;border:1px dashed #d1d5db}.setting-item{border:1px solid var(--line);border-radius:16px;padding:12px;margin:10px 0;background:#fff}.setting-item input{margin-top:8px}.class-editor-row{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:9px;margin:8px 0;background:#fff}.class-editor-row input[type="checkbox"]{width:22px;height:22px;margin:0}.class-editor-row input[type="text"]{margin:0}.class-editor-row button{min-height:40px;padding:8px 11px}.class-status-label{display:flex;align-items:center;justify-content:center;gap:6px;border-radius:14px;padding:10px 8px;font-weight:900;cursor:pointer;min-width:78px}.class-status-label input{width:auto;margin:0}.class-status-label.enabled{background:#eaf8ef;color:#166534;border:1px solid #bbf7d0}.class-status-label.paused{background:#f3f4f6;color:#6b7280;border:1px solid #d1d5db}.class-editor-note{padding:10px 12px;border-radius:14px;background:#eff6ff;color:#1e40af;font-size:13px;line-height:1.6;margin-bottom:10px}.print-page{background:#fff;border-radius:14px;padding:14px;border:1px solid var(--line)}.report-table{width:100%;border-collapse:collapse;font-size:12px}.report-table th,.report-table td{border:1px solid #d1d5db;padding:6px;vertical-align:top}.report-table th{background:#f3f4f6}.ok{color:#15803d;font-weight:900}.badtext{color:#b91c1c;font-weight:900}.notify-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.notify-options label{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:14px;background:#fff;padding:10px;font-size:14px;font-weight:800}.notify-options input{width:auto}.report-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:5px}.report-photos img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:6px;border:1px solid #ddd}.toast{position:fixed;left:50%;bottom:82px;transform:translateX(-50%);background:#111827;color:white;border-radius:999px;padding:10px 14px;font-size:14px;font-weight:800;box-shadow:var(--shadow);z-index:10;opacity:0;pointer-events:none;transition:.25s}.toast.show{opacity:1}.unfinished-box{margin-top:10px}.unfinished-title{font-size:13px;font-weight:900;color:#1e40af;margin-bottom:8px}.unfinished-title.ok{color:#166534}.unfinished-buttons{display:flex;gap:6px;flex-wrap:wrap}.unfinished-buttons button{min-height:34px;padding:7px 10px;border-radius:999px;font-size:13px}.legend-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.legend-chip{font-size:13px;font-weight:900;border-radius:999px;padding:6px 10px}.legend-chip.todo{background:#dbeafe;color:#1e3a8a}.legend-chip.done{background:#f0fdf4;color:#166534}.legend-chip.bad{background:#fff1f1;color:#991b1b}.no-print{}
 .report-form{--rf:7px;--rh:18px;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;color:#111;background:white}.report-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px}.report-logo-title{display:flex;align-items:flex-start;gap:7px}.report-logo{width:34px;height:34px;border:1.2px solid #111;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;background:#fff}.report-logo img{width:100%;height:100%;object-fit:contain;display:block}.report-title{font-size:calc(var(--rf) * 2.85);font-weight:900;letter-spacing:.2px;line-height:1.15}.report-meta{font-size:calc(var(--rf) * 1.18);line-height:1.3;min-width:110px;text-align:left}.patrol-stat-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:var(--rf)}.patrol-stat-table th,.patrol-stat-table td{border:1px solid #111;text-align:center;vertical-align:middle;padding:0;height:var(--rh);word-break:break-all;line-height:1}.patrol-stat-table th{font-weight:900;background:#fff}.patrol-stat-table .date-cell{font-size:calc(var(--rf) * 1.3);font-weight:800;width:44px;line-height:1.08}.patrol-stat-table .session-cell{font-size:calc(var(--rf) * 1.05);width:28px}.patrol-stat-table .class-head{font-size:calc(var(--rf) * 1.04)}.patrol-stat-table .sub-head{font-size:calc(var(--rf) * .88);line-height:1;writing-mode:vertical-rl;text-orientation:upright;letter-spacing:-1px;padding:2px 0}.patrol-stat-table .ok-mark{font-size:calc(var(--rf) * 1.32);font-weight:900}.patrol-stat-table .bad-code{font-size:calc(var(--rf) * .98);font-weight:800;line-height:1.02}.report-note{font-size:calc(var(--rf) * 1.03);font-weight:800;margin:3px 0}.code-reference{border:1px solid #111;border-radius:7px;margin:4px 0 6px;padding:5px}.code-reference h4{text-align:center;margin:0 0 3px;font-size:calc(var(--rf) * 1.2)}.code-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}.code-col{border-right:1px solid #111;padding:0 4px}.code-col:last-child{border-right:0}.code-col b{display:block;text-align:center;margin-bottom:2px;font-size:calc(var(--rf) * 1.0)}.code-col div{font-size:calc(var(--rf) * .96);line-height:1.18}.sign-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.sign-box{border:1px solid #111;border-radius:7px;height:54px;text-align:center;font-weight:900;padding-top:5px;font-size:calc(var(--rf) * 1.05)}.sign-box span{display:block;font-weight:400;margin-top:28px;font-size:calc(var(--rf) * .95)}.sign-box.memo-box{padding-top:5px}.memo-lines{display:none}
 .pdf-control-grid{display:grid;grid-template-columns:1fr;gap:8px;margin:12px 0}.pdf-control-grid .control-card{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:10px}.unfinished-box{display:grid;gap:8px;margin-top:12px}.unfinished-title{font-weight:900;color:#1f2937}.unfinished-buttons{display:flex;gap:8px;flex-wrap:wrap}.unfinished-buttons button{min-height:38px;padding:8px 11px;border-radius:12px;font-size:14px}.range-row{display:flex;align-items:center;gap:10px}.range-row input{padding:0}.range-value{width:54px;text-align:right;font-weight:900;color:#1e40af}
@@ -80,7 +89,7 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.1.8｜2026-07-27｜統一巡堂紀錄儲存按鍵</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.1.9｜2026-07-27｜每項獨立標記亮點或改善</p></div></header>
 
 <section id="screenHome" class="screen active">
   <button class="light full no-print" type="button" onclick="returnToPreviousPage()" style="margin:0 0 10px">← 返回主管首頁</button>
@@ -112,18 +121,14 @@ button{display:none!important}
   <div class="card hero">
     <span class="pill currentTag" id="currentStep">第 1 班</span>
     <h2 id="currentClass">班級名稱</h2>
-    <p class="muted">沒有特別事項可按「本班全部合格」；拍照或備註時，請選擇「亮點分享」或「改善提醒」。</p>
+    <p class="muted">沒有特別事項可按「本班全部合格」；有亮點或需要改善時，請直接在各巡堂項目旁標記。同一班可同時有亮點與改善。</p>
     <div id="currentStatusBox" class="cloud-box">目前狀態：尚未填寫</div>
     <div class="row no-print"><button class="success" id="allPassBtn" onclick="markAllPass()">✅ 本班全部合格</button><button class="gray" onclick="clearCurrent()">清除本班</button></div>
     <div class="row no-print" style="margin-top:10px"><button id="prevClassBtn" class="light" onclick="stepClass(-1)">← 上一班</button><button id="nextClassBtn" class="light" onclick="stepClass(1)">下一班 →</button></div>
   </div>
-  <div class="card"><h3>改善提醒項目：3 類 × 5 項</h3><p class="small">只有需要改善時才勾選；亮點分享不必勾選。</p><div id="defectList" class="defects"></div></div>
+  <div class="card"><h3>巡堂觀察項目：3 類 × 5 項</h3><p class="small">每個項目可分別標記「亮點」或「改善」，再次點同一按鈕可取消；同一班可以同時存在兩種紀錄。</p><div id="defectList" class="defects"></div></div>
   <div class="card"><h3>照片與巡堂紀錄</h3>
-<div class="small">請先選擇這筆紀錄的性質：</div>
-<div class="record-type-grid" id="recordTypeGrid">
-  <button type="button" class="record-type-btn highlight" data-type="highlight" onclick="setRecordType('highlight')">⭐ 亮點分享</button>
-  <button type="button" class="record-type-btn improvement" data-type="improvement" onclick="setRecordType('improvement')">💡 改善提醒</button>
-</div>
+<div class="small">項目類型已改為逐項設定；照片與巡堂內容可補充整體說明。</div>
 <label for="photoInput" class="btn light full">📷 拍照／選擇照片</label>
 <input id="photoInput" type="file" accept="image/*" capture="environment" multiple onchange="addPhotos(event)" style="position:absolute;left:-9999px">
 <div id="photoStatus" class="small" style="margin-top:8px">尚未選擇照片</div>
@@ -224,6 +229,8 @@ function cloudToLocalRecord(item,sessionKey){
                item.result==='一般觀察'?'pass':
                item.result==='合格'?'pass':'improvement',
     defects:splitCloudDefectCodes(item.defectCodes),
+    highlights:splitCloudDefectCodes(item.highlightCodes),
+    itemMarks:{},
     note:item.notes||'',
     notifyTargets:splitCloudList(item.notifyTargets),
     photos:[],
@@ -232,6 +239,8 @@ function cloudToLocalRecord(item,sessionKey){
     cloudSyncedAt:item.updatedAt||item.createdAt||'',
     cloudUpdatedAt:item.updatedAt||''
   };
+  (rec.defects||[]).forEach(code=>rec.itemMarks[code]='improvement');
+  (rec.highlights||[]).forEach(code=>rec.itemMarks[code]='highlight');
   rec.cloudSyncSignature=recordSyncSignature(rec,sessionKey);
   return rec;
 }
@@ -318,6 +327,7 @@ function cloudPayload(rec,sessionKey=currentSession){
     result:recordTypeLabel(rec),
     recordType:recordTypeLabel(rec),
     defectCodes:(rec.defects||[]).join('、'),
+    highlightCodes:(rec.highlights||[]).join('、'),
     notes:rec.note||'',
     notifyTargets:targetText(rec),
     photoCount:displayPhotoCount(rec),
@@ -344,6 +354,8 @@ function recordSyncSignature(rec,sessionKey){
     status:rec.status||'',
     recordType:normalizeRecordType(rec),
     defects:[...(rec.defects||[])].sort(),
+    highlights:[...(rec.highlights||[])].sort(),
+    itemMarks:Object.entries(rec.itemMarks||{}).sort(),
     note:rec.note||'',
     notifyTargets:[...(rec.notifyTargets||[])].sort(),
     photoKeys:(rec.photos||[]).map(photoFingerprint)
@@ -492,6 +504,22 @@ function migrateObservationToPass(){
   });
 }
 migrateObservationToPass();
+function migrateItemMarks(){
+  const fixRecord=rec=>{
+    if(!rec)return;
+    rec.defects=Array.isArray(rec.defects)?rec.defects:[];
+    rec.highlights=Array.isArray(rec.highlights)?rec.highlights:[];
+    rec.itemMarks=rec.itemMarks&&typeof rec.itemMarks==='object'?rec.itemMarks:{};
+    rec.defects.forEach(code=>{if(!rec.itemMarks[code])rec.itemMarks[code]='improvement'});
+    rec.highlights.forEach(code=>{if(!rec.itemMarks[code])rec.itemMarks[code]='highlight'});
+    rec.highlights=Object.entries(rec.itemMarks).filter(([,v])=>v==='highlight').map(([k])=>k);
+    rec.defects=Object.entries(rec.itemMarks).filter(([,v])=>v==='improvement').map(([k])=>k);
+  };
+  ['morning','afternoon'].forEach(session=>Object.values(data.records?.[session]||{}).forEach(fixRecord));
+  Object.values(data.history||{}).forEach(day=>['morning','afternoon'].forEach(session=>Object.values(day?.[session]||{}).forEach(fixRecord)));
+}
+migrateItemMarks();
+
 data.history=data.history||{};
 data.selectedWeekStart=data.selectedWeekStart||isoDate(startOfWeek(new Date()));
 let currentSession=data.currentSession||'morning';
@@ -637,42 +665,18 @@ function loadCurrentDraft(){const cls=data.classes[currentIndex];const rec=recs(
 
 
 function normalizeRecordType(rec){
-  if(rec?.recordType)return rec.recordType;
-  if(rec?.status==='pass')return 'pass';
-  if(rec?.status==='needs_improvement'||(rec?.defects||[]).length)return 'improvement';
-  if(rec?.status==='highlight')return 'highlight';
-  if(rec?.status==='observation')return 'pass';
-  return 'draft';
+  if(!rec)return 'draft';
+  if(rec.status==='pass')return 'pass';
+  if((rec.defects||[]).length && (rec.highlights||[]).length)return 'mixed';
+  if((rec.defects||[]).length)return 'improvement';
+  if((rec.highlights||[]).length)return 'highlight';
+  return rec.recordType||'draft';
 }
 function recordTypeLabel(rec){
   const type=normalizeRecordType(rec);
-  return type==='pass'?'合格':
-         type==='highlight'?'亮點分享':
-         type==='draft'?'尚未完成':'改善提醒';
+  return type==='pass'?'合格':type==='highlight'?'亮點分享':type==='improvement'?'改善提醒':type==='mixed'?'亮點＋改善':'尚未完成';
 }
-function renderRecordType(rec){
-  const type=normalizeRecordType(rec);
-  document.querySelectorAll('#recordTypeGrid .record-type-btn').forEach(btn=>{
-    btn.classList.toggle('active',btn.dataset.type===type);
-  });
-}
-function setRecordType(type){
-  const cls=data.classes[currentIndex];
-  const rec=ensureRec(cls);
-  if(type!=='improvement'&&(rec.defects||[]).length){
-    alert('目前已有改善提醒項目。請先取消勾選項目，才能改成亮點分享。');
-    return;
-  }
-  rec.recordType=type;
-  if(type==='highlight')rec.status='highlight';
-  else rec.status=(rec.defects||[]).length?'needs_improvement':'draft';
-  rec.time=nowTime();
-  markRecordChanged(rec);
-  archiveRecord(rec);
-  persist(false);
-  renderRecordType(rec);
-  updateCurrentStatus();
-}
+function renderRecordType(rec){}
 function updateCurrentStatus(){
   const cls=data.classes[currentIndex];
   const rec=recs()[cls];
@@ -681,21 +685,26 @@ function updateCurrentStatus(){
   if(!box)return;
 
   const defects=rec?.defects||[];
+  const highlights=rec?.highlights||[];
   const photos=currentPhotos?.length||0;
   const note=(document.getElementById('note')?.value||rec?.note||'').trim();
 
-  if(defects.length){
+  if(defects.length&&highlights.length){
+    box.className='cloud-box error';
+    box.textContent=`目前狀態：亮點 ${highlights.join('、')}｜改善 ${defects.join('、')}｜照片 ${photos} 張`;
+    if(passBtn)passBtn.disabled=true;
+  }else if(defects.length){
     box.className='cloud-box error';
     box.textContent=`目前狀態：改善提醒｜項目 ${defects.join('、')}｜照片 ${photos} 張`;
+    if(passBtn)passBtn.disabled=true;
+  }else if(highlights.length){
+    box.className='cloud-box success';
+    box.textContent=`目前狀態：亮點分享｜項目 ${highlights.join('、')}｜照片 ${photos} 張`;
     if(passBtn)passBtn.disabled=true;
   }else if(rec?.status==='pass'){
     box.className='cloud-box success';
     box.textContent='目前狀態：全部合格';
     if(passBtn)passBtn.disabled=false;
-  }else if(rec?.status==='highlight'){
-    box.className='cloud-box success';
-    box.textContent=`目前狀態：亮點分享｜照片 ${photos} 張`;
-    if(passBtn)passBtn.disabled=true;
   }else if(photos||note){
     box.className='cloud-box syncing';
     box.textContent='目前狀態：已有照片或內容，請選擇紀錄類型';
@@ -712,7 +721,41 @@ function getSelectedDefectCodes(){
   return [...(recs()[cls]?.defects||[])];
 }
 
-function renderDefects(){const wrap=document.getElementById('defectList');if(!wrap)return;const cls=data.classes[currentIndex];const selected=new Set(recs()[cls]?.defects||[]);wrap.innerHTML='';data.categories.forEach((cat,ci)=>{const box=document.createElement('div');box.className='category';box.innerHTML=`<div class="category-title">${cat.name}</div><div class="items"></div>`;const items=box.querySelector('.items');cat.items.forEach((txt,ii)=>{const code=`${ci+1}-${ii+1}`;const b=document.createElement('button');b.className='defect'+(selected.has(code)?' selected':'');b.innerHTML=`<code>${code}</code>${txt}`;b.onclick=()=>toggleDefect(code);items.appendChild(b)});wrap.appendChild(box)})}
+function renderDefects(){
+  const wrap=document.getElementById('defectList');if(!wrap)return;
+  const cls=data.classes[currentIndex];
+  const rec=recs()[cls];
+  const marks=rec?.itemMarks||{};
+  wrap.innerHTML='';
+  data.categories.forEach((cat,ci)=>{
+    const box=document.createElement('div');box.className='category';
+    box.innerHTML=`<div class="category-title">${cat.name}</div><div class="items"></div>`;
+    const items=box.querySelector('.items');
+    cat.items.forEach((txt,ii)=>{
+      const code=`${ci+1}-${ii+1}`;
+      const row=document.createElement('div');row.className='defect-row';
+      row.innerHTML=`<div class="defect-label"><code>${code}</code>${txt}</div><div class="defect-actions"><button type="button" class="item-mark-btn highlight ${marks[code]==='highlight'?'active':''}" onclick="setItemMark('${code}','highlight')">⭐ 亮點</button><button type="button" class="item-mark-btn improvement ${marks[code]==='improvement'?'active':''}" onclick="setItemMark('${code}','improvement')">💡 改善</button></div>`;
+      items.appendChild(row);
+    });
+    wrap.appendChild(box);
+  });
+}
+function syncMarksToLists(rec){
+  rec.itemMarks=rec.itemMarks&&typeof rec.itemMarks==='object'?rec.itemMarks:{};
+  rec.highlights=Object.entries(rec.itemMarks).filter(([,v])=>v==='highlight').map(([k])=>k);
+  rec.defects=Object.entries(rec.itemMarks).filter(([,v])=>v==='improvement').map(([k])=>k);
+}
+function setItemMark(code,type){
+  const cls=data.classes[currentIndex];
+  const rec=ensureRec(cls);
+  rec.itemMarks=rec.itemMarks||{};
+  rec.itemMarks[code]=rec.itemMarks[code]===type?'':type;
+  if(!rec.itemMarks[code])delete rec.itemMarks[code];
+  syncMarksToLists(rec);
+  rec.recordType=(rec.defects.length&&rec.highlights.length)?'mixed':rec.defects.length?'improvement':rec.highlights.length?'highlight':'draft';
+  rec.status=rec.defects.length?'needs_improvement':rec.highlights.length?'highlight':'draft';
+  rec.time=nowTime();markRecordChanged(rec);archiveRecord(rec);persist(false);renderDefects();updateCurrentStatus();updateAll();
+}
 function getTargetsFromUI(){return [...document.querySelectorAll('#notifyTargets input:checked')].map(x=>x.value)}
 function renderNotifyOptions(rec){const box=document.getElementById('notifyTargets');if(!box)return;const oldTarget=rec?.notifyTarget;const selected=new Set(rec?.notifyTargets|| (oldTarget?[oldTarget]:['本班教保人員']));box.innerHTML=notifyOptions.map(x=>`<label><input type="checkbox" value="${x}" ${selected.has(x)?'checked':''} onchange="saveCurrent(false)">${x}</label>`).join('')}
 function targetText(rec){const arr=rec?.notifyTargets || (rec?.notifyTarget?[rec.notifyTarget]:[]);return arr.length?arr.join('、'):'未指定'}
@@ -742,31 +785,16 @@ function getReportRecord(dateISO,session,cls){
   if(dateISO===isoDate())return data.records?.[session]?.[cls];
   return null;
 }
-function ensureRec(cls){const r=recs();if(!r[cls])r[cls]={className:cls,session:sessionName(),date:today(),isoDate:isoDate(),time:'',status:'draft',recordType:'draft',defects:[],note:'',notifyTargets:['本班教保人員'],photos:[]};return r[cls]}
-function toggleDefect(code){
-  const cls=data.classes[currentIndex];
-  const rec=ensureRec(cls);
-  const s=new Set(rec.defects||[]);
-  s.has(code)?s.delete(code):s.add(code);
-  rec.defects=[...s];
-  rec.recordType=rec.defects.length?'improvement':(rec.recordType==='improvement'?'draft':rec.recordType||'draft');
-  rec.status=rec.defects.length?'needs_improvement':(rec.recordType==='highlight'?'highlight':'draft');
-  rec.time=nowTime();
-  markRecordChanged(rec);
-  archiveRecord(rec);
-  persist();
-  renderDefects();
-  updateCurrentStatus();
-}
+function ensureRec(cls){const r=recs();if(!r[cls])r[cls]={className:cls,session:sessionName(),date:today(),isoDate:isoDate(),time:'',status:'draft',recordType:'draft',defects:[],highlights:[],itemMarks:{},note:'',notifyTargets:['本班教保人員'],photos:[]};return r[cls]}
 function markAllPass(){
   const cls=data.classes[currentIndex];
   const rec=recs()[cls];
   const note=(document.getElementById('note')?.value||'').trim();
-  if((rec?.defects||[]).length || currentPhotos.length || note){
+  if((rec?.defects||[]).length || (rec?.highlights||[]).length || currentPhotos.length || note){
     alert('本班已有改善項目、照片或巡堂內容，不能直接改成全部合格。請先按「清除本班」。');
     return;
   }
-  recs()[cls]={className:cls,session:sessionName(),date:today(),isoDate:isoDate(),time:nowTime(),status:'pass',recordType:'pass',defects:[],note:'',notifyTargets:[],photos:[]};
+  recs()[cls]={className:cls,session:sessionName(),date:today(),isoDate:isoDate(),time:nowTime(),status:'pass',recordType:'pass',defects:[],highlights:[],itemMarks:{},note:'',notifyTargets:[],photos:[]};
   markRecordChanged(recs()[cls]);
   archiveRecord(recs()[cls]);
   currentPhotos=[];
@@ -847,10 +875,12 @@ function savePhotoDraft(){
   rec.photos=[...currentPhotos];
   rec.isoDate=isoDate();
   rec.time=nowTime();
+  syncMarksToLists(rec);
   if((rec.defects||[]).length){
-    rec.recordType='improvement';
+    rec.recordType=(rec.highlights||[]).length?'mixed':'improvement';
     rec.status='needs_improvement';
-  }else if(rec.recordType==='highlight'){
+  }else if((rec.highlights||[]).length){
+    rec.recordType='highlight';
     rec.status='highlight';
   }else if(rec.status==='pass'){
     rec.recordType='pass';
@@ -888,12 +918,13 @@ function saveCurrent(update=true){
   const cls=data.classes[currentIndex];
   let rec=recs()[cls];
   const defects=[...(rec?.defects||[])];
+  const highlights=[...(rec?.highlights||[])];
   const note=document.getElementById('note').value.trim();
 
-  if(!rec && !note && !currentPhotos.length && !defects.length)return null;
+  if(!rec && !note && !currentPhotos.length && !defects.length && !highlights.length)return null;
 
   rec=ensureRec(cls);
-  rec.defects=defects;
+  rec.defects=defects;rec.highlights=highlights;rec.itemMarks=rec.itemMarks||{};
   rec.note=note;
   rec.notifyTargets=getTargetsFromUI();
   delete rec.notifyTarget;
@@ -903,13 +934,10 @@ function saveCurrent(update=true){
   rec.isoDate=isoDate();
   rec.session=sessionName();
 
-  if(defects.length){
-    rec.recordType='improvement';
-    rec.status='needs_improvement';
-  }else if(rec.status!=='pass'){
-    rec.recordType=rec.recordType||'draft';
-    rec.status=rec.recordType==='highlight'?'highlight':'draft';
-  }
+  syncMarksToLists(rec);
+  if((rec.defects||[]).length){rec.recordType=(rec.highlights||[]).length?'mixed':'improvement';rec.status='needs_improvement';}
+  else if((rec.highlights||[]).length){rec.recordType='highlight';rec.status='highlight';}
+  else if(rec.status!=='pass'){rec.recordType='draft';rec.status='draft';}
 
   markRecordChanged(rec);
   archiveRecord(rec);
@@ -920,44 +948,17 @@ function saveCurrent(update=true){
 
 function savePatrolRecordAndNext(){
   const rec=saveCurrent(true);
-
-  if(!rec){
-    alert('本班尚未填寫巡堂紀錄。\n沒有特殊事項時，請按「本班全部合格」。');
-    return;
+  if(!rec){alert('本班尚未填寫巡堂紀錄。\n沒有特殊事項時，請按「本班全部合格」。');return;}
+  const hasImprovement=(rec.defects||[]).length>0;
+  const hasHighlight=(rec.highlights||[]).length>0;
+  if(hasHighlight&&!displayPhotoCount(rec)&&!(rec.note||'').trim()){alert('有亮點項目時，請至少加入照片或填寫巡堂內容。');return;}
+  if(hasImprovement||hasHighlight){
+    rec.recordType=hasImprovement&&hasHighlight?'mixed':hasImprovement?'improvement':'highlight';
+    rec.status=hasImprovement?'needs_improvement':'highlight';markRecordChanged(rec);archiveRecord(rec);persist();
+    toast(hasImprovement&&hasHighlight?'已儲存亮點與改善提醒':hasImprovement?'已儲存改善提醒':'已儲存亮點分享');goNextClass();return;
   }
-
-  if((rec.defects||[]).length){
-    rec.recordType='improvement';
-    rec.status='needs_improvement';
-    markRecordChanged(rec);
-    archiveRecord(rec);
-    persist();
-    toast('已儲存改善提醒');
-    goNextClass();
-    return;
-  }
-
-  if(rec.recordType==='highlight' || rec.status==='highlight'){
-    if(!displayPhotoCount(rec) && !(rec.note||'').trim()){
-      alert('亮點分享請至少加入照片或填寫巡堂內容。');
-      return;
-    }
-    rec.recordType='highlight';
-    rec.status='highlight';
-    markRecordChanged(rec);
-    archiveRecord(rec);
-    persist();
-    toast('已儲存亮點分享');
-    goNextClass();
-    return;
-  }
-
-  if(rec.status==='pass'){
-    goNextClass();
-    return;
-  }
-
-  alert('請先選擇「亮點分享」，或勾選改善提醒項目。\n沒有特殊事項時，請按「本班全部合格」。');
+  if(rec.status==='pass'){goNextClass();return;}
+  alert('請在巡堂項目旁標記「亮點」或「改善」。\n沒有特殊事項時，請按「本班全部合格」。');
 }
 
 function saveDefectAndNext(){
@@ -993,22 +994,25 @@ function defectText(code){const [a,b]=code.split('-').map(n=>parseInt(n,10));ret
 function messageForCurrent(){
   const rec=saveCurrent(true);
   if(!rec)return '尚未有巡堂紀錄';
-  const codes=(rec.defects||[]).map(c=>`${c} ${defectText(c)}`).join('\n');
+  const improveCodes=(rec.defects||[]).map(c=>`${c} ${defectText(c)}`).join('\n');
+  const highlightCodes=(rec.highlights||[]).map(c=>`${c} ${defectText(c)}`).join('\n');
   return `Heremay 和美智慧校園｜巡堂紀錄
 時段：${sessionName()}
 班級：${rec.className}
 時間：${rec.time}
 紀錄類型：${recordTypeLabel(rec)}
 通知對象：${targetText(rec)}
+亮點項目：
+${highlightCodes||'無'}
 改善提醒項目：
-${codes||'無'}
+${improveCodes||'無'}
 巡堂內容：${rec.note||'無'}
 照片：${displayPhotoCount(rec)} 張（同步後存入雲端照片資料夾）`;
 }
 async function shareCurrent(){const text=messageForCurrent();try{if(navigator.share){await navigator.share({title:'和美智慧校園巡堂紀錄',text});alert('已開啟分享／轉發功能')}else if(navigator.clipboard){await navigator.clipboard.writeText(text);alert('瀏覽器不支援直接分享，已複製通知文字，可貼到 LINE 或訊息中。')}else{downloadText('巡堂紀錄.txt',text)}}catch(e){console.log(e)}}
 function downloadText(filename,text){const blob=new Blob([text],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href)}
 function downloadCurrentText(){downloadText(`巡堂紀錄_${sessionName()}_${data.classes[currentIndex]}.txt`,messageForCurrent())}
-function exportAllText(){const lines=['Heremay 和美智慧校園｜今日巡堂紀錄',`日期：${today()}`,`時段：${sessionName()}`,''];const r=recs();data.classes.forEach(c=>{const x=r[c];if(!x){lines.push(`${c}：尚未巡視`);return}lines.push(`${c}｜${recordTypeLabel(x)}｜${x.time}`);lines.push(`改善項目：${(x.defects||[]).join(', ')||'無'}`);lines.push(`備註：${x.note||'無'}`);lines.push(`照片：${displayPhotoCount(x)} 張`);lines.push('')});downloadText(`Heremay今日巡堂紀錄_${sessionName()}.txt`,lines.join('\n'))}
+function exportAllText(){const lines=['Heremay 和美智慧校園｜今日巡堂紀錄',`日期：${today()}`,`時段：${sessionName()}`,''];const r=recs();data.classes.forEach(c=>{const x=r[c];if(!x){lines.push(`${c}：尚未巡視`);return}lines.push(`${c}｜${recordTypeLabel(x)}｜${x.time}`);lines.push(`亮點項目：${(x.highlights||[]).join(', ')||'無'}`);lines.push(`改善項目：${(x.defects||[]).join(', ')||'無'}`);lines.push(`備註：${x.note||'無'}`);lines.push(`照片：${displayPhotoCount(x)} 張`);lines.push('')});downloadText(`Heremay今日巡堂紀錄_${sessionName()}.txt`,lines.join('\n'))}
 async function syncCurrentSession(){await syncSessionToCloud(currentSession,true)}
 function resetSession(){
   if(confirm(`確定清空今天「${sessionName()}」全部巡堂資料，重新從第一個啟用班級開始嗎？`)){
@@ -1099,7 +1103,7 @@ function renderRecords(){
     div.className='record '+(type==='improvement'?'bad':type==='highlight'?'good':'neutral');
     const photoCount=displayPhotoCount(x);
     const label=recordTypeLabel(x);
-    div.innerHTML=`<b>${date}｜${sessionName(session)}｜${cls}</b><div><span class="typechip ${type}">${label}</span></div><div class="small">${x.time||''}</div><div class="codes">${(x.defects||[]).map(y=>`<span class="codechip">${y}</span>`).join('')}</div><div class="small">巡堂內容：${x.note||'無'}</div><div class="small">照片：${photoCount} 張｜通知：${targetText(x)}</div>`;
+    div.innerHTML=`<b>${date}｜${sessionName(session)}｜${cls}</b><div><span class="typechip ${type}">${label}</span></div><div class="small">${x.time||''}</div><div class="codes">${(x.highlights||[]).map(y=>`<span class="codechip" style="background:#fff3bf;color:#8a5a00">${y} 亮點</span>`).join('')}${(x.defects||[]).map(y=>`<span class="codechip">${y} 改善</span>`).join('')}</div><div class="small">巡堂內容：${x.note||'無'}</div><div class="small">照片：${photoCount} 張｜通知：${targetText(x)}</div>`;
     box.appendChild(div);
   });
 }

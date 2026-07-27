@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜庶務人員首頁 v13.1 部門公告篩選修正</title>
+  <title>和美智慧校園｜庶務人員首頁 v13.3 雲端網址與公告篩選修正</title>
   <style>
     :root{
       --bg1:#f1fff6;
@@ -728,7 +728,7 @@
   </div>
 
   <script>
-    const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzbZ6r6c8XjHuKad0U5TIJXr8i141fCBwNJcVsKnoGa1-NXG_JOzapeRF5cVlnGI4F7/exec';
+    const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
 
     let currentUser = '庶務人員';
     let currentEmployee = null;
@@ -740,6 +740,19 @@
     const CURRENT_DEPARTMENT='庶務部';
     let cloudAnnouncements=[];
     let cloudReports=[];
+
+
+    function normalizedTargets(x){
+      if(Array.isArray(x?.targets)) return x.targets.map(String);
+      if(Array.isArray(x?.通知對象JSON)) return x.通知對象JSON.map(String);
+      const raw=x?.targets ?? x?.通知對象JSON ?? '';
+      if(!raw) return [];
+      try{
+        const parsed=JSON.parse(raw);
+        if(Array.isArray(parsed)) return parsed.map(String);
+      }catch(e){}
+      return String(raw).split(/[、,，|]/).map(v=>v.trim()).filter(Boolean);
+    }
 
     function safeHtml(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
     function staffJsonp(action,params={}){
@@ -760,21 +773,24 @@
         ]);
         if(!nr.ok)throw new Error(nr.message||'公告讀取失敗');
         cloudAnnouncements=(Array.isArray(nr.announcements)?nr.announcements:(nr.notices||[]))
-          .filter(x=>Array.isArray(x.targets)&&x.targets.includes(CURRENT_DEPARTMENT));
+          .filter(x=>normalizedTargets(x).includes(CURRENT_DEPARTMENT));
         cloudReports=rr.ok&&Array.isArray(rr.reports)?rr.reports:[];
         localStorage.setItem(ANNOUNCEMENT_KEY,JSON.stringify(cloudAnnouncements));
         localStorage.setItem(REPORT_KEY,JSON.stringify(cloudReports));
         renderDynamicNotices();renderMyReports();
       }catch(err){
         console.warn(err);
-        try{cloudAnnouncements=JSON.parse(localStorage.getItem(ANNOUNCEMENT_KEY)||'[]')}catch(e){cloudAnnouncements=[]}
+        try{
+          cloudAnnouncements=JSON.parse(localStorage.getItem(ANNOUNCEMENT_KEY)||'[]')
+            .filter(x=>normalizedTargets(x).includes(CURRENT_DEPARTMENT));
+        }catch(e){cloudAnnouncements=[]}
         try{cloudReports=JSON.parse(localStorage.getItem(REPORT_KEY)||'[]')}catch(e){cloudReports=[]}
         renderDynamicNotices();renderMyReports();
       }
     }
     function renderDynamicNotices(){
       const box=document.getElementById('dynamicNoticeBoard');if(!box)return;
-      box.innerHTML=cloudAnnouncements.length?cloudAnnouncements.map(x=>`<div class="pin-row"><div class="pin">📍</div><div class="announce"><strong>${safeHtml(x.title)}</strong><p>${safeHtml(x.content).replace(/\n/g,'<br>')}</p><div class="meta">發布：${safeHtml(x.createdBy||'智慧秘書')}｜對象：${(x.targets||[]).join('、')}</div></div></div>`).join(''):'<div class="announce"><p>目前沒有公告。</p></div>';
+      box.innerHTML=cloudAnnouncements.length?cloudAnnouncements.map(x=>`<div class="pin-row"><div class="pin">📍</div><div class="announce"><strong>${safeHtml(x.title)}</strong><p>${safeHtml(x.content).replace(/\n/g,'<br>')}</p><div class="meta">發布：${safeHtml(x.createdBy||'智慧秘書')}｜對象：${normalizedTargets(x).join('、')}</div></div></div>`).join(''):'<div class="announce"><p>目前沒有公告。</p></div>';
     }
     function openReportCenter(){document.getElementById('reportCenterModal').classList.add('show');resetStaffReport();renderMyReports()}
     function hideReportCenter(){document.getElementById('reportCenterModal').classList.remove('show')}
