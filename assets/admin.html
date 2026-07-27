@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Heremay 和美智慧校園｜主管工作台 v22.4</title>
+  <style>
+    :root{
+      --bg1:#eaf7ff;
+      --bg2:#f5fbff;
+      --blue:#73bfe9;
+      --blue2:#4aa9dc;
+      --deep:#24536b;
+      --card:#ffffff;
+      --soft:#f0f9ff;
+      --line:#cceaf7;
+      --pink:#ffe8f2;
+      --green:#e7f8ed;
+      --yellow:#fff7db;
+      --red:#ff6b6b;
+      --shadow:0 12px 28px rgba(65,130,170,.16);
+      --radius:24px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;
+      background:linear-gradient(180deg,var(--bg1),var(--bg2));
+      color:#20323d;
+      min-height:100vh;
+    }
+    body.auth-pending .app{visibility:hidden}
+    .accessDenied{
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:24px;
+      background:linear-gradient(180deg,var(--bg1),var(--bg2));
+    }
+    .accessDeniedCard{
+      width:min(440px,100%);
+      background:#fff;
+      border:1px solid #d6edf8;
+      border-radius:28px;
+      padding:26px 20px;
+      text-align:center;
+      box-shadow:var(--shadow);
+    }
+    .accessDeniedCard .lockIcon{font-size:48px;margin-bottom:10px}
+    .accessDeniedCard h2{margin:0;color:#24536b}
+    .accessDeniedCard p{color:#607987;line-height:1.7;font-weight:700}
+    .accessDeniedCard button{
+      border:0;border-radius:18px;padding:12px 18px;
+      background:#54addc;color:#fff;font-size:16px;font-weight:900;cursor:pointer;
+    }
+
+    .app{
+      width:min(980px,100%);
+      margin:0 auto;
+      padding:18px 14px 34px;
+    }
+    .topbar{
+      background:rgba(255,255,255,.78);
+      backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,.9);
+      box-shadow:var(--shadow);
+      border-radius:30px;
+      padding:16px;
+      display:flex;
+      align-items:center;
+      gap:14px;
+      position:sticky;
+      top:10px;
+      z-index:20;
+    }
+    .logo{
+      width:58px;height:58px;border-radius:19px;
+      background:linear-gradient(145deg,#ffe9a8,#ffd9ef 55%,#b9e8ff);
+      display:grid;place-items:center;
+      box-shadow:inset 0 2px 7px rgba(255,255,255,.75),0 8px 16px rgba(79,143,180,.18);
+      flex:0 0 auto;
+      font-size:32px;
+      overflow:hidden;
+    }
+    .logo img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      display:block;
+      padding:5px;
+    }
+    .brand{flex:1;min-width:0}
+    .brand h1{margin:0;font-size:20px;letter-spacing:.3px;color:var(--deep)}
+    .brand p{margin:5px 0 0;font-size:13px;color:#5f7a89;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .clock{
+      text-align:right;
+      color:#31576b;
+      font-weight:900;
+      font-size:20px;
+      line-height:1.35;
+      min-width:190px;
+      background:#ffffffaa;
+      border:1px solid #d8eef8;
+      border-radius:18px;
+      padding:10px 12px;
+      box-shadow:0 6px 16px rgba(70,130,160,.10);
+    }
+    .clock .dateLine{font-size:24px;letter-spacing:.2px}
+    .clock .timeLine{font-size:34px;color:#1f6f99}
+    .hero{
+      margin-top:16px;
+      background:linear-gradient(135deg,#dff4ff,#f7fcff 65%,#ffffff);
+      border:1px solid #d6effb;
+      box-shadow:var(--shadow);
+      border-radius:32px;
+      padding:22px 18px;
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:16px;
+      align-items:center;
+    }
+    .welcome h2{margin:0;color:#244e65;font-size:26px}
+    .welcome p{margin:8px 0 0;color:#607987;line-height:1.6}
+    .roleBadge{
+      display:inline-flex;align-items:center;gap:8px;
+      background:#fff;border:1px solid var(--line);border-radius:999px;
+      padding:8px 12px;font-size:14px;font-weight:700;color:#35749a;margin-top:12px;
+    }
+    .quickStatus{
+      display:grid;gap:10px;
+    }
+    .pillBox{
+      background:rgba(255,255,255,.82);border:1px solid #d6edf8;border-radius:20px;padding:12px 14px;
+    }
+    .pillBox strong{display:block;font-size:20px;color:#246184}
+    .pillBox span{font-size:13px;color:#648291}
+    .sectionTitle{
+      margin:22px 4px 10px;
+      display:flex;align-items:end;justify-content:space-between;gap:10px;
+    }
+    .sectionTitle h3{margin:0;color:#254f65;font-size:19px}
+    .sectionTitle small{color:#6d8794}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:12px;
+    }
+    .cardBtn{
+      cursor:pointer;
+      border:1px solid #d5ecf8;
+      background:var(--card);
+      border-radius:24px;
+      padding:18px 15px;
+      min-height:130px;
+      box-shadow:0 8px 22px rgba(62,122,160,.11);
+      transition:.18s ease;
+      text-align:left;
+      position:relative;
+      overflow:hidden;
+    }
+    .cardBtn:active{transform:scale(.985)}
+    .cardBtn:hover{transform:translateY(-2px);box-shadow:0 14px 26px rgba(62,122,160,.17)}
+    .cardBtn .icon{font-size:32px;margin-bottom:9px}
+    .cardBtn h4{margin:0;color:#264e64;font-size:18px}
+    .cardBtn p{margin:7px 0 0;color:#6b8592;font-size:13px;line-height:1.45}
+    .cardBtn .tag{position:absolute;right:12px;top:12px;background:#ecf8ff;border:1px solid #d3ecfa;border-radius:999px;padding:4px 8px;font-size:12px;color:#4280a3;font-weight:700}
+    .cards2{
+      display:grid;grid-template-columns:1.05fr .95fr;gap:12px;
+      margin-bottom:16px;
+    }
+    .panel{
+      background:rgba(255,255,255,.86);
+      border:1px solid #d6edf8;
+      border-radius:26px;
+      padding:16px;
+      box-shadow:var(--shadow);
+    }
+    .list{display:grid;gap:10px;margin-top:10px}
+    .item{
+      display:flex;gap:10px;align-items:flex-start;background:#fff;border:1px solid #e1f1f8;border-radius:18px;padding:12px;
+    }
+    .time{
+      flex:0 0 auto;background:#e8f7ff;color:#28739b;border-radius:13px;padding:7px 9px;font-weight:800;font-size:13px;
+    }
+    .item h5{margin:0;font-size:15px;color:#2a4b5d}.item p{margin:4px 0 0;color:#708996;font-size:13px;line-height:1.45}
+    .dueTabs{display:flex;gap:8px;margin:8px 0 12px}.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px;font-weight:700;color:#52819b;cursor:pointer}.tab.active{background:#52addd;color:white;border-color:#52addd}
+    .footerNav{
+      position:fixed;left:50%;bottom:12px;transform:translateX(-50%);
+      width:min(520px,calc(100% - 24px));
+      display:flex;justify-content:space-around;gap:8px;
+      background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
+      border:1px solid #d5edf9;border-radius:24px;padding:8px;box-shadow:0 12px 26px rgba(53,112,150,.18);
+      z-index:40;
+    }
+    .footerNav button{border:0;background:transparent;border-radius:16px;padding:8px 10px;color:#52788c;font-weight:800;cursor:pointer}.footerNav button.active{background:#e9f8ff;color:#2181b3}
+    .modalMask{position:fixed;inset:0;background:rgba(18,42,58,.32);display:none;align-items:flex-end;justify-content:center;z-index:80;padding:12px}.modalMask.show{display:flex}.modal{width:min(660px,100%);max-height:86vh;overflow:auto;background:white;border-radius:28px;padding:18px;box-shadow:0 20px 50px rgba(20,60,80,.28)}
+    .modalHeader{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.modalHeader h3{margin:0;color:#244f66}.x{border:0;background:#eff8fd;border-radius:14px;padding:8px 11px;cursor:pointer;font-weight:900;color:#47758c}
+    label{display:block;font-weight:800;color:#355e73;margin:12px 0 6px}input,textarea,select{width:100%;border:1px solid #cfe7f3;border-radius:16px;padding:12px 13px;font-size:16px;background:#fbfeff}textarea{min-height:92px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.btn{border:0;border-radius:18px;padding:12px 14px;font-size:16px;font-weight:900;cursor:pointer;background:#54addc;color:white}.btn.secondary{background:#edf8fe;color:#347da3;border:1px solid #ccecf9}.btn.warn{background:#ffcf71;color:#704700}.btnRow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}.checkGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}.check{background:#f5fbff;border:1px solid #d7edf8;border-radius:16px;padding:10px;display:flex;gap:8px;align-items:center}.check input{width:auto}.note{background:#fff9e9;border:1px solid #ffe4a5;border-radius:18px;padding:12px;color:#755d2d;font-size:14px;line-height:1.55}.toast{position:fixed;left:50%;top:94px;transform:translateX(-50%);background:#24536b;color:white;border-radius:999px;padding:12px 16px;font-weight:800;box-shadow:0 12px 24px rgba(30,70,90,.24);display:none;z-index:120}.toast.show{display:block;animation:fade 2.8s ease forwards}@keyframes fade{0%{opacity:0;transform:translate(-50%,-8px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-8px)}}
+    .alarm{display:none;background:#ffeef0;border:1px solid #ffc6cc;border-radius:22px;padding:14px;margin-top:12px;color:#8b2632}.alarm.show{display:block;animation:pulse .8s ease infinite alternate}@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.01)}}
+
+    .noticeBoard{
+      background:rgba(255,255,255,.88);
+      border:1px solid #d6edf8;
+      border-radius:26px;
+      padding:16px;
+      box-shadow:var(--shadow);
+      margin-bottom:16px;
+    }
+    .noticeSummary{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin:12px 0;
+    }
+    .summaryBox{
+      background:#f5fbff;
+      border:1px solid #d7edf8;
+      border-radius:18px;
+      padding:12px;
+      text-align:center;
+    }
+    .summaryBox strong{
+      display:block;
+      color:#1f6f99;
+      font-size:22px;
+      line-height:1.1;
+    }
+    .summaryBox span{
+      color:#648291;
+      font-size:12px;
+      font-weight:800;
+    }
+    .noticeItem{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px;
+      align-items:center;
+      background:#fff;
+      border:1px solid #e1f1f8;
+      border-radius:20px;
+      padding:12px;
+      margin-top:10px;
+    }
+    .noticeItem h5{margin:0;color:#2a4b5d;font-size:15px}
+    .noticeItem p{margin:5px 0 0;color:#708996;font-size:13px;line-height:1.45}
+    .progress{
+      height:9px;
+      background:#e8f7ff;
+      border-radius:999px;
+      overflow:hidden;
+      margin-top:8px;
+    }
+    .progress span{
+      display:block;
+      height:100%;
+      background:linear-gradient(90deg,#52addd,#84d0f3);
+      border-radius:999px;
+    }
+    .miniBtn{touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+      border:0;
+      background:#54addc;
+      color:white;
+      border-radius:999px;
+      padding:10px 13px;
+      font-weight:900;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .miniBtn.secondary{
+      background:#edf8fe;
+      color:#347da3;
+      border:1px solid #ccecf9;
+    }
+    .personRow{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      padding:9px 0;
+      border-top:1px dashed #d7edf8;
+      color:#395d70;
+      font-weight:800;
+      font-size:14px;
+    }
+    .personRow:first-child{border-top:0}
+    .statusOk{color:#24885c}
+    .statusMiss{color:#d04d5c}
+    .hintBox{background:#f5fbff;border:1px solid #d7edf8;border-radius:18px;padding:12px;color:#426475;font-size:14px;line-height:1.6;font-weight:800;margin:10px 0}
+    .miniGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+    .miniCard{background:#fff;border:1px solid #d7edf8;border-radius:16px;padding:10px;color:#395d70;font-weight:850;font-size:13px;line-height:1.45}
+    .miniCard b{display:block;color:#24536b;font-size:14px;margin-bottom:3px}
+
+
+    .optionRow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;background:#f8fcff;border:1px solid #d7edf8;border-radius:16px;padding:8px;margin-top:8px}
+    .filePreview{display:grid;gap:8px;margin-top:8px}
+    .fileChip{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#f5fbff;border:1px solid #d7edf8;border-radius:14px;padding:9px 10px;color:#355e73;font-weight:800;font-size:13px}
+
+
+    .quickCapture{
+      margin-top:16px;background:rgba(255,255,255,.9);border:1px solid #d6edf8;border-radius:28px;padding:16px;box-shadow:var(--shadow);
+    }
+    .quickCapture h3{margin:0 0 8px;color:#254f65}
+    .quickCapture textarea{min-height:82px}
+    .quickCaptureActions{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin-top:10px;align-items:end}
+    .quickCaptureActions label{margin:0 0 6px}
+    .noteBookBar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+    .bookChip{border:1px solid #cfe7f3;background:#f5fbff;color:#347da3;border-radius:999px;padding:8px 12px;font-weight:900;cursor:pointer}
+    .bookChip.active{background:#54addc;color:#fff;border-color:#54addc}
+    .noteEntry{background:#fff;border:1px solid #dfeff7;border-radius:18px;padding:12px;margin-top:9px}
+    .noteEntry h5{margin:0;color:#294e62;font-size:15px}
+    .noteEntry p{margin:6px 0;color:#607987;white-space:pre-wrap;line-height:1.55}
+    .noteMeta{font-size:12px;color:#78909c;font-weight:800}
+    .noteActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    @media(max-width:620px){.quickCaptureActions{grid-template-columns:1fr}.quickCaptureActions .btn{width:100%}}
+
+    @media(max-width:760px){.topbar{align-items:flex-start}.hero{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}.cards2{grid-template-columns:1fr}.clock{display:block;min-width:130px;font-size:16px;padding:8px 10px}.clock .dateLine{font-size:19px}.clock .timeLine{font-size:30px}.brand h1{font-size:18px}.welcome h2{font-size:23px}.cardBtn{min-height:122px}.row{grid-template-columns:1fr}}
+    @media(max-width:420px){.app{padding:12px 10px 34px}.topbar{border-radius:24px;display:grid;grid-template-columns:50px 1fr;gap:10px}.clock{grid-column:1/3;width:100%;text-align:center}.logo{width:50px;height:50px;font-size:28px}.grid{gap:10px}.cardBtn{padding:15px 12px;border-radius:21px}.cardBtn h4{font-size:16px}.cardBtn p{font-size:12px}.checkGrid{grid-template-columns:1fr}}
+  
+    /* ===== 主管工作台 v19 新版面 ===== */
+    :root{
+      --dash-blue:#2f68d8;
+      --dash-deep:#173f75;
+      --dash-soft:#f6f9ff;
+      --dash-line:#dfe8f6;
+      --dash-orange:#ff8a34;
+      --dash-green:#2ca86b;
+    }
+    body{background:linear-gradient(180deg,#f6f9ff 0%,#eef7ff 52%,#f9fbff 100%)}
+    .app{width:min(820px,100%);padding:14px 12px 36px}
+    .dashboardHeader{
+      display:grid;grid-template-columns:68px 1fr auto auto;gap:14px;align-items:center;
+      padding:10px 6px 16px;
+    }
+    .dashboardLogo{
+      width:68px;
+      height:68px;
+      border-radius:14px;
+      overflow:hidden;
+      background:#fffaf0;
+      border:1px solid rgba(255,255,255,.95);
+      box-shadow:0 8px 22px rgba(49,91,150,.14);
+      display:grid;
+      place-items:center;
+    }
+    .dashboardLogo img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      padding:0;
+      background:#fffaf0;
+    }
+    .dashboardIdentity small{display:block;color:#52708d;font-weight:850;font-size:15px;margin-bottom:3px}
+    .dashboardName{font-size:38px;line-height:1.05;font-weight:950;color:#12386f;letter-spacing:.5px}
+    .dashboardClock{text-align:right;color:#183f73;font-weight:900}
+    .dashboardClock .dateLine{font-size:18px}
+    .dashboardClock .timeLine{font-size:36px;line-height:1.05;color:#2461c6;margin-top:4px}
+    .dashCard{
+      background:rgba(255,255,255,.95);border:1px solid var(--dash-line);
+      border-radius:26px;padding:18px;margin-bottom:14px;
+      box-shadow:0 10px 28px rgba(45,82,132,.10);
+    }
+    .dashTitle{
+      margin:0 0 14px;display:flex;align-items:center;gap:10px;
+      color:#153e72;font-size:25px;font-weight:950;
+    }
+    .dashTitle .count{
+      margin-left:auto;background:#fff2e8;color:#e86f1d;border-radius:999px;
+      padding:6px 12px;font-size:15px;
+    }
+    .taskList{display:grid;gap:9px}
+    .taskRow{
+      display:grid;grid-template-columns:78px 1fr auto;gap:12px;align-items:center;
+      border:1px solid #e6edf8;border-radius:18px;padding:13px;background:#fff;
+      transition:.2s ease;
+    }
+    .taskRow.done{opacity:.45;transform:scale(.99)}
+    .taskTime{
+      font-size:21px;font-weight:950;color:#2f68c9;background:#edf4ff;
+      border-radius:14px;padding:8px;text-align:center;
+    }
+    .taskTitle{font-size:20px;font-weight:950;color:#1c3557}
+    .taskText{font-size:15px;color:#6b7f95;line-height:1.45;margin-top:3px;font-weight:750}
+    .taskDoneBtn{
+      width:42px;height:42px;border:1px solid #d7e4f5;border-radius:50%;background:#f7faff;
+      color:#2f68d8;font-size:22px;cursor:pointer;font-weight:900;
+    }
+    .completedToggle{
+      width:100%;border:0;background:transparent;color:#2f68d8;font-size:17px;
+      font-weight:900;padding:12px 4px 0;cursor:pointer;
+    }
+    .completedList{display:none;margin-top:10px}.completedList.show{display:grid}
+    .futureGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .futureBox{border:1px solid #dfe8f6;border-radius:20px;padding:15px;background:#fff}
+    .futureBox h3{margin:0 0 10px;color:#2461c6;font-size:19px}
+    .futureItem{
+      display:grid;grid-template-columns:70px 1fr;gap:10px;padding:9px 0;
+      border-top:1px dashed #e3eaf4;font-size:19px;font-weight:900;color:#203b61;
+    }
+    .futureItem:first-of-type{border-top:0}
+    .futureItem time{font-size:20px;color:#183f73}
+    .patrolButton{
+      width:100%;border:1px solid #c9dcff;border-radius:20px;background:linear-gradient(135deg,#edf4ff,#fff);
+      padding:17px 18px;display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;
+      box-shadow:0 7px 18px rgba(47,104,216,.10);
+    }
+    .patrolButton .pIcon{font-size:36px}
+    .patrolButton strong{font-size:24px;color:#174eaa}
+    .patrolButton span{display:block;color:#6a7e95;font-weight:800;margin-top:3px}
+    .patrolButton .arrow{margin-left:auto;font-size:30px;color:#2f68d8}
+    .secretaryGrid,.lowGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .toolCard{
+      border:1px solid #dfe8f6;border-radius:20px;background:#fff;padding:16px;
+      display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;
+      text-align:left;cursor:pointer;min-height:100px;
+    }
+    .toolCard .toolIcon{font-size:38px}.toolCard strong{font-size:21px;color:#183f73}
+    .toolCard p{margin:4px 0 0;color:#6d8095;font-weight:750;line-height:1.4}
+    .toolCard .go{font-size:25px;color:#6082ad}
+    .secretaryHeading{margin:0 0 13px;color:#153e72;font-size:24px;font-weight:950}
+    .versionStamp{text-align:center;color:#7890a6;font-size:12px;font-weight:800;margin-top:8px}
+    @media(max-width:620px){
+      .dashboardHeader{grid-template-columns:58px 1fr auto;gap:10px}.refreshVersionBtn{grid-column:1/-1;width:100%}
+      .dashboardLogo{width:58px;height:58px}
+      .dashboardIdentity small{font-size:13px}
+      .dashboardName{font-size:34px}
+      .dashboardClock .dateLine{font-size:14px}
+      .dashboardClock .timeLine{font-size:30px}
+      .dashCard{padding:15px;border-radius:22px}
+      .dashTitle{font-size:23px}
+      .taskRow{grid-template-columns:68px 1fr 40px;padding:12px 10px;gap:9px}
+      .taskTime{font-size:19px}
+      .taskTitle{font-size:19px}
+      .taskText{font-size:14px}
+      .futureGrid{grid-template-columns:1fr}
+      .futureItem{font-size:20px}
+      .secretaryGrid,.lowGrid{grid-template-columns:1fr 1fr;gap:10px}
+      .toolCard{grid-template-columns:44px 1fr auto;padding:13px;min-height:94px}
+      .toolCard .toolIcon{font-size:33px}
+      .toolCard strong{font-size:19px}
+      .toolCard p{font-size:13px}
+    }
+    @media(max-width:390px){
+      .dashboardName{font-size:30px}
+      .dashboardClock .dateLine{display:none}.refreshVersionBtn{grid-column:1/-1}
+      .secretaryGrid,.lowGrid{grid-template-columns:1fr}
+    }
+
+  
+    .refreshVersionBtn{
+      border:1px solid #cfe2ff;
+      background:#edf4ff;
+      color:#245fc2;
+      border-radius:14px;
+      padding:10px 13px;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow:0 6px 16px rgba(47,104,216,.10);
+      white-space:nowrap;
+    }
+    .refreshVersionBtn:active{transform:scale(.98)}
+
+  </style>
+</head>
+<body class="auth-pending">
+  <div class="toast" id="toast"></div>
+  <main class="app" id="home">
+    <header class="dashboardHeader">
+      <div class="dashboardLogo"><img src="assets/logo.png?v=20260727e" alt="和美智慧校園 Logo" onerror="this.parentElement.textContent='🏰'"></div>
+      <div class="dashboardIdentity">
+        <small>Heremay 和美智慧校園</small>
+        <div class="dashboardName" id="adminName">主管</div>
+      </div>
+      <div class="dashboardClock" id="clock">--</div>
+      <button class="refreshVersionBtn" type="button" onclick="refreshLatestVersion()">重新整理新版</button>
+    </header>
+
+    <section class="dashCard">
+      <h2 class="dashTitle">📅 今天待辦 <span class="count" id="todayCount">0 件</span></h2>
+      <div class="taskList" id="todayList"></div>
+      <button class="completedToggle" id="completedToggle" type="button" onclick="toggleCompleted()">已完成 0 件⌄</button>
+      <div class="completedList taskList" id="completedList"></div>
+    </section>
+
+    <section class="dashCard">
+      <h2 class="dashTitle">🗓️ 明天／後天</h2>
+      <div class="futureGrid">
+        <article class="futureBox">
+          <h3 id="tomorrowTitle">明天</h3>
+          <div id="tomorrowList"></div>
+        </article>
+        <article class="futureBox">
+          <h3 id="afterTomorrowTitle">後天</h3>
+          <div id="afterTomorrowList"></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="dashCard">
+      <button class="patrolButton" type="button" onclick="location.href='patrol.html'">
+        <span class="pIcon">📋</span>
+        <span><strong>巡堂</strong><span>上午／下午巡堂、紀錄與週報表</span></span>
+        <span class="arrow">›</span>
+      </button>
+    </section>
+
+    <section class="dashCard">
+      <button class="patrolButton" type="button" onclick="location.href='secretary.html'">
+        <span class="pIcon">🤖</span>
+        <span><strong>智慧秘書</strong><span>進入筆記本、行事曆與專案計畫中心</span></span>
+        <span class="arrow">›</span>
+      </button>
+    </section>
+<section class="lowGrid">
+      <button class="toolCard" type="button" onclick="location.href='groupbuy.html'">
+        <span class="toolIcon">🛒</span><span><strong>團購／報名中心</strong><p>團購、聚餐、旅遊、研習與活動報名。</p></span><span class="go">›</span>
+      </button>
+      <button class="toolCard" type="button" onclick="openModal('inspection')">
+        <span class="toolIcon">🛡️</span><span><strong>定期巡檢</strong><p>安全衛生與週期檢查紀錄。</p></span><span class="go">›</span>
+      </button>
+      <button class="toolCard" type="button" onclick="openModal('system')">
+        <span class="toolIcon">⚙️</span><span><strong>系統管理</strong><p>人員、班級、權限與設定。</p></span><span class="go">›</span>
+      </button>
+    </section>
+
+    <div class="versionStamp">主管工作台 v22.4｜2026-07-27｜更新 Logo 與手機快取</div>
+  </main>
+
+  <div class="modalMask" id="modalMask" onclick="maskClose(event)">
+    <section class="modal" id="modal"></section>
+  </div>
+
+<script>
+const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzbZ6r6c8XjHuKad0U5TIJXr8i141fCBwNJcVsKnoGa1-NXG_JOzapeRF5cVlnGI4F7/exec';
+
+let currentAdminEmployee = null;
+
+function readCurrentEmployee(){
+  try{
+    const raw = localStorage.getItem('heremay.currentEmployee');
+    return raw ? JSON.parse(raw) : null;
+  }catch(error){
+    return null;
+  }
+}
+
+function isManagementEmployee(employee){
+  const loginRole = String(
+    localStorage.getItem('heremay.currentRole') || ''
+  ).trim().toLowerCase();
+
+  if(loginRole === 'admin') return true;
+  if(!employee) return false;
+
+  const homeType = String(
+    employee.homeType ??
+    employee.home ??
+    employee['首頁類型'] ??
+    ''
+  ).trim();
+
+  const role = String(
+    employee.role ??
+    employee.userRole ??
+    employee['角色'] ??
+    ''
+  ).trim().toLowerCase();
+
+  const identity = String(
+    employee.identity ??
+    employee.identityType ??
+    employee['身分類別'] ??
+    ''
+  ).trim();
+
+  const jobTitle = String(
+    employee.jobTitle ??
+    employee.title ??
+    employee.position ??
+    employee['職稱'] ??
+    ''
+  ).trim();
+
+  return (
+    homeType === '管理首頁' ||
+    role === 'admin' ||
+    identity === '行政主管' ||
+    identity === '管理層' ||
+    /負責人|園長|主任/.test(jobTitle)
+  );
+}
+
+function requireAdminAccess(){
+  const employee = readCurrentEmployee();
+
+  if(!isManagementEmployee(employee)){
+    document.body.classList.remove('auth-pending');
+    document.body.innerHTML = `
+      <main class="accessDenied">
+        <section class="accessDeniedCard">
+          <div class="lockIcon">🔒</div>
+          <h2>此頁限主管使用</h2>
+          <p>目前登入身分不是管理人員，因此不能查看主管資料或送出再次提醒。請回登入首頁，改用主管帳號登入。</p>
+          <button type="button" onclick="location.replace('index.html')">返回登入首頁</button>
+        </section>
+      </main>
+    `;
+    return false;
+  }
+
+  currentAdminEmployee = employee;
+  document.body.classList.remove('auth-pending');
+
+  const nameBox = document.getElementById('adminName');
+  if(nameBox){
+    nameBox.textContent = employee?.name || '主管';
+  }
+
+  return true;
+}
+
+
+function postToService(fields){
+  const iframeName = `heremayAdminFrame_${Date.now()}`;
+
+  const iframe = document.createElement('iframe');
+  iframe.name = iframeName;
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = SERVICE_URL;
+  form.target = iframeName;
+  form.style.display = 'none';
+
+  Object.entries(fields).forEach(([name, value]) => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = String(value ?? '');
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+
+  setTimeout(() => {
+    form.remove();
+    iframe.remove();
+  }, 15000);
+}
+
+const reminders = [
+  {id:'morning-admin',time:'08:30', title:'晨間行政確認', text:'查看今日請假、人力與園務提醒。'},
+  {id:'meeting-notice',time:'09:00', title:'中午會議通知', text:'確認應參加人員已收到通知。'},
+  {id:'meeting-reminder',time:'13:25', title:'會前提醒', text:'提醒參加會議的人到辦公室，攜帶筆記本與筆。'},
+  {id:'afternoon-patrol',time:'14:30', title:'下午巡堂管理', text:'依班級順序進行下午巡堂。'}
+];
+const tomorrowItems = [
+  {time:'09:00', title:'教保員在職研習'},
+  {time:'14:00', title:'場地清潔作業'}
+];
+const afterTomorrowItems = [
+  {time:'09:00', title:'全體教師會議'}
+];
+
+function pad(n){return String(n).padStart(2,'0')}
+function tick(){
+  const d=new Date(); const days=['日','一','二','三','四','五','六'];
+  const clock=document.getElementById('clock');
+  if(clock) clock.innerHTML=`<div class="dateLine">${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}（週${days[d.getDay()]}）</div><div class="timeLine">${pad(d.getHours())}:${pad(d.getMinutes())}</div>`;
+  const t1=new Date(d);t1.setDate(d.getDate()+1);
+  const t2=new Date(d);t2.setDate(d.getDate()+2);
+  const t1Title=document.getElementById('tomorrowTitle');
+  const t2Title=document.getElementById('afterTomorrowTitle');
+  if(t1Title) t1Title.textContent=`明天 ${t1.getMonth()+1}/${t1.getDate()}（${days[t1.getDay()]}）`;
+  if(t2Title) t2Title.textContent=`後天 ${t2.getMonth()+1}/${t2.getDate()}（${days[t2.getDay()]}）`;
+}
+setInterval(tick,1000); tick();
+
+function completedTaskKey(){return 'heremay.admin.completedTasks.'+new Date().toISOString().slice(0,10)}
+function getCompletedTasks(){
+  try{return JSON.parse(localStorage.getItem(completedTaskKey())||'[]')}catch(e){return []}
+}
+function setCompletedTasks(ids){localStorage.setItem(completedTaskKey(),JSON.stringify(ids))}
+function completeTask(id){
+  const ids=getCompletedTasks();
+  if(!ids.includes(id)) ids.push(id);
+  setCompletedTasks(ids);
+  renderToday();
+}
+function restoreTask(id){
+  setCompletedTasks(getCompletedTasks().filter(x=>x!==id));
+  renderToday();
+}
+function taskMarkup(r,done=false){
+  return `<div class="taskRow ${done?'done':''}">
+    <div class="taskTime">${r.time}</div>
+    <div><div class="taskTitle">${r.title}</div><div class="taskText">${r.text}</div></div>
+    <button class="taskDoneBtn" type="button" onclick="${done?`restoreTask('${r.id}')`:`completeTask('${r.id}')`}" title="${done?'恢復待辦':'標記完成'}">${done?'↩':'✓'}</button>
+  </div>`;
+}
+function renderToday(){
+  const doneIds=getCompletedTasks();
+  const pending=reminders.filter(r=>!doneIds.includes(r.id));
+  const done=reminders.filter(r=>doneIds.includes(r.id));
+  const pendingBox=document.getElementById('todayList');
+  const doneBox=document.getElementById('completedList');
+  if(pendingBox) pendingBox.innerHTML=pending.length?pending.map(r=>taskMarkup(r,false)).join(''):'<div class="hintBox">🎉 今天的待辦都完成了。</div>';
+  if(doneBox) doneBox.innerHTML=done.map(r=>taskMarkup(r,true)).join('');
+  const count=document.getElementById('todayCount');
+  if(count) count.textContent=`${pending.length} 件`;
+  const toggle=document.getElementById('completedToggle');
+  if(toggle) toggle.textContent=`已完成 ${done.length} 件⌄`;
+}
+function toggleCompleted(){
+  document.getElementById('completedList')?.classList.toggle('show');
+}
+function renderFuture(){
+  const render=(list,id)=>{
+    const box=document.getElementById(id);
+    if(!box) return;
+    box.innerHTML=list.length?list.map(x=>`<div class="futureItem"><time>${x.time}</time><span>${x.title}</span></div>`).join(''):'<div class="hintBox">目前沒有安排</div>';
+  };
+  render(tomorrowItems,'tomorrowList');
+  render(afterTomorrowItems,'afterTomorrowList');
+}
+renderToday(); renderFuture();
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show')}
+function beep(){
+  try{const A=window.AudioContext||window.webkitAudioContext,c=new A(),m=c.createGain();m.gain.value=1;m.connect(c.destination);[880,1175,988,1319,880,1175,988,1319,1047,1397,1047,1397,880,1175].forEach((f,i)=>{const st=c.currentTime+i*.58,o=c.createOscillator(),g=c.createGain();o.type=i%2?'sawtooth':'square';o.frequency.value=f;g.gain.setValueAtTime(.001,st);g.gain.exponentialRampToValueAtTime(.85,st+.03);g.gain.setValueAtTime(.85,st+.4);g.gain.exponentialRampToValueAtTime(.001,st+.53);o.connect(g);g.connect(m);o.start(st);o.stop(st+.55)});setTimeout(()=>{try{c.close()}catch(e){}},9000)}catch(e){} if(navigator.vibrate)navigator.vibrate([1000,200,1000,200,1400,250,1000,200,1600]);
+}
+function demoAlarm(){
+  document.getElementById('alarmBox').classList.add('show');
+  beep();
+  showToast('強提醒測試：較長鈴聲，支援的裝置會同步震動');
+}
+function scrollTopFast(){window.scrollTo({top:0,behavior:'smooth'})}
+function maskClose(e){if(e.target.id==='modalMask') closeModal()}
+function closeModal(){document.getElementById('modalMask').classList.remove('show')}
+function openModal(type){
+  const content={
+    notebook:`<div class="modalHeader"><h3>📒 我的記事本</h3><button class="x" onclick="closeModal()">關閉</button></div>
+      <div class="note">第一版採本機離線保存。每則記事預設私人，只有目前登入帳號在這台裝置上能看到。</div>
+      <div class="row"><div><label>新增筆記本</label><input id="newNotebookName" placeholder="例如：園務待辦、日本旅行、廠商與採購"></div><div style="align-self:end"><button class="btn secondary" onclick="createNotebook()">＋建立筆記本</button></div></div>
+      <div id="notebookTabs" class="noteBookBar"></div>
+      <div id="notebookNotes"></div>`,
+    smartTask:`<div class="modalHeader"><h3>📅 新增行程／提醒</h3><button class="x" onclick="closeModal()">關閉</button></div>
+      <div class="note">版面比照 Google 行事曆：先填活動與日期時間，再設定重複與提前通知；分享對象放在整份表單最後。</div>
+      <label>活動名稱</label><input id="taskName" placeholder="例如：下午一點半與廠商會面、每日巡堂">
+      <label>補充說明</label><textarea id="taskDescription"></textarea>
+      <div class="row"><div><label>開始日期</label><input id="taskDate" type="date"></div><div><label>開始時間</label><input id="taskTime" type="time" value="09:00"></div></div>
+      <div class="row"><div><label>結束日期（可留白）</label><input type="date"></div><div><label>結束時間（可留白）</label><input type="time"></div></div>
+      <label>地點／地址</label><input id="taskLocation" placeholder="未來可直接開啟 Google 地圖導航">
+      <label>重複</label><select id="taskRepeatMode" onchange="renderSmartTaskFields()"><option value="none">不重複</option><option value="daily">每天</option><option value="weekdays">每週一至週五</option><option value="weekly">每週指定星期</option><option value="monthly">每月</option><option value="yearly">每年</option><option value="lunar">農曆週期</option></select>
+      <div id="smartDateFields"></div>
+      <label>提前通知</label><div class="hintBox">自行輸入數字，再選分鐘、小時、天或週；可新增多筆。</div>
+      <div id="advanceReminderList"><div class="optionRow reminderRow"><input type="number" min="0" value="1" style="max-width:120px"><select style="max-width:150px"><option>分鐘</option><option>小時</option><option selected>天</option><option>週</option></select><button class="miniBtn secondary" onclick="removeReminderRow(this)">移除</button></div></div>
+      <div class="btnRow"><button class="btn secondary" onclick="addReminderRow()">＋新增另一個通知時間</button><button class="btn secondary" onclick="demoAlarm()">測試較長鈴聲</button></div>
+      <label>提醒方式</label><div class="checkGrid"><label class="check"><input type="checkbox" checked>手機通知</label><label class="check"><input type="checkbox" checked>Apple Watch 提示</label><label class="check"><input type="checkbox" checked>長鈴聲／震動</label><label class="check"><input type="checkbox" id="alertRepeat" onchange="renderSmartTaskFields()">未完成再次提醒</label></div><div id="secondReminderFields"></div>
+      <details style="margin-top:16px"><summary style="font-weight:900;color:#355e73">其他設定</summary><label>主管內部備註</label><textarea></textarea></details>
+      <h3 style="margin:20px 0 4px;color:#254f65">最後：分享對象</h3><div class="row"><div><label>公／私</label><select id="privacyMode" onchange="renderSmartTaskFields()"><option value="private">私人｜只有自己</option><option value="public">公務｜分享給園內人員</option></select></div><div><label>是否需要確認</label><select><option>不需確認</option><option>需要「我已收到」</option></select></div></div><div id="smartTargetFields"></div>
+      <div class="btnRow"><button class="btn" onclick="showToast('已建立行程提醒測試資料')">儲存行程／提醒</button></div>`,
+    taskTrack:`<div class="modalHeader"><h3>📣 通知追蹤</h3><button class="x" onclick="closeModal()">關閉</button></div>
+      <div class="note">這裡專門追蹤智慧任務發出的通知：誰已收到、誰還沒確認，必要時可以再次提醒。</div>
+      <div class="list">
+      ${noticeTracks.map(n=>`<div class="noticeItem"><div><h5>${n.title}</h5><p>對象：${n.target}｜發送：${n.sent}</p><div class="progress"><span style="width:${Math.round(n.people.filter(p=>p.ack).length/n.people.length*100)}%"></span></div></div><button class="miniBtn secondary notice-detail-btn" type="button" data-notice-id="${n.id}" onclick="openNoticeFromButton(this)">查看</button></div>`).join('')}
+      </div>`,
+    secretary:`<div class="modalHeader"><h3>🤖 排程提醒已整合</h3><button class="x" onclick="closeModal()">關閉</button></div><div class="note">排程提醒已整合到「新增智慧任務」。請從智慧秘書中心點選「新增智慧任務」。</div><div class="btnRow"><button class="btn" onclick="openModal('smartTask')">前往新增智慧任務</button></div>`,
+    notice:`<div class="modalHeader"><h3>📣 通知已整合</h3><button class="x" onclick="closeModal()">關閉</button></div><div class="note">通知與已收到確認已整合到「新增智慧任務」。追蹤結果請到「通知追蹤」。</div><div class="btnRow"><button class="btn" onclick="openModal('smartTask')">建立通知任務</button><button class="btn secondary" onclick="openModal('taskTrack')">查看通知追蹤</button></div>`,
+    project:`<div class="modalHeader"><h3>📁 專案計畫</h3><button class="x" onclick="closeModal()">關閉</button></div>
+      <div class="note">重大活動不是當天才處理，應該從兩、三個月前建立時程、分工、通知與追蹤。</div>
+      <div class="list">
+      ${['畢業典禮','聖誕晚會','招生與網站更新','校園修繕工程','環境安全改善'].map((x,i)=>`<div class="item"><div class="time">P${i+1}</div><div><h5>${x}</h5><p>可建立里程碑、分配負責人、設定提醒與查看進度。</p></div></div>`).join('')}
+      </div><div class="btnRow"><button class="btn">新增專案</button><button class="btn secondary">查看全部</button></div>`,
+    patrol:`<div class="modalHeader"><h3>📋 巡堂管理</h3><button class="x" onclick="closeModal()">關閉</button></div>
+      <div class="note">巡堂管理已接上整合版：上午／下午巡堂、拍照、通知、班級順序、缺失項目管理與週報表預覽。</div>
+      <div class="btnRow"><button class="btn" onclick="location.href='patrol.html'">進入巡堂管理</button><button class="btn secondary" onclick="location.href='patrol.html#weekly'">查看週報表</button></div>`,
+    inspection:`<div class="modalHeader"><h3>🛝 定期安全衛生巡檢</h3><button class="x" onclick="closeModal()">關閉</button></div>
+      <div class="note">第一階段先建立入口與分類。後續會像巡堂一樣，逐項勾選、異常拍照、備註、改善追蹤，並輸出政府查核用紀錄表。</div>
+      <div class="miniGrid">
+        <div class="miniCard"><b>🛝 遊樂設施巡檢</b>螺絲、接點、地墊、鏽蝕、裂縫、安全距離與周邊環境。</div>
+        <div class="miniCard"><b>🚰 飲用水設備／水質</b>飲水機清潔、濾心更換、水質檢驗與報告附件。</div>
+        <div class="miniCard"><b>🧼 水塔清洗</b>清洗日期、廠商、前後照片、證明文件與下次日期。</div>
+        <div class="miniCard"><b>🧯 其他巡檢</b>消防、廚房瓦斯、病媒防治及自訂定期檢查。</div>
+      </div>
+      <div class="hintBox">目前先建立入口，不會影響既有巡堂、智慧任務或登記中心。第一份正式表單預計從「遊樂設施巡檢」開始。</div>
+      <div class="btnRow"><button class="btn" onclick="showToast('遊樂設施巡檢表將作為第一份正式表單')">先做遊樂設施巡檢</button><button class="btn secondary" onclick="closeModal()">稍後再做</button></div>`,
+    system:`<div class="modalHeader"><h3>⚙️ 系統管理</h3><button class="x" onclick="closeModal()">關閉</button></div>
+      <div class="list">
+      ${['人員與角色設定','班級與群組設定','提醒時間設定','巡堂項目設定','通知對象設定','權限管理'].map(x=>`<div class="item"><div class="time">設定</div><div><h5>${x}</h5><p>正式版由行政主管調整，避免功能寫死。</p></div></div>`).join('')}
+      </div>`,
+    parent:`<div class="modalHeader"><h3>親職聯絡本</h3><button class="x" onclick="closeModal()">關閉</button></div>
+      <div class="note">親職聯絡本未來改為獨立 APP，不放在園內管理系統中，避免家長與幼兒資料和內部行政資料混在一起。</div>`
+  };
+  document.getElementById('modal').innerHTML=content[type]||'';
+  document.getElementById('modalMask').classList.add('show');
+  if(type==='secretary') renderSecretaryFields();
+  if(type==='smartTask') renderSmartTaskFields();
+  if(type==='notebook') renderNotebookManager();
+}
+
+
+
+function notebookOwnerKey(){
+  const employee = currentAdminEmployee || readCurrentEmployee() || {};
+  return String(employee.employeeId || employee.id || employee.name || 'guest').trim();
+}
+function notebookStorageKey(){ return 'heremay.notebooks.' + notebookOwnerKey(); }
+function noteStorageKey(){ return 'heremay.notes.' + notebookOwnerKey(); }
+function getNotebooks(){
+  try{
+    const list = JSON.parse(localStorage.getItem(notebookStorageKey()) || '[]');
+    if(Array.isArray(list) && list.length) return list;
+  }catch(e){}
+  const defaults=[{id:'inbox',name:'收件匣'},{id:'personal',name:'私人事項'},{id:'campus',name:'園務待辦'}];
+  localStorage.setItem(notebookStorageKey(),JSON.stringify(defaults));
+  return defaults;
+}
+function saveNotebooks(list){ localStorage.setItem(notebookStorageKey(),JSON.stringify(list)); }
+function getNotes(){
+  try{const list=JSON.parse(localStorage.getItem(noteStorageKey())||'[]');return Array.isArray(list)?list:[];}catch(e){return [];}
+}
+function saveNotes(list){ localStorage.setItem(noteStorageKey(),JSON.stringify(list)); }
+function refreshQuickNotebookOptions(){
+  const select=document.getElementById('quickNotebook'); if(!select) return;
+  const current=select.value;
+  select.innerHTML=getNotebooks().map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  if(current && getNotebooks().some(b=>b.id===current)) select.value=current;
+}
+function saveQuickNote(){
+  const text=document.getElementById('quickNoteText')?.value.trim();
+  if(!text) return showToast('請先輸入要記錄的內容');
+  const notes=getNotes();
+  notes.unshift({
+    id:'note_'+Date.now(),
+    notebookId:document.getElementById('quickNotebook')?.value||'inbox',
+    text,
+    reminderAt:document.getElementById('quickReminderAt')?.value||'',
+    privacy:'private',
+    createdAt:new Date().toISOString()
+  });
+  saveNotes(notes);
+  document.getElementById('quickNoteText').value='';
+  document.getElementById('quickReminderAt').value='';
+  showToast('記事已儲存，離線也能查看');
+}
+let activeNotebookId='inbox';
+function createNotebook(){
+  const input=document.getElementById('newNotebookName');
+  const name=input?.value.trim();
+  if(!name) return showToast('請輸入筆記本名稱');
+  const books=getNotebooks();
+  if(books.some(b=>b.name===name)) return showToast('已有同名筆記本');
+  const id='book_'+Date.now(); books.push({id,name}); saveNotebooks(books); activeNotebookId=id;
+  if(input) input.value='';
+  refreshQuickNotebookOptions(); renderNotebookManager();
+}
+function renderNotebookManager(){
+  const books=getNotebooks();
+  if(!books.some(b=>b.id===activeNotebookId)) activeNotebookId=books[0]?.id||'inbox';
+  const tabs=document.getElementById('notebookTabs');
+  const box=document.getElementById('notebookNotes');
+  if(!tabs||!box) return;
+  tabs.innerHTML=books.map(b=>`<button class="bookChip ${b.id===activeNotebookId?'active':''}" onclick="selectNotebook('${b.id}')">${b.name}</button>`).join('');
+  const notes=getNotes().filter(n=>n.notebookId===activeNotebookId);
+  box.innerHTML=notes.length?notes.map(n=>{
+    const created=new Date(n.createdAt); const dt=isNaN(created)?'':created.toLocaleString('zh-TW',{hour12:false});
+    return `<article class="noteEntry"><h5>${n.reminderAt?'🔔 有提醒':'📝 私人記事'}</h5><p>${escapeNoteHtml(n.text)}</p><div class="noteMeta">建立：${dt}${n.reminderAt?'｜提醒：'+n.reminderAt.replace('T',' '):''}</div><div class="noteActions"><button class="miniBtn secondary" onclick="convertNoteToTask('${n.id}')">轉成智慧任務</button><button class="miniBtn secondary" onclick="moveNotePrompt('${n.id}')">移動</button><button class="miniBtn secondary" onclick="deleteNote('${n.id}')">刪除</button></div></article>`;
+  }).join(''):'<div class="hintBox">這本筆記本目前沒有記事。</div>';
+}
+function escapeNoteHtml(text){return String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function selectNotebook(id){activeNotebookId=id;renderNotebookManager();}
+function deleteNote(id){
+  if(!confirm('確定刪除這則記事嗎？')) return;
+  saveNotes(getNotes().filter(n=>n.id!==id)); renderNotebookManager(); showToast('記事已刪除');
+}
+function moveNotePrompt(id){
+  const books=getNotebooks();
+  const names=books.map((b,i)=>`${i+1}. ${b.name}`).join('\n');
+  const ans=prompt('請輸入要移動到的筆記本編號：\n'+names,'1');
+  const idx=Number(ans)-1; if(!books[idx]) return;
+  const notes=getNotes(); const note=notes.find(n=>n.id===id); if(note) note.notebookId=books[idx].id;
+  saveNotes(notes); renderNotebookManager(); showToast('記事已移動');
+}
+function convertNoteToTask(id){
+  const note=getNotes().find(n=>n.id===id); if(!note) return;
+  closeModal(); openModal('smartTask');
+  setTimeout(()=>{
+    const title=document.querySelector('#modal input[placeholder*="明日中午會議"]');
+    const content=document.getElementById('mainContentText');
+    if(title) title.value=note.text.slice(0,28);
+    if(content) content.value=note.text;
+  },0);
+}
+
+
+
+function addReminderRow(){const b=document.getElementById('advanceReminderList');if(!b)return;const d=document.createElement('div');d.className='optionRow reminderRow';d.innerHTML='<input type="number" min="0" value="10" style="max-width:120px"><select style="max-width:150px"><option selected>分鐘</option><option>小時</option><option>天</option><option>週</option></select><button class="miniBtn secondary" onclick="removeReminderRow(this)">移除</button>';b.appendChild(d)}
+function removeReminderRow(btn){const rows=document.querySelectorAll('#advanceReminderList .reminderRow');if(rows.length>1)btn.closest('.reminderRow').remove();else showToast('至少保留一個提前通知時間')}
+function renderSmartTaskFields(){
+ const d=document.getElementById('smartDateFields'),t=document.getElementById('smartTargetFields'),s=document.getElementById('secondReminderFields'),r=document.getElementById('taskRepeatMode')?.value||'none',p=document.getElementById('privacyMode')?.value||'private';
+ if(d){if(r==='weekdays')d.innerHTML='<div class="hintBox">適合每日巡堂：週一至週五執行，並排除假日。</div><div class="checkGrid"><label class="check"><input type="checkbox" checked>排除國定假日</label><label class="check"><input type="checkbox" checked>排除園所休園日</label></div>';else if(r==='daily')d.innerHTML='<div class="hintBox">每天執行；若不含假日，建議改選「每週一至週五」。</div><div class="checkGrid"><label class="check"><input type="checkbox">排除國定假日</label><label class="check"><input type="checkbox">排除園所休園日</label></div>';else if(r==='weekly')d.innerHTML='<label>每週執行日</label><div class="checkGrid">'+['一','二','三','四','五','六','日'].map(x=>'<label class="check"><input type="checkbox">週'+x+'</label>').join('')+'</div>';else if(r==='monthly')d.innerHTML='<div class="row"><div><label>每幾個月</label><input type="number" min="1" value="1"></div><div><label>每月幾日</label><input type="number" min="1" max="31" value="1"></div></div>';else if(r==='lunar')d.innerHTML='<label>農曆日期</label><input placeholder="例如：每月初二、十六">';else d.innerHTML=''}
+ if(s)s.innerHTML=document.getElementById('alertRepeat')?.checked?'<div class="row"><div><label>未完成後</label><select><option>10 分鐘</option><option>30 分鐘</option><option>1 小時</option></select></div><div><label>最多提醒</label><select><option>1 次</option><option>3 次</option><option>直到完成</option></select></div></div>':'';
+ if(t){if(p==='private')t.innerHTML='<div class="hintBox">只有自己看得到。</div>';else{t.innerHTML=`<div class="hintBox">先選主管或部門，再選全體或個人。</div>${['主管','幼兒部','安親部','庶務部'].map(x=>`<div class="panel" style="box-shadow:none;margin-top:8px"><label class="check"><input type="checkbox" onchange="toggleDepartmentTarget('${x}',this.checked)"><strong>${x}</strong></label><div id="target-${x}" style="display:none;margin:8px 0 4px 24px"><label class="check"><input type="radio" name="${x}Target" value="all" checked>${x}全體</label><label class="check"><input type="radio" name="${x}Target" value="person">選擇個人</label><input class="deptPersonInput" data-dept="${x}" placeholder="輸入姓名" style="display:none;margin-top:8px"></div></div>`).join('')}`;bindDepartmentRadios()}}
+}
+
+function toggleDepartmentTarget(dept, checked){
+  const box=document.getElementById('target-'+dept);
+  if(box) box.style.display=checked?'':'none';
+}
+
+function bindDepartmentRadios(){
+  ['主管','幼兒部','安親部','庶務部'].forEach(dept=>{
+    document.querySelectorAll(`input[name="${dept}Target"]`).forEach(radio=>{
+      radio.addEventListener('change',()=>{
+        const input=document.querySelector(`.deptPersonInput[data-dept="${dept}"]`);
+        if(input) input.style.display = radio.value==='person' && radio.checked ? '' : 'none';
+      });
+    });
+  });
+}
+
+function renderSecretaryFields(){
+  const box=document.getElementById('secretaryFields');
+  const mode=document.getElementById('secretaryMode')?.value || 'specific';
+  if(!box) return;
+  if(mode==='specific'){
+    box.innerHTML=`<div class="hintBox">適合一次性的提醒，例如活動前確認、聯絡廠商、臨時交辦但有明確日期的事項。</div>
+      <div class="row"><div><label>指定日期</label><input type="date"></div><div><label>完成後</label><select><option>提醒一次後結束</option><option>完成後保留紀錄</option><option>完成後轉成待追蹤事項</option></select></div></div>`;
+  }else if(mode==='solarCycle'){
+    box.innerHTML=`<div class="hintBox">國曆週期適合固定保養或行政例行事項，例如每月5日換飲水機濾心、每3個月清洗水塔。</div>
+      <div class="row"><div><label>週期</label><select><option>每天</option><option>每週固定星期</option><option>每月固定日期</option><option>每3個月一次</option><option>每半年一次</option><option>每年一次</option></select></div><div><label>國曆日期／條件</label><input placeholder="例如：每月5日；每3個月第1週星期一"></div></div>`;
+  }else{
+    box.innerHTML=`<div class="hintBox">農曆週期必須用勾選欄位，避免把「初二、十六」誤判成國曆2日、16日。</div>
+      <div class="row"><div><label>農曆週期</label><select><option>每個農曆月</option><option>每年指定農曆月日</option></select></div><div><label>農曆月份（每年提醒時使用）</label><input placeholder="例如：12月；每月提醒可留白"></div></div>
+      <label>農曆日期，可複選</label><div class="checkGrid">
+        <label class="check"><input type="checkbox">初一</label><label class="check"><input type="checkbox" checked>初二</label>
+        <label class="check"><input type="checkbox">初八</label><label class="check"><input type="checkbox">初十</label>
+        <label class="check"><input type="checkbox">十五</label><label class="check"><input type="checkbox" checked>十六</label>
+      </div>`;
+  }
+}
+
+let noticeTracks = [
+  {
+    id:1,
+    title:'下午 4:10 請協助整理戶外玩具',
+    target:'教保人員',
+    sent:'今天 09:10',
+    must:true,
+    people:[
+      {name:'王老師', group:'幼幼班', ack:true, time:'09:18'},
+      {name:'林老師', group:'小班', ack:true, time:'09:21'},
+      {name:'陳老師', group:'中班', ack:true, time:'09:34'},
+      {name:'李老師', group:'大班', ack:false, time:''},
+      {name:'黃老師', group:'課後照顧', ack:false, time:''},
+      {name:'張老師', group:'機動支援', ack:false, time:''}
+    ]
+  },
+  {
+    id:2,
+    title:'明日拍攝活動照片提醒',
+    target:'全體教保人員',
+    sent:'今天 08:20',
+    must:false,
+    people:[
+      {name:'王老師', group:'幼幼班', ack:true, time:'08:41'},
+      {name:'林老師', group:'小班', ack:true, time:'08:45'},
+      {name:'陳老師', group:'中班', ack:true, time:'08:52'},
+      {name:'李老師', group:'大班', ack:true, time:'09:03'},
+      {name:'黃老師', group:'課後照顧', ack:false, time:''},
+      {name:'張老師', group:'機動支援', ack:false, time:''}
+    ]
+  }
+];
+
+function renderNoticeTrack(){
+  const list=document.getElementById('noticeTrackList');
+  if(!list) return;
+  let ackTotal=0, missTotal=0;
+  list.innerHTML = noticeTracks.map(n=>{
+    const ack=n.people.filter(p=>p.ack).length;
+    const total=n.people.length;
+    const miss=total-ack;
+    ackTotal += ack; missTotal += miss;
+    const pct=Math.round(ack/total*100);
+    return `<div class="noticeItem">
+      <div>
+        <h5>${n.must?'🔴':'🔵'} ${n.title}</h5>
+        <p>對象：${n.target}｜發布：${n.sent}｜已收到 ${ack}/${total} 人，未確認 ${miss} 人</p>
+        <div class="progress"><span style="width:${pct}%"></span></div>
+      </div>
+      <button class="miniBtn notice-detail-btn" type="button" data-notice-id="${n.id}" onclick="openNoticeFromButton(this)">查看名單</button>
+    </div>`;
+  }).join('');
+  document.getElementById('noticeTotal').textContent = noticeTracks.length;
+  document.getElementById('ackTotal').textContent = ackTotal;
+  document.getElementById('missTotal').textContent = missTotal;
+}
+
+function openNoticeFromButton(button){
+  const noticeId = String(button && button.dataset
+    ? button.dataset.noticeId || ''
+    : '').trim();
+
+  if(!noticeId){
+    showToast('找不到公告編號');
+    return;
+  }
+
+  showNoticeTrack(noticeId);
+}
+
+
+function showNoticeTrack(id){
+  const n = noticeTracks.find(x=>x.id===id);
+  if(!n) return;
+  const ack = n.people.filter(p=>p.ack);
+  const miss = n.people.filter(p=>!p.ack);
+  document.getElementById('modal').innerHTML = `
+    <div class="modalHeader"><h3>公告確認狀態</h3><button class="x" onclick="closeModal()">關閉</button></div>
+    <div class="note">
+      <strong>${n.title}</strong><br>
+      對象：${n.target}｜發布：${n.sent}｜${n.must?'重要公告：需確認':'一般公告：可確認'}
+    </div>
+    <div class="noticeSummary">
+      <div class="summaryBox"><strong>${n.people.length}</strong><span>通知對象</span></div>
+      <div class="summaryBox"><strong>${ack.length}</strong><span>已收到</span></div>
+      <div class="summaryBox"><strong>${miss.length}</strong><span>未確認</span></div>
+    </div>
+    <div class="panel" style="box-shadow:none;margin-top:10px">
+      <h3 style="margin:0 0 8px;color:#254f65">已收到名單</h3>
+      ${ack.map(p=>`<div class="personRow"><span>${p.name}｜${p.group}</span><span class="statusOk">${p.time} 已收到</span></div>`).join('') || '<div class="personRow"><span>尚無</span><span></span></div>'}
+    </div>
+    <div class="panel" style="box-shadow:none;margin-top:10px">
+      <h3 style="margin:0 0 8px;color:#254f65">尚未確認名單</h3>
+      ${miss.map(p=>`<div class="personRow"><span>${p.name}｜${p.group}</span><span class="statusMiss">尚未確認</span></div>`).join('') || '<div class="personRow"><span>全部已確認</span><span class="statusOk">✅</span></div>'}
+    </div>
+    <div class="btnRow"><button class="btn secondary" id="remindBtn" onclick="remindUnconfirmed('${n.id}')">提醒未確認人員</button><button class="btn" onclick="closeModal()">完成</button></div>
+  `;
+  document.getElementById('modalMask').classList.add('show');
+}
+
+
+let pendingReminderNoticeId = '';
+
+function remindUnconfirmed(noticeId){
+  const notice = noticeTracks.find(item => String(item.id) === String(noticeId));
+
+  if(!notice){
+    showToast('找不到公告資料');
+    return;
+  }
+
+  const missing = notice.people.filter(person => !person.ack);
+
+  if(!missing.length){
+    showToast('這則公告已全部確認，不需要再次提醒');
+    return;
+  }
+
+  const button = document.getElementById('remindBtn');
+  if(button){
+    button.disabled = true;
+    button.textContent = '正在送出提醒…';
+  }
+
+  if(!isManagementEmployee(currentAdminEmployee)){
+    showToast('目前不是主管身分，無法送出再次提醒');
+    if(button){
+      button.disabled = false;
+      button.textContent = '提醒未確認人員';
+    }
+    return;
+  }
+
+  const senderName = String(currentAdminEmployee.name || '主管').trim();
+
+  pendingReminderNoticeId = String(notice.id);
+
+  postToService({
+    action: 'remindUnconfirmed',
+    noticeId: notice.id,
+    noticeTitle: notice.title,
+    targetType: notice.target,
+    senderName: senderName,
+    employeeIds: JSON.stringify(missing.map(person => person.employeeId || '')),
+    employeeNames: JSON.stringify(missing.map(person => person.name || ''))
+  });
+
+  showToast(`正在提醒 ${missing.length} 位尚未確認人員…`);
+}
+
+function noticeAudienceForId(noticeId, employees){
+  const isTeacher = String(noticeId).startsWith('teacher-');
+  const isSupport = String(noticeId).startsWith('support-');
+
+  return employees.filter(employee => {
+    const homeType = String(employee.homeType || '').trim();
+    if(isTeacher) return homeType === '教保首頁';
+    if(isSupport) return homeType === '庶務首頁';
+    return false;
+  });
+}
+
+function buildCloudNoticeTracks(payload){
+  const employees = Array.isArray(payload.employees) ? payload.employees : [];
+  const records = Array.isArray(payload.records) ? payload.records : [];
+
+  const definitions = [
+    {
+      id:'teacher-1',
+      title:'下午 4:10 請協助整理戶外玩具',
+      target:'教保人員',
+      sent:'今天 09:10',
+      must:true
+    },
+    {
+      id:'teacher-2',
+      title:'明日拍攝活動照片提醒',
+      target:'全體教保人員',
+      sent:'今天 08:20',
+      must:false
+    },
+    {
+      id:'support-1',
+      title:'今日午餐後請加強廚房地面清潔',
+      target:'廚工／清潔人員',
+      sent:'今天 09:05',
+      must:true
+    },
+    {
+      id:'support-2',
+      title:'清潔用品本週五前完成盤點',
+      target:'庶務工作',
+      sent:'今天 08:30',
+      must:false
+    }
+  ];
+
+  return definitions.map(def => {
+    const audience = noticeAudienceForId(def.id, employees);
+    const ackRecords = records.filter(record => record.noticeId === def.id);
+
+    const people = audience.map(employee => {
+      const record = ackRecords.find(item =>
+        (employee.employeeId && item.employeeId === employee.employeeId) ||
+        item.employeeName === employee.name
+      );
+
+      return {
+        employeeId: employee.employeeId || '',
+        name: employee.name,
+        group: employee.group || employee.jobTitle || '',
+        ack: Boolean(record),
+        time: record ? record.confirmedAt : ''
+      };
+    });
+
+    // Keep any cloud record whose employee is no longer in the enabled employee list.
+    ackRecords.forEach(record => {
+      if(!people.some(person => person.name === record.employeeName)){
+        people.push({
+          employeeId: record.employeeId || '',
+          name: record.employeeName,
+          group: '紀錄保留',
+          ack: true,
+          time: record.confirmedAt
+        });
+      }
+    });
+
+    return {...def, people};
+  });
+}
+
+window.addEventListener('message', event => {
+  const data = event.data || {};
+  const payload = data.payload || {};
+
+  if(data.type === 'HEREMAY_REMIND_RESULT'){
+    const button = document.getElementById('remindBtn');
+
+    if(button){
+      button.disabled = false;
+      button.textContent = '提醒未確認人員';
+    }
+
+    if(!payload.ok){
+      showToast(payload.message || '再次提醒送出失敗');
+      return;
+    }
+
+    showToast(`✅ ${payload.message || '已送出再次提醒'}`);
+
+    if(button){
+      button.textContent = '已送出提醒';
+      button.disabled = true;
+    }
+
+    pendingReminderNoticeId = '';
+    return;
+  }
+
+  if(data.type !== 'HEREMAY_ACK_RECORDS_RESULT') return;
+
+  if(!payload.ok){
+    showToast(payload.message || '無法載入雲端公告紀錄');
+    return;
+  }
+
+  noticeTracks = buildCloudNoticeTracks(payload);
+  renderNoticeTrack();
+  showToast('已載入最新公告確認紀錄');
+});
+
+function loadCloudAckRecords(){
+  postToService({action:'getAckRecords'});
+}
+
+
+async function refreshLatestVersion(){
+  showToast('正在檢查並重新載入最新版…');
+
+  try{
+    if('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(reg => reg.update().catch(()=>{})));
+    }
+
+    if('caches' in window){
+      const keys = await caches.keys();
+      await Promise.all(
+        keys
+          .filter(key => /heremay|smart|campus|cache/i.test(key))
+          .map(key => caches.delete(key))
+      );
+    }
+  }catch(error){
+    console.warn('更新快取時發生問題', error);
+  }
+
+  const url = new URL(location.href);
+  url.searchParams.set('refresh', Date.now());
+  setTimeout(() => location.replace(url.toString()), 450);
+}
+
+if(requireAdminAccess()){
+  refreshQuickNotebookOptions();
+  renderNoticeTrack();
+  loadCloudAckRecords();
+}
+
+</script>
+</body>
+</html>
