@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂正式修正版 v1.1.3</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.1.6</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -26,6 +26,17 @@ button,.btn{border:0;border-radius:16px;padding:13px 14px;font-size:16px;font-we
 textarea,input,select{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px;font-size:15px;background:white;color:var(--text)}textarea{min-height:86px;resize:vertical}.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.photo{position:relative;border-radius:14px;overflow:hidden;background:#f3f4f6;aspect-ratio:1/1}.photo img{width:100%;height:100%;object-fit:cover}.photo button{position:absolute;right:5px;top:5px;min-height:26px;padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.55);color:white;font-size:12px}.record{border-left:5px solid #93c5fd;background:#f8fbff;border-radius:16px;padding:12px;margin:10px 0}.record.bad{border-left-color:#f87171;background:#fff7f7}.codes{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.codechip{font-size:12px;border-radius:999px;padding:5px 8px;background:#fee2e2;color:#991b1b;font-weight:900}.empty{padding:22px;text-align:center;color:var(--muted);background:#f9fafb;border-radius:18px;border:1px dashed #d1d5db}.setting-item{border:1px solid var(--line);border-radius:16px;padding:12px;margin:10px 0;background:#fff}.setting-item input{margin-top:8px}.class-editor-row{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:9px;margin:8px 0;background:#fff}.class-editor-row input[type="checkbox"]{width:22px;height:22px;margin:0}.class-editor-row input[type="text"]{margin:0}.class-editor-row button{min-height:40px;padding:8px 11px}.class-status-label{display:flex;align-items:center;justify-content:center;gap:6px;border-radius:14px;padding:10px 8px;font-weight:900;cursor:pointer;min-width:78px}.class-status-label input{width:auto;margin:0}.class-status-label.enabled{background:#eaf8ef;color:#166534;border:1px solid #bbf7d0}.class-status-label.paused{background:#f3f4f6;color:#6b7280;border:1px solid #d1d5db}.class-editor-note{padding:10px 12px;border-radius:14px;background:#eff6ff;color:#1e40af;font-size:13px;line-height:1.6;margin-bottom:10px}.print-page{background:#fff;border-radius:14px;padding:14px;border:1px solid var(--line)}.report-table{width:100%;border-collapse:collapse;font-size:12px}.report-table th,.report-table td{border:1px solid #d1d5db;padding:6px;vertical-align:top}.report-table th{background:#f3f4f6}.ok{color:#15803d;font-weight:900}.badtext{color:#b91c1c;font-weight:900}.notify-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.notify-options label{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:14px;background:#fff;padding:10px;font-size:14px;font-weight:800}.notify-options input{width:auto}.report-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:5px}.report-photos img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:6px;border:1px solid #ddd}.toast{position:fixed;left:50%;bottom:82px;transform:translateX(-50%);background:#111827;color:white;border-radius:999px;padding:10px 14px;font-size:14px;font-weight:800;box-shadow:var(--shadow);z-index:10;opacity:0;pointer-events:none;transition:.25s}.toast.show{opacity:1}.unfinished-box{margin-top:10px}.unfinished-title{font-size:13px;font-weight:900;color:#1e40af;margin-bottom:8px}.unfinished-title.ok{color:#166534}.unfinished-buttons{display:flex;gap:6px;flex-wrap:wrap}.unfinished-buttons button{min-height:34px;padding:7px 10px;border-radius:999px;font-size:13px}.legend-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.legend-chip{font-size:13px;font-weight:900;border-radius:999px;padding:6px 10px}.legend-chip.todo{background:#dbeafe;color:#1e3a8a}.legend-chip.done{background:#f0fdf4;color:#166534}.legend-chip.bad{background:#fff1f1;color:#991b1b}.no-print{}
 .report-form{--rf:7px;--rh:18px;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;color:#111;background:white}.report-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px}.report-logo-title{display:flex;align-items:flex-start;gap:7px}.report-logo{width:34px;height:34px;border:1.2px solid #111;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;background:#fff}.report-logo img{width:100%;height:100%;object-fit:contain;display:block}.report-title{font-size:calc(var(--rf) * 2.85);font-weight:900;letter-spacing:.2px;line-height:1.15}.report-meta{font-size:calc(var(--rf) * 1.18);line-height:1.3;min-width:110px;text-align:left}.patrol-stat-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:var(--rf)}.patrol-stat-table th,.patrol-stat-table td{border:1px solid #111;text-align:center;vertical-align:middle;padding:0;height:var(--rh);word-break:break-all;line-height:1}.patrol-stat-table th{font-weight:900;background:#fff}.patrol-stat-table .date-cell{font-size:calc(var(--rf) * 1.3);font-weight:800;width:44px;line-height:1.08}.patrol-stat-table .session-cell{font-size:calc(var(--rf) * 1.05);width:28px}.patrol-stat-table .class-head{font-size:calc(var(--rf) * 1.04)}.patrol-stat-table .sub-head{font-size:calc(var(--rf) * .88);line-height:1;writing-mode:vertical-rl;text-orientation:upright;letter-spacing:-1px;padding:2px 0}.patrol-stat-table .ok-mark{font-size:calc(var(--rf) * 1.32);font-weight:900}.patrol-stat-table .bad-code{font-size:calc(var(--rf) * .98);font-weight:800;line-height:1.02}.report-note{font-size:calc(var(--rf) * 1.03);font-weight:800;margin:3px 0}.code-reference{border:1px solid #111;border-radius:7px;margin:4px 0 6px;padding:5px}.code-reference h4{text-align:center;margin:0 0 3px;font-size:calc(var(--rf) * 1.2)}.code-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}.code-col{border-right:1px solid #111;padding:0 4px}.code-col:last-child{border-right:0}.code-col b{display:block;text-align:center;margin-bottom:2px;font-size:calc(var(--rf) * 1.0)}.code-col div{font-size:calc(var(--rf) * .96);line-height:1.18}.sign-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.sign-box{border:1px solid #111;border-radius:7px;height:54px;text-align:center;font-weight:900;padding-top:5px;font-size:calc(var(--rf) * 1.05)}.sign-box span{display:block;font-weight:400;margin-top:28px;font-size:calc(var(--rf) * .95)}.sign-box.memo-box{padding-top:5px}.memo-lines{display:none}
 .pdf-control-grid{display:grid;grid-template-columns:1fr;gap:8px;margin:12px 0}.pdf-control-grid .control-card{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:10px}.unfinished-box{display:grid;gap:8px;margin-top:12px}.unfinished-title{font-weight:900;color:#1f2937}.unfinished-buttons{display:flex;gap:8px;flex-wrap:wrap}.unfinished-buttons button{min-height:38px;padding:8px 11px;border-radius:12px;font-size:14px}.range-row{display:flex;align-items:center;gap:10px}.range-row input{padding:0}.range-value{width:54px;text-align:right;font-weight:900;color:#1e40af}
+.record-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 12px}
+.record-type-btn{min-height:46px;padding:10px 8px;border:1px solid var(--line);background:#fff;color:#4b5563;font-size:14px;border-radius:14px}
+.record-type-btn.active.highlight{background:#fff8db;border-color:#f6d96a;color:#8a5a00}
+.record-type-btn.active.observation{background:#eef6ff;border-color:#93c5fd;color:#1e40af}
+.record-type-btn.active.improvement{background:#fff1f1;border-color:#fca5a5;color:#b91c1c}
+.record.good{border-left-color:#f6c945;background:#fffdf3}
+.record.neutral{border-left-color:#60a5fa;background:#f8fbff}
+.typechip{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:12px;font-weight:900;margin:4px 0}
+.typechip.highlight{background:#fff3bf;color:#8a5a00}
+.typechip.observation{background:#dbeafe;color:#1e40af}
+.typechip.improvement{background:#fee2e2;color:#991b1b}
 .cloud-box{margin-top:12px;padding:11px 13px;border-radius:14px;background:#f3f4f6;color:#4b5563;font-size:14px;font-weight:800;line-height:1.55}
 .cloud-box.syncing{background:#eff6ff;color:#1d4ed8}
 .cloud-box.success{background:#ecfdf3;color:#166534}
@@ -69,7 +80,7 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂正式修正版 v1.1.5｜2026-07-20｜巡堂順序確認儲存、返回主管首頁</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.1.6｜2026-07-27｜新增亮點分享／一般觀察／改善提醒</p></div></header>
 
 <section id="screenHome" class="screen active">
   <button class="light full no-print" type="button" onclick="returnToPreviousPage()" style="margin:0 0 10px">← 返回主管首頁</button>
@@ -101,22 +112,28 @@ button{display:none!important}
   <div class="card hero">
     <span class="pill currentTag" id="currentStep">第 1 班</span>
     <h2 id="currentClass">班級名稱</h2>
-    <p class="muted">本班若沒有問題，按「本班全部合格」；有缺失時，勾選後按「儲存待改善並前往下一班」。</p>
+    <p class="muted">沒有特別事項可按「本班全部合格」；拍照或備註時，請選擇「亮點分享／一般觀察／改善提醒」。</p>
     <div id="currentStatusBox" class="cloud-box">目前狀態：尚未填寫</div>
     <div class="row no-print"><button class="success" id="allPassBtn" onclick="markAllPass()">✅ 本班全部合格</button><button class="gray" onclick="clearCurrent()">清除本班</button></div>
     <div class="row no-print" style="margin-top:10px"><button id="prevClassBtn" class="light" onclick="stepClass(-1)">← 上一班</button><button id="nextClassBtn" class="light" onclick="stepClass(1)">下一班 →</button></div>
   </div>
-  <div class="card"><h3>缺失項目：3 類 × 5 項</h3><div id="defectList" class="defects"></div></div>
-  <div class="card"><h3>照片與備註</h3>
+  <div class="card"><h3>改善提醒項目：3 類 × 5 項</h3><p class="small">只有需要改善時才勾選；亮點分享與一般觀察不必勾選。</p><div id="defectList" class="defects"></div></div>
+  <div class="card"><h3>照片與巡堂紀錄</h3>
+<div class="small">請先選擇這筆紀錄的性質：</div>
+<div class="record-type-grid" id="recordTypeGrid">
+  <button type="button" class="record-type-btn highlight" data-type="highlight" onclick="setRecordType('highlight')">⭐ 亮點分享</button>
+  <button type="button" class="record-type-btn observation" data-type="observation" onclick="setRecordType('observation')">📝 一般觀察</button>
+  <button type="button" class="record-type-btn improvement" data-type="improvement" onclick="setRecordType('improvement')">💡 改善提醒</button>
+</div>
 <label for="photoInput" class="btn light full">📷 拍照／選擇照片</label>
 <input id="photoInput" type="file" accept="image/*" capture="environment" multiple onchange="addPhotos(event)" style="position:absolute;left:-9999px">
 <div id="photoStatus" class="small" style="margin-top:8px">尚未選擇照片</div>
 <p class="small">照片會先自動縮小並暫存在本機；按下同步後會上傳到巡堂照片雲端資料夾。</p>
-<div id="photoGrid" class="photo-grid"></div><label class="small">備註</label><textarea id="note" placeholder="例如：紗窗破損，請主任協助維修。" oninput="saveCurrent(false)"></textarea><label class="small">通知對象，可複選</label><div id="notifyTargets" class="notify-options"></div></div>
+<div id="photoGrid" class="photo-grid"></div><label class="small">巡堂內容</label><textarea id="note" placeholder="例如：學習區布置很有巧思，值得分享；或記錄需要協助改善的事項。" oninput="saveCurrent(false)"></textarea><label class="small">通知對象，可複選</label><div id="notifyTargets" class="notify-options"></div></div>
   <div class="card no-print">
-<button class="light full" onclick="shareCurrent()">📤 轉發通知</button>
-<button class="danger full" style="margin-top:10px" onclick="saveDefectAndNext()">⚠️ 儲存待改善並前往下一班</button>
-<button class="primary full" style="margin-top:10px" onclick="saveAndNext()">儲存目前內容並前往下一班</button>
+<button class="light full" onclick="shareCurrent()">📤 分享這筆巡堂紀錄</button>
+<button class="danger full" style="margin-top:10px" onclick="saveDefectAndNext()">💡 儲存改善提醒並前往下一班</button>
+<button class="primary full" style="margin-top:10px" onclick="saveAndNext()">儲存巡堂紀錄並前往下一班</button>
 <button class="gray full" style="margin-top:10px" onclick="finishAndSave()">☁️ 結束／同步本時段</button>
 <button class="light full" style="margin-top:10px" onclick="show('Home')">← 返回巡堂首頁</button>
 </div>
@@ -124,9 +141,9 @@ button{display:none!important}
 
 <section id="screenRecords" class="screen"><div class="card"><h2>巡堂紀錄</h2><p class="muted" id="recordTip"></p><div id="recordsList"></div><button class="light full no-print" style="margin-top:12px" onclick="show('Home')">← 返回巡堂首頁</button><button class="light full no-print" style="margin-top:10px" onclick="loadCloudRecords(true)">🔄 重新讀取雲端紀錄</button><button class="light full no-print" style="margin-top:10px" onclick="syncCurrentSession()">☁️ 再次同步本時段全部紀錄</button><div class="grid2 no-print" style="margin-top:10px"><button class="gray" onclick="show('Report')">查看週報</button><button class="danger" onclick="resetSession()">重新開始本時段</button></div></div></section>
 
-<section id="screenReport" class="screen"><div class="card"><h2>巡堂統計表</h2><p class="muted no-print">請先選擇週別，再列印或另存 PDF。PDF 版會使用正式統計表格式，只顯示合格 V 與待改善代碼。列印方向請選「直向／Portrait」。</p><div class="no-print pdf-control-grid"><div class="control-card"><label class="small">統計週別</label><select id="reportWeekSelect" onchange="setReportWeek(this.value)"></select></div><div class="control-card"><label class="small">畫面預覽字體大小（直式滿版雙週10天，列印時會自動壓成 A4 一頁）</label><div class="range-row"><input type="range" id="reportFontSize" min="6.5" max="8.5" step="0.1" onchange="setReportFontSize(this.value)" oninput="previewReportFontSize(this.value)"><span class="range-value" id="reportFontSizeLabel">8.0</span></div></div></div><div class="print-page report-form" id="reportPage"></div><button class="primary full no-print" style="margin-top:14px" onclick="window.print()">列印／另存 PDF</button></div></section>
+<section id="screenReport" class="screen"><div class="card"><h2>巡堂統計表</h2><p class="muted no-print">請先選擇週別，再列印或另存 PDF。PDF 版會使用正式統計表格式，只顯示合格 V 與改善提醒代碼。列印方向請選「直向／Portrait」。</p><div class="no-print pdf-control-grid"><div class="control-card"><label class="small">統計週別</label><select id="reportWeekSelect" onchange="setReportWeek(this.value)"></select></div><div class="control-card"><label class="small">畫面預覽字體大小（直式滿版雙週10天，列印時會自動壓成 A4 一頁）</label><div class="range-row"><input type="range" id="reportFontSize" min="6.5" max="8.5" step="0.1" onchange="setReportFontSize(this.value)" oninput="previewReportFontSize(this.value)"><span class="range-value" id="reportFontSizeLabel">8.0</span></div></div></div><div class="print-page report-form" id="reportPage"></div><button class="primary full no-print" style="margin-top:14px" onclick="window.print()">列印／另存 PDF</button></div></section>
 
-<section id="screenSettings" class="screen"><div class="card"><h2>簡易設定</h2><p class="muted">雙擊上方標題可進入本設定頁。班級名稱、啟用狀態與增減都可在這裡調整。</p><h3>班級編輯</h3><div class="class-editor-note">勾選＝啟用巡堂；取消勾選＝暫停，不會出現在巡堂清單、未完成提醒與列印報表。巡堂順序請回到「順序」頁用上下箭頭調整；報表會自動依 A、B、C、Y 與數字排列。</div><div id="classEditor"></div><button class="light full" type="button" onclick="addClassEditorRow()">＋ 新增班級</button><h3 style="margin-top:16px">缺失項目文字</h3><div id="categorySettings"></div><button class="primary full" onclick="saveSettings()">儲存設定</button></div></section>
+<section id="screenSettings" class="screen"><div class="card"><h2>簡易設定</h2><p class="muted">雙擊上方標題可進入本設定頁。班級名稱、啟用狀態與增減都可在這裡調整。</p><h3>班級編輯</h3><div class="class-editor-note">勾選＝啟用巡堂；取消勾選＝暫停，不會出現在巡堂清單、未完成提醒與列印報表。巡堂順序請回到「順序」頁用上下箭頭調整；報表會自動依 A、B、C、Y 與數字排列。</div><div id="classEditor"></div><button class="light full" type="button" onclick="addClassEditorRow()">＋ 新增班級</button><h3 style="margin-top:16px">改善提醒項目文字</h3><div id="categorySettings"></div><button class="primary full" onclick="saveSettings()">儲存設定</button></div></section>
 </main>
 <div id="toast" class="toast"></div>
 
@@ -199,7 +216,15 @@ function cloudToLocalRecord(item,sessionKey){
     date:item.patrolDate||'',
     isoDate:item.patrolDate||'',
     time:item.updatedAt||item.createdAt||'',
-    status:item.result==='合格'?'pass':'needs_improvement',
+    status:item.result==='合格'?'pass':
+           item.result==='亮點分享'?'highlight':
+           item.result==='一般觀察'?'observation':'needs_improvement',
+    recordType:item.recordType==='亮點分享'?'highlight':
+               item.recordType==='一般觀察'?'observation':
+               item.recordType==='改善提醒'?'improvement':
+               item.result==='亮點分享'?'highlight':
+               item.result==='一般觀察'?'observation':
+               item.result==='合格'?'pass':'improvement',
     defects:splitCloudDefectCodes(item.defectCodes),
     note:item.notes||'',
     notifyTargets:splitCloudList(item.notifyTargets),
@@ -292,7 +317,8 @@ function cloudPayload(rec,sessionKey=currentSession){
     session:rec.session||sessionName(sessionKey),
     className:rec.className,
     patrolPerson:getCurrentPatrolPerson(),
-    result:rec.status==='pass'?'合格':'待改善',
+    result:recordTypeLabel(rec),
+    recordType:recordTypeLabel(rec),
     defectCodes:(rec.defects||[]).join('、'),
     notes:rec.note||'',
     notifyTargets:targetText(rec),
@@ -318,6 +344,7 @@ function recordSyncSignature(rec,sessionKey){
     session:sessionKey,
     className:rec.className||'',
     status:rec.status||'',
+    recordType:normalizeRecordType(rec),
     defects:[...(rec.defects||[])].sort(),
     note:rec.note||'',
     notifyTargets:[...(rec.notifyTargets||[])].sort(),
@@ -498,7 +525,7 @@ function returnToPreviousPage(){
   location.href='admin.html';
 }
 function isCompletedRecord(rec){
-  return !!rec && (rec.status==='pass' || rec.status==='needs_improvement');
+  return !!rec && ['pass','highlight','observation','needs_improvement'].includes(rec.status);
 }
 function activeScreenName(){
   const active=document.querySelector('.screen.active');
@@ -588,8 +615,47 @@ async function finishAndSave(){
   }
 }
 function openClass(i){currentIndex=Math.min(Math.max(0,i),Math.max(0,data.classes.length-1));loadCurrentDraft();show('Patrol')}
-function loadCurrentDraft(){const cls=data.classes[currentIndex];const rec=recs()[cls];currentPhotos=rec&&rec.photos?rec.photos:[];setTimeout(()=>{const n=document.getElementById('note');if(n)n.value=rec?.note||'';renderNotifyOptions(rec);renderPhotos();renderDefects();updateCurrentStatus()},0)}
+function loadCurrentDraft(){const cls=data.classes[currentIndex];const rec=recs()[cls];currentPhotos=rec&&rec.photos?rec.photos:[];setTimeout(()=>{const n=document.getElementById('note');if(n)n.value=rec?.note||'';renderNotifyOptions(rec);renderPhotos();renderDefects();renderRecordType(rec);updateCurrentStatus()},0)}
 
+
+function normalizeRecordType(rec){
+  if(rec?.recordType)return rec.recordType;
+  if(rec?.status==='pass')return 'pass';
+  if(rec?.status==='needs_improvement'||(rec?.defects||[]).length)return 'improvement';
+  if(rec?.status==='highlight')return 'highlight';
+  if(rec?.status==='observation')return 'observation';
+  return 'observation';
+}
+function recordTypeLabel(rec){
+  const type=normalizeRecordType(rec);
+  return type==='pass'?'合格':
+         type==='highlight'?'亮點分享':
+         type==='observation'?'一般觀察':'改善提醒';
+}
+function renderRecordType(rec){
+  const type=normalizeRecordType(rec);
+  document.querySelectorAll('#recordTypeGrid .record-type-btn').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.type===type);
+  });
+}
+function setRecordType(type){
+  const cls=data.classes[currentIndex];
+  const rec=ensureRec(cls);
+  if(type!=='improvement'&&(rec.defects||[]).length){
+    alert('目前已有改善提醒項目。請先取消勾選項目，才能改成亮點分享或一般觀察。');
+    return;
+  }
+  rec.recordType=type;
+  if(type==='highlight')rec.status='highlight';
+  else if(type==='observation')rec.status='observation';
+  else rec.status=(rec.defects||[]).length?'needs_improvement':'draft';
+  rec.time=nowTime();
+  markRecordChanged(rec);
+  archiveRecord(rec);
+  persist(false);
+  renderRecordType(rec);
+  updateCurrentStatus();
+}
 function updateCurrentStatus(){
   const cls=data.classes[currentIndex];
   const rec=recs()[cls];
@@ -603,15 +669,23 @@ function updateCurrentStatus(){
 
   if(defects.length){
     box.className='cloud-box error';
-    box.textContent=`目前狀態：待改善｜缺失 ${defects.join('、')}｜照片 ${photos} 張`;
+    box.textContent=`目前狀態：改善提醒｜項目 ${defects.join('、')}｜照片 ${photos} 張`;
     if(passBtn)passBtn.disabled=true;
   }else if(rec?.status==='pass'){
     box.className='cloud-box success';
     box.textContent='目前狀態：全部合格';
     if(passBtn)passBtn.disabled=false;
+  }else if(rec?.status==='highlight'){
+    box.className='cloud-box success';
+    box.textContent=`目前狀態：亮點分享｜照片 ${photos} 張`;
+    if(passBtn)passBtn.disabled=true;
+  }else if(rec?.status==='observation'){
+    box.className='cloud-box syncing';
+    box.textContent=`目前狀態：一般觀察｜照片 ${photos} 張`;
+    if(passBtn)passBtn.disabled=true;
   }else if(photos||note){
     box.className='cloud-box syncing';
-    box.textContent=`目前狀態：有照片或備註，但尚未勾選缺失`;
+    box.textContent='目前狀態：已有照片或內容，請選擇紀錄類型';
     if(passBtn)passBtn.disabled=true;
   }else{
     box.className='cloud-box';
@@ -655,14 +729,15 @@ function getReportRecord(dateISO,session,cls){
   if(dateISO===isoDate())return data.records?.[session]?.[cls];
   return null;
 }
-function ensureRec(cls){const r=recs();if(!r[cls])r[cls]={className:cls,session:sessionName(),date:today(),isoDate:isoDate(),time:'',status:'draft',defects:[],note:'',notifyTargets:['本班教保人員'],photos:[]};return r[cls]}
+function ensureRec(cls){const r=recs();if(!r[cls])r[cls]={className:cls,session:sessionName(),date:today(),isoDate:isoDate(),time:'',status:'draft',recordType:'observation',defects:[],note:'',notifyTargets:['本班教保人員'],photos:[]};return r[cls]}
 function toggleDefect(code){
   const cls=data.classes[currentIndex];
   const rec=ensureRec(cls);
   const s=new Set(rec.defects||[]);
   s.has(code)?s.delete(code):s.add(code);
   rec.defects=[...s];
-  rec.status=rec.defects.length?'needs_improvement':'draft';
+  rec.recordType=rec.defects.length?'improvement':(rec.recordType==='improvement'?'observation':rec.recordType||'observation');
+  rec.status=rec.defects.length?'needs_improvement':(rec.recordType==='highlight'?'highlight':rec.recordType==='observation'?'observation':'draft');
   rec.time=nowTime();
   markRecordChanged(rec);
   archiveRecord(rec);
@@ -675,10 +750,10 @@ function markAllPass(){
   const rec=recs()[cls];
   const note=(document.getElementById('note')?.value||'').trim();
   if((rec?.defects||[]).length || currentPhotos.length || note){
-    alert('本班已有缺失、照片或備註，不能直接改成全部合格。請先按「清除本班」。');
+    alert('本班已有改善項目、照片或巡堂內容，不能直接改成全部合格。請先按「清除本班」。');
     return;
   }
-  recs()[cls]={className:cls,session:sessionName(),date:today(),isoDate:isoDate(),time:nowTime(),status:'pass',defects:[],note:'',notifyTargets:[],photos:[]};
+  recs()[cls]={className:cls,session:sessionName(),date:today(),isoDate:isoDate(),time:nowTime(),status:'pass',recordType:'pass',defects:[],note:'',notifyTargets:[],photos:[]};
   markRecordChanged(recs()[cls]);
   archiveRecord(recs()[cls]);
   currentPhotos=[];
@@ -759,7 +834,15 @@ function savePhotoDraft(){
   rec.photos=[...currentPhotos];
   rec.isoDate=isoDate();
   rec.time=nowTime();
-  if((rec.defects||[]).length)rec.status='needs_improvement';
+  if((rec.defects||[]).length){
+    rec.recordType='improvement';
+    rec.status='needs_improvement';
+  }else if(rec.recordType==='highlight'){
+    rec.status='highlight';
+  }else{
+    rec.recordType=rec.recordType||'observation';
+    rec.status='observation';
+  }
   markRecordChanged(rec);
   archiveRecord(rec);
   persist();
@@ -806,9 +889,11 @@ function saveCurrent(update=true){
   rec.session=sessionName();
 
   if(defects.length){
+    rec.recordType='improvement';
     rec.status='needs_improvement';
   }else if(rec.status!=='pass'){
-    rec.status='draft';
+    rec.recordType=rec.recordType||'observation';
+    rec.status=rec.recordType==='highlight'?'highlight':'observation';
   }
 
   markRecordChanged(rec);
@@ -822,31 +907,51 @@ function saveDefectAndNext(){
   const cls=data.classes[currentIndex];
   const rec=saveCurrent(true);
   if(!rec || !(rec.defects||[]).length){
-    alert('請先至少勾選一個缺失項目。');
+    alert('請先至少勾選一個改善提醒項目。');
     return;
   }
   rec.status='needs_improvement';
   markRecordChanged(rec);
   archiveRecord(rec);
   persist();
-  alert(`${cls} 已儲存為待改善。\n缺失：${rec.defects.join('、')}\n照片：${displayPhotoCount(rec)} 張`);
+  alert(`${cls} 已儲存為改善提醒。\n項目：${rec.defects.join('、')}\n照片：${displayPhotoCount(rec)} 張`);
   goNextClass();
 }
 
 function saveAndNext(){
   const rec=saveCurrent(true);
   if(!rec || rec.status==='draft'){
-    alert('本班尚未完成。\n合格請按「本班全部合格」；有缺失請按紅色按鈕。');
+    alert('本班尚未完成。\n沒有紀錄請按「本班全部合格」；有照片或內容請先選擇紀錄類型。');
+    return;
+  }
+  if(['highlight','observation'].includes(rec.status) &&
+     !String(rec.note||'').trim() &&
+     !displayPhotoCount(rec)){
+    alert('亮點分享或一般觀察請至少加入照片或填寫巡堂內容。');
     return;
   }
   goNextClass();
 }
 function defectText(code){const [a,b]=code.split('-').map(n=>parseInt(n,10));return data.categories[a-1]?.items[b-1]||''}
-function messageForCurrent(){const rec=saveCurrent(true);if(!rec)return '尚未有巡堂紀錄';const codes=(rec.defects||[]).map(c=>`${c} ${defectText(c)}`).join('\n');return `Heremay 和美智慧校園｜巡堂改善通知\n時段：${sessionName()}\n班級：${rec.className}\n時間：${rec.time}\n通知對象：${targetText(rec)}\n狀態：${rec.status==='pass'?'全部合格':'待改善'}\n缺失項目：\n${codes||'無'}\n備註：${rec.note||'無'}\n照片：${displayPhotoCount(rec)} 張（同步後存入雲端照片資料夾）`}
-async function shareCurrent(){const text=messageForCurrent();try{if(navigator.share){await navigator.share({title:'和美智慧校園巡堂改善通知',text});alert('已開啟分享／轉發功能')}else if(navigator.clipboard){await navigator.clipboard.writeText(text);alert('瀏覽器不支援直接分享，已複製通知文字，可貼到 LINE 或訊息中。')}else{downloadText('巡堂改善通知.txt',text)}}catch(e){console.log(e)}}
+function messageForCurrent(){
+  const rec=saveCurrent(true);
+  if(!rec)return '尚未有巡堂紀錄';
+  const codes=(rec.defects||[]).map(c=>`${c} ${defectText(c)}`).join('\n');
+  return `Heremay 和美智慧校園｜巡堂紀錄
+時段：${sessionName()}
+班級：${rec.className}
+時間：${rec.time}
+紀錄類型：${recordTypeLabel(rec)}
+通知對象：${targetText(rec)}
+改善提醒項目：
+${codes||'無'}
+巡堂內容：${rec.note||'無'}
+照片：${displayPhotoCount(rec)} 張（同步後存入雲端照片資料夾）`;
+}
+async function shareCurrent(){const text=messageForCurrent();try{if(navigator.share){await navigator.share({title:'和美智慧校園巡堂紀錄',text});alert('已開啟分享／轉發功能')}else if(navigator.clipboard){await navigator.clipboard.writeText(text);alert('瀏覽器不支援直接分享，已複製通知文字，可貼到 LINE 或訊息中。')}else{downloadText('巡堂紀錄.txt',text)}}catch(e){console.log(e)}}
 function downloadText(filename,text){const blob=new Blob([text],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href)}
 function downloadCurrentText(){downloadText(`巡堂紀錄_${sessionName()}_${data.classes[currentIndex]}.txt`,messageForCurrent())}
-function exportAllText(){const lines=['Heremay 和美智慧校園｜今日巡堂紀錄',`日期：${today()}`,`時段：${sessionName()}`,''];const r=recs();data.classes.forEach(c=>{const x=r[c];if(!x){lines.push(`${c}：尚未巡視`);return}lines.push(`${c}｜${x.status==='pass'?'合格':'待改善'}｜${x.time}`);lines.push(`缺失：${(x.defects||[]).join(', ')||'無'}`);lines.push(`備註：${x.note||'無'}`);lines.push(`照片：${displayPhotoCount(x)} 張`);lines.push('')});downloadText(`Heremay今日巡堂紀錄_${sessionName()}.txt`,lines.join('\n'))}
+function exportAllText(){const lines=['Heremay 和美智慧校園｜今日巡堂紀錄',`日期：${today()}`,`時段：${sessionName()}`,''];const r=recs();data.classes.forEach(c=>{const x=r[c];if(!x){lines.push(`${c}：尚未巡視`);return}lines.push(`${c}｜${recordTypeLabel(x)}｜${x.time}`);lines.push(`改善項目：${(x.defects||[]).join(', ')||'無'}`);lines.push(`備註：${x.note||'無'}`);lines.push(`照片：${displayPhotoCount(x)} 張`);lines.push('')});downloadText(`Heremay今日巡堂紀錄_${sessionName()}.txt`,lines.join('\n'))}
 async function syncCurrentSession(){await syncSessionToCloud(currentSession,true)}
 function resetSession(){
   if(confirm(`確定清空今天「${sessionName()}」全部巡堂資料，重新從第一個啟用班級開始嗎？`)){
@@ -892,7 +997,7 @@ function removeClassEditorRow(btn){
 function updateAll(){renderSessionTabs();renderHome();renderClasses();renderPatrolHeader();renderRecords();renderReport();renderSettings();updateOrderSaveState()}
 function renderSessionTabs(){const m=document.getElementById('sessionMorning'),a=document.getElementById('sessionAfternoon');if(m&&a){m.classList.toggle('active',currentSession==='morning');a.classList.toggle('active',currentSession==='afternoon')}}
 function renderHome(){const r=recs();const total=data.classes.length;const done=data.classes.filter(cls=>isCompletedRecord(r[cls])).length;const t=document.getElementById('homeProgressText');if(t)t.textContent=`${sessionName()}：${done} / ${total} 班完成`;const b=document.getElementById('homeBar');if(b)b.style.width=total?`${done/total*100}%`:'0%';const box=document.getElementById('unfinishedList');if(box){const u=unfinishedClasses();if(u.length){box.innerHTML=`<div class="unfinished-title">尚未巡視 ${u.length} 班：點班級可直接補巡</div><div class="unfinished-buttons">${u.map(x=>`<button class="light" onclick="goUnfinished(${x.index})">${x.name}</button>`).join('')}</div>`}else{box.innerHTML='<div class="unfinished-title ok">本時段已全部巡完</div>'}}}
-function renderClasses(){const box=document.getElementById('classList');if(!box)return;document.getElementById('orderTip').textContent=`目前顯示：${sessionName()}巡堂進度。深色＝尚未巡視；淺色＝已巡過。點任何班級都可進入修改。`;box.innerHTML='';const r=recs();data.classes.forEach((c,i)=>{const x=r[c];const state=x?(x.status==='needs_improvement'?' needs':' done'):'';const current=(i===currentIndex?' current':'');const div=document.createElement('div');div.className='class-item'+state+current;div.onclick=()=>openClass(i);div.innerHTML=`<div class="class-main"><div class="class-info"><b>${i+1}. ${c}</b><div class="small">${x?`已巡視 ${x.time}，可點入修改`:'尚未巡視'}</div></div><span class="status">${x?(x.status==='pass'?'合格':'待改善'):(i===currentIndex?'目前':'未巡')}</span></div><div class="order-actions"><button type="button" title="上移" ${i===0?'disabled':''} onclick="moveClassOrder(event,${i},-1)">↑</button><button type="button" title="下移" ${i===data.classes.length-1?'disabled':''} onclick="moveClassOrder(event,${i},1)">↓</button></div>`;box.appendChild(div)})}
+function renderClasses(){const box=document.getElementById('classList');if(!box)return;document.getElementById('orderTip').textContent=`目前顯示：${sessionName()}巡堂進度。深色＝尚未巡視；淺色＝已巡過。點任何班級都可進入修改。`;box.innerHTML='';const r=recs();data.classes.forEach((c,i)=>{const x=r[c];const state=x?(x.status==='needs_improvement'?' needs':' done'):'';const current=(i===currentIndex?' current':'');const div=document.createElement('div');div.className='class-item'+state+current;div.onclick=()=>openClass(i);div.innerHTML=`<div class="class-main"><div class="class-info"><b>${i+1}. ${c}</b><div class="small">${x?`已巡視 ${x.time}，可點入修改`:'尚未巡視'}</div></div><span class="status">${x?(recordTypeLabel(x)):(i===currentIndex?'目前':'未巡')}</span></div><div class="order-actions"><button type="button" title="上移" ${i===0?'disabled':''} onclick="moveClassOrder(event,${i},-1)">↑</button><button type="button" title="下移" ${i===data.classes.length-1?'disabled':''} onclick="moveClassOrder(event,${i},1)">↓</button></div>`;box.appendChild(div)})}
 function moveClassOrder(event,i,dir){event.stopPropagation();const currentClass=data.classes[currentIndex];const j=i+dir;if(j<0||j>=data.classes.length)return;const arr=data.classes;[arr[i],arr[j]]=[arr[j],arr[i]];currentIndex=Math.max(0,arr.indexOf(currentClass));orderDirty=true;renderClasses();renderPatrolHeader();updateOrderSaveState();toast('順序已調整，請按確認儲存')}
 function renderPatrolHeader(){const cls=data.classes[currentIndex]||'尚未設定班級';const c=document.getElementById('currentClass');if(c)c.textContent=`${sessionName()}｜${cls}`;const s=document.getElementById('currentStep');if(s)s.textContent=`第 ${currentIndex+1} / ${data.classes.length} 班`;const prev=document.getElementById('prevClassBtn');const next=document.getElementById('nextClassBtn');if(prev)prev.disabled=currentIndex<=0;if(next)next.disabled=currentIndex>=data.classes.length-1}
 function collectAllRecords(){
@@ -933,9 +1038,11 @@ function renderRecords(){
 
   all.forEach(({date,session,cls,rec:x})=>{
     const div=document.createElement('div');
-    div.className='record '+(x.status==='needs_improvement'?'bad':'');
+    const type=normalizeRecordType(x);
+    div.className='record '+(type==='improvement'?'bad':type==='highlight'?'good':'neutral');
     const photoCount=displayPhotoCount(x);
-    div.innerHTML=`<b>${date}｜${sessionName(session)}｜${cls}｜${x.status==='pass'?'<span class="ok">全部合格</span>':'<span class="badtext">待改善</span>'}</b><div class="small">${x.time||''}</div><div class="codes">${(x.defects||[]).map(y=>`<span class="codechip">${y}</span>`).join('')}</div><div class="small">備註：${x.note||'無'}</div><div class="small">照片：${photoCount} 張｜通知：${targetText(x)}</div>`;
+    const label=recordTypeLabel(x);
+    div.innerHTML=`<b>${date}｜${sessionName(session)}｜${cls}</b><div><span class="typechip ${type}">${label}</span></div><div class="small">${x.time||''}</div><div class="codes">${(x.defects||[]).map(y=>`<span class="codechip">${y}</span>`).join('')}</div><div class="small">巡堂內容：${x.note||'無'}</div><div class="small">照片：${photoCount} 張｜通知：${targetText(x)}</div>`;
     box.appendChild(div);
   });
 }
@@ -961,7 +1068,7 @@ function formatDateCell(d){return `${d.getMonth()+1}/${d.getDate()}<br>(${weekda
 function cellOk(rec){return rec && rec.status==='pass' && !(rec.defects||[]).length ? '<span class="ok-mark">V</span>' : ''}
 function cellBad(rec){return rec && (rec.defects||[]).length ? `<span class="bad-code">${rec.defects.join('、')}</span>` : ''}
 function renderCodeReference(){
-  return `<div class="code-reference"><h4>待改善項目編號對照表</h4><div class="code-cols">${data.categories.map((cat,ci)=>`<div class="code-col"><b>${cat.name}（${ci+1}-1～${ci+1}-5）</b>${cat.items.map((it,ii)=>`<div>${ci+1}-${ii+1}　${it}</div>`).join('')}</div>`).join('')}</div></div>`;
+  return `<div class="code-reference"><h4>改善提醒項目編號對照表</h4><div class="code-cols">${data.categories.map((cat,ci)=>`<div class="code-col"><b>${cat.name}（${ci+1}-1～${ci+1}-5）</b>${cat.items.map((it,ii)=>`<div>${ci+1}-${ii+1}　${it}</div>`).join('')}</div>`).join('')}</div></div>`;
 }
 function renderReport(){
   const page=document.getElementById('reportPage');if(!page)return;
@@ -976,7 +1083,7 @@ function renderReport(){
   const classes=reportClasses();
   const logoHtml='<img src="assets/logo.png" alt="和美幼兒園 logo">';
   let html=`<div class="report-head"><div class="report-logo-title"><div class="report-logo">${logoHtml}</div><div class="report-title">私立和美幼兒園　${monthTitle}<br>巡堂統計表（雙週10天）</div></div><div class="report-meta">填表人：謝子元<br>填表日期：${new Date().getFullYear()}年${new Date().getMonth()+1}月${new Date().getDate()}日</div></div>`;
-  html+=`<table class="patrol-stat-table"><thead><tr><th rowspan="2" style="width:44px">日期</th><th rowspan="2" style="width:28px">時段</th>${classes.map(c=>`<th class="class-head" colspan="2">${c}</th>`).join('')}</tr><tr>${classes.map(()=>`<th class="sub-head">合格</th><th class="sub-head">待改善</th>`).join('')}</tr></thead><tbody>`;
+  html+=`<table class="patrol-stat-table"><thead><tr><th rowspan="2" style="width:44px">日期</th><th rowspan="2" style="width:28px">時段</th>${classes.map(c=>`<th class="class-head" colspan="2">${c}</th>`).join('')}</tr><tr>${classes.map(()=>`<th class="sub-head">合格</th><th class="sub-head">改善</th>`).join('')}</tr></thead><tbody>`;
   days.forEach(d=>{
     const dISO=isoDate(d);
     ['morning','afternoon'].forEach((session,idx)=>{
@@ -988,7 +1095,7 @@ function renderReport(){
     })
   });
   html+='</tbody></table>';
-  html+='<div class="report-note">備註：V 代表均合格；待改善請填編號（如：2-3）；本表為雙週10天彙整</div>';
+  html+='<div class="report-note">備註：V 代表均合格；改善提醒請填編號（如：2-3）；本表為雙週10天彙整</div>';
   html+=renderCodeReference();
   html+=`<div class="sign-row"><div class="sign-box">巡堂人員<span>（印章）</span></div><div class="sign-box">園長<span>（印章）</span></div><div class="sign-box">負責人<span>（印章）</span></div><div class="sign-box memo-box">備註</div></div>`;
   page.innerHTML=html;
