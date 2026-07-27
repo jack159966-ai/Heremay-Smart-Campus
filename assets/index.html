@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜Heremay Smart Campus v1.4.1</title>
+  <title>和美智慧校園｜Heremay Smart Campus v1.4.2</title>
 
   <!-- 手機桌面圖示與 PWA 設定 -->
   <meta name="theme-color" content="#fff6fb" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="和美智慧校園" />
-  <link rel="apple-touch-icon" sizes="180x180" href="assets/app-icon.png?v=20260727c" />
-  <link rel="icon" type="image/png" href="assets/app-icon.png?v=20260727c" />
-  <link rel="manifest" href="manifest.webmanifest?v=20260727c" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/app-icon.png?v=20260727d" />
+  <link rel="icon" type="image/png" href="assets/app-icon.png?v=20260727d" />
+  <link rel="manifest" href="manifest.webmanifest?v=20260727d" />
 
   <style>
     :root{
@@ -71,13 +71,20 @@
     .logo-wrap{
       width:146px;height:146px;margin:0 0 22px;
       border-radius:38px;
-      background:linear-gradient(145deg,#fff,#ffeaf2 48%,#dff4ff);
+      background:#fffaf0;
       display:grid;place-items:center;
       box-shadow:var(--shadow);
       overflow:hidden;
-      border:1px solid rgba(255,255,255,.96);
+      border:0;
     }
-    .logo-img{width:100%;height:100%;object-fit:contain;padding:8px}
+    .logo-img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      padding:0;
+      background:#fffaf0;
+    }
     .castle-fallback{display:none;font-size:66px}
     .logo-wrap.no-img .logo-img{display:none}
     .logo-wrap.no-img .castle-fallback{display:block}
@@ -248,7 +255,7 @@
   <main class="app-shell">
     <section class="logo-area">
       <div class="logo-wrap" id="logoWrap">
-        <img src="assets/logo.png?v=20260727c"alt="Heremay 和美智慧校園 Logo" class="logo-img" onerror="document.getElementById('logoWrap').classList.add('no-img')" />
+        <img src="assets/logo.png?v=20260727d" alt="Heremay 和美智慧校園 Logo" class="logo-img" onerror="document.getElementById('logoWrap').classList.add('no-img')" />
         <div class="castle-fallback">🏰</div>
       </div>
       <h2 class="school-name">和美智慧校園</h2>
@@ -302,7 +309,7 @@
 
     <footer>
       資料安全・隱私保護・安心使用<br />
-      <span id="versionText">Heremay Smart Campus v1.4.1</span>
+      <span id="versionText">Heremay Smart Campus v1.4.2</span>
     </footer>
   </main>
 
@@ -323,7 +330,7 @@
 
 
   <script>
-    const APP_VERSION = '1.4.1';
+    const APP_VERSION = '1.4.2';
 
     /*
       正式登入架構說明
@@ -876,7 +883,33 @@
       setTimeout(() => toast.classList.remove('show'), 3200);
     }
 
-    window.addEventListener('load', () => {
+    async function refreshAssetCacheOnce(){
+      const refreshKey = `heremay.assetRefresh.${APP_VERSION}`;
+      if(localStorage.getItem(refreshKey)) return;
+
+      localStorage.setItem(refreshKey, 'done');
+
+      try{
+        if('caches' in window){
+          const cacheNames = await caches.keys();
+          await Promise.all(cacheNames.map(name => caches.delete(name)));
+        }
+
+        if('serviceWorker' in navigator){
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(
+            registrations.map(registration =>
+              registration.update().catch(() => null)
+            )
+          );
+        }
+      }catch(err){
+        console.warn('快取更新暫時無法完成：', err);
+      }
+    }
+
+    window.addEventListener('load', async () => {
+      await refreshAssetCacheOnce();
       registerUpdateSystem();
 
       const lastAccount = localStorage.getItem('heremay.lastFaceAccount');
