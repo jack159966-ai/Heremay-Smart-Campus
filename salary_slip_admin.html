@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>和美智慧校園｜薪資條發放 v1.2</title>
+<style>
+:root{--blue:#1768ac;--navy:#17324d;--line:#d8e1ea;--green:#16734a;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;background:#eef3f7;color:#1f2d3a;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif}
+header{background:linear-gradient(135deg,#1768ac,#274d73);color:#fff;padding:18px 22px}
+header .wrap{max-width:1180px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px}
+h1{font-size:23px;margin:0}header p{margin:5px 0 0;font-weight:700;opacity:.9}
+button,input,select{font:inherit}button{border:0;border-radius:10px;padding:9px 13px;font-weight:900;cursor:pointer}
+.primary{background:var(--blue);color:#fff}.light{background:#fff;color:var(--blue);border:1px solid #cad7e4}.green{background:#16734a;color:#fff}
+main{max-width:1180px;margin:16px auto 32px;padding:0 16px}
+.toolbar,.panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(30,55,80,.07)}
+.toolbar{padding:14px;display:flex;align-items:end;gap:10px;flex-wrap:wrap}.field{display:flex;flex-direction:column;gap:5px}.field label{font-size:12px;font-weight:900;color:#56697c}.spacer{flex:1}
+input,select{border:1px solid #cbd6e1;border-radius:9px;padding:9px;background:#fff}
+.status{margin:10px 0;padding:10px 13px;border-radius:11px;background:#fff;border:1px solid var(--line);font-weight:800;color:#536679}
+.panel{overflow:hidden}.panel-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}.panel-head h2{font-size:18px;margin:0}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:900px}th,td{padding:10px 8px;border-bottom:1px solid #e2e8ef;text-align:center;font-size:13px}th{background:#f5f8fb;color:#40556b}.name{text-align:left;font-weight:900}.ok{color:var(--green);font-weight:900}.wait{color:#8a5a00;font-weight:900}
+.modal{position:fixed;inset:0;background:rgba(15,29,43,.65);display:none;align-items:center;justify-content:center;padding:18px;z-index:30}.modal.show{display:flex}
+.modal-card{width:min(760px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;padding:18px}
+.slip{border:1px solid #111;padding:16px;background:#fff}.slip h2{text-align:center;margin:0 0 5px}.slip .meta{display:flex;justify-content:space-between;gap:12px;font-size:13px;margin-bottom:12px}
+.slip table{min-width:0;border-collapse:collapse;width:100%}.slip th,.slip td{border:1px solid #111;padding:8px}.slip .total{font-weight:900;font-size:17px}
+.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+@media(max-width:850px){header,main{display:none}body:after{content:"此功能僅限電腦操作";display:flex;min-height:100vh;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#66788a}}
+@media print{@page{size:A4 portrait;margin:14mm}body:after{content:none!important;display:none!important}body{background:#fff}.no-print,header,main{display:none!important}.modal{position:static!important;display:block!important;background:#fff!important;padding:0!important}.modal-card{width:auto!important;max-height:none!important;overflow:visible!important;padding:0!important}.slip{border:1px solid #000}.actions{display:none!important}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><div><h1>薪資條發放</h1><p>園內保存、個人發放、預覽與補印</p></div><button class="light" onclick="location.href='admin.html'">返回主管首頁</button></div></header>
+<main>
+ <section class="toolbar">
+  <div class="field"><label>薪資月份</label><input id="month" type="month"></div>
+  <div class="spacer"></div>
+  <button class="light" onclick="loadData()">更新資料</button>
+  <button class="green" onclick="publishAll()">發放全部已儲存薪資</button>
+ </section>
+ <div id="status" class="status">準備讀取薪資條資料……</div>
+ <section class="panel">
+  <div class="panel-head"><h2 id="title">薪資條清單</h2><span>只有已在「薪資計算」儲存的人員可以發放</span></div>
+  <div class="table-wrap"><table><thead><tr><th>姓名</th><th>部門</th><th>應發薪資</th><th>扣除合計</th><th>實領薪資</th><th>狀態</th><th>操作</th></tr></thead><tbody id="body"></tbody></table></div>
+ </section>
+</main>
+<div id="modal" class="modal">
+ <div class="modal-card">
+  <div id="slipBox" class="slip"></div>
+  <div class="actions no-print"><button class="light" onclick="closeModal()">關閉</button><button class="primary" onclick="window.print()">列印／另存 PDF</button></div>
+ </div>
+</div>
+<script>
+const SERVICE_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
+let data={monthly:[],slips:[]};
+function money(n){return new Intl.NumberFormat('zh-TW',{style:'currency',currency:'TWD',maximumFractionDigits:0}).format(Number(n)||0)}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function jsonp(url,timeout=60000){return new Promise((resolve,reject)=>{const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script');let done=false;const end=(fn,v)=>{if(done)return;done=true;clearTimeout(t);try{delete window[cb]}catch(e){};s.remove();fn(v)};window[cb]=r=>end(resolve,r);s.onerror=()=>end(reject,new Error('連線失敗'));const t=setTimeout(()=>end(reject,new Error('連線逾時')),timeout);s.src=url+(url.includes('?')?'&':'?')+'callback='+cb;document.body.appendChild(s)})}
+async function jsonpRetry(url,retries=2){
+ let last;
+ for(let i=0;i<=retries;i++){
+  try{return await jsonp(url,60000+i*15000)}
+  catch(e){
+   last=e;
+   if(i<retries){
+    document.getElementById('status').textContent=`雲端回應較慢，正在第 ${i+2} 次嘗試……`;
+    await new Promise(r=>setTimeout(r,1500*(i+1)));
+   }
+  }
+ }
+ throw last||new Error('連線失敗');
+}
+async function call(action,payload){return jsonp(`${SERVICE_URL}?action=${action}&payload=${encodeURIComponent(JSON.stringify(payload||{}))}&_=${Date.now()}`,60000)}
+function cacheKey(month){return `heremay.salarySlipAdmin.${month}`}
+function init(){const d=new Date();document.getElementById('month').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;document.getElementById('month').addEventListener('change',loadData);loadData()}
+async function loadData(){
+ const month=document.getElementById('month').value;
+ document.getElementById('status').textContent='正在讀取薪資條資料……';
+ try{
+  const r=await jsonpRetry(`${SERVICE_URL}?action=getSalarySlipAdminBundle&month=${encodeURIComponent(month)}&_=${Date.now()}`,2);
+  if(!r.ok)throw new Error(r.message||'雲端回傳失敗');
+  data=r;
+  localStorage.setItem(cacheKey(month),JSON.stringify(r));
+  render();
+  document.getElementById('status').textContent=`已讀取 ${month}：${data.monthly.length} 筆已儲存薪資。`;
+ }catch(e){
+  let cached=null;
+  try{cached=JSON.parse(localStorage.getItem(cacheKey(month))||'null')}catch(err){}
+  if(cached){
+   data=cached;
+   render();
+   document.getElementById('status').textContent=`雲端暫時回應較慢，先顯示上次成功讀取的 ${data.monthly.length} 筆資料；稍後再按「更新資料」。`;
+  }else{
+   document.getElementById('status').textContent=`雲端暫時沒有回應（${e.message}），不是薪資資料消失；請稍後再按「更新資料」。`;
+  }
+ }
+}
+function render(){const month=document.getElementById('month').value;document.getElementById('title').textContent=`${month} 薪資條清單`;document.getElementById('body').innerHTML=data.monthly.length?data.monthly.map(x=>{const slip=data.slips.find(s=>s.employeeId===x.employeeId),ded=x.laborEmployee+x.healthEmployee+x.leaveDeduction+x.fixedDeductionTotal+x.temporaryDeductionTotal;return `<tr><td class="name">${esc(x.employeeName)}</td><td>${esc(x.pool)}</td><td>${money(x.grossSalary)}</td><td>${money(ded)}</td><td>${money(x.netSalary)}</td><td class="${slip?'ok':'wait'}">${slip?'已發放':'尚未發放'}</td><td><button class="light" onclick="preview('${esc(x.employeeId)}')">預覽</button> <button class="primary" onclick="publishOne('${esc(x.employeeId)}')">${slip?'重新發放':'發放'}</button></td></tr>`}).join(''):'<tr><td colspan="7">本月尚無已儲存薪資資料</td></tr>'}
+function salaryOf(id){return data.monthly.find(x=>x.employeeId===id)}
+function slipOf(id){return data.slips.find(x=>x.employeeId===id)}
+function preview(id){
+ const current=salaryOf(id)||{};
+ const published=slipOf(id)?.snapshot||{};
+ const publishedHasDetails=(published.fixedDeductions&&published.fixedDeductions.length)||(published.temporaryDeductions&&published.temporaryDeductions.length);
+ const currentHasDetails=(current.fixedDeductions&&current.fixedDeductions.length)||(current.temporaryDeductions&&current.temporaryDeductions.length);
+ const s=(!publishedHasDetails&&currentHasDetails)?current:{...current,...published};
+ showSlip(s,id);
+}
+function showSlip(s,id){
+ const employee=salaryOf(id)||{};
+ const fixed=Array.isArray(s.fixedDeductions)?s.fixedDeductions:[];
+ const temp=Array.isArray(s.temporaryDeductions)?s.temporaryDeductions:[];
+ const fixedRows=fixed.length
+  ? fixed.map(x=>`<tr><td>${esc(x.title||'固定代扣')}</td><td>${money(x.amount)}</td></tr>`).join('')
+  : (Number(s.fixedDeductionTotal)||0)>0
+    ? `<tr><td>固定代扣合計</td><td>${money(s.fixedDeductionTotal)}</td></tr>`:'';
+ const tempRows=temp.length
+  ? temp.map(x=>`<tr><td>${esc(x.title||'臨時代扣')}</td><td>${money(x.amount)}</td></tr>`).join('')
+  : (Number(s.temporaryDeductionTotal)||0)>0
+    ? `<tr><td>臨時代扣合計</td><td>${money(s.temporaryDeductionTotal)}</td></tr>`:'';
+ document.getElementById('slipBox').innerHTML=`<h2>私立和美幼兒園 薪資明細</h2><div class="meta"><span>月份：${esc(s.month||document.getElementById('month').value)}</span><span>姓名：${esc(s.employeeName||employee.employeeName||'')}</span></div><table><tr><th>應發項目</th><th>金額</th></tr><tr><td>基本薪資</td><td>${money(s.basicSalary)}</td></tr><tr><td>加班費</td><td>${money(s.overtimePay)}</td></tr><tr><th>扣除項目</th><th>金額</th></tr><tr><td>勞保員工自付</td><td>${money(s.laborEmployee)}</td></tr><tr><td>健保員工自付</td><td>${money(s.healthEmployee)}</td></tr><tr><td>請假扣款</td><td>${money(s.leaveDeduction)}</td></tr>${fixedRows}${tempRows}<tr><td>應發薪資</td><td>${money(s.grossSalary)}</td></tr><tr class="total"><td>實領薪資</td><td>${money(s.netSalary)}</td></tr></table>`;
+ document.getElementById('modal').classList.add('show')
+}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+async function publishOne(id){const x=salaryOf(id);if(!x)return;if(!confirm(`確定發放 ${x.employeeName} ${document.getElementById('month').value} 的薪資條嗎？`))return;try{const r=await call('publishSalarySlip',{month:document.getElementById('month').value,employeeId:id});if(!r.ok)throw new Error(r.message);await loadData();alert('薪資條已保存並發送到個人帳號。')}catch(e){alert('發放失敗：'+e.message)}}
+async function publishAll(){if(!data.monthly.length)return alert('本月沒有可發放的薪資資料。');if(!confirm(`確定發放 ${data.monthly.length} 位員工的薪資條嗎？`))return;let ok=0,fail=0;for(const x of data.monthly){try{const r=await call('publishSalarySlip',{month:document.getElementById('month').value,employeeId:x.employeeId});if(r.ok)ok++;else fail++}catch(e){fail++}}await loadData();alert(`發放完成：成功 ${ok} 筆，失敗 ${fail} 筆。`)}
+init();
+</script>
+</body></html>

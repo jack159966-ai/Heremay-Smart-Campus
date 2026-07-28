@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>和美智慧校園｜薪資計算 v1.0</title>
+<title>和美智慧校園｜薪資計算 v1.3</title>
 <style>
 :root{--blue:#1768ac;--navy:#17324d;--line:#d8e1ea;--soft:#f4f7fa;--green:#16734a;--red:#b42318;--amber:#a15c00}
 *{box-sizing:border-box}body{margin:0;background:#eef3f7;color:#1e2936;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif}
@@ -95,7 +95,7 @@ input,select,textarea{border:1px solid #cbd6e1;border-radius:9px;padding:9px;bac
     <div class="field"><label>金額</label><input id="newFixedAmount" type="number" min="0"></div>
     <div class="field"><label>開始月份</label><input id="newFixedStart" type="month"></div>
     <div class="field"><label>結束月份</label><input id="newFixedEnd" type="month"></div>
-    <button class="primary" onclick="addFixed()">新增</button>
+    <button id="addFixedBtn" class="primary" onclick="addFixed()">新增</button>
    </div>
   </div>
 
@@ -107,11 +107,11 @@ input,select,textarea{border:1px solid #cbd6e1;border-radius:9px;padding:9px;bac
     <div class="field"><label>項目名稱</label><input id="newTempTitle" placeholder="例如：員工旅遊眷屬費"></div>
     <div class="field"><label>金額</label><input id="newTempAmount" type="number" min="0"></div>
     <div class="field"><label>備註</label><input id="newTempNote"></div>
-    <button class="primary" onclick="addTemp()">新增</button>
+    <button id="addTempBtn" class="primary" onclick="addTemp()">新增</button>
    </div>
   </div>
 
-  <div class="actions"><button class="primary" onclick="saveProfile()">儲存薪資參數</button></div>
+  <div class="actions"><button id="saveProfileBtn" class="primary" onclick="saveProfile()">儲存薪資參數</button></div>
  </div>
 </div>
 
@@ -119,13 +119,55 @@ input,select,textarea{border:1px solid #cbd6e1;border-radius:9px;padding:9px;bac
 const SERVICE_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
 let data={employees:[],profiles:[],fixedDeductions:[],temporaryDeductions:[],monthly:[],leaveHours:{}};
 let selected=null;
+let pendingFixed=[];
+let pendingTemp=[];
+let pendingDeletes=[];
 
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function money(n){return new Intl.NumberFormat('zh-TW',{style:'currency',currency:'TWD',maximumFractionDigits:0}).format(Number(n)||0)}
 function num(v){const n=Number(v||0);return Number.isFinite(n)?Math.round(n):0}
 function monthValue(){return document.getElementById('month').value}
-function jsonp(url,timeoutMs=20000){return new Promise((resolve,reject)=>{const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script');let done=false;const finish=(fn,v)=>{if(done)return;done=true;clearTimeout(timer);try{delete window[cb]}catch(e){};s.remove();fn(v)};window[cb]=r=>finish(resolve,r);s.onerror=()=>finish(reject,new Error('連線失敗'));const timer=setTimeout(()=>finish(reject,new Error('連線逾時')),timeoutMs);s.src=url+(url.includes('?')?'&':'?')+'callback='+cb;document.body.appendChild(s)})}
-async function call(action,payload){const url=`${SERVICE_URL}?action=${encodeURIComponent(action)}&payload=${encodeURIComponent(JSON.stringify(payload||{}))}&_=${Date.now()}`;return jsonp(url)}
+function jsonp(url,timeoutMs=22000){
+ return new Promise((resolve,reject)=>{
+  const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script');
+  let done=false;
+  const finish=(fn,v)=>{if(done)return;done=true;clearTimeout(timer);try{delete window[cb]}catch(e){};s.remove();fn(v)};
+  window[cb]=r=>finish(resolve,r);
+  s.onerror=()=>finish(reject,new Error('連線失敗'));
+  const timer=setTimeout(()=>finish(reject,new Error('連線逾時')),timeoutMs);
+  s.src=url+(url.includes('?')?'&':'?')+'callback='+cb;
+  document.body.appendChild(s);
+ })
+}
+async function jsonpRetry(url,retries=2){
+ let last;
+ for(let i=0;i<=retries;i++){
+  try{return await jsonp(url,22000+i*7000)}
+  catch(e){
+   last=e;
+   if(i<retries){
+    document.getElementById('status').textContent=`雲端回應較慢，正在第 ${i+2} 次嘗試……`;
+    await new Promise(r=>setTimeout(r,1200*(i+1)));
+   }
+  }
+ }
+ throw last||new Error('連線失敗');
+}
+async function call(action,payload){
+ const url=`${SERVICE_URL}?action=${encodeURIComponent(action)}&payload=${encodeURIComponent(JSON.stringify(payload||{}))}&_=${Date.now()}`;
+ return jsonp(url,60000);
+}
+function setBusy(button,busy,label){
+ if(!button)return;
+ if(busy){
+  button.dataset.oldText=button.textContent;
+  button.disabled=true;
+  button.textContent=label||'處理中…';
+ }else{
+  button.disabled=false;
+  button.textContent=button.dataset.oldText||button.textContent;
+ }
+}
 
 function init(){
  const now=new Date();document.getElementById('month').value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
@@ -138,7 +180,7 @@ async function loadData(){
  if(!monthValue())return;
  document.getElementById('status').textContent='正在讀取薪資資料……';
  try{
-  const r=await jsonp(`${SERVICE_URL}?action=getSalaryBundle&month=${encodeURIComponent(monthValue())}&_=${Date.now()}`);
+  const r=await jsonpRetry(`${SERVICE_URL}?action=getSalaryBundle&month=${encodeURIComponent(monthValue())}&_=${Date.now()}`,2);
   if(!r.ok)throw new Error(r.message||'讀取失敗');
   data=r;render();
   document.getElementById('status').textContent=`已讀取 ${monthValue()} 薪資資料，共 ${data.employees.length} 位人員。`;
@@ -162,12 +204,12 @@ function tempTotal(id){return tempsOf(id).reduce((a,x)=>a+num(x.amount),0)}
 function rowValues(e){
  const p=profileOf(e.employeeId),m=monthlyOf(e.employeeId);
  return {
-  basic:m.basicSalary??p.basicSalary??0,
+  basic:p.basicSalary??m.basicSalary??0,
   overtime:m.overtimePay??0,
-  laborEmployer:m.laborEmployer??p.laborEmployer??0,
-  healthEmployer:m.healthEmployer??p.healthEmployer??0,
-  laborEmployee:m.laborEmployee??p.laborEmployee??0,
-  healthEmployee:m.healthEmployee??p.healthEmployee??0,
+  laborEmployer:p.laborEmployer??m.laborEmployer??0,
+  healthEmployer:p.healthEmployer??m.healthEmployer??0,
+  laborEmployee:p.laborEmployee??m.laborEmployee??0,
+  healthEmployee:p.healthEmployee??m.healthEmployee??0,
   leaveHours:Number(data.leaveHours?.[e.employeeId]??m.leaveHours??0),
   leaveDeduction:m.leaveDeduction??0,
   fixed:fixedTotal(e.employeeId),
@@ -218,7 +260,20 @@ async function saveRow(id){
  tr.querySelectorAll('input[data-k]').forEach(x=>v[x.dataset.k]=num(x.value));
  const payload={month:monthValue(),employeeId:id,employeeName:e.employeeName,pool:e.pool,basicSalary:v.basic,overtimePay:v.overtime,laborEmployer:v.laborEmployer,healthEmployer:v.healthEmployer,laborEmployee:v.laborEmployee,healthEmployee:v.healthEmployee,leaveHours:v.leaveHours,leaveDeduction:v.leaveDeduction,fixedDeductionTotal:v.fixed,temporaryDeductionTotal:v.temp,status:'草稿'};
  if(!confirm(`確定儲存 ${e.employeeName} ${monthValue()} 的薪資試算嗎？`))return;
- try{const r=await call('saveMonthlySalary',payload);if(!r.ok)throw new Error(r.message);await loadData();alert('薪資試算已儲存。')}catch(err){alert('儲存失敗：'+err.message)}
+ const btn=tr.querySelector('.savebtn');
+ try{
+  setBusy(btn,true,'儲存中…');
+  const r=await call('saveMonthlySalary',payload);
+  if(!r.ok)throw new Error(r.message);
+  const idx=data.monthly.findIndex(x=>x.employeeId===id);
+  if(idx>=0)data.monthly[idx]=r.salary||payload;else data.monthly.push(r.salary||payload);
+  document.getElementById('status').textContent=`${e.employeeName} 的薪資試算已儲存。`;
+  alert('薪資試算已儲存。');
+ }catch(err){
+  alert('儲存失敗：'+err.message);
+ }finally{
+  setBusy(btn,false);
+ }
 }
 function openProfile(id){
  selected=data.employees.find(x=>x.employeeId===id);if(!selected)return;
@@ -229,29 +284,122 @@ function openProfile(id){
  document.getElementById('newFixedStart').value=monthValue();document.getElementById('newFixedEnd').value='';
  renderDeductionLists();document.getElementById('profileModal').classList.add('show');
 }
-function closeProfile(){document.getElementById('profileModal').classList.remove('show')}
+function closeProfile(){
+ if((pendingFixed.length||pendingTemp.length||pendingDeletes.length) &&
+    !confirm('尚有未同步的代扣異動，關閉後仍會保留在目前頁面。確定關閉嗎？'))return;
+ document.getElementById('profileModal').classList.remove('show')
+}
 function renderDeductionLists(){
  const fixed=data.fixedDeductions.filter(x=>x.employeeId===selected.employeeId),temps=tempsOf(selected.employeeId);
- document.getElementById('fixedList').innerHTML=fixed.length?fixed.map(x=>`<div class="deduction-row"><div><b>${esc(x.title)}</b><div class="small">${esc(x.note||'')}</div></div><div>${money(x.amount)}</div><div>${esc(x.startMonth||'')}</div><div>${esc(x.endMonth||'持續')}</div><button class="danger" onclick="deleteDeduction('fixed','${esc(x.deductionId)}')">刪除</button></div>`).join(''):'<div class="empty">尚無固定代扣</div>';
- document.getElementById('tempList').innerHTML=temps.length?temps.map(x=>`<div class="deduction-row" style="grid-template-columns:1.4fr .7fr 1.6fr auto"><div><b>${esc(x.title)}</b></div><div>${money(x.amount)}</div><div class="small">${esc(x.note||'')}</div><button class="danger" onclick="deleteDeduction('temp','${esc(x.deductionId)}')">刪除</button></div>`).join(''):'<div class="empty">本月尚無臨時代扣</div>';
+ document.getElementById('fixedList').innerHTML=fixed.length?fixed.map(x=>`<div class="deduction-row"><div><b>${esc(x.title)}${x._pending?'（尚未同步）':''}</b><div class="small">${esc(x.note||'')}</div></div><div>${money(x.amount)}</div><div>${esc(x.startMonth||'')}</div><div>${esc(x.endMonth||'持續')}</div><button class="danger" onclick="deleteDeduction('fixed','${esc(x.deductionId)}')">刪除</button></div>`).join(''):'<div class="empty">尚無固定代扣</div>';
+ document.getElementById('tempList').innerHTML=temps.length?temps.map(x=>`<div class="deduction-row" style="grid-template-columns:1.4fr .7fr 1.6fr auto"><div><b>${esc(x.title)}${x._pending?'（尚未同步）':''}</b></div><div>${money(x.amount)}</div><div class="small">${esc(x.note||'')}</div><button class="danger" onclick="deleteDeduction('temp','${esc(x.deductionId)}')">刪除</button></div>`).join(''):'<div class="empty">本月尚無臨時代扣</div>';
 }
 async function saveProfile(){
- const payload={employeeId:selected.employeeId,employeeName:selected.employeeName,pool:selected.pool,basicSalary:num(document.getElementById('pBasic').value),laborEmployer:num(document.getElementById('pLaborEmployer').value),healthEmployer:num(document.getElementById('pHealthEmployer').value),laborEmployee:num(document.getElementById('pLaborEmployee').value),healthEmployee:num(document.getElementById('pHealthEmployee').value)};
- try{const r=await call('saveSalaryProfile',payload);if(!r.ok)throw new Error(r.message);await loadData();openProfile(selected.employeeId);alert('薪資參數已儲存。')}catch(err){alert('儲存失敗：'+err.message)}
+ const btn=document.getElementById('saveProfileBtn');
+ const payload={
+  month:monthValue(),
+  employeeId:selected.employeeId,
+  employeeName:selected.employeeName,
+  pool:selected.pool,
+  basicSalary:num(document.getElementById('pBasic').value),
+  laborEmployer:num(document.getElementById('pLaborEmployer').value),
+  healthEmployer:num(document.getElementById('pHealthEmployer').value),
+  laborEmployee:num(document.getElementById('pLaborEmployee').value),
+  healthEmployee:num(document.getElementById('pHealthEmployee').value)
+ };
+ if(!confirm('確定將薪資參數與代扣異動一次同步到雲端嗎？'))return;
+ try{
+  setBusy(btn,true,'同步中…');
+  document.getElementById('status').textContent='正在一次同步薪資參數與代扣資料……';
+
+  const r=await call('saveSalaryProfile',payload);
+  if(!r.ok)throw new Error(r.message||'薪資參數儲存失敗');
+
+  for(const x of pendingDeletes){
+   const d=await call('deleteSalaryDeduction',x);
+   if(!d.ok)throw new Error(d.message||'刪除代扣失敗');
+  }
+  for(const x of pendingFixed){
+   const f=await call('saveFixedDeduction',x);
+   if(!f.ok)throw new Error(f.message||'固定代扣儲存失敗');
+  }
+  for(const x of pendingTemp){
+   const t=await call('saveTemporaryDeduction',x);
+   if(!t.ok)throw new Error(t.message||'臨時代扣儲存失敗');
+  }
+
+  const profile=r.profile||payload;
+  const idx=data.profiles.findIndex(x=>x.employeeId===selected.employeeId);
+  if(idx>=0)data.profiles[idx]=profile;else data.profiles.push(profile);
+
+  pendingFixed=[];
+  pendingTemp=[];
+  pendingDeletes=[];
+
+  document.getElementById('status').textContent=`${selected.employeeName} 的薪資參數與代扣資料已同步完成。`;
+  alert('薪資參數與代扣資料已同步完成。');
+  closeProfile();
+  await loadData();
+ }catch(err){
+  document.getElementById('status').textContent='同步未完成，畫面上的資料仍保留，請稍後再按一次儲存。';
+  alert('同步失敗：'+err.message);
+ }finally{
+  setBusy(btn,false);
+ }
 }
-async function addFixed(){
- const title=document.getElementById('newFixedTitle').value.trim(),amount=num(document.getElementById('newFixedAmount').value);if(!title||!amount){alert('請填寫固定代扣名稱與金額。');return}
- const payload={employeeId:selected.employeeId,employeeName:selected.employeeName,title,amount,startMonth:document.getElementById('newFixedStart').value||monthValue(),endMonth:document.getElementById('newFixedEnd').value,active:true};
- try{const r=await call('saveFixedDeduction',payload);if(!r.ok)throw new Error(r.message);document.getElementById('newFixedTitle').value='';document.getElementById('newFixedAmount').value='';await loadData();openProfile(selected.employeeId)}catch(err){alert('新增失敗：'+err.message)}
+function addFixed(){
+ const title=document.getElementById('newFixedTitle').value.trim();
+ const amount=num(document.getElementById('newFixedAmount').value);
+ if(!title||!amount){alert('請填寫固定代扣名稱與金額。');return}
+ const startMonth=document.getElementById('newFixedStart').value||monthValue();
+ const endMonth=document.getElementById('newFixedEnd').value;
+ const deductionId='FD_'+selected.employeeId+'_'+startMonth.replace('-','')+'_'+
+  Array.from(new TextEncoder().encode(title+'|'+amount+'|'+endMonth)).reduce((a,b)=>(a*31+b)>>>0,7).toString(36);
+ const payload={deductionId,employeeId:selected.employeeId,employeeName:selected.employeeName,title,amount,startMonth,endMonth,active:true,_pending:true};
+ const idx=data.fixedDeductions.findIndex(x=>x.deductionId===deductionId);
+ if(idx>=0)data.fixedDeductions[idx]=payload;else data.fixedDeductions.push(payload);
+ const q=pendingFixed.findIndex(x=>x.deductionId===deductionId);
+ if(q>=0)pendingFixed[q]=payload;else pendingFixed.push(payload);
+ document.getElementById('newFixedTitle').value='';
+ document.getElementById('newFixedAmount').value='';
+ renderDeductionLists();
+ render();
+ document.getElementById('status').textContent='固定代扣已暫存於本機，按「儲存薪資參數」後才會同步雲端。';
 }
-async function addTemp(){
- const title=document.getElementById('newTempTitle').value.trim(),amount=num(document.getElementById('newTempAmount').value);if(!title||!amount){alert('請填寫臨時代扣名稱與金額。');return}
- const payload={month:monthValue(),employeeId:selected.employeeId,employeeName:selected.employeeName,title,amount,note:document.getElementById('newTempNote').value};
- try{const r=await call('saveTemporaryDeduction',payload);if(!r.ok)throw new Error(r.message);document.getElementById('newTempTitle').value='';document.getElementById('newTempAmount').value='';document.getElementById('newTempNote').value='';await loadData();openProfile(selected.employeeId)}catch(err){alert('新增失敗：'+err.message)}
+function addTemp(){
+ const title=document.getElementById('newTempTitle').value.trim();
+ const amount=num(document.getElementById('newTempAmount').value);
+ const note=document.getElementById('newTempNote').value;
+ if(!title||!amount){alert('請填寫臨時代扣名稱與金額。');return}
+ const deductionId='TD_'+monthValue().replace('-','')+'_'+selected.employeeId+'_SI_'+
+  Array.from(new TextEncoder().encode(title+'|'+amount+'|'+note)).reduce((a,b)=>(a*31+b)>>>0,7).toString(36);
+ const payload={deductionId,month:monthValue(),employeeId:selected.employeeId,employeeName:selected.employeeName,title,amount,note,_pending:true};
+ const idx=data.temporaryDeductions.findIndex(x=>x.deductionId===deductionId);
+ if(idx>=0)data.temporaryDeductions[idx]=payload;else data.temporaryDeductions.push(payload);
+ const q=pendingTemp.findIndex(x=>x.deductionId===deductionId);
+ if(q>=0)pendingTemp[q]=payload;else pendingTemp.push(payload);
+ document.getElementById('newTempTitle').value='';
+ document.getElementById('newTempAmount').value='';
+ document.getElementById('newTempNote').value='';
+ renderDeductionLists();
+ render();
+ document.getElementById('status').textContent='臨時代扣已暫存於本機，按「儲存薪資參數」後才會同步雲端。';
 }
-async function deleteDeduction(kind,id){
- if(!confirm('確定刪除這筆代扣嗎？'))return;
- try{const r=await call('deleteSalaryDeduction',{kind,deductionId:id});if(!r.ok)throw new Error(r.message);await loadData();openProfile(selected.employeeId)}catch(err){alert('刪除失敗：'+err.message)}
+function deleteDeduction(kind,id){
+ if(!confirm('確定刪除這筆代扣嗎？按「儲存薪資參數」後才會同步雲端。'))return;
+ if(kind==='fixed'){
+  data.fixedDeductions=data.fixedDeductions.filter(x=>x.deductionId!==id);
+  pendingFixed=pendingFixed.filter(x=>x.deductionId!==id);
+ }else{
+  data.temporaryDeductions=data.temporaryDeductions.filter(x=>x.deductionId!==id);
+  pendingTemp=pendingTemp.filter(x=>x.deductionId!==id);
+ }
+ if(!String(id).includes('_SI_') && !pendingDeletes.some(x=>x.kind===kind&&x.deductionId===id)){
+  pendingDeletes.push({kind,deductionId:id});
+ }
+ renderDeductionLists();
+ render();
+ document.getElementById('status').textContent='刪除動作已暫存於本機，按「儲存薪資參數」後才會同步雲端。';
 }
 init();
 </script>
