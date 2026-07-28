@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>和美智慧校園｜我的薪資條 v1.2</title>
+<title>和美智慧校園｜我的薪資條 v1.3</title>
 <style>
 body{margin:0;background:#fff4f8;color:#442334;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif}.wrap{max-width:760px;margin:auto;padding:16px}header{background:linear-gradient(135deg,#f06b9b,#df4f84);color:#fff;border-radius:18px;padding:18px}h1{margin:0;font-size:23px}header p{margin:6px 0 0;font-weight:700}.top{display:flex;justify-content:space-between;align-items:center;gap:10px}.back{border:0;border-radius:10px;padding:9px 12px;background:#fff;color:#c23f73;font-weight:900}.status{margin:12px 0;padding:11px;background:#fff;border:1px solid #f0cbd8;border-radius:12px;font-weight:800}.list{display:grid;gap:10px}.item{background:#fff;border:1px solid #efc9d7;border-radius:14px;padding:14px;display:flex;justify-content:space-between;align-items:center;gap:12px}.item h3{margin:0}.item p{margin:4px 0 0;color:#806171}.item button{border:0;border-radius:10px;padding:9px 12px;background:#df4f84;color:#fff;font-weight:900}.modal{position:fixed;inset:0;background:rgba(54,24,39,.68);display:none;align-items:center;justify-content:center;padding:14px}.modal.show{display:flex}.card{width:min(700px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;padding:16px}.slip{border:1px solid #111;padding:14px}.slip h2{text-align:center;margin:0 0 4px}.meta{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:10px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #111;padding:8px;text-align:left}.total{font-weight:900;font-size:17px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}.actions button{border:0;border-radius:10px;padding:9px 12px;font-weight:900}.print{background:#df4f84;color:#fff}.close{background:#eee}
 @media print{@page{size:A4 portrait;margin:14mm}body{background:#fff}.wrap,.actions{display:none!important}.modal{position:static!important;display:block!important;background:#fff!important;padding:0!important}.card{width:auto!important;max-height:none!important;overflow:visible!important;padding:0!important}.slip{border:1px solid #000}}
@@ -18,15 +18,17 @@ function jsonp(url){return new Promise((resolve,reject)=>{const cb='cb_'+Date.no
 function currentIdentity(){
  let e={};
  try{e=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}')||{}}catch(err){}
- const account=String(
-  e.account||e.loginAccount||e.employeeAccount||
-  localStorage.getItem('heremay.lastFaceAccount')||''
- ).trim();
- const employeeId=String(
-  e.employeeId||e.employeeID||e.id||e.staffId||e.staffID||account
- ).trim();
+
+ // 必須以這次實際登入帳號為優先，避免手機切換帳號後仍讀到上一位員工資料。
+ const loginAccount=String(localStorage.getItem('heremay.lastFaceAccount')||'').trim();
+ const objectAccount=String(e.account||e.loginAccount||e.employeeAccount||'').trim();
+ const objectId=String(e.employeeId||e.employeeID||e.id||e.staffId||e.staffID||'').trim();
+
+ const account=loginAccount||objectAccount||objectId;
+ const employeeId=loginAccount||objectId||objectAccount;
  const employeeName=String(e.name||e.employeeName||e.fullName||'').trim();
- return {employeeId,account,employeeName};
+
+ return {employeeId,account,employeeName,loginAccount,objectId};
 }
 async function init(){
  const who=currentIdentity();
@@ -34,6 +36,10 @@ async function init(){
   document.getElementById('status').textContent='尚未取得登入者資料，請由首頁重新登入。';
   return;
  }
+
+ document.getElementById('status').textContent=
+  `正在讀取 ${who.loginAccount||who.employeeId||who.employeeName} 的薪資條……`;
+
  try{
   const qs=new URLSearchParams({
    action:'getMySalarySlips',
@@ -46,8 +52,13 @@ async function init(){
   if(!r.ok)throw new Error(r.message);
   slips=r.slips||[];
   render();
+  if(!slips.length){
+   document.getElementById('status').textContent=
+    `登入帳號 ${who.loginAccount||who.employeeId||'未取得'} 目前沒有已發放薪資條。`;
+  }
  }catch(e){
-  document.getElementById('status').textContent='暫時無法讀取薪資條，請稍後再試。';
+  document.getElementById('status').textContent=
+   `暫時無法讀取薪資條：${e.message||'連線失敗'}。`;
  }
 }
 function render(){document.getElementById('status').textContent=slips.length?`共有 ${slips.length} 份已發放薪資條。`:'目前尚無已發放薪資條。';document.getElementById('list').innerHTML=slips.map((x,i)=>`<div class="item"><div><h3>${esc(x.month)} 薪資條</h3><p>實領薪資 ${money(x.snapshot?.netSalary)}</p></div><button onclick="openSlip(${i})">查看</button></div>`).join('')}
@@ -68,4 +79,8 @@ function openSlip(i){
 }
 function closeModal(){document.getElementById('modal').classList.remove('show')}
 init();
+window.addEventListener('pageshow',()=>init());
+window.addEventListener('storage',e=>{
+ if(e.key==='heremay.currentEmployee'||e.key==='heremay.lastFaceAccount') init();
+});
 </script></body></html>
