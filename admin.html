@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.2</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.3</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -485,6 +485,13 @@
     .leaveDay .leaveSplit{display:block;margin-top:3px;color:#6d8095;font-size:11px;font-weight:800}
     @media(max-width:520px){.leaveDay{min-height:64px;padding:5px}.leaveDay .leaveCount{font-size:12px}.leaveDay .leaveSplit{font-size:10px}}
 
+  
+    .bottomToolGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+    .bottomSquareBtn{aspect-ratio:1/1;border:1px solid #dfe8f6;border-radius:22px;background:#fff;padding:14px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;cursor:pointer;box-shadow:0 8px 20px rgba(45,82,132,.10)}
+    .bottomSquareBtn .sqIcon{font-size:34px;line-height:1}
+    .bottomSquareBtn strong{font-size:18px;color:#183f73}
+    .bottomSquareBtn span{font-size:12px;color:#6d8095;font-weight:750;line-height:1.35}
+    @media(max-width:520px){.bottomToolGrid{gap:8px}.bottomSquareBtn{border-radius:18px;padding:10px 6px}.bottomSquareBtn .sqIcon{font-size:30px}.bottomSquareBtn strong{font-size:15px}.bottomSquareBtn span{display:none}}
   </style>
 </head>
 <body class="auth-pending">
@@ -546,31 +553,20 @@
       <div id="adminReportList"></div>
     </section>
 
-    
-    <section class="dashCard">
-      <button class="patrolButton" type="button" onclick="location.href='leave_admin.html'">
-        <span class="pIcon">🏖️</span>
-        <span><strong>請假管理／請假日曆</strong><span>查看今天、明天與每月請假名單</span></span>
-        <span class="arrow">›</span>
+
+    <section class="bottomToolGrid">
+      <button class="bottomSquareBtn" type="button" onclick="location.href='leave_admin.html'">
+        <span class="sqIcon">🏖️</span><strong>請假管理</strong><span>近期與每月請假</span>
+      </button>
+      <button class="bottomSquareBtn" type="button" onclick="location.href='secretary.html'">
+        <span class="sqIcon">🤖</span><strong>智慧秘書</strong><span>行事曆、公告與專案</span>
+      </button>
+      <button class="bottomSquareBtn" type="button" onclick="openModal('system')">
+        <span class="sqIcon">⚙️</span><strong>系統管理</strong><span>人員、權限與設定</span>
       </button>
     </section>
 
-
-
-<section class="dashCard">
-      <button class="patrolButton" type="button" onclick="location.href='secretary.html'">
-        <span class="pIcon">🤖</span>
-        <span><strong>智慧秘書</strong><span>進入筆記本、行事曆與專案計畫中心</span></span>
-        <span class="arrow">›</span>
-      </button>
-    </section>
-<section class="lowGrid">
-<button class="toolCard" type="button" onclick="openModal('system')">
-        <span class="toolIcon">⚙️</span><span><strong>系統管理</strong><p>人員、班級、權限與設定。</p></span><span class="go">›</span>
-      </button>
-    </section>
-
-    <div class="versionStamp">主管工作台 v24.2｜2026-07-27｜移除團購與定期巡檢入口</div>
+    <div class="versionStamp">主管工作台 v24.3｜2026-07-27｜底部三鍵並排</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
