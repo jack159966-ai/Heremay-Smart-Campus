@@ -11,7 +11,7 @@ body{margin:0;background:#fff4f8;color:#442334;font-family:"Microsoft JhengHei",
 <div class="wrap"><header><div class="top"><div><h1>我的薪資條</h1><p>僅顯示已由園方正式發放的薪資資料</p></div><button class="back" onclick="location.href='teacher.html'">返回首頁</button></div></header><div id="status" class="status">正在讀取薪資條……</div><div id="list" class="list"></div></div>
 <div id="modal" class="modal"><div class="card"><div id="slip" class="slip"></div><div class="actions"><button class="close" onclick="closeModal()">關閉</button><button class="print" onclick="window.print()">列印／另存 PDF</button></div></div></div>
 <script>
-const SERVICE_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';let slips=[];
+const SERVICE_URL='https://script.google.com/macros/s/AKfycbzQIkRS3hLLiDMQj6WV6SyeEmFHO80f_Sl9qHciPkWpXZfuzggmfdTRLjtbvhhMZ624Zw/exec';let slips=[];
 function money(n){return new Intl.NumberFormat('zh-TW',{style:'currency',currency:'TWD',maximumFractionDigits:0}).format(Number(n)||0)}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function jsonp(url){return new Promise((resolve,reject)=>{const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script');window[cb]=r=>{resolve(r);delete window[cb];s.remove()};s.onerror=()=>reject(new Error('連線失敗'));s.src=url+(url.includes('?')?'&':'?')+'callback='+cb;document.body.appendChild(s)})}
