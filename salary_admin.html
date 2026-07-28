@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>和美智慧校園｜薪資計算 v1.0</title>
+<style>
+:root{--blue:#1768ac;--navy:#17324d;--line:#d8e1ea;--soft:#f4f7fa;--green:#16734a;--red:#b42318;--amber:#a15c00}
+*{box-sizing:border-box}body{margin:0;background:#eef3f7;color:#1e2936;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif}
+header{background:linear-gradient(135deg,#1768ac,#274d73);color:#fff;padding:18px 22px}
+header .wrap{max-width:1300px;margin:auto;display:flex;justify-content:space-between;gap:12px;align-items:center}
+h1{font-size:23px;margin:0}header p{margin:5px 0 0;font-weight:700;opacity:.9}
+button,input,select,textarea{font:inherit}button{border:0;border-radius:10px;padding:9px 13px;font-weight:900;cursor:pointer}
+.primary{background:var(--blue);color:#fff}.light{background:#fff;color:var(--blue);border:1px solid #c8d6e4}.danger{background:#fff0ee;color:var(--red)}
+main{max-width:1300px;margin:16px auto 34px;padding:0 16px}
+.toolbar,.panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(30,55,80,.07)}
+.toolbar{padding:14px;display:flex;align-items:end;gap:10px;flex-wrap:wrap}.field{display:flex;flex-direction:column;gap:5px}.field label{font-size:12px;font-weight:900;color:#56697c}
+input,select,textarea{border:1px solid #cbd6e1;border-radius:9px;padding:9px;background:#fff}.spacer{flex:1}
+.status{margin:10px 0;padding:10px 13px;border-radius:11px;background:#fff;border:1px solid var(--line);font-weight:800;color:#536679}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px}.card span{display:block;font-size:12px;color:#607287;font-weight:800}.card b{display:block;margin-top:5px;font-size:21px;color:var(--navy)}
+.panel{overflow:hidden}.panel-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center}.panel-head h2{font-size:18px;margin:0}.small{font-size:11px;color:#68798a}
+.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:1500px}th,td{padding:9px 7px;border-bottom:1px solid #e2e8ef;text-align:center;font-size:12px}th{background:#f5f8fb;color:#40556b;position:sticky;top:0;z-index:1}
+.name{text-align:left;font-weight:900;white-space:nowrap}.money{font-variant-numeric:tabular-nums}.net{font-weight:900;color:var(--green)}.cost{font-weight:900;color:var(--navy)}.warn{color:var(--amber);font-weight:900}
+.rowbtn{padding:6px 9px;border-radius:8px;background:#e9f3ff;color:#1768ac}.savebtn{padding:6px 9px;border-radius:8px;background:#1768ac;color:#fff}
+.inline-input{width:88px;text-align:right;padding:6px}.wide-input{width:110px;text-align:right;padding:6px}
+.modal{position:fixed;inset:0;background:rgba(15,29,43,.65);display:none;align-items:center;justify-content:center;padding:18px;z-index:30}.modal.show{display:flex}
+.modal-card{width:min(850px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;padding:18px}.modal-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.modal-head h3{margin:0}
+.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.full{grid-column:1/-1}
+.deduction-box{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:14px}.deduction-box h4{margin:0 0 8px}.deduction-row{display:grid;grid-template-columns:1.4fr .7fr .8fr .8fr auto;gap:8px;align-items:end;padding:8px 0;border-bottom:1px dashed #d9e2eb}.deduction-row:last-child{border-bottom:0}
+.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}.empty{padding:16px;color:#788898;text-align:center}
+@media(max-width:850px){header,main{display:none}body:after{content:"此功能僅限電腦操作";display:flex;min-height:100vh;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#66788a}}
+@media print{@page{size:A4 landscape;margin:9mm}body:after{content:none!important;display:none!important}header,main{display:block!important}.no-print,.modal,.toolbar,.status,.cards{display:none!important}body{background:#fff}header{background:#fff;color:#000;padding:0 0 4mm}main{max-width:none;margin:0;padding:0}.panel{box-shadow:none;border:0}.panel-head{padding:0 0 3mm}table{min-width:0;table-layout:fixed}th,td{font-size:6.4pt;padding:1.2mm .5mm;line-height:1.15}.inline-input,.wide-input{border:0;width:auto;padding:0;background:transparent;font-size:6.4pt}.rowbtn,.savebtn{display:none}}
+</style>
+</head>
+<body>
+<header>
+ <div class="wrap">
+  <div><h1>薪資計算</h1><p>基本薪資、加班費、勞健保、請假扣款與固定／臨時代扣</p></div>
+  <button class="light no-print" onclick="location.href='admin.html'">返回主管首頁</button>
+ </div>
+</header>
+
+<main>
+ <section class="toolbar no-print">
+  <div class="field"><label>薪資月份</label><input id="month" type="month"></div>
+  <div class="field"><label>部門</label><select id="pool"><option value="">全部部門</option><option>幼兒部</option><option>安親部</option><option>庶務組</option></select></div>
+  <div class="field"><label>姓名搜尋</label><input id="keyword" placeholder="輸入姓名"></div>
+  <div class="spacer"></div>
+  <button class="light" onclick="loadData()">更新資料</button>
+  <button class="primary" onclick="window.print()">列印／另存 PDF</button>
+ </section>
+
+ <div id="status" class="status">準備讀取薪資資料……</div>
+
+ <section class="cards">
+  <div class="card"><span>本月人數</span><b id="peopleCount">0</b></div>
+  <div class="card"><span>本月實領薪資合計</span><b id="netTotal">$0</b></div>
+  <div class="card"><span>學校人事總成本</span><b id="costTotal">$0</b></div>
+ </section>
+
+ <section class="panel">
+  <div class="panel-head"><h2 id="tableTitle">月薪資試算</h2><span class="small">點「設定／代扣」管理固定資料；加班費、請假扣款可按月調整</span></div>
+  <div class="table-wrap">
+   <table>
+    <thead><tr>
+     <th>姓名</th><th>部門</th><th>基本薪資</th><th>加班費</th>
+     <th>勞保雇主</th><th>健保雇主</th><th>勞保自付</th><th>健保自付</th>
+     <th>扣薪假時數</th><th>請假扣款</th><th>固定代扣</th><th>臨時代扣</th>
+     <th>應發薪資</th><th>實領薪資</th><th>學校成本</th><th>操作</th>
+    </tr></thead>
+    <tbody id="salaryBody"></tbody>
+   </table>
+  </div>
+ </section>
+</main>
+
+<div id="profileModal" class="modal">
+ <div class="modal-card">
+  <div class="modal-head"><div><h3 id="profileTitle">薪資設定</h3><div id="profileInfo" class="small"></div></div><button class="light" onclick="closeProfile()">關閉</button></div>
+
+  <div class="form-grid">
+   <div class="field"><label>基本薪資</label><input id="pBasic" type="number" min="0"></div>
+   <div class="field"><label>勞保雇主負擔</label><input id="pLaborEmployer" type="number" min="0"></div>
+   <div class="field"><label>健保雇主負擔</label><input id="pHealthEmployer" type="number" min="0"></div>
+   <div class="field"><label>勞保員工自付</label><input id="pLaborEmployee" type="number" min="0"></div>
+   <div class="field"><label>健保員工自付</label><input id="pHealthEmployee" type="number" min="0"></div>
+  </div>
+
+  <div class="deduction-box">
+   <h4>固定代扣</h4>
+   <div class="small">例如子女就學費用。啟用後每月沿用，直到停用或設定結束月份。</div>
+   <div id="fixedList"></div>
+   <div class="deduction-row">
+    <div class="field"><label>項目名稱</label><input id="newFixedTitle" placeholder="例如：子女就學費用"></div>
+    <div class="field"><label>金額</label><input id="newFixedAmount" type="number" min="0"></div>
+    <div class="field"><label>開始月份</label><input id="newFixedStart" type="month"></div>
+    <div class="field"><label>結束月份</label><input id="newFixedEnd" type="month"></div>
+    <button class="primary" onclick="addFixed()">新增</button>
+   </div>
+  </div>
+
+  <div class="deduction-box">
+   <h4>本月臨時代扣</h4>
+   <div class="small">例如團購、聚餐、旅遊眷屬自負額，只作用於目前薪資月份。</div>
+   <div id="tempList"></div>
+   <div class="deduction-row" style="grid-template-columns:1.4fr .7fr 1.6fr auto">
+    <div class="field"><label>項目名稱</label><input id="newTempTitle" placeholder="例如：員工旅遊眷屬費"></div>
+    <div class="field"><label>金額</label><input id="newTempAmount" type="number" min="0"></div>
+    <div class="field"><label>備註</label><input id="newTempNote"></div>
+    <button class="primary" onclick="addTemp()">新增</button>
+   </div>
+  </div>
+
+  <div class="actions"><button class="primary" onclick="saveProfile()">儲存薪資參數</button></div>
+ </div>
+</div>
+
+<script>
+const SERVICE_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
+let data={employees:[],profiles:[],fixedDeductions:[],temporaryDeductions:[],monthly:[],leaveHours:{}};
+let selected=null;
+
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function money(n){return new Intl.NumberFormat('zh-TW',{style:'currency',currency:'TWD',maximumFractionDigits:0}).format(Number(n)||0)}
+function num(v){const n=Number(v||0);return Number.isFinite(n)?Math.round(n):0}
+function monthValue(){return document.getElementById('month').value}
+function jsonp(url,timeoutMs=20000){return new Promise((resolve,reject)=>{const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script');let done=false;const finish=(fn,v)=>{if(done)return;done=true;clearTimeout(timer);try{delete window[cb]}catch(e){};s.remove();fn(v)};window[cb]=r=>finish(resolve,r);s.onerror=()=>finish(reject,new Error('連線失敗'));const timer=setTimeout(()=>finish(reject,new Error('連線逾時')),timeoutMs);s.src=url+(url.includes('?')?'&':'?')+'callback='+cb;document.body.appendChild(s)})}
+async function call(action,payload){const url=`${SERVICE_URL}?action=${encodeURIComponent(action)}&payload=${encodeURIComponent(JSON.stringify(payload||{}))}&_=${Date.now()}`;return jsonp(url)}
+
+function init(){
+ const now=new Date();document.getElementById('month').value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+ document.getElementById('month').addEventListener('change',loadData);
+ document.getElementById('pool').addEventListener('change',render);
+ document.getElementById('keyword').addEventListener('input',render);
+ loadData();
+}
+async function loadData(){
+ if(!monthValue())return;
+ document.getElementById('status').textContent='正在讀取薪資資料……';
+ try{
+  const r=await jsonp(`${SERVICE_URL}?action=getSalaryBundle&month=${encodeURIComponent(monthValue())}&_=${Date.now()}`);
+  if(!r.ok)throw new Error(r.message||'讀取失敗');
+  data=r;render();
+  document.getElementById('status').textContent=`已讀取 ${monthValue()} 薪資資料，共 ${data.employees.length} 位人員。`;
+ }catch(e){
+  console.error(e);document.getElementById('status').textContent='無法讀取薪資資料，請確認 salary_api.gs 與 Code.gs 已更新並重新部署。';
+ }
+}
+function profileOf(id){return data.profiles.find(x=>x.employeeId===id)||{}}
+function monthlyOf(id){return data.monthly.find(x=>x.employeeId===id)||{}}
+function activeFixed(id){
+ return data.fixedDeductions.filter(x=>{
+  if(x.employeeId!==id||x.active===false)return false;
+  if(x.startMonth&&monthValue()<x.startMonth)return false;
+  if(x.endMonth&&monthValue()>x.endMonth)return false;
+  return true;
+ })
+}
+function tempsOf(id){return data.temporaryDeductions.filter(x=>x.employeeId===id)}
+function fixedTotal(id){return activeFixed(id).reduce((a,x)=>a+num(x.amount),0)}
+function tempTotal(id){return tempsOf(id).reduce((a,x)=>a+num(x.amount),0)}
+function rowValues(e){
+ const p=profileOf(e.employeeId),m=monthlyOf(e.employeeId);
+ return {
+  basic:m.basicSalary??p.basicSalary??0,
+  overtime:m.overtimePay??0,
+  laborEmployer:m.laborEmployer??p.laborEmployer??0,
+  healthEmployer:m.healthEmployer??p.healthEmployer??0,
+  laborEmployee:m.laborEmployee??p.laborEmployee??0,
+  healthEmployee:m.healthEmployee??p.healthEmployee??0,
+  leaveHours:Number(data.leaveHours?.[e.employeeId]??m.leaveHours??0),
+  leaveDeduction:m.leaveDeduction??0,
+  fixed:fixedTotal(e.employeeId),
+  temp:tempTotal(e.employeeId)
+ }
+}
+function filteredEmployees(){
+ const pool=document.getElementById('pool').value,q=document.getElementById('keyword').value.trim().toLowerCase();
+ return data.employees.filter(e=>(!pool||e.pool===pool)&&(!q||String(e.employeeName).toLowerCase().includes(q)));
+}
+function render(){
+ const list=filteredEmployees(),body=document.getElementById('salaryBody');
+ let netAll=0,costAll=0;
+ body.innerHTML=list.length?list.map(e=>{
+  const v=rowValues(e),gross=v.basic+v.overtime,net=gross-v.laborEmployee-v.healthEmployee-v.leaveDeduction-v.fixed-v.temp,cost=gross+v.laborEmployer+v.healthEmployer;
+  netAll+=net;costAll+=cost;
+  return `<tr data-id="${esc(e.employeeId)}">
+   <td class="name">${esc(e.employeeName)}</td><td>${esc(e.pool||'')}</td>
+   <td><input class="inline-input" data-k="basic" type="number" value="${v.basic}" onchange="recalcRow(this)"></td>
+   <td><input class="inline-input" data-k="overtime" type="number" value="${v.overtime}" onchange="recalcRow(this)"></td>
+   <td class="money">${money(v.laborEmployer)}</td><td class="money">${money(v.healthEmployer)}</td>
+   <td class="money">${money(v.laborEmployee)}</td><td class="money">${money(v.healthEmployee)}</td>
+   <td>${v.leaveHours}</td>
+   <td><input class="inline-input" data-k="leaveDeduction" type="number" value="${v.leaveDeduction}" onchange="recalcRow(this)"></td>
+   <td class="money">${money(v.fixed)}</td><td class="money">${money(v.temp)}</td>
+   <td class="money gross">${money(gross)}</td><td class="money net">${money(net)}</td><td class="money cost">${money(cost)}</td>
+   <td><button class="rowbtn" onclick="openProfile('${esc(e.employeeId)}')">設定／代扣</button> <button class="savebtn" onclick="saveRow('${esc(e.employeeId)}')">儲存</button></td>
+  </tr>`
+ }).join(''):'<tr><td colspan="16" class="empty">沒有符合條件的人員</td></tr>';
+ document.getElementById('peopleCount').textContent=list.length;
+ document.getElementById('netTotal').textContent=money(netAll);
+ document.getElementById('costTotal').textContent=money(costAll);
+ document.getElementById('tableTitle').textContent=`${monthValue()} 月薪資試算`;
+}
+function recalcRow(input){
+ const tr=input.closest('tr'),id=tr.dataset.id,e=data.employees.find(x=>x.employeeId===id),v=rowValues(e);
+ tr.querySelectorAll('input[data-k]').forEach(x=>v[x.dataset.k]=num(x.value));
+ const gross=v.basic+v.overtime,net=gross-v.laborEmployee-v.healthEmployee-v.leaveDeduction-v.fixed-v.temp,cost=gross+v.laborEmployer+v.healthEmployer;
+ tr.querySelector('.gross').textContent=money(gross);tr.querySelector('.net').textContent=money(net);tr.querySelector('.cost').textContent=money(cost);
+ recalcTotals();
+}
+function recalcTotals(){
+ let net=0,cost=0;document.querySelectorAll('#salaryBody tr[data-id]').forEach(tr=>{net+=num(tr.querySelector('.net').textContent.replace(/[^\d-]/g,''));cost+=num(tr.querySelector('.cost').textContent.replace(/[^\d-]/g,''))});
+ document.getElementById('netTotal').textContent=money(net);document.getElementById('costTotal').textContent=money(cost);
+}
+async function saveRow(id){
+ const e=data.employees.find(x=>x.employeeId===id),tr=document.querySelector(`tr[data-id="${CSS.escape(id)}"]`),v=rowValues(e);
+ tr.querySelectorAll('input[data-k]').forEach(x=>v[x.dataset.k]=num(x.value));
+ const payload={month:monthValue(),employeeId:id,employeeName:e.employeeName,pool:e.pool,basicSalary:v.basic,overtimePay:v.overtime,laborEmployer:v.laborEmployer,healthEmployer:v.healthEmployer,laborEmployee:v.laborEmployee,healthEmployee:v.healthEmployee,leaveHours:v.leaveHours,leaveDeduction:v.leaveDeduction,fixedDeductionTotal:v.fixed,temporaryDeductionTotal:v.temp,status:'草稿'};
+ if(!confirm(`確定儲存 ${e.employeeName} ${monthValue()} 的薪資試算嗎？`))return;
+ try{const r=await call('saveMonthlySalary',payload);if(!r.ok)throw new Error(r.message);await loadData();alert('薪資試算已儲存。')}catch(err){alert('儲存失敗：'+err.message)}
+}
+function openProfile(id){
+ selected=data.employees.find(x=>x.employeeId===id);if(!selected)return;
+ const p=profileOf(id);
+ document.getElementById('profileTitle').textContent=`${selected.employeeName}｜薪資設定`;
+ document.getElementById('profileInfo').textContent=`${selected.pool||''}｜目前薪資月份 ${monthValue()}`;
+ document.getElementById('pBasic').value=p.basicSalary||0;document.getElementById('pLaborEmployer').value=p.laborEmployer||0;document.getElementById('pHealthEmployer').value=p.healthEmployer||0;document.getElementById('pLaborEmployee').value=p.laborEmployee||0;document.getElementById('pHealthEmployee').value=p.healthEmployee||0;
+ document.getElementById('newFixedStart').value=monthValue();document.getElementById('newFixedEnd').value='';
+ renderDeductionLists();document.getElementById('profileModal').classList.add('show');
+}
+function closeProfile(){document.getElementById('profileModal').classList.remove('show')}
+function renderDeductionLists(){
+ const fixed=data.fixedDeductions.filter(x=>x.employeeId===selected.employeeId),temps=tempsOf(selected.employeeId);
+ document.getElementById('fixedList').innerHTML=fixed.length?fixed.map(x=>`<div class="deduction-row"><div><b>${esc(x.title)}</b><div class="small">${esc(x.note||'')}</div></div><div>${money(x.amount)}</div><div>${esc(x.startMonth||'')}</div><div>${esc(x.endMonth||'持續')}</div><button class="danger" onclick="deleteDeduction('fixed','${esc(x.deductionId)}')">刪除</button></div>`).join(''):'<div class="empty">尚無固定代扣</div>';
+ document.getElementById('tempList').innerHTML=temps.length?temps.map(x=>`<div class="deduction-row" style="grid-template-columns:1.4fr .7fr 1.6fr auto"><div><b>${esc(x.title)}</b></div><div>${money(x.amount)}</div><div class="small">${esc(x.note||'')}</div><button class="danger" onclick="deleteDeduction('temp','${esc(x.deductionId)}')">刪除</button></div>`).join(''):'<div class="empty">本月尚無臨時代扣</div>';
+}
+async function saveProfile(){
+ const payload={employeeId:selected.employeeId,employeeName:selected.employeeName,pool:selected.pool,basicSalary:num(document.getElementById('pBasic').value),laborEmployer:num(document.getElementById('pLaborEmployer').value),healthEmployer:num(document.getElementById('pHealthEmployer').value),laborEmployee:num(document.getElementById('pLaborEmployee').value),healthEmployee:num(document.getElementById('pHealthEmployee').value)};
+ try{const r=await call('saveSalaryProfile',payload);if(!r.ok)throw new Error(r.message);await loadData();openProfile(selected.employeeId);alert('薪資參數已儲存。')}catch(err){alert('儲存失敗：'+err.message)}
+}
+async function addFixed(){
+ const title=document.getElementById('newFixedTitle').value.trim(),amount=num(document.getElementById('newFixedAmount').value);if(!title||!amount){alert('請填寫固定代扣名稱與金額。');return}
+ const payload={employeeId:selected.employeeId,employeeName:selected.employeeName,title,amount,startMonth:document.getElementById('newFixedStart').value||monthValue(),endMonth:document.getElementById('newFixedEnd').value,active:true};
+ try{const r=await call('saveFixedDeduction',payload);if(!r.ok)throw new Error(r.message);document.getElementById('newFixedTitle').value='';document.getElementById('newFixedAmount').value='';await loadData();openProfile(selected.employeeId)}catch(err){alert('新增失敗：'+err.message)}
+}
+async function addTemp(){
+ const title=document.getElementById('newTempTitle').value.trim(),amount=num(document.getElementById('newTempAmount').value);if(!title||!amount){alert('請填寫臨時代扣名稱與金額。');return}
+ const payload={month:monthValue(),employeeId:selected.employeeId,employeeName:selected.employeeName,title,amount,note:document.getElementById('newTempNote').value};
+ try{const r=await call('saveTemporaryDeduction',payload);if(!r.ok)throw new Error(r.message);document.getElementById('newTempTitle').value='';document.getElementById('newTempAmount').value='';document.getElementById('newTempNote').value='';await loadData();openProfile(selected.employeeId)}catch(err){alert('新增失敗：'+err.message)}
+}
+async function deleteDeduction(kind,id){
+ if(!confirm('確定刪除這筆代扣嗎？'))return;
+ try{const r=await call('deleteSalaryDeduction',{kind,deductionId:id});if(!r.ok)throw new Error(r.message);await loadData();openProfile(selected.employeeId)}catch(err){alert('刪除失敗：'+err.message)}
+}
+init();
+</script>
+</body>
+</html>

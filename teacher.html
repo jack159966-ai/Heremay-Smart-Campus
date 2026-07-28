@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v13.3 雲端網址與T1T2篩選修正</title>
+  <title>和美智慧校園｜教保人員首頁 v13.4 同步資料與版本更新</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -483,6 +483,22 @@
       margin-top:10px;
       cursor:pointer;
     }
+
+    .refresh-sync-btn{
+      width:100%;
+      border:1px solid #f3a9c2;
+      background:linear-gradient(135deg,#fff,#ffe5ef);
+      color:#8f3152;
+      border-radius:18px;
+      padding:13px 16px;
+      margin:2px 0 14px;
+      font-size:16px;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow:0 8px 20px rgba(230,82,137,.12);
+    }
+    .refresh-sync-btn:active{transform:scale(.985)}
+    .refresh-sync-btn[disabled]{opacity:.65;cursor:wait}
     @media (max-width:380px){
       .brand h1{font-size:21px}
       .time{font-size:23px}
@@ -507,6 +523,10 @@
         <div class="time" id="timeText">--:--</div>
       </div>
     </header>
+
+    <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">
+      🔄 同步資料／檢查最新版
+    </button>
 
     <section class="repeat-alert" id="repeatAlert">
       <h2>🔔 主管再次提醒</h2>
@@ -619,7 +639,7 @@
       </div>
     </section>
 
-    <div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。</div>
+    <div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v13.4｜同步資料與版本更新</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -1168,6 +1188,51 @@
       document.getElementById('confirmPassword').value = '';
       hidePersonalSettings();
       showToast('✅ 修改密碼流程測試成功；正式版會寫入登入資料庫。', 3200);
+    }
+
+    async function refreshAndSync(){
+      const button = document.getElementById('refreshSyncBtn');
+      if(button){
+        button.disabled = true;
+        button.textContent = '🔄 正在同步資料並檢查版本…';
+      }
+
+      showToast('正在同步雲端資料並檢查最新版…', 2600);
+
+      try{
+        await loadCloudStaffData();
+        loadCloudAckRecords();
+        loadReminderRecords();
+
+        if('serviceWorker' in navigator){
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map(registration =>
+            registration.update().catch(()=>{})
+          ));
+        }
+
+        if('caches' in window){
+          const keys = await caches.keys();
+          await Promise.all(
+            keys
+              .filter(key => /heremay|smart|campus|cache/i.test(key))
+              .map(key => caches.delete(key))
+          );
+        }
+
+        showToast('✅ 資料同步完成，正在載入最新版…', 2200);
+
+        const url = new URL(location.href);
+        url.searchParams.set('refresh', Date.now());
+        setTimeout(() => location.replace(url.toString()), 500);
+      }catch(error){
+        console.warn('同步或更新失敗：', error);
+        if(button){
+          button.disabled = false;
+          button.textContent = '🔄 同步資料／檢查最新版';
+        }
+        showToast('⚠️ 同步未完成，請檢查網路後再試。', 3200);
+      }
     }
 
     loadCurrentEmployee();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.3</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.5</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -491,6 +491,32 @@
     .bottomSquareBtn .sqIcon{font-size:34px;line-height:1}
     .bottomSquareBtn strong{font-size:18px;color:#183f73}
     .bottomSquareBtn span{font-size:12px;color:#6d8095;font-weight:750;line-height:1.35}
+
+    .desktopToolCard{margin-top:16px}
+    .desktopToolHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+    .desktopToolHead h2{margin:0;color:#244f66;font-size:21px}
+    .desktopOnlyTag{background:#eef4ff;border:1px solid #d6e2ff;color:#496b9e;border-radius:999px;padding:5px 10px;font-size:12px;font-weight:900}
+    .desktopToolGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .desktopToolBtn{
+      min-height:126px;border:1px solid #dce6f6;border-radius:22px;background:#fff;
+      padding:14px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:7px;text-align:center;cursor:pointer;box-shadow:0 8px 20px rgba(45,82,132,.09)
+    }
+    .desktopToolBtn .deskIcon{font-size:32px;line-height:1}
+    .desktopToolBtn strong{font-size:16px;color:#183f73}
+    .desktopToolBtn span{font-size:12px;color:#6d8095;font-weight:750;line-height:1.35}
+    .desktopToolBtn:disabled{
+      cursor:not-allowed;background:#f2f4f7;border-color:#e2e5ea;box-shadow:none;opacity:.68
+    }
+    .desktopToolBtn:disabled strong{color:#75808c}
+    .desktopToolBtn:disabled .deskIcon{filter:grayscale(1)}
+    @media(max-width:700px){
+      .desktopToolGrid{grid-template-columns:repeat(3,1fr);gap:8px}
+      .desktopToolBtn{min-height:104px;border-radius:18px;padding:9px 5px}
+      .desktopToolBtn .deskIcon{font-size:28px}
+      .desktopToolBtn strong{font-size:14px}
+      .desktopToolBtn span{display:none}
+    }
     @media(max-width:520px){.bottomToolGrid{gap:8px}.bottomSquareBtn{border-radius:18px;padding:10px 6px}.bottomSquareBtn .sqIcon{font-size:30px}.bottomSquareBtn strong{font-size:15px}.bottomSquareBtn span{display:none}}
   </style>
 </head>
@@ -566,7 +592,34 @@
       </button>
     </section>
 
-    <div class="versionStamp">主管工作台 v24.3｜2026-07-27｜底部三鍵並排</div>
+    <section class="dashCard desktopToolCard">
+      <div class="desktopToolHead">
+        <h2>🖥️ 電腦專用功能</h2>
+        <span class="desktopOnlyTag">手機顯示但停用</span>
+      </div>
+      <div class="desktopToolGrid">
+        <button class="desktopToolBtn" type="button" data-desktop-tool="attendance_admin.html" data-tool-name="出缺勤統計">
+          <span class="deskIcon">📊</span><strong>出缺勤統計</strong><span>月出勤、缺勤與工時彙整</span>
+        </button>
+        <button class="desktopToolBtn" type="button" data-desktop-tool="salary_admin.html" data-tool-name="薪資計算">
+          <span class="deskIcon">🧮</span><strong>薪資計算</strong><span>薪資試算與加扣項</span>
+        </button>
+        <button class="desktopToolBtn" type="button" data-desktop-tool="" data-tool-name="薪資條發放">
+          <span class="deskIcon">🧾</span><strong>薪資條發放</strong><span>製作、預覽與發放薪資條</span>
+        </button>
+        <button class="desktopToolBtn" type="button" data-desktop-tool="patrol_admin.html" data-tool-name="巡堂報表列印">
+          <span class="deskIcon">🖨️</span><strong>巡堂報表</strong><span>查詢、整理與列印</span>
+        </button>
+        <button class="desktopToolBtn" type="button" data-desktop-tool="" data-tool-name="PDF／Excel 匯出">
+          <span class="deskIcon">📤</span><strong>資料匯出</strong><span>PDF、Excel 與月報表</span>
+        </button>
+        <button class="desktopToolBtn" type="button" data-desktop-tool="" data-tool-name="大量參數設定">
+          <span class="deskIcon">⚙️</span><strong>大量參數設定</strong><span>人員、班別、假別與薪資參數</span>
+        </button>
+      </div>
+    </section>
+
+    <div class="versionStamp">主管工作台 v24.6｜2026-07-28｜薪資計算接上雲端管理頁</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
@@ -1404,6 +1457,39 @@ if(requireAdminAccess()){
   renderNoticeTrack();
   loadCloudAckRecords();
 }
+
+
+function isDesktopDevice(){
+  return window.matchMedia('(min-width: 821px)').matches;
+}
+
+function setupDesktopTools(){
+  const desktop = isDesktopDevice();
+
+  document.querySelectorAll('[data-desktop-tool]').forEach(button=>{
+    button.disabled = !desktop;
+
+    if(!desktop){
+      button.title = '此功能僅限電腦操作';
+      return;
+    }
+
+    const href = button.dataset.desktopTool || '';
+    const name = button.dataset.toolName || '此功能';
+
+    button.title = href ? `開啟${name}` : `${name}建置中`;
+    button.onclick = ()=>{
+      if(href){
+        location.href = href;
+      }else{
+        toast(`${name}尚在建置中`);
+      }
+    };
+  });
+}
+
+window.addEventListener('resize', setupDesktopTools);
+window.addEventListener('DOMContentLoaded', setupDesktopTools);
 
 </script>
 </body>

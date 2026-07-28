@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v1.6</title>
+  <title>和美智慧校園｜打卡與出勤 v2.1</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -21,7 +21,10 @@
     .card{background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:var(--radius);padding:15px;margin-top:14px;box-shadow:var(--shadow)}
     .who{display:flex;align-items:center;gap:12px}.avatar{width:50px;height:50px;border-radius:18px;display:grid;place-items:center;font-size:27px;background:#e5f3ff}.who strong{font-size:19px;color:#245c84}.who span{display:block;color:var(--muted);font-size:13px;font-weight:750;margin-top:3px}
     .clock{text-align:center;padding:8px 0 2px}.date{font-size:14px;color:var(--muted);font-weight:850}.time{font-size:44px;font-weight:950;color:#245c84;letter-spacing:1px;line-height:1.15}.status{display:inline-block;margin-top:5px;border-radius:999px;padding:7px 11px;font-size:13px;font-weight:900;background:#edf6fc;color:#3d7399}
-    .punch-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:14px}.punch{border:0;border-radius:20px;padding:15px 10px;color:white;font-size:18px;font-weight:950;cursor:pointer}.in{background:linear-gradient(135deg,var(--green),#66c996)}.out{background:linear-gradient(135deg,var(--blue),var(--blue2))}.punch:disabled{filter:grayscale(.5);opacity:.55;cursor:default}
+    .punch-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:14px}.punch{border:0;border-radius:20px;padding:15px 10px;color:white;font-size:18px;font-weight:950;cursor:pointer}.in{background:linear-gradient(135deg,var(--green),#66c996)}.out{background:linear-gradient(135deg,var(--blue),var(--blue2))}.punch:disabled{cursor:default}
+    .punch.done-state{opacity:1;filter:none;background:linear-gradient(135deg,#dcefe5,#edf8f2);color:#28704d;border:1px solid #a9d8bf}
+    .punch.wait-state{opacity:.55;filter:none}
+    .punch.ready-state{opacity:1;filter:none}
     .mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.mini{background:#f6fbff;border:1px solid var(--line);border-radius:16px;padding:10px;text-align:center}.mini b{display:block;font-size:18px;color:#245c84}.mini span{font-size:11px;color:var(--muted);font-weight:800}
     .section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.section-title h2{margin:0;font-size:19px;color:#245c84}.tag{font-size:11px;font-weight:900;color:#3d7399;background:#edf6fc;border-radius:999px;padding:5px 8px}
     .tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.tab{border:1px solid var(--line);background:#f8fcff;border-radius:14px;padding:10px 4px;color:#567386;font-size:13px;font-weight:900;cursor:pointer}.tab.active{background:var(--blue);color:white;border-color:var(--blue)}
@@ -33,6 +36,19 @@
     .salary{border:1px dashed var(--line);border-radius:18px;padding:14px;background:#f8fcff;text-align:center}.salary h3{margin:0;color:#245c84}.salary p{color:var(--muted);font-size:13px;font-weight:750;line-height:1.5}.salary-lock{font-weight:900;color:#98713c}
     .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(120px);width:min(92%,430px);padding:13px 15px;border-radius:18px;background:#304b5d;color:white;font-weight:850;box-shadow:0 18px 35px rgba(0,0,0,.22);transition:.25s;z-index:30}.toast.show{transform:translateX(-50%) translateY(0)}
     .modal{position:fixed;inset:0;background:rgba(32,48,58,.42);display:none;align-items:center;justify-content:center;padding:20px 16px;z-index:25}.modal.show{display:flex}.sheet{width:min(100%,480px);max-height:min(78vh,620px);overflow-y:auto;background:white;border-radius:26px;padding:17px;box-shadow:0 24px 50px rgba(0,0,0,.25);overscroll-behavior:contain}.sheet h3{margin:0 0 10px;color:#245c84}.choice{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.leave-people{margin:10px 0;border:1px solid var(--line);border-radius:16px;padding:10px;background:#f8fcff}.leave-people h4{margin:0 0 7px;color:#245c84}.person-line{font-size:13px;font-weight:800;color:#526d7e;padding:5px 0;border-top:1px dashed var(--line)}.person-line:first-of-type{border-top:0}.quota-line{display:flex;justify-content:space-between;gap:8px;margin-top:7px;font-size:12px;font-weight:900}.quota-ok{color:var(--green)}.quota-full{color:var(--red)}.attendance-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.attendance-box{border:1px solid var(--line);border-radius:16px;padding:10px 6px;text-align:center;background:#f8fcff}.attendance-box b{display:block;font-size:20px;color:#245c84}.attendance-box span{font-size:11px;color:var(--muted);font-weight:800}.month-list{margin-top:11px;display:grid;gap:7px}.month-row{border:1px solid var(--line);border-radius:14px;padding:10px;background:#fbfdff;display:grid;grid-template-columns:92px 1fr auto;gap:8px;align-items:center;font-size:13px}.month-row strong{color:#245c84}.month-row span{color:var(--muted);font-weight:800}.empty-note{text-align:center;color:var(--muted);font-weight:800;padding:18px 8px}.choice button{border:1px solid var(--line);background:#f7fbfe;border-radius:14px;padding:12px 5px;color:#3d7399;font-weight:900;cursor:pointer}.close{width:100%;border:0;border-radius:15px;padding:11px;background:#eef3f6;color:#567386;font-weight:900;margin-top:10px;cursor:pointer}
+    .sync-btn{width:100%;border:1px solid #bcd9ed;background:linear-gradient(135deg,#f8fcff,#e9f5fd);color:#245c84;border-radius:17px;padding:12px 14px;margin-top:12px;font-weight:950;cursor:pointer;box-shadow:0 7px 18px rgba(52,105,144,.10)}
+    .sync-btn:disabled{opacity:.6;cursor:wait}
+    .shift-info{margin-top:10px;border:1px solid var(--line);background:#f8fcff;border-radius:15px;padding:10px 12px;text-align:center;color:#526d7e;font-size:13px;font-weight:850;line-height:1.5}
+    .duty-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:11px}
+    .duty-btn{border:0;border-radius:18px;padding:13px 8px;color:#fff;font-size:16px;font-weight:950;cursor:pointer}
+    .duty-in{background:linear-gradient(135deg,#9b6adf,#bf8fea)}
+    .duty-out{background:linear-gradient(135deg,#ef8a45,#f4aa72)}
+    .duty-btn:disabled{cursor:default;opacity:.55}
+    .work-status{margin-top:10px;border-radius:15px;padding:11px 12px;text-align:center;font-size:14px;font-weight:950;line-height:1.5;background:#eef8f3;border:1px solid #bfe0cf;color:#2d7352}
+    .work-status.warn{background:#fff4e8;border-color:#ffd0a6;color:#995319}
+    .mode-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+    .mode-row select,.mode-row label{margin:0}
+
   </style>
 </head>
 <body>
@@ -40,8 +56,12 @@
   <header class="top">
     <button class="back" onclick="goBack()">← 返回</button>
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
-    <span class="version">v1.6 時段選擇流程修正版</span>
+    <span class="version">v2.1 一般班／值班互斥修正版</span>
   </header>
+
+  <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
+    🔄 同步出勤資料／檢查最新版
+  </button>
 
   <section class="card who">
     <div class="avatar" id="avatar">👩‍🏫</div>
@@ -50,7 +70,15 @@
 
   <section class="card">
     <div class="clock"><div class="date" id="dateText"></div><div class="time" id="timeText"></div><div class="status" id="todayStatus">今日尚未打卡</div></div>
-    <div class="punch-grid"><button class="punch in" id="clockInBtn" onclick="clockIn()">☀️ 上班打卡</button><button class="punch out" id="clockOutBtn" onclick="clockOut()">🌙 下班打卡</button></div>
+    <div id="attendanceModeBox"></div>
+    <div class="punch-grid"><button class="punch in" id="clockInBtn" onclick="confirmPunch('in')">☀️ 上班打卡</button><button class="punch out" id="clockOutBtn" onclick="confirmPunch('out')">🌙 下班打卡</button></div>
+    <div class="duty-grid">
+      <button class="duty-btn duty-in" id="dutyInBtn" onclick="confirmPunch('dutyIn')">🟣 上值班</button>
+      <button class="duty-btn duty-out" id="dutyOutBtn" onclick="confirmPunch('dutyOut')">🟠 下值班</button>
+    </div>
+    <div class="shift-info" id="shiftInfo">正在判斷今日出勤規則…</div>
+    <div class="work-status" id="workStatus">今日工時尚未完成</div>
+    <div class="shift-info">⚠️ 一般班與值班擇一使用；按下上值班會同時記錄上班，按下下值班會同時記錄下班。</div>
     <div class="mini-grid"><div class="mini"><b id="inTime">--:--</b><span>上班時間</span></div><div class="mini"><b id="outTime">--:--</b><span>下班時間</span></div><div class="mini"><b id="lateMinutes">0</b><span>遲到分鐘</span></div></div>
   </section>
 
@@ -65,7 +93,7 @@
     <div class="calendar" id="calendar"></div>
     <div class="selected-list" id="selectedList"></div>
     <div class="form-row">
-      <select class="input" id="leaveType"><option value="特休">特休</option><option value="事假">事假</option><option value="病假">病假</option><option value="公假">公假</option><option value="婚假">婚假</option><option value="喪假">喪假</option></select>
+      <select class="input" id="leaveType"><option value="特休">特休</option><option value="事假">事假</option><option value="病假">病假</option><option value="公假">公假</option><option value="婚假">婚假</option><option value="喪假">喪假</option><option value="考試週補休">考試週補休</option></select>
       <select class="input" id="period"><option value="全天">全天</option><option value="上午">上午</option><option value="下午">下午</option></select>
       <textarea class="input wide" id="reason" rows="2" placeholder="其他假別請簡述原因；特休可不填"></textarea>
     </div>
@@ -116,6 +144,7 @@
   let cloudPunches = [];
   let cloudReady = false;
   let pendingCloudAction = null;
+  let pendingActionTimer = null;
   let viewDate = new Date(); viewDate.setDate(1);
   let selectedDates = new Map();
   let pendingDate = '';
@@ -152,6 +181,8 @@
     employeeName.textContent=name;
     employeeInfo.textContent=[`登入帳號：${id}`,title,group].filter(Boolean).join('｜')||'測試模式';
     avatar.textContent=String(employee.homeType||'').includes('庶務')?'🏡':'👩‍🏫';
+    renderAttendanceMode();
+    renderShiftInfo();
   }
   async function refreshLoggedInEmployee(force=false){
     const latest=readEmployee();
@@ -182,9 +213,203 @@
       await loadCloudData(false);
     }
   }
-  function loadPunch(){const x=(cloudPunches.find(p=>p.date===todayKey())||JSON.parse(localStorage.getItem(punchKey())||'{}'));inTime.textContent=x.in||'--:--';outTime.textContent=x.out||'--:--';lateMinutes.textContent=x.late||0;clockInBtn.disabled=!!x.in;clockOutBtn.disabled=!x.in||!!x.out;todayStatus.textContent=x.out?'今日已完成上下班打卡':x.in?'已上班，尚未下班':'今日尚未打卡'}
-  function clockIn(){postAttendance('attendanceClockIn',{employeeId:employeeKey(),employeeName:employeeNameText(),identity:employee.identityCategory||employee.role||'',pool:leavePool(),date:todayKey(),scheduledIn:'08:00',scheduledOut:'17:00',isTest:employee.isTest||'否'},'clockIn')}
-  function clockOut(){postAttendance('attendanceClockOut',{employeeId:employeeKey(),employeeName:employeeNameText(),pool:leavePool(),date:todayKey()},'clockOut')}
+  function attendanceDepartment(){return leavePool()==='安親部'?'安親部':'幼兒部'}
+  function selectedAttendanceMode(){
+    return attendanceDepartment()==='幼兒部'
+      ? (document.getElementById('kindergartenShift')?.value||localStorage.getItem('heremay.kindergartenShift')||'正常班')
+      : (document.getElementById('afterSchoolMode')?.value||localStorage.getItem('heremay.afterSchoolMode')||'學期中')
+  }
+  function selectedDutyType(){
+    return attendanceDepartment()==='幼兒部'
+      ? (document.getElementById('kindergartenShift')?.value||'正常班')
+      : (document.getElementById('afterSchoolDuty')?.value||'一般班')
+  }
+  function saveAttendanceMode(){
+    if(attendanceDepartment()==='幼兒部') localStorage.setItem('heremay.kindergartenShift',document.getElementById('kindergartenShift')?.value||'正常班');
+    else{
+      localStorage.setItem('heremay.afterSchoolMode',document.getElementById('afterSchoolMode')?.value||'學期中');
+      localStorage.setItem('heremay.afterSchoolDuty',document.getElementById('afterSchoolDuty')?.value||'一般班');
+    }
+    renderShiftInfo()
+  }
+  function renderAttendanceMode(){
+    const box=document.getElementById('attendanceModeBox');if(!box)return;
+    if(attendanceDepartment()==='幼兒部'){
+      const saved=localStorage.getItem('heremay.kindergartenShift')||'正常班';
+      box.innerHTML=`<div class="mode-row"><label><strong>幼兒部今日班別</strong><select class="input" id="kindergartenShift" onchange="saveAttendanceMode()"><option>正常班</option><option>早值</option><option>晚值</option></select></label><div class="shift-info">幼兒部不分寒暑假</div></div>`;
+      document.getElementById('kindergartenShift').value=saved
+    }else{
+      const mode=localStorage.getItem('heremay.afterSchoolMode')||'學期中',duty=localStorage.getItem('heremay.afterSchoolDuty')||'一般班';
+      box.innerHTML=`<div class="mode-row"><label><strong>安親部今日模式</strong><select class="input" id="afterSchoolMode" onchange="saveAttendanceMode()"><option>學期中</option><option>寒暑假</option><option>考試週星期六</option></select></label><label><strong>今日班別</strong><select class="input" id="afterSchoolDuty" onchange="saveAttendanceMode()"><option>一般班</option><option>晚值</option></select></label></div>`;
+      document.getElementById('afterSchoolMode').value=mode;document.getElementById('afterSchoolDuty').value=duty
+    }
+  }
+  function workSchedule(){
+    const department=attendanceDepartment(),mode=selectedAttendanceMode(),duty=selectedDutyType();
+    if(department==='幼兒部'){
+      if(mode==='早值')return{department,mode,dutyType:'早值',name:'幼兒部早值',scheduledIn:'07:00',scheduledOut:'16:00',requiredMinutes:540};
+      if(mode==='晚值')return{department,mode,dutyType:'晚值',name:'幼兒部晚值',scheduledIn:'08:00',scheduledOut:'18:00',requiredMinutes:600};
+      return{department,mode,dutyType:'正常班',name:'幼兒部正常班',scheduledIn:'08:00',scheduledOut:'17:00',requiredMinutes:540}
+    }
+    if(mode==='考試週星期六')return{department,mode,dutyType:'考試週留園',name:'安親部考試週留園',scheduledIn:'',scheduledOut:'',requiredMinutes:0,supplemental:true};
+    if(mode==='寒暑假'){
+      if(duty==='晚值')return{department,mode,dutyType:'晚值',name:'安親部寒暑假晚值',scheduledIn:'09:00',scheduledOut:'18:00～19:00依學生離園',requiredMinutes:540,flexibleOut:true};
+      return{department,mode,dutyType:'一般班',name:'安親部寒暑假一般班',scheduledIn:'08:00',scheduledOut:'17:00',requiredMinutes:540}
+    }
+    if(duty==='晚值')return{department,mode,dutyType:'晚值',name:'安親部學期中晚值',scheduledIn:'09:00',scheduledOut:'18:00～19:00依學生離園',requiredMinutes:540,flexibleOut:true};
+    return{department,mode,dutyType:'一般班',name:'安親部學期中一般班',scheduledIn:'09:00',scheduledOut:'18:00',requiredMinutes:540}
+  }
+  function renderShiftInfo(){
+    const s=workSchedule(),box=document.getElementById('shiftInfo');if(!box)return;
+    box.textContent=s.supplemental?'今日規則：安親部考試週星期六｜實際上下班均記為補課工時':`今日規則：${s.name}｜上班 ${s.scheduledIn}｜下班 ${s.scheduledOut}`
+  }
+  function minutesBetween(a,b){
+    if(!a||!b)return 0;const [ah,am]=String(a).split(':').map(Number),[bh,bm]=String(b).split(':').map(Number);
+    let v=(bh*60+bm)-(ah*60+am);if(v<0)v+=1440;return v
+  }
+  function renderWorkStatus(x={}){
+    const box=document.getElementById('workStatus');if(!box)return;
+    if(!x.in||!x.out){box.className='work-status';box.textContent=x.in?'已上班，等待下班後計算工時':'今日工時尚未完成';return}
+    const worked=Number(x.workMinutes||minutesBetween(x.in,x.out)),required=Number(x.requiredMinutes||workSchedule().requiredMinutes||0),h=Math.floor(worked/60),min=worked%60;
+    if(x.isSupplemental||workSchedule().supplemental){box.className='work-status';box.textContent=`✅ 考試週補課工時：${h} 小時 ${min} 分`}
+    else if(worked<required){const d=required-worked;box.className='work-status warn';box.textContent=`⚠️ 今日實際 ${h} 小時 ${min} 分｜尚差 ${Math.floor(d/60)} 小時 ${d%60} 分`}
+    else{box.className='work-status';box.textContent=`✅ 今日實際工時 ${h} 小時 ${min} 分`}
+  }
+  function setPunchPending(kind, pending){
+    if(kind === 'clockIn') clockInBtn.disabled = pending;
+    if(kind === 'clockOut') clockOutBtn.disabled = pending;
+    if(kind === 'dutyIn') dutyInBtn.disabled = pending;
+    if(kind === 'dutyOut') dutyOutBtn.disabled = pending;
+    if(pending){
+      if(kind === 'clockIn') clockInBtn.textContent = '⏳ 上班打卡中…';
+      if(kind === 'clockOut') clockOutBtn.textContent = '⏳ 下班打卡中…';
+      if(kind === 'dutyIn') dutyInBtn.textContent = '⏳ 上值班記錄中…';
+      if(kind === 'dutyOut') dutyOutBtn.textContent = '⏳ 下值班記錄中…';
+    }else{
+      loadPunch();
+    }
+  }
+
+  function clearPendingAction(){
+    pendingCloudAction = null;
+    if(pendingActionTimer){
+      clearTimeout(pendingActionTimer);
+      pendingActionTimer = null;
+    }
+    setPunchPending('clockIn', false);
+    setPunchPending('clockOut', false);
+  }
+
+  function loadPunch(){
+    const x=(cloudPunches.find(p=>String(p.date||'')===todayKey())||JSON.parse(localStorage.getItem(punchKey())||'{}'));
+    const hi=Boolean(String(x.in||'').trim()),ho=Boolean(String(x.out||'').trim());
+    const hdi=Boolean(String(x.dutyIn||'').trim()),hdo=Boolean(String(x.dutyOut||'').trim());
+    const dutyMode=hdi||hdo;
+
+    inTime.textContent=hi?x.in:'--:--';
+    outTime.textContent=ho?x.out:'--:--';
+    lateMinutes.textContent=x.late||0;
+
+    clockInBtn.classList.remove('done-state','wait-state','ready-state');
+    clockOutBtn.classList.remove('done-state','wait-state','ready-state');
+
+    if(dutyMode){
+      clockInBtn.disabled=true;
+      clockOutBtn.disabled=true;
+      clockInBtn.textContent=hi?`✅ 值班上班 ${x.in}`:'☀️ 已改用值班模式';
+      clockOutBtn.textContent=ho?`✅ 值班下班 ${x.out}`:'🌙 請使用下值班';
+      clockInBtn.classList.add('done-state');
+      clockOutBtn.classList.add(ho?'done-state':'wait-state');
+
+      dutyInBtn.disabled=true;
+      dutyInBtn.textContent=`✅ 已上值班 ${x.dutyIn||x.in||''}`;
+      dutyOutBtn.disabled=hdo;
+      dutyOutBtn.textContent=hdo?`✅ 已下值班 ${x.dutyOut||x.out||''}`:'🟠 下值班';
+
+      todayStatus.textContent=hdo
+        ? `今日值班完成｜上值班 ${x.dutyIn||x.in}｜下值班 ${x.dutyOut||x.out}`
+        : `值班中｜上值班 ${x.dutyIn||x.in}｜尚未下值班`;
+
+      renderWorkStatus(x);
+      return;
+    }
+
+    dutyInBtn.disabled=hi;
+    dutyInBtn.textContent=hi?'🟣 已使用一般上班':'🟣 上值班';
+    dutyOutBtn.disabled=true;
+    dutyOutBtn.textContent='🟠 請先上值班';
+
+    if(!hi){
+      clockInBtn.disabled=false;
+      clockInBtn.textContent='☀️ 上班打卡';
+      clockInBtn.classList.add('ready-state');
+
+      clockOutBtn.disabled=true;
+      clockOutBtn.textContent='🌙 請先上班打卡';
+      clockOutBtn.classList.add('wait-state');
+
+      todayStatus.textContent='今日尚未打卡｜請選擇一般上班或上值班';
+    }else{
+      clockInBtn.disabled=true;
+      clockInBtn.textContent=`✅ 已上班 ${x.in}`;
+      clockInBtn.classList.add('done-state');
+
+      if(!ho){
+        clockOutBtn.disabled=false;
+        clockOutBtn.textContent='🌙 下班打卡';
+        clockOutBtn.classList.add('ready-state');
+        todayStatus.textContent=`一般班已於 ${x.in} 上班｜尚未下班`;
+      }else{
+        clockOutBtn.disabled=true;
+        clockOutBtn.textContent=`✅ 已下班 ${x.out}`;
+        clockOutBtn.classList.add('done-state');
+        todayStatus.textContent=`今日一般班完成｜上班 ${x.in}｜下班 ${x.out}`;
+      }
+    }
+
+    renderWorkStatus(x);
+  }
+  let pendingPunchType='';
+
+  function confirmPunch(type){
+    if(pendingCloudAction) return;
+    pendingPunchType=type;
+
+    const s=workSchedule();
+    const now=new Date();
+    const nowText=`${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+    document.getElementById('punchConfirmTitle').textContent =
+      type==='in'?'☀️ 確認上班打卡':type==='out'?'🌙 確認下班打卡':type==='dutyIn'?'🟣 確認上值班':'🟠 確認下值班';
+    document.getElementById('confirmEmployeeName').textContent=employeeNameText();
+    document.getElementById('confirmShiftName').textContent=s.name;
+    document.getElementById('confirmSchedule').textContent =
+      type==='in'?`上班 ${s.scheduledIn||'依實際時間'}`:type==='out'?`下班 ${s.scheduledOut||'依實際時間'}`:type==='dutyIn'?`值班類型：${s.dutyType}`:`結束值班：${s.dutyType}`;
+    document.getElementById('confirmCurrentTime').textContent=nowText;
+
+    const submit=document.getElementById('confirmPunchSubmitBtn');
+    submit.textContent=type==='in'?'確定送出上班打卡':type==='out'?'確定送出下班打卡':type==='dutyIn'?'確定送出上值班':'確定送出下值班';
+    document.getElementById('punchConfirmModal').classList.add('show');
+  }
+
+  function closePunchConfirm(){
+    pendingPunchType='';
+    document.getElementById('punchConfirmModal').classList.remove('show');
+  }
+
+  function submitConfirmedPunch(){
+    const type=pendingPunchType;
+    closePunchConfirm();
+    if(type==='in') clockIn();
+    if(type==='out') clockOut();
+    if(type==='dutyIn') dutyIn();
+    if(type==='dutyOut') dutyOut();
+  }
+
+  function clockIn(){const s=workSchedule();postAttendance('attendanceClockIn',{employeeId:employeeKey(),employeeName:employeeNameText(),identity:employee.identityCategory||employee.role||'',pool:s.department,date:todayKey(),shift:s.name,attendanceMode:s.mode,dutyType:s.dutyType,scheduledIn:s.scheduledIn,scheduledOut:s.scheduledOut,requiredMinutes:s.requiredMinutes,isSupplemental:s.supplemental?'是':'否',isTest:employee.isTest||'否'},'clockIn')}
+  function clockOut(){const s=workSchedule();postAttendance('attendanceClockOut',{employeeId:employeeKey(),employeeName:employeeNameText(),pool:s.department,date:todayKey(),attendanceMode:s.mode,dutyType:s.dutyType,requiredMinutes:s.requiredMinutes,isSupplemental:s.supplemental?'是':'否'},'clockOut')}
+  function dutyIn(){const s=workSchedule();postAttendance('attendanceDutyIn',{employeeId:employeeKey(),employeeName:employeeNameText(),pool:s.department,date:todayKey(),attendanceMode:s.mode,dutyType:s.dutyType},'dutyIn')}
+  function dutyOut(){const s=workSchedule();const reason=s.department==='安親部'&&s.dutyType==='晚值'?(prompt('晚值結束原因','學生已全數離園')||'學生已全數離園'):'';postAttendance('attendanceDutyOut',{employeeId:employeeKey(),employeeName:employeeNameText(),pool:s.department,date:todayKey(),attendanceMode:s.mode,dutyType:s.dutyType,dutyEndReason:reason},'dutyOut')}
   function showTab(name,btn){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.getElementById(name+'Panel').classList.add('active');if(name==='records')renderRecords();if(name==='attendance')renderAttendance();if(name==='leave')renderMyLeaves()}
   function changeMonth(n){viewDate.setMonth(viewDate.getMonth()+n);renderCalendar();loadCloudData(true)}
   function baseQuotaFor(date){
@@ -373,15 +598,42 @@
   function jsonp(url){return new Promise((resolve,reject)=>{const cb='heremayCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);const script=document.createElement('script');const timer=setTimeout(()=>{cleanup();reject(new Error('雲端讀取逾時'))},15000);function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}window[cb]=data=>{cleanup();resolve(data)};script.onerror=()=>{cleanup();reject(new Error('雲端連線失敗'))};script.src=url+(url.includes('?')?'&':'?')+'callback='+encodeURIComponent(cb)+'&_='+Date.now();document.head.append(script)})}
   async function loadCloudData(silent=false){try{const month=`${viewDate.getFullYear()}-${pad(viewDate.getMonth()+1)}`;const url=`${SERVICE_URL}?action=getAttendanceBundle&employeeId=${encodeURIComponent(employeeKey())}&pool=${encodeURIComponent(leavePool())}&month=${encodeURIComponent(month)}`;const result=await jsonp(url);if(!result.ok)throw new Error(result.message||'讀取失敗');cloudSharedLeaves=Array.isArray(result.sharedLeaves)?result.sharedLeaves:[];cloudMyLeaves=Array.isArray(result.myLeaves)?result.myLeaves:[];cloudPunches=Array.isArray(result.punches)?result.punches:[];cloudReady=true;localStorage.setItem(sharedLeaveKey(),JSON.stringify(cloudSharedLeaves));localStorage.setItem(leaveKey(),JSON.stringify(cloudMyLeaves));renderCalendar();renderMyLeaves();renderRecords();renderAttendance();loadPunch();if(!silent)toastMsg('☁️ 已同步雲端出勤與請假資料')}catch(err){console.warn(err);if(!silent)toastMsg('⚠️ 暫時無法同步雲端，先顯示本機資料')}}
   async function postAttendance(action,fields,kind,options={}){
-    if(pendingCloudAction){toastMsg('上一項資料正在處理，請稍候');return}
+    if(pendingCloudAction){
+      toastMsg('上一項資料正在處理；可按上方同步鍵重新整理狀態');
+      return;
+    }
+
     pendingCloudAction={kind,options};
+    setPunchPending(kind,true);
     toastMsg('正在寫入雲端…');
+
+    pendingActionTimer=setTimeout(()=>{
+      if(!pendingCloudAction)return;
+      clearPendingAction();
+      toastMsg('⚠️ 雲端回應較慢，按鍵已恢復，請先同步資料再重試');
+    },18000);
+
     try{
       const url=`${SERVICE_URL}?action=${encodeURIComponent(action)}&payload=${encodeURIComponent(JSON.stringify(fields))}`;
       const result=await jsonp(url);
       const current=pendingCloudAction;
+
+      if(pendingActionTimer){
+        clearTimeout(pendingActionTimer);
+        pendingActionTimer=null;
+      }
       pendingCloudAction=null;
+
       if(!result.ok)throw new Error(result.message||'雲端儲存失敗');
+
+      if(result.punch){
+        const punch={...result.punch,date:result.punch.date||todayKey()};
+        cloudPunches=[punch,...cloudPunches.filter(x=>x.date!==punch.date)];
+        cloudReady=true;
+        localStorage.setItem(punchKey(punch.date),JSON.stringify(punch));
+        loadPunch();
+        renderAttendance();
+      }
 
       if(result.leave){
         cloudMyLeaves=[result.leave,...cloudMyLeaves.filter(x=>String(x.leaveId)!==String(result.leave.leaveId))];
@@ -393,18 +645,63 @@
         renderCalendar();
       }
 
+      setPunchPending(kind,false);
+
       if(current&&current.options&&typeof current.options.next==='function'){
         current.options.next();
         return;
       }
+
       toastMsg('✅ '+(result.message||'雲端資料已更新'));
       await loadCloudData(true);
     }catch(error){
-      pendingCloudAction=null;
+      clearPendingAction();
       toastMsg('⚠️ '+(error.message||'雲端儲存失敗'));
       await loadCloudData(true);
     }
   }
+
+  async function refreshAttendancePage(){
+    const btn=document.getElementById('syncBtn');
+    clearPendingAction();
+    if(btn){
+      btn.disabled=true;
+      btn.textContent='🔄 正在同步並檢查版本…';
+    }
+    toastMsg('正在同步最新出勤資料…');
+
+    try{
+      await refreshLoggedInEmployee(true);
+      await loadCloudData(true);
+
+      if('serviceWorker' in navigator){
+        const regs=await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(reg=>reg.update().catch(()=>{})));
+      }
+
+      if('caches' in window){
+        const keys=await caches.keys();
+        await Promise.all(
+          keys.filter(key=>/heremay|smart|campus|cache/i.test(key))
+              .map(key=>caches.delete(key))
+        );
+      }
+
+      toastMsg('✅ 同步完成，正在載入最新版');
+      const url=new URL(location.href);
+      url.searchParams.set('refresh',Date.now());
+      setTimeout(()=>location.replace(url.toString()),500);
+    }catch(error){
+      console.warn(error);
+      if(btn){
+        btn.disabled=false;
+        btn.textContent='🔄 同步出勤資料／檢查最新版';
+      }
+      clearPendingAction();
+      toastMsg('⚠️ 同步未完成，請檢查網路後再試');
+    }
+  }
+
   function toastMsg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2800)}
   function goBack(){const role=localStorage.getItem('heremay.currentRole');location.href=role==='support'?'support.html':'teacher.html'}
   initUser();updateClock();setInterval(updateClock,1000);loadPunch();renderCalendar();renderMyLeaves();renderRecords();renderAttendance();loadCloudData(false);
@@ -416,5 +713,23 @@
     if(document.visibilityState==='visible')refreshLoggedInEmployee(false);
   });
 </script>
+
+  <div class="modal" id="punchConfirmModal" onclick="if(event.target===this)closePunchConfirm()">
+    <div class="sheet" onclick="event.stopPropagation()">
+      <h2 id="punchConfirmTitle">確認打卡</h2>
+      <div class="listbox">
+        <div class="person"><span>姓名</span><span id="confirmEmployeeName">--</span></div>
+        <div class="person"><span>班別</span><span id="confirmShiftName">--</span></div>
+        <div class="person"><span>預定時間</span><span id="confirmSchedule">--</span></div>
+        <div class="person"><span>現在時間</span><span id="confirmCurrentTime">--</span></div>
+      </div>
+      <div style="background:#fff4e8;border:1px solid #ffd0a6;border-radius:16px;padding:12px;color:#8a4d12;font-weight:850;line-height:1.55">
+        請確認這次是要進行正確的打卡。按下「確定送出」後會立即寫入雲端，不能自行刪除。
+      </div>
+      <button class="close" id="confirmPunchSubmitBtn" style="background:linear-gradient(135deg,#e9558a,#ff8db5);margin-top:14px" onclick="submitConfirmedPunch()">確定送出</button>
+      <button class="close" style="background:#eef3f6;color:#567386" onclick="closePunchConfirm()">取消</button>
+    </div>
+  </div>
+
 </body>
 </html>

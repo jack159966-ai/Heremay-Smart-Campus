@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>和美智慧校園｜出缺勤統計 v1.4</title>
+<style>
+:root{--blue:#1768ac;--navy:#17324d;--line:#d7e0e9;--soft:#f3f7fb;--red:#b42318;--amber:#a15c00;--green:#16734a}
+*{box-sizing:border-box}body{margin:0;background:#edf3f8;color:#1e2936;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif}
+header{background:linear-gradient(135deg,#1768ac,#274d73);color:white;padding:18px 22px}
+header .wrap{max-width:1240px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:14px}
+h1{font-size:23px;margin:0}header p{margin:5px 0 0;opacity:.88;font-weight:700}
+button,select,input,textarea{font:inherit}button{border:0;border-radius:10px;padding:10px 14px;font-weight:900;cursor:pointer}
+.primary{background:var(--blue);color:#fff}.light{background:#fff;color:var(--blue);border:1px solid #c8d7e6}.danger{background:#fff0ee;color:var(--red)}
+main{max-width:1240px;margin:16px auto 34px;padding:0 16px}
+.toolbar,.panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 8px 24px rgba(30,55,80,.07)}
+.toolbar{padding:14px;display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:5px}.field label{font-size:12px;font-weight:900;color:#56697c}
+select,input,textarea{border:1px solid #cbd6e1;border-radius:9px;padding:9px;background:#fff}
+.spacer{flex:1}.status{margin:10px 0;padding:10px 13px;border-radius:11px;background:#fff;border:1px solid var(--line);font-weight:800;color:#536679}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:12px 0}.cards.single-card{grid-template-columns:minmax(220px,280px)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px}.card span{display:block;font-size:12px;font-weight:800;color:#607287}.card b{display:block;margin-top:5px;font-size:21px;color:var(--navy)}
+.panel{overflow:hidden}.panel-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.panel-head h2{font-size:18px;margin:0}.table-wrap{overflow:auto}
+table{border-collapse:collapse;width:100%;min-width:980px}th,td{padding:10px 8px;border-bottom:1px solid #e2e8ef;text-align:center;font-size:13px}
+th{background:#f5f8fb;color:#40556b;position:sticky;top:0;z-index:1}.name{text-align:left;font-weight:900}.click-row{cursor:pointer}.click-row:hover{background:#f2f8ff}
+.bad{color:var(--red);font-weight:900}.warn{color:var(--amber);font-weight:900}.ok{color:var(--green);font-weight:900}.muted{color:#8793a0}
+.drawer{position:fixed;inset:0;background:rgba(15,29,43,.62);display:none;align-items:flex-start;justify-content:flex-end;z-index:30}.drawer.show{display:flex}
+.drawer-card{height:100%;width:min(860px,96vw);background:#fff;overflow:auto;padding:18px}.drawer-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.drawer-head h2{margin:0}.tabs{display:flex;gap:8px;margin:14px 0}.tab.active{background:var(--blue);color:white}.tab{background:#eaf0f6;color:#39536b}
+.summary-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}.summary-strip div{border:1px solid var(--line);border-radius:10px;padding:9px;text-align:center}.summary-strip span{display:block;font-size:11px;color:#66778a;font-weight:800}.summary-strip b{font-size:15px}
+.detail-table{min-width:760px}.edit{padding:6px 9px;background:#e9f3ff;color:#1768ac;border-radius:8px}
+.modal{position:fixed;inset:0;background:rgba(15,29,43,.65);display:none;align-items:center;justify-content:center;padding:18px;z-index:40}.modal.show{display:flex}
+.modal-card{width:min(620px,96vw);background:#fff;border-radius:18px;padding:18px}.modal-card h3{margin:0 0 12px}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.form-grid .full{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
+.small{font-size:11px;color:#68798a}.hidden{display:none}
+@media(max-width:850px){header,main{display:none}body:after{content:"此功能僅限電腦操作";display:flex;min-height:100vh;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#66788a}}
+@media print{
+ @page{size:A4 portrait;margin:12mm 10mm 12mm 14mm}
+ body:after{content:none!important;display:none!important}
+ header,main{display:block!important}
+ body{background:#fff}
+ .no-print,.modal{display:none!important}
+ header{background:#fff;color:#000;padding:0 0 5mm}
+ header p{color:#333}
+ main{max-width:none;margin:0;padding:0}
+ .toolbar,.status,.cards{display:none}
+ .panel{box-shadow:none;border:0}
+ .panel-head{padding:0 0 3mm}
+ table{min-width:0}
+ th,td{font-size:7pt;padding:1.5mm .7mm;line-height:1.2}
+
+ body.print-person header,
+ body.print-person main{display:none!important}
+ body.print-person .drawer{
+   position:static!important;inset:auto!important;display:block!important;
+   background:#fff!important;height:auto!important;padding:0!important
+ }
+ body.print-person .drawer-card{
+   width:auto!important;height:auto!important;max-height:none!important;
+   overflow:visible!important;padding:0!important
+ }
+ body.print-person .drawer-head{margin-bottom:3mm}
+ body.print-person .tabs{display:none!important}
+ body.print-person .summary-strip{grid-template-columns:repeat(5,1fr);gap:1.5mm}
+ body.print-person .summary-strip div{padding:1.5mm}
+ body.print-person .detail-table{min-width:0!important;width:100%!important;table-layout:fixed}
+ body.print-person tr{break-inside:avoid;page-break-inside:avoid}
+ body.print-person thead{display:table-header-group}
+ body.print-person .detail-table th,
+ body.print-person .detail-table td{font-size:6.7pt;padding:1.3mm .6mm;line-height:1.15}
+ body.print-person .edit{display:none!important}
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="wrap">
+  <div><h1>出缺勤統計</h1><p>分年分月統計、個人單月明細／年度月統計、園長補正與 PDF</p></div>
+  <button class="light no-print" onclick="location.href='admin.html'">返回主管首頁</button>
+ </div>
+</header>
+<main>
+ <section class="toolbar no-print">
+  <div class="field"><label>統計年度</label><select id="year"></select></div>
+  <div class="field"><label>統計月份</label><select id="month"></select></div>
+  <div class="field"><label>部門</label><select id="pool"><option value="">全部部門</option><option>幼兒部</option><option>安親部</option><option>庶務組</option></select></div>
+  <div class="field"><label>姓名搜尋</label><input id="keyword" placeholder="輸入姓名"></div>
+  <div class="spacer"></div>
+  <button class="light" onclick="loadData()">更新資料</button>
+  <button class="primary" onclick="window.print()">列印／另存 PDF</button>
+ </section>
+ <div id="status" class="status">準備讀取雲端資料……</div>
+ <section class="cards single-card">
+  <div class="card"><span>在職人數統計</span><b id="cPeople">0</b></div>
+ </section>
+ <section class="panel">
+  <div class="panel-head"><h2 id="tableTitle">單月考勤統計</h2><span class="small">點選姓名可查閱個人單月或全年度資料</span></div>
+  <div class="table-wrap"><table><thead><tr>
+   <th>姓名</th><th>部門</th><th>扣薪假</th><th>遲到</th><th>早退</th><th>其他不足</th><th>未補正缺卡</th><th>本月應扣合計</th>
+  </tr></thead><tbody id="summaryBody"></tbody></table></div>
+ </section>
+</main>
+
+<div id="drawer" class="drawer" onclick="closeDrawer(event)">
+ <div class="drawer-card">
+  <div class="drawer-head">
+   <div><h2 id="personTitle"></h2><div id="personInfo" class="small"></div></div>
+   <div class="no-print" style="display:flex;gap:8px">
+    <button class="primary" onclick="printPerson()">列印個人／另存 PDF</button>
+    <button class="light" onclick="closeDrawer()">關閉</button>
+   </div>
+  </div>
+  <div class="tabs">
+   <button id="tabMonth" class="tab active" onclick="setDetailMode('month')">單月資料</button>
+   <button id="tabYear" class="tab" onclick="setDetailMode('year')">全年度資料</button>
+   <select id="detailMonth" onchange="renderPersonDetail()"></select>
+  </div>
+  <div id="personSummary" class="summary-strip"></div>
+  <div class="table-wrap"><table class="detail-table"><thead><tr id="detailHeadRow">
+   <th>日期</th><th>預定</th><th>實際</th><th>請假</th><th>遲到</th><th>早退</th><th>其他不足</th><th>狀態</th><th>調整</th>
+  </tr></thead><tbody id="detailBody"></tbody></table></div>
+ </div>
+</div>
+
+<div id="editModal" class="modal">
+ <div class="modal-card">
+  <h3>主管調整出勤資料</h3>
+  <input type="hidden" id="eEmployeeId"><input type="hidden" id="eDate">
+  <div class="form-grid">
+   <div class="field"><label>姓名</label><input id="eName" disabled></div>
+   <div class="field"><label>日期</label><input id="eDateShow" disabled></div>
+   <div class="field"><label>預定上班</label><input id="eScheduledIn" type="time"></div>
+   <div class="field"><label>預定下班</label><input id="eScheduledOut" type="time"></div>
+   <div class="field"><label>實際上班</label><input id="eActualIn" type="time"></div>
+   <div class="field"><label>實際下班</label><input id="eActualOut" type="time"></div>
+   <div class="field"><label>應計工時（分鐘）</label><input id="eRequired" type="number" min="0"></div>
+   <div class="field"><label>其他不足（分鐘）</label><input id="eOther" type="number" min="0" value="0"></div>
+   <div class="field full"><label>主管備註</label><textarea id="eNote" rows="3" placeholder="例如：確認正常出勤、外出辦公、臨時調班"></textarea></div>
+  </div>
+  <div class="actions"><button class="light" onclick="closeEdit()">取消</button><button class="primary" onclick="saveAdjustment()">儲存補正</button></div>
+ </div>
+</div>
+
+<script>
+const SERVICE_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
+const UNPAID_TYPES=['事假','病假','生理假','家庭照顧假','扣薪假'];
+let data={employees:[],punches:[],leaves:[]}, selected=null, detailMode='month';
+
+function pad(n){return String(n).padStart(2,'0')}
+function fmtMin(n){n=Math.max(0,Math.round(Number(n)||0));return n>=60?`${Math.floor(n/60)}時${n%60?`${n%60}分`:''}`:`${n}分`}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function jsonp(url,timeoutMs=18000){
+ return new Promise((resolve,reject)=>{
+  const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+  const s=document.createElement('script');
+  let done=false;
+  const finish=(fn,val)=>{if(done)return;done=true;clearTimeout(timer);try{delete window[cb]}catch(e){};s.remove();fn(val)};
+  window[cb]=r=>finish(resolve,r);
+  s.onerror=()=>finish(reject,new Error('連線失敗'));
+  const timer=setTimeout(()=>finish(reject,new Error('連線逾時')),timeoutMs);
+  s.src=url+(url.includes('?')?'&':'?')+'callback='+cb;
+  document.body.appendChild(s);
+ })
+}
+async function jsonpRetry(url,retries=2){
+ let lastError;
+ for(let i=0;i<=retries;i++){
+  try{return await jsonp(url,18000+i*6000)}
+  catch(e){
+   lastError=e;
+   if(i<retries){
+    document.getElementById('status').textContent=`雲端回應較慢，正在第 ${i+2} 次嘗試……`;
+    await new Promise(r=>setTimeout(r,1200*(i+1)));
+   }
+  }
+ }
+ throw lastError||new Error('連線失敗');
+}
+function yearValue(){return document.getElementById('year').value}
+function monthValue(){return document.getElementById('month').value}
+function activeLeave(x){return !['已取消','駁回','已駁回'].includes(String(x.status||''))}
+function unpaidLeaveMinutes(x){return activeLeave(x)&&UNPAID_TYPES.includes(String(x.type||''))?Math.round(Number(x.hours||0)*60):0}
+function punchDeduct(p){return Number(p.late||0)+Number(p.early||0)+Number(p.otherShortage||0)}
+function missingCard(p){return (!p.in||!p.out)?1:0}
+
+function init(){
+ const nowDate=new Date(),now=nowDate.getFullYear(),y=document.getElementById('year');
+ for(let n=now+1;n>=now-5;n--)y.innerHTML+=`<option ${n===now?'selected':''}>${n}</option>`;
+
+ const mainMonth=document.getElementById('month');
+ const detail=document.getElementById('detailMonth');
+ for(let i=1;i<=12;i++){
+  const value=pad(i);
+  mainMonth.innerHTML+=`<option value="${value}">${i}月</option>`;
+  detail.innerHTML+=`<option value="${value}">${i}月</option>`;
+ }
+ mainMonth.value=pad(nowDate.getMonth()+1);
+ detail.value=pad(nowDate.getMonth()+1);
+
+ document.getElementById('year').addEventListener('change',loadData);
+ ['month','pool'].forEach(id=>document.getElementById(id).addEventListener('change',renderSummary));
+ document.getElementById('keyword').addEventListener('input',renderSummary);
+ loadData();
+}
+async function loadData(){
+ const y=yearValue();
+ document.getElementById('status').textContent='正在讀取雲端出勤與請假資料……';
+ try{
+  const r=await jsonpRetry(`${SERVICE_URL}?action=getAttendanceAdminBundle&year=${encodeURIComponent(y)}&_=${Date.now()}`,2);
+  if(!r.ok)throw new Error(r.message||'讀取失敗');
+  data={employees:r.employees||[],punches:r.punches||[],leaves:r.leaves||[]};
+  localStorage.setItem(`attendance.admin.cache.${y}`,JSON.stringify({savedAt:Date.now(),data}));
+  renderSummary();
+  document.getElementById('status').textContent=`已讀取 ${y} 年資料：${data.punches.length} 筆出勤、${data.leaves.length} 筆請假。`;
+ }catch(e){
+  console.error(e);
+  try{
+   const cache=JSON.parse(localStorage.getItem(`attendance.admin.cache.${y}`)||'null');
+   if(cache&&cache.data){
+    data=cache.data;renderSummary();
+    const t=new Date(cache.savedAt).toLocaleString('zh-TW');
+    document.getElementById('status').textContent=`雲端暫時較慢，先顯示 ${t} 的本機備份資料；請稍後按「更新資料」重試。`;
+    return;
+   }
+  }catch(_){}
+  document.getElementById('status').textContent='暫時無法與雲端同步。系統已自動重試，請稍後再按「更新資料」。';
+ }
+}
+function employeeStats(e, punches=data.punches, leaves=data.leaves){
+ const ps=punches.filter(x=>x.employeeId===e.employeeId),ls=leaves.filter(x=>x.employeeId===e.employeeId);
+ const leave=ls.reduce((a,x)=>a+unpaidLeaveMinutes(x),0);
+ const late=ps.reduce((a,x)=>a+Number(x.late||0),0);
+ const early=ps.reduce((a,x)=>a+Number(x.early||0),0);
+ const other=ps.reduce((a,x)=>a+Number(x.otherShortage||0),0);
+ const missing=ps.reduce((a,x)=>a+missingCard(x),0);
+ return {leave,late,early,other,missing,total:leave+late+early+other};
+}
+function visibleEmployees(){
+ const pool=document.getElementById('pool').value,q=document.getElementById('keyword').value.trim().toLowerCase();
+ return data.employees.filter(e=>(!pool||e.pool===pool)&&(!q||String(e.employeeName||'').toLowerCase().includes(q)));
+}
+function renderSummary(){
+ const list=visibleEmployees(),body=document.getElementById('summaryBody');
+ const prefix=`${yearValue()}-${monthValue()}`;
+ const monthPunches=data.punches.filter(x=>String(x.date||'').startsWith(prefix));
+ const monthLeaves=data.leaves.filter(x=>String(x.date||'').startsWith(prefix));
+
+ body.innerHTML=list.length?list.map(e=>{
+  const s=employeeStats(e,monthPunches,monthLeaves);
+  return `<tr class="click-row" onclick="openPerson('${esc(e.employeeId)}')"><td class="name">${esc(e.employeeName)}</td><td>${esc(e.pool||'')}</td><td>${fmtMin(s.leave)}</td><td>${fmtMin(s.late)}</td><td>${fmtMin(s.early)}</td><td>${fmtMin(s.other)}</td><td class="${s.missing?'warn':'muted'}">${s.missing}</td><td class="${s.total?'bad':'ok'}">${fmtMin(s.total)}</td></tr>`;
+ }).join(''):'<tr><td colspan="8" class="muted">沒有符合條件的人員資料</td></tr>';
+
+ const totals=list.reduce((a,e)=>{
+  const s=employeeStats(e,monthPunches,monthLeaves);
+  Object.keys(a).forEach(k=>a[k]+=s[k]||0);
+  return a;
+ },{leave:0,late:0,early:0,total:0});
+
+ document.getElementById('cPeople').textContent=list.length;
+ document.getElementById('tableTitle').textContent=`${yearValue()} 年 ${Number(monthValue())} 月考勤統計`;
+}
+function openPerson(id){
+ selected=data.employees.find(e=>e.employeeId===id);if(!selected)return;
+ document.getElementById('detailMonth').value=monthValue();
+ document.getElementById('personTitle').textContent=selected.employeeName;document.getElementById('personInfo').textContent=`${selected.pool||''}｜${yearValue()}年度`;
+ document.getElementById('drawer').classList.add('show');renderPersonDetail();
+}
+function closeDrawer(e){if(e&&e.target!==document.getElementById('drawer'))return;document.getElementById('drawer').classList.remove('show')}
+function setDetailMode(mode){detailMode=mode;document.getElementById('tabMonth').classList.toggle('active',mode==='month');document.getElementById('tabYear').classList.toggle('active',mode==='year');document.getElementById('detailMonth').classList.toggle('hidden',mode==='year');renderPersonDetail()}
+function datesInRange(){
+ const y=Number(yearValue()),m=Number(document.getElementById('detailMonth').value);
+ const start=detailMode==='year'?new Date(y,0,1):new Date(y,m-1,1),end=detailMode==='year'?new Date(y,11,31):new Date(y,m,0),arr=[];
+ for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){if(d.getDay()!==0&&d.getDay()!==6)arr.push(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`)}
+ return arr;
+}
+function renderPersonDetail(){
+ if(!selected)return;
+
+ const head=document.getElementById('detailHeadRow');
+ const body=document.getElementById('detailBody');
+
+ if(detailMode==='year'){
+  const yearPrefix=`${yearValue()}-`;
+  const allPs=data.punches.filter(x=>x.employeeId===selected.employeeId&&String(x.date||'').startsWith(yearPrefix));
+  const allLs=data.leaves.filter(x=>x.employeeId===selected.employeeId&&String(x.date||'').startsWith(yearPrefix)&&activeLeave(x));
+  const stat=employeeStats(selected,allPs,allLs);
+
+  document.getElementById('personInfo').textContent=`${selected.pool||''}｜${yearValue()}年度月統計`;
+  document.getElementById('personSummary').innerHTML=`<div><span>扣薪假</span><b>${fmtMin(stat.leave)}</b></div><div><span>遲到</span><b>${fmtMin(stat.late)}</b></div><div><span>早退</span><b>${fmtMin(stat.early)}</b></div><div><span>其他不足</span><b>${fmtMin(stat.other)}</b></div><div><span>應扣合計</span><b>${fmtMin(stat.total)}</b></div>`;
+  head.innerHTML='<th>月份</th><th>扣薪假</th><th>遲到</th><th>早退</th><th>其他不足</th><th>未補正缺卡</th><th>應扣合計</th>';
+
+  body.innerHTML=Array.from({length:12},(_,i)=>{
+   const m=pad(i+1),prefix=`${yearValue()}-${m}`;
+   const ps=allPs.filter(x=>String(x.date||'').startsWith(prefix));
+   const ls=allLs.filter(x=>String(x.date||'').startsWith(prefix));
+   const s=employeeStats(selected,ps,ls);
+   return `<tr><td>${i+1}月</td><td>${fmtMin(s.leave)}</td><td>${fmtMin(s.late)}</td><td>${fmtMin(s.early)}</td><td>${fmtMin(s.other)}</td><td class="${s.missing?'warn':'muted'}">${s.missing}</td><td class="${s.total?'bad':'ok'}">${fmtMin(s.total)}</td></tr>`;
+  }).join('');
+  return;
+ }
+
+ const prefix=`${yearValue()}-${document.getElementById('detailMonth').value}`;
+ const ps=data.punches.filter(x=>x.employeeId===selected.employeeId&&String(x.date||'').startsWith(prefix));
+ const ls=data.leaves.filter(x=>x.employeeId===selected.employeeId&&String(x.date||'').startsWith(prefix)&&activeLeave(x));
+ const stat=employeeStats(selected,ps,ls);
+
+ document.getElementById('personInfo').textContent=`${selected.pool||''}｜${yearValue()}年${Number(document.getElementById('detailMonth').value)}月`;
+ document.getElementById('personSummary').innerHTML=`<div><span>扣薪假</span><b>${fmtMin(stat.leave)}</b></div><div><span>遲到</span><b>${fmtMin(stat.late)}</b></div><div><span>早退</span><b>${fmtMin(stat.early)}</b></div><div><span>其他不足</span><b>${fmtMin(stat.other)}</b></div><div><span>應扣合計</span><b>${fmtMin(stat.total)}</b></div>`;
+ head.innerHTML='<th>日期</th><th>預定</th><th>實際</th><th>請假</th><th>遲到</th><th>早退</th><th>其他不足</th><th>狀態</th><th>調整</th>';
+
+ const recordDates=[...new Set([...ps.map(x=>x.date),...ls.map(x=>x.date)])].sort();
+ body.innerHTML=recordDates.length?recordDates.map(date=>{
+  const p=ps.find(x=>x.date===date)||{},dayLeaves=ls.filter(x=>x.date===date),leaveText=dayLeaves.map(x=>`${x.type} ${fmtMin(Number(x.hours||0)*60)}`).join('、')||'—';
+  const status=!p.in||!p.out?(Object.keys(p).length?'缺卡待確認':'—'):(p.workStatus||p.status||'正常');
+  return `<tr><td>${date}</td><td>${esc(p.scheduledIn||'—')}～${esc(p.scheduledOut||'—')}</td><td>${esc(p.in||'—')}～${esc(p.out||'—')}</td><td>${esc(leaveText)}</td><td>${fmtMin(p.late)}</td><td>${fmtMin(p.early)}</td><td>${fmtMin(p.otherShortage)}</td><td class="${(!p.in||!p.out)&&Object.keys(p).length?'warn':''}">${esc(status)}</td><td><button class="edit" onclick="openEdit('${date}')">主管調整</button></td></tr>`;
+ }).join(''):'<tr><td colspan="9" class="muted">此月份沒有出勤或請假紀錄</td></tr>';
+}
+function openEdit(date){
+ const p=data.punches.find(x=>x.employeeId===selected.employeeId&&x.date===date)||{};
+ document.getElementById('eEmployeeId').value=selected.employeeId;document.getElementById('eDate').value=date;document.getElementById('eName').value=selected.employeeName;document.getElementById('eDateShow').value=date;
+ document.getElementById('eScheduledIn').value=p.scheduledIn||'08:00';document.getElementById('eScheduledOut').value=p.scheduledOut||'17:00';document.getElementById('eActualIn').value=p.in||'';document.getElementById('eActualOut').value=p.out||'';document.getElementById('eRequired').value=p.requiredMinutes||540;document.getElementById('eOther').value=p.otherShortage||0;document.getElementById('eNote').value=p.adminNote||'';
+ document.getElementById('editModal').classList.add('show');
+}
+function closeEdit(){document.getElementById('editModal').classList.remove('show')}
+async function saveAdjustment(){
+ const payload={employeeId:document.getElementById('eEmployeeId').value,employeeName:selected.employeeName,pool:selected.pool,date:document.getElementById('eDate').value,scheduledIn:document.getElementById('eScheduledIn').value,scheduledOut:document.getElementById('eScheduledOut').value,actualIn:document.getElementById('eActualIn').value,actualOut:document.getElementById('eActualOut').value,requiredMinutes:Number(document.getElementById('eRequired').value||0),otherShortage:Number(document.getElementById('eOther').value||0),adminNote:document.getElementById('eNote').value};
+ if(!confirm(`確定儲存 ${payload.employeeName} ${payload.date} 的出勤補正嗎？`))return;
+ try{
+  const r=await jsonpRetry(`${SERVICE_URL}?action=saveAttendanceAdjustment&payload=${encodeURIComponent(JSON.stringify(payload))}`,2);
+  if(!r.ok)throw new Error(r.message||'儲存失敗');
+  closeEdit();await loadData();openPerson(selected.employeeId);alert('出勤資料已補正。');
+ }catch(e){alert('儲存失敗：'+e.message)}
+}
+
+function printPerson(){
+ if(!selected)return;
+ const oldTitle=document.title;
+ const modeText=detailMode==='year'?'全年度月統計':`${Number(document.getElementById('detailMonth').value)}月明細`;
+ document.title=`${yearValue()}_${selected.employeeName}_${modeText}出缺勤資料`;
+ document.body.classList.add('print-person');
+ const restore=()=>{document.body.classList.remove('print-person');document.title=oldTitle;window.removeEventListener('afterprint',restore)};
+ window.addEventListener('afterprint',restore);
+ window.print();
+ setTimeout(()=>{if(document.body.classList.contains('print-person'))restore()},1200);
+}
+
+init();
+</script>
+</body></html>

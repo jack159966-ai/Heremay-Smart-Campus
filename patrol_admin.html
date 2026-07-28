@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>和美智慧校園｜雙週巡堂統計表 v1.3</title>
+<style>
+:root{--ink:#111;--blue:#1e5fa8;--line:#111;--soft:#eef5ff;--muted:#667085}
+*{box-sizing:border-box}
+body{margin:0;background:#eef4f8;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;color:var(--ink)}
+.toolbar{max-width:1200px;margin:16px auto 10px;padding:0 14px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.toolbar .left,.toolbar .right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button,a{font:inherit;border:0;border-radius:11px;padding:9px 13px;font-weight:900;cursor:pointer;text-decoration:none}
+.primary{background:#1f67ad;color:#fff}.light{background:#fff;color:#1f67ad;border:1px solid #cbd9e8}.gray{background:#e8edf2;color:#425466}
+.status{max-width:1200px;margin:0 auto 10px;padding:10px 14px;border-radius:12px;background:#fff;border:1px solid #d8e1ea;color:#506176;font-weight:800}
+.page{width:min(1180px,calc(100vw - 36px));margin:0 auto 24px;background:#fff;padding:20px 24px 18px 30px;box-shadow:0 14px 36px rgba(34,58,84,.16)}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:7px}
+.brand{display:flex;align-items:flex-start;gap:8px}
+.logo{width:38px;height:38px;border:1px solid #111;border-radius:7px;object-fit:contain}
+.title h1{font-size:18px;margin:0;line-height:1.1}.title h2{font-size:17px;margin:2px 0 0}
+.meta{font-size:10px;line-height:1.45;white-space:nowrap}
+.table-wrap{overflow:auto}
+table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:9px}
+th,td{border:1px solid var(--line);padding:0;text-align:center;height:19px}
+th{font-weight:900;background:#fff}
+.date-col{width:42px}.session-col{width:25px}.class-head{font-size:8px;line-height:1.1}.subhead{height:25px;font-size:7px;writing-mode:vertical-rl;text-orientation:upright}
+.cell{position:relative;font-weight:900;font-size:9px;line-height:1.05}
+.cell.clickable{cursor:pointer}.cell.clickable:hover{background:#fff6bf;outline:2px solid #f0b429;outline-offset:-2px}
+.cell.highlight{background:#fff9d6;color:#8a5a00}.cell.problem{color:#b42318}.cell.pass{color:#111}.mark-icon{font-size:10px}.mark-code{white-space:nowrap}
+.note{font-size:9px;font-weight:800;margin:5px 0}
+.code-box{border:1px solid #111;border-radius:6px;padding:5px;margin:4px 0 6px}
+.code-box h3{text-align:center;margin:0 0 4px;font-size:10px}
+.code-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.code-col{padding:0 5px;border-right:1px solid #111;font-size:8px;line-height:1.35}
+.code-col:last-child{border-right:0}.code-col b{display:block;text-align:center;margin-bottom:2px}
+.signs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.sign{height:62px;border:1px solid #111;border-radius:6px;text-align:center;padding-top:5px;font-size:9px;font-weight:900}
+.sign span{display:block;margin-top:31px;font-weight:400}
+.modal{position:fixed;inset:0;background:rgba(14,24,35,.65);display:none;align-items:center;justify-content:center;padding:18px;z-index:20}
+.modal.show{display:flex}.modal-card{width:min(850px,96vw);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;padding:18px}
+.modal-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.modal-head h3{margin:0}
+.detail-grid{display:grid;grid-template-columns:130px 1fr;gap:8px 12px;margin-top:14px;font-size:14px}.detail-grid b{color:#43566d}
+.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.photo{border:1px solid #d8e1ea;border-radius:12px;padding:8px}.photo img{width:100%;height:180px;object-fit:contain;background:#eef1f4;border-radius:8px}
+.photo a{display:block;margin-top:7px;background:#1f67ad;color:#fff;text-align:center}
+.empty-photo{padding:20px;background:#f4f6f8;border-radius:10px;color:#667085}
+@media(max-width:820px){.toolbar,.status,.page{display:none}body:after{content:"此功能僅限電腦操作";display:flex;min-height:100vh;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#65758b}}
+@media print{
+ @page{size:A4 landscape;margin:9mm 8mm 9mm 16mm}
+ body{background:#fff}
+ .toolbar,.status,.modal{display:none!important}
+ .page{width:auto;margin:0;padding:0;box-shadow:none}
+ .cell{cursor:default}.cell:hover{background:transparent;outline:none}
+ table{font-size:6.3pt}
+ th,td{height:5.2mm}
+ .class-head{font-size:6.2pt;line-height:1}
+ .subhead{font-size:5.5pt;height:6.5mm}
+ .date-col{width:11mm}.session-col{width:7mm}
+ .head{margin-bottom:1.5mm}.logo{width:9mm;height:9mm}
+ .title h1{font-size:11pt}.title h2{font-size:10pt}.meta{font-size:6pt}
+ .note{font-size:6pt;margin:1mm 0}
+ .code-box{margin:0 0 1.5mm;padding:1.5mm}
+ .code-box h3{font-size:7pt;margin-bottom:1mm}
+ .code-cols{gap:2mm}.code-col{font-size:5.4pt;line-height:1.2;padding:0 2mm}
+ .signs{gap:2mm}.sign{height:17mm;font-size:6.5pt;padding-top:1.5mm}.sign span{margin-top:8mm;font-size:6pt}
+ .mark-icon{font-size:7pt}.mark-code{font-size:6pt}
+}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <div class="left">
+    <a class="light" href="admin.html">← 返回主管首頁</a>
+    <button class="light" onclick="movePeriod(-14)">前兩週</button>
+    <button class="light" onclick="setCurrentPeriod()">本兩週</button>
+    <button class="light" onclick="movePeriod(14)">後兩週</button>
+  </div>
+  <div class="right">
+    <button class="gray" onclick="loadRecords(true)">更新資料</button>
+    <button class="primary" onclick="window.print()">列印／另存 PDF</button>
+  </div>
+</div>
+<div id="status" class="status">準備讀取雲端巡堂紀錄……</div>
+
+<section class="page">
+  <div class="head">
+    <div class="brand">
+      <img class="logo" src="和美.jpg" alt="和美">
+      <div class="title">
+        <h1>私立和美幼兒園　<span id="monthText"></span>月份</h1>
+        <h2>巡堂統計表（雙週10天）</h2>
+      </div>
+    </div>
+    <div class="meta">
+      填表人：<span id="maker">行政主管</span><br>
+      製表日期：<span id="madeDate"></span>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table id="matrix"></table>
+  </div>
+
+  <div class="note">備註：V 代表合格；💡 代表亮點；⚠️ 加代碼代表改善提醒。僅亮點與改善提醒可點開查看說明與照片。</div>
+
+  <div class="code-box">
+    <h3>改善提醒項目編號對照表</h3>
+    <div class="code-cols">
+      <div class="code-col"><b>第一類：環境清潔（1-1～1-5）</b><div>1-1 教室整潔尚可改善<br>1-2 教具／物品未歸位<br>1-3 地面或桌面需整理<br>1-4 垃圾或回收需處理<br>1-5 其他環境清潔事項</div></div>
+      <div class="code-col"><b>第二類：秩序與教學（2-1～2-5）</b><div>2-1 教學活動秩序需調整<br>2-2 幼兒照顧情形需留意<br>2-3 教室音量需調整<br>2-4 教學流程需改善<br>2-5 其他教學秩序事項</div></div>
+      <div class="code-col"><b>第三類：安全衛生（3-1～3-5）</b><div>3-1 教室或動線安全需留意<br>3-2 門窗／設備需檢查<br>3-3 衛生消毒需加強<br>3-4 危險物品需收妥<br>3-5 其他安全衛生事項</div></div>
+    </div>
+  </div>
+
+  <div class="signs">
+    <div class="sign">巡堂人員<span>（簽章）</span></div>
+    <div class="sign">園長<span>（簽章）</span></div>
+    <div class="sign">負責人<span>（簽章）</span></div>
+    <div class="sign">備註</div>
+  </div>
+</section>
+
+<div id="modal" class="modal" onclick="closeModal(event)">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3 id="detailTitle">巡堂詳細資料</h3>
+      <button class="gray" onclick="closeModal()">關閉</button>
+    </div>
+    <div id="detailGrid" class="detail-grid"></div>
+    <div id="photos" class="photos"></div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL='https://script.google.com/macros/s/AKfycbyhDespyR460cvcddLMXE2zTIE3uOb_T6bZqLs5LEvZO-FEVmZcPQ8JULjY4-jfzgZP/exec';
+let allRecords=[],periodStart=new Date(),displayRows=[];
+
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function attr(v){return esc(v)}
+function iso(d){const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)}
+function fmt(v){const [y,m,d]=String(v).split('-');return `${Number(m)}/${Number(d)}<small>（${'日一二三四五六'[new Date(v+'T00:00:00').getDay()]}）</small>`}
+function setStatus(t){document.getElementById('status').textContent=t}
+function setCurrentPeriod(){
+  const t=new Date();t.setHours(0,0,0,0);
+  const off=t.getDay()===0?-6:1-t.getDay();
+  const mon=new Date(t);mon.setDate(t.getDate()+off);
+  const base=new Date(mon.getFullYear(),0,1);
+  const w=Math.floor((mon-base)/604800000);
+  if(w%2)mon.setDate(mon.getDate()-7);
+  periodStart=mon;render();
+}
+function movePeriod(n){periodStart=new Date(periodStart);periodStart.setDate(periodStart.getDate()+n);render()}
+function weekdays(){
+  const arr=[];let d=new Date(periodStart);
+  while(arr.length<10){if(d.getDay()!==0&&d.getDay()!==6)arr.push(new Date(d));d.setDate(d.getDate()+1)}
+  return arr;
+}
+function normalize(r){
+  return{
+    patrolDate:String(r.patrolDate||'').slice(0,10),session:String(r.session||''),className:String(r.className||''),
+    patrolPerson:String(r.patrolPerson||''),result:String(r.result||''),recordType:String(r.recordType||''),
+    defectCodes:String(r.defectCodes||''),notes:String(r.notes||''),notifyTargets:String(r.notifyTargets||''),
+    photoCount:Number(r.photoCount||0),photoLinks:Array.isArray(r.photoLinks)?r.photoLinks.filter(Boolean):[]
+  }
+}
+async function loadRecords(alertDone=false){
+  setStatus('正在讀取雲端巡堂紀錄……');
+  try{
+    const res=await fetch(`${SCRIPT_URL}?action=records&_=${Date.now()}`,{cache:'no-store'});
+    const data=await res.json();if(!data.success)throw new Error(data.message||'讀取失敗');
+    allRecords=(data.records||[]).map(normalize).filter(x=>x.patrolDate&&x.className);
+    render();setStatus(`已讀取 ${allRecords.length} 筆巡堂紀錄。`);
+    if(alertDone)alert('巡堂資料已更新。')
+  }catch(e){console.error(e);setStatus('無法讀取雲端巡堂紀錄。')}
+}
+function classesForPeriod(start,end){
+  return [...new Set(allRecords.filter(r=>r.patrolDate>=start&&r.patrolDate<=end).map(r=>r.className))]
+    .sort((a,b)=>a.localeCompare(b,'en',{numeric:true,sensitivity:'base'}));
+}
+function getRec(date,session,cls){
+  return allRecords.find(r=>r.patrolDate===date&&r.session===session&&r.className===cls)||null
+}
+function splitCodes(v){return String(v||'').match(/[1-3]\s*-\s*[1-5]/g)?.map(x=>x.replace(/\s+/g,''))||[]}
+function cellMark(rec,part){
+  if(!rec)return {html:'',clickable:false,type:''};
+  const codes=splitCodes(rec.defectCodes);
+  const selected=part==='衛'?codes.filter(c=>/^1-|^3-/.test(c)):codes.filter(c=>/^2-/.test(c));
+
+  if(selected.length){
+    return {
+      html:`<span class="mark-icon">⚠️</span><span class="mark-code">${esc(selected.join('、'))}</span>`,
+      clickable:true,
+      type:'problem'
+    };
+  }
+
+  if(rec.recordType==='highlight'||rec.result==='亮點'){
+    return {html:'<span class="mark-icon">💡</span>',clickable:true,type:'highlight'};
+  }
+
+  if(rec.result==='合格'){
+    return {html:'V',clickable:false,type:'pass'};
+  }
+
+  if(codes.length && part==='衛'){
+    return {
+      html:`<span class="mark-icon">⚠️</span><span class="mark-code">${esc(codes.join('、'))}</span>`,
+      clickable:true,
+      type:'problem'
+    };
+  }
+
+  return {html:'',clickable:false,type:''};
+}
+function cellClass(mark){
+  if(!mark)return '';
+  if(mark.type==='problem')return 'problem';
+  if(mark.type==='highlight')return 'highlight';
+  if(mark.type==='pass')return 'pass';
+  return '';
+}
+function render(){
+  const days=weekdays(),start=iso(days[0]),end=iso(days[days.length-1]);
+  const classes=classesForPeriod(start,end);
+  document.getElementById('monthText').textContent=`${days[0].getMonth()+1}月`;
+  document.getElementById('madeDate').textContent=new Date().toLocaleDateString('zh-TW');
+  try{document.getElementById('maker').textContent=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}').name||'行政主管'}catch(e){}
+  displayRows=[];
+  let html='<thead><tr><th rowspan="2" class="date-col">日期</th><th rowspan="2" class="session-col">時段</th>';
+  classes.forEach(c=>html+=`<th colspan="2" class="class-head">${esc(c)}</th>`);
+  html+='</tr><tr>';
+  classes.forEach(()=>html+='<th class="subhead">衛</th><th class="subhead">音</th>');
+  html+='</tr></thead><tbody>';
+  days.forEach(d=>{
+    const date=iso(d);
+    ['上午','下午'].forEach((session,si)=>{
+      html+=`<tr>${si===0?`<td rowspan="2" class="date-col">${fmt(date)}</td>`:''}<td class="session-col">${session}</td>`;
+      classes.forEach(cls=>{
+        const rec=getRec(date,session,cls);
+        const idx=displayRows.push(rec)-1;
+        ['衛','音'].forEach(part=>{
+          const mark=cellMark(rec,part);
+          html+=`<td class="cell ${cellClass(mark)} ${mark.clickable?'clickable':''}" ${mark.clickable?`onclick="openDetail(${idx},'${part}')"`:''}>${mark.html}</td>`;
+        });
+      });
+      html+='</tr>';
+    });
+  });
+  html+='</tbody>';
+  document.getElementById('matrix').innerHTML=html;
+}
+function openDetail(index,part){
+  const r=displayRows[index];if(!r)return;
+  document.getElementById('detailTitle').textContent=`${r.patrolDate}｜${r.session}｜${r.className}｜${part}`;
+  document.getElementById('detailGrid').innerHTML=`
+    <b>結果</b><div>${esc(r.result||'—')}</div>
+    <b>改善代碼</b><div>${esc(r.defectCodes||'—')}</div>
+    <b>說明／備註</b><div>${esc(r.notes||'—')}</div>
+    <b>巡堂人員</b><div>${esc(r.patrolPerson||'—')}</div>
+    <b>通知對象</b><div>${esc(r.notifyTargets||'—')}</div>
+    <b>照片數</b><div>${Math.max(r.photoCount,r.photoLinks.length)}</div>`;
+  const box=document.getElementById('photos');
+  box.innerHTML=r.photoLinks.length?r.photoLinks.map((u,i)=>`<div class="photo"><img src="${attr(u)}" alt="巡堂照片"><a href="${attr(u)}" target="_blank" download>開啟／下載照片 ${i+1}</a></div>`).join(''):'<div class="empty-photo">這筆紀錄沒有可直接開啟的照片連結。</div>';
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(e){if(e&&e.target!==document.getElementById('modal'))return;document.getElementById('modal').classList.remove('show')}
+setCurrentPeriod();loadRecords(false);
+</script>
+</body>
+</html>
