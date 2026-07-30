@@ -33,7 +33,7 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
     <div><h1>🏖️ 請假管理</h1><small>主管專用｜今天、明天與每月請假總覽</small></div>
     <div class="headerActions">
       <button class="back" onclick="location.href='admin.html'">← 返回主管頁</button>
-      <button class="back" onclick="loadData()">🔄 重新整理</button>
+      <button class="back" id="refreshBtn" type="button">🔄 重新整理</button>
     </div>
   </header>
 
@@ -52,7 +52,8 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
     <div class="calendar" id="calendar"></div>
   </section>
 
-  <div class="version">請假管理 v1.1｜2026-07-27</div>
+  <div id="loadStatus" class="hint" style="margin-bottom:12px;text-align:center">準備讀取請假資料…</div>
+  <div class="version">請假管理 v1.2｜2026-07-30</div>
 </main>
 
 <div class="mask" id="mask" onclick="if(event.target.id==='mask')closeModal()"><section class="modal" id="modal"></section></div>
@@ -65,13 +66,35 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&
 function dateKey(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
 function jsonp(action,params={}){return new Promise((resolve,reject)=>{const cb='leaveCb_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script'),t=setTimeout(()=>{cleanup();reject(new Error('讀取逾時'))},15000);function cleanup(){clearTimeout(t);delete window[cb];s.remove()}window[cb]=d=>{cleanup();resolve(d)};s.onerror=()=>{cleanup();reject(new Error('雲端連線失敗'))};s.src=SERVICE_URL+'?'+new URLSearchParams({action,callback:cb,...params,_:Date.now()});document.head.appendChild(s)})}
 function active(x){return !['已取消','駁回','已駁回'].includes(String(x.status||''))}
-async function loadData(){try{const r=await jsonp('getDashboardBundle',{target:'主管'});if(!r.ok)throw new Error(r.message||'讀取失敗');leaves=Array.isArray(r.leaves)?r.leaves:[];localStorage.setItem('heremay.sharedLeaveRecords',JSON.stringify(leaves))}catch(e){try{leaves=JSON.parse(localStorage.getItem('heremay.sharedLeaveRecords')||'[]')}catch(_){leaves=[]}}renderAll()}
+async function loadData(){
+  const btn=document.getElementById('refreshBtn');
+  const status=document.getElementById('loadStatus');
+  if(btn){btn.disabled=true;btn.textContent='⏳ 讀取中…'}
+  if(status)status.textContent='正在連接雲端並讀取請假紀錄…';
+  try{
+    const r=await jsonp('getDashboardBundle',{target:'主管'});
+    if(!r||!r.ok)throw new Error((r&&r.message)||'讀取失敗');
+    leaves=Array.isArray(r.leaves)?r.leaves:[];
+    localStorage.setItem('heremay.sharedLeaveRecords',JSON.stringify(leaves));
+    if(status)status.textContent=`✅ 雲端讀取成功，共 ${leaves.length} 筆請假紀錄`;
+  }catch(e){
+    let cached=[];
+    try{cached=JSON.parse(localStorage.getItem('heremay.sharedLeaveRecords')||'[]')}catch(_){}
+    leaves=Array.isArray(cached)?cached:[];
+    if(status)status.textContent=`⚠️ 雲端讀取失敗：${e.message}；目前顯示本機備份 ${leaves.length} 筆`;
+    console.error('請假資料讀取失敗',e);
+  }finally{
+    renderAll();
+    if(btn){btn.disabled=false;btn.textContent='🔄 重新整理'}
+  }
+}
 function renderList(day,id){const rows=leaves.filter(x=>x.date===day&&active(x)),box=document.getElementById(id);box.innerHTML=rows.length?rows.map(x=>`<div class="item">${esc(x.employeeName||'未具名')}｜${esc(x.period||'全天')}｜${esc(x.type||'請假')}｜${esc(x.status||'')}</div>`).join(''):'<div class="hint">無人請假。</div>'}
 function changeMonth(n){view.setMonth(view.getMonth()+n);renderCalendar()}
 function renderCalendar(){const y=view.getFullYear(),m=view.getMonth(),key=`${y}-${pad(m+1)}`,rows=leaves.filter(x=>String(x.date||'').startsWith(key));document.getElementById('count').textContent=`${rows.length} 筆`;document.getElementById('monthTitle').textContent=`${y} 年 ${m+1} 月`;const box=document.getElementById('calendar');box.innerHTML='';const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();for(let i=0;i<first;i++){const e=document.createElement('div');e.className='day empty';box.appendChild(e)}for(let d=1;d<=days;d++){const dk=`${y}-${pad(m+1)}-${pad(d)}`,dr=rows.filter(x=>x.date===dk&&active(x));let am=0,pm=0;dr.forEach(x=>{const p=String(x.period||'');if(p==='全天'){am++;pm++}else if(p==='上午')am++;else if(p==='下午')pm++});const b=document.createElement('button');b.className='day'+(dr.length?' has':'');b.innerHTML=`<span class="num">${d}</span>${dr.length?`<span class="people">${dr.length} 人</span><span class="split">上午 ${am}｜下午 ${pm}</span>`:''}`;b.onclick=()=>showDay(dk,dr);box.appendChild(b)}}
 function showDay(date,rows){document.getElementById('modal').innerHTML=`<div class="modalHead"><h3>${esc(date)} 請假名單</h3><button class="close" onclick="closeModal()">關閉</button></div>${rows.length?rows.map(x=>`<div class="item"><strong>${esc(x.employeeName||'未具名')}</strong>｜${esc(x.type||'請假')}｜${esc(x.period||'全天')}<br><small>部門：${esc(x.pool||'')}｜狀態：${esc(x.status||'')}｜申請：${esc(x.created||'')}</small></div>`).join(''):'<div class="hint">當天沒有人請假。</div>'}`;document.getElementById('mask').classList.add('show')}
 function closeModal(){document.getElementById('mask').classList.remove('show')}
 function renderAll(){renderList(dateKey(0),'today');renderList(dateKey(1),'tomorrow');renderCalendar()}
+document.getElementById('refreshBtn').addEventListener('click',loadData);
 loadData();
 </script>
 </body>
