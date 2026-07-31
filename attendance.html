@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.2</title>
+  <title>和美智慧校園｜打卡與出勤 v2.3</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -66,7 +66,7 @@
   <header class="top">
     <button class="back" onclick="goBack()">← 返回</button>
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
-    <span class="version">v2.2 圍欄／離線打卡版</span>
+    <span class="version">v2.3 班別動態打卡版</span>
   </header>
 
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
@@ -335,13 +335,23 @@
   }
   function applyEmployeePunchLayout(){
     const cleaner=isFlexibleCleaner(),modeBox=document.getElementById('attendanceModeBox'),duty=document.getElementById('dutyGrid'),hint=document.getElementById('dutyHint');
+    // 所有人都只顯示兩個動態按鈕，避免一般班與值班四個按鈕造成混淆。
+    if(duty)duty.style.display='none';
+    if(hint)hint.style.display='none';
     if(cleaner){
       if(modeBox)modeBox.innerHTML='<div class="cleaner-note">🍂 戶外清潔責任制｜只記錄今天是否到班，不以工作分鐘計算薪資。</div>';
-      if(duty)duty.style.display='none';if(hint)hint.style.display='none';
       clockInBtn.textContent='🌿 開始工作';clockOutBtn.textContent='✅ 完成工作';
-    }else{
-      if(duty)duty.style.display='grid';if(hint)hint.style.display='block';
     }
+  }
+  function usesDutyPunch(){
+    if(isFlexibleCleaner())return false;
+    const duty=selectedDutyType();
+    return duty==='早值'||duty==='晚值';
+  }
+  function activeShiftLabel(){
+    if(isFlexibleCleaner())return '工作';
+    const duty=selectedDutyType();
+    return duty==='早值'?'早值':duty==='晚值'?'晚值':'正常班';
   }
   function attendanceDepartment(){return leavePool()==='安親部'?'安親部':'幼兒部'}
   function selectedAttendanceMode(){
@@ -360,7 +370,8 @@
       localStorage.setItem('heremay.afterSchoolMode',document.getElementById('afterSchoolMode')?.value||'學期中');
       localStorage.setItem('heremay.afterSchoolDuty',document.getElementById('afterSchoolDuty')?.value||'一般班');
     }
-    renderShiftInfo()
+    renderShiftInfo();
+    loadPunch();
   }
   function renderAttendanceMode(){
     const box=document.getElementById('attendanceModeBox');if(!box)return;
@@ -436,83 +447,61 @@
     const x=(cloudPunches.find(p=>String(p.date||'')===todayKey())||JSON.parse(localStorage.getItem(punchKey())||'{}'));
     const hi=Boolean(String(x.in||'').trim()),ho=Boolean(String(x.out||'').trim());
     const hdi=Boolean(String(x.dutyIn||'').trim()),hdo=Boolean(String(x.dutyOut||'').trim());
-    const dutyMode=hdi||hdo;
-
-    if(isFlexibleCleaner()){
-      dutyInBtn.disabled=true;dutyOutBtn.disabled=true;
-      inTime.textContent=hi?x.in:'--:--';outTime.textContent=ho?x.out:'--:--';lateMinutes.textContent='—';
-      clockInBtn.disabled=hi;clockOutBtn.disabled=!hi||ho;
-      clockInBtn.textContent=hi?`✅ 已開始 ${x.in}`:'🌿 開始工作';clockOutBtn.textContent=ho?`✅ 已完成 ${x.out}`:'✅ 完成工作';
-      todayStatus.textContent=ho?`今日工作完成｜${x.in}～${x.out}`:(hi?`已於 ${x.in} 開始工作`:'今日尚未開始工作');renderWorkStatus(x);return;
-    }
+    const recordedDuty=hdi||hdo;
 
     inTime.textContent=hi?x.in:'--:--';
     outTime.textContent=ho?x.out:'--:--';
-    lateMinutes.textContent=x.late||0;
-
+    lateMinutes.textContent=isFlexibleCleaner()?'—':(x.late||0);
     clockInBtn.classList.remove('done-state','wait-state','ready-state');
     clockOutBtn.classList.remove('done-state','wait-state','ready-state');
 
-    if(dutyMode){
-      clockInBtn.disabled=true;
-      clockOutBtn.disabled=true;
-      clockInBtn.textContent=hi?`✅ 值班上班 ${x.in}`:'☀️ 已改用值班模式';
-      clockOutBtn.textContent=ho?`✅ 值班下班 ${x.out}`:'🌙 請使用下值班';
-      clockInBtn.classList.add('done-state');
-      clockOutBtn.classList.add(ho?'done-state':'wait-state');
-
-      dutyInBtn.disabled=true;
-      dutyInBtn.textContent=`✅ 已上值班 ${x.dutyIn||x.in||''}`;
-      dutyOutBtn.disabled=hdo;
-      dutyOutBtn.textContent=hdo?`✅ 已下值班 ${x.dutyOut||x.out||''}`:'🟠 下值班';
-
-      todayStatus.textContent=hdo
-        ? `今日值班完成｜上值班 ${x.dutyIn||x.in}｜下值班 ${x.dutyOut||x.out}`
-        : `值班中｜上值班 ${x.dutyIn||x.in}｜尚未下值班`;
-
-      renderWorkStatus(x);
-      return;
+    if(isFlexibleCleaner()){
+      clockInBtn.disabled=hi;clockOutBtn.disabled=!hi||ho;
+      clockInBtn.textContent=hi?`✅ 已開始 ${x.in}`:'🌿 開始工作';
+      clockOutBtn.textContent=ho?`✅ 已完成 ${x.out}`:'✅ 完成工作';
+      todayStatus.textContent=ho?`今日工作完成｜${x.in}～${x.out}`:(hi?`已於 ${x.in} 開始工作`:'今日尚未開始工作');
+      renderWorkStatus(x);return;
     }
 
-    dutyInBtn.disabled=hi;
-    dutyInBtn.textContent=hi?'🟣 已使用一般上班':'🟣 上值班';
-    dutyOutBtn.disabled=true;
-    dutyOutBtn.textContent='🟠 請先上值班';
+    // 已有打卡資料時，以實際記錄的班別為準；尚未打卡時，依目前下拉選單決定。
+    const dutyMode=recordedDuty||(!hi&&usesDutyPunch());
+    const label=recordedDuty?(String(x.dutyType||x.shift||activeShiftLabel()).includes('早值')?'早值':String(x.dutyType||x.shift||'').includes('晚值')?'晚值':activeShiftLabel()):activeShiftLabel();
 
     if(!hi){
       clockInBtn.disabled=false;
-      clockInBtn.textContent='☀️ 上班打卡';
-      clockInBtn.classList.add('ready-state');
-
       clockOutBtn.disabled=true;
-      clockOutBtn.textContent='🌙 請先上班打卡';
-      clockOutBtn.classList.add('wait-state');
-
-      todayStatus.textContent='今日尚未打卡｜請選擇一般上班或上值班';
-    }else{
-      clockInBtn.disabled=true;
-      clockInBtn.textContent=`✅ 已上班 ${x.in}`;
-      clockInBtn.classList.add('done-state');
-
-      if(!ho){
-        clockOutBtn.disabled=false;
-        clockOutBtn.textContent='🌙 下班打卡';
-        clockOutBtn.classList.add('ready-state');
-        todayStatus.textContent=`一般班已於 ${x.in} 上班｜尚未下班`;
-      }else{
-        clockOutBtn.disabled=true;
-        clockOutBtn.textContent=`✅ 已下班 ${x.out}`;
-        clockOutBtn.classList.add('done-state');
-        todayStatus.textContent=`今日一般班完成｜上班 ${x.in}｜下班 ${x.out}`;
-      }
+      clockInBtn.textContent=dutyMode?`☀️ ${label}上班`:'☀️ 上班打卡';
+      clockOutBtn.textContent=dutyMode?`🌙 請先${label}上班`:'🌙 請先上班打卡';
+      clockInBtn.classList.add('ready-state');clockOutBtn.classList.add('wait-state');
+      todayStatus.textContent=`今日尚未打卡｜目前班別：${label}`;
+      renderWorkStatus(x);return;
     }
 
+    clockInBtn.disabled=true;
+    clockInBtn.textContent=dutyMode?`✅ ${label}上班 ${x.dutyIn||x.in}`:`✅ 已上班 ${x.in}`;
+    clockInBtn.classList.add('done-state');
+    if(!ho){
+      clockOutBtn.disabled=false;
+      clockOutBtn.textContent=dutyMode?`🌙 ${label}下班`:'🌙 下班打卡';
+      clockOutBtn.classList.add('ready-state');
+      todayStatus.textContent=dutyMode?`${label}已於 ${x.dutyIn||x.in} 上班｜尚未下班`:`一般班已於 ${x.in} 上班｜尚未下班`;
+    }else{
+      clockOutBtn.disabled=true;
+      clockOutBtn.textContent=dutyMode?`✅ ${label}下班 ${x.dutyOut||x.out}`:`✅ 已下班 ${x.out}`;
+      clockOutBtn.classList.add('done-state');
+      todayStatus.textContent=dutyMode?`今日${label}完成｜上班 ${x.dutyIn||x.in}｜下班 ${x.dutyOut||x.out}`:`今日一般班完成｜上班 ${x.in}｜下班 ${x.out}`;
+    }
     renderWorkStatus(x);
   }
   let pendingPunchType='';
 
   async function confirmPunch(type){
     if(pendingCloudAction) return;
+    // 畫面只保留兩個按鈕；早值／晚值自動轉為值班 API。
+    if(!isFlexibleCleaner()&&usesDutyPunch()){
+      if(type==='in')type='dutyIn';
+      if(type==='out')type='dutyOut';
+    }
     const access=await checkPunchAccess(false);
     if(!access.allowed){toastMsg('⚠️ 尚未通過 100 公尺圍欄或校內 Wi-Fi 驗證');return}
     pendingPunchType=type;
@@ -521,16 +510,17 @@
     const now=new Date();
     const nowText=`${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
+    const shiftLabel=activeShiftLabel();
     document.getElementById('punchConfirmTitle').textContent =
-      isFlexibleCleaner()?(type==='in'?'🌿 確認開始工作':'✅ 確認完成工作'):(type==='in'?'☀️ 確認上班打卡':type==='out'?'🌙 確認下班打卡':type==='dutyIn'?'🟣 確認上值班':'🟠 確認下值班');
+      isFlexibleCleaner()?(type==='in'?'🌿 確認開始工作':'✅ 確認完成工作'):(type==='in'?'☀️ 確認上班打卡':type==='out'?'🌙 確認下班打卡':type==='dutyIn'?`☀️ 確認${shiftLabel}上班`:`🌙 確認${shiftLabel}下班`);
     document.getElementById('confirmEmployeeName').textContent=employeeNameText();
     document.getElementById('confirmShiftName').textContent=s.name;
     document.getElementById('confirmSchedule').textContent =
-      type==='in'?`上班 ${s.scheduledIn||'依實際時間'}`:type==='out'?`下班 ${s.scheduledOut||'依實際時間'}`:type==='dutyIn'?`值班類型：${s.dutyType}`:`結束值班：${s.dutyType}`;
+      type==='in'?`上班 ${s.scheduledIn||'依實際時間'}`:type==='out'?`下班 ${s.scheduledOut||'依實際時間'}`:type==='dutyIn'?`${shiftLabel}上班 ${s.scheduledIn||'依實際時間'}`:`${shiftLabel}下班 ${s.scheduledOut||'依實際時間'}`;
     document.getElementById('confirmCurrentTime').textContent=nowText;
 
     const submit=document.getElementById('confirmPunchSubmitBtn');
-    submit.textContent=isFlexibleCleaner()?(type==='in'?'確定開始工作':'確定完成工作'):(type==='in'?'確定送出上班打卡':type==='out'?'確定送出下班打卡':type==='dutyIn'?'確定送出上值班':'確定送出下值班');
+    submit.textContent=isFlexibleCleaner()?(type==='in'?'確定開始工作':'確定完成工作'):(type==='in'?'確定送出上班打卡':type==='out'?'確定送出下班打卡':type==='dutyIn'?`確定${shiftLabel}上班`:`確定${shiftLabel}下班`);
     document.getElementById('punchConfirmModal').classList.add('show');
   }
 
