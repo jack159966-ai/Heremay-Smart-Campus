@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.4</title>
+  <title>和美智慧校園｜打卡與出勤 v2.5</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -68,7 +68,7 @@
   <header class="top">
     <button class="back" onclick="goBack()">← 返回</button>
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
-    <span class="version">v2.4 兩鍵式班別鎖定版</span>
+    <span class="version">v2.5 C類清潔模式</span>
   </header>
 
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
@@ -179,8 +179,10 @@
   let pendingDate = '';
 
   function isFlexibleCleaner(){
-    const text=[employee.jobTitle,employee.title,employee['職稱'],employee.group,employee.department,employee.homeType,employee.identityCategory].filter(Boolean).join('｜');
-    return /戶外清潔|責任制清潔/.test(text);
+    // C 類員工為戶外清潔責任制人員；同時保留職稱文字判斷，兼容舊資料。
+    const id=String(employeeKey()||'').trim().toUpperCase();
+    const text=[employee.jobTitle,employee.title,employee['職稱'],employee.group,employee.department,employee.homeType,employee.identityCategory,employee['身分類別'],employee['編組']].filter(Boolean).join('｜');
+    return id.startsWith('C')||/戶外清潔|清潔人員|責任制清潔/.test(text);
   }
   function offlineQueueKey(){return `heremay.offlinePunchQueue.${employeeKey()}`}
   function readOfflineQueue(){try{const rows=JSON.parse(localStorage.getItem(offlineQueueKey())||'[]');return Array.isArray(rows)?rows:[]}catch(e){return[]}}
@@ -398,6 +400,10 @@
   }
   function renderAttendanceMode(){
     const box=document.getElementById('attendanceModeBox');if(!box)return;
+    if(isFlexibleCleaner()){
+      box.innerHTML='<div class="cleaner-note">🍂 清潔人員責任制｜只需記錄開始工作與完成工作，不設定固定班別，也不以工作分鐘計薪。</div>';
+      return;
+    }
     if(attendanceDepartment()==='幼兒部'){
       const saved=localStorage.getItem('heremay.kindergartenShift')||'正常班';
       box.innerHTML=`<div class="mode-row"><label><strong>幼兒部今日班別</strong><select class="input" id="kindergartenShift" onchange="saveAttendanceMode()"><option>正常班</option><option>早值</option><option>晚值</option></select></label><div class="shift-info">幼兒部不分寒暑假</div></div>`;
@@ -410,7 +416,7 @@
   }
   function workSchedule(){
     const department=attendanceDepartment(),mode=selectedAttendanceMode(),duty=selectedDutyType();
-    if(isFlexibleCleaner())return{department:'庶務組',mode:'責任制',dutyType:'戶外清潔',name:'戶外清潔責任制',scheduledIn:'',scheduledOut:'',requiredMinutes:0,flexibleCleaner:true};
+    if(isFlexibleCleaner())return{department:'清潔組',mode:'責任制',dutyType:'清潔人員',name:'清潔人員責任制',scheduledIn:'',scheduledOut:'',requiredMinutes:0,flexibleCleaner:true};
     if(department==='幼兒部'){
       if(mode==='早值')return{department,mode,dutyType:'早值',name:'幼兒部早值',scheduledIn:'07:00',scheduledOut:'16:00',requiredMinutes:540};
       if(mode==='晚值')return{department,mode,dutyType:'晚值',name:'幼兒部晚值',scheduledIn:'08:00',scheduledOut:'18:00',requiredMinutes:600};
@@ -426,7 +432,7 @@
   }
   function renderShiftInfo(){
     const s=workSchedule(),box=document.getElementById('shiftInfo');if(!box)return;
-    box.textContent=s.flexibleCleaner?'今日規則：戶外清潔責任制｜只確認有到班，不以工時長短計薪':s.supplemental?'今日規則：安親部考試週星期六｜實際上下班均記為補課工時':`今日規則：${s.name}｜上班 ${s.scheduledIn}｜下班 ${s.scheduledOut}`
+    box.textContent=s.flexibleCleaner?'今日規則：清潔人員責任制｜只確認有到班，不以工時長短計薪':s.supplemental?'今日規則：安親部考試週星期六｜實際上下班均記為補課工時':`今日規則：${s.name}｜上班 ${s.scheduledIn}｜下班 ${s.scheduledOut}`
   }
   function minutesBetween(a,b){
     if(!a||!b)return 0;const [ah,am]=String(a).split(':').map(Number),[bh,bm]=String(b).split(':').map(Number);
@@ -563,7 +569,7 @@
     if(type==='dutyOut') dutyOut();
   }
 
-  function punchMeta(){const a=lastAccessResult||{};return{clientPunchAt:new Date().toISOString(),clientRecordId:uuid(),verificationMethod:a.method||'',geoDistance:a.distance??'',geoAccuracy:a.accuracy??'',geoLatitude:a.latitude??'',geoLongitude:a.longitude??'',syncStatus:'即時上傳',employeeType:isFlexibleCleaner()?'戶外清潔責任制':'一般員工'}}
+  function punchMeta(){const a=lastAccessResult||{};return{clientPunchAt:new Date().toISOString(),clientRecordId:uuid(),verificationMethod:a.method||'',geoDistance:a.distance??'',geoAccuracy:a.accuracy??'',geoLatitude:a.latitude??'',geoLongitude:a.longitude??'',syncStatus:'即時上傳',employeeType:isFlexibleCleaner()?'C類清潔責任制':'一般員工'}}
   function clockIn(){const s=workSchedule();postAttendance('attendanceClockIn',{employeeId:employeeKey(),employeeName:employeeNameText(),identity:employee.identityCategory||employee.role||'',pool:s.department,date:todayKey(),shift:s.name,attendanceMode:s.mode,dutyType:s.dutyType,scheduledIn:s.scheduledIn,scheduledOut:s.scheduledOut,requiredMinutes:s.requiredMinutes,isSupplemental:s.supplemental?'是':'否',isTest:employee.isTest||'否',...punchMeta()},'clockIn')}
   function clockOut(){const s=workSchedule();postAttendance('attendanceClockOut',{employeeId:employeeKey(),employeeName:employeeNameText(),pool:s.department,date:todayKey(),attendanceMode:s.mode,dutyType:s.dutyType,requiredMinutes:s.requiredMinutes,isSupplemental:s.supplemental?'是':'否',...punchMeta()},'clockOut')}
   function dutyIn(){const s=workSchedule();postAttendance('attendanceDutyIn',{employeeId:employeeKey(),employeeName:employeeNameText(),pool:s.department,date:todayKey(),attendanceMode:s.mode,dutyType:s.dutyType,...punchMeta()},'dutyIn')}
