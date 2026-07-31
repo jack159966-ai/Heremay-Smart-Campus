@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.3</title>
+  <title>和美智慧校園｜打卡與出勤 v2.4</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -40,6 +40,8 @@
     .sync-btn:disabled{opacity:.6;cursor:wait}
     .shift-info{margin-top:10px;border:1px solid var(--line);background:#f8fcff;border-radius:15px;padding:10px 12px;text-align:center;color:#526d7e;font-size:13px;font-weight:850;line-height:1.5}
     .duty-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:11px}
+    #dutyGrid,#dutyHint{display:none!important}
+    .mode-locked-note{margin-top:9px;border:1px solid #ffd49a;background:#fff9ec;color:#996000;border-radius:14px;padding:9px 11px;font-size:12px;font-weight:850;text-align:center}
     .duty-btn{border:0;border-radius:18px;padding:13px 8px;color:#fff;font-size:16px;font-weight:950;cursor:pointer}
     .duty-in{background:linear-gradient(135deg,#9b6adf,#bf8fea)}
     .duty-out{background:linear-gradient(135deg,#ef8a45,#f4aa72)}
@@ -66,7 +68,7 @@
   <header class="top">
     <button class="back" onclick="goBack()">← 返回</button>
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
-    <span class="version">v2.3 班別動態打卡版</span>
+    <span class="version">v2.4 兩鍵式班別鎖定版</span>
   </header>
 
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
@@ -94,7 +96,7 @@
     </div>
     <div class="shift-info" id="shiftInfo">正在判斷今日出勤規則…</div>
     <div class="work-status" id="workStatus">今日工時尚未完成</div>
-    <div class="shift-info" id="dutyHint">⚠️ 一般班與值班擇一使用；按下上值班會同時記錄上班，按下下值班會同時記錄下班。</div>
+    <div class="shift-info" id="dutyHint">班別選定後，只需使用上方兩個打卡按鈕。</div>
     <div class="mini-grid"><div class="mini"><b id="inTime">--:--</b><span>上班時間</span></div><div class="mini"><b id="outTime">--:--</b><span>下班時間</span></div><div class="mini"><b id="lateMinutes">0</b><span>遲到分鐘</span></div></div>
   </section>
 
@@ -364,7 +366,28 @@
       ? (document.getElementById('kindergartenShift')?.value||'正常班')
       : (document.getElementById('afterSchoolDuty')?.value||'一般班')
   }
+  function todayPunchRecord(){
+    return cloudPunches.find(p=>String(p.date||'')===todayKey())||JSON.parse(localStorage.getItem(punchKey())||'{}');
+  }
+  function hasStartedToday(){
+    const x=todayPunchRecord();
+    return Boolean(String(x.in||x.dutyIn||'').trim());
+  }
+  function lockAttendanceSelectors(locked){
+    ['kindergartenShift','afterSchoolMode','afterSchoolDuty'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=locked});
+    const box=document.getElementById('attendanceModeBox');if(!box)return;
+    let note=document.getElementById('modeLockedNote');
+    if(locked&&!note){note=document.createElement('div');note.id='modeLockedNote';note.className='mode-locked-note';note.textContent='🔒 今日已開始打卡，班別已鎖定；如選錯班別，請由主管補正。';box.appendChild(note)}
+    if(!locked&&note)note.remove();
+  }
   function saveAttendanceMode(){
+    if(hasStartedToday()){
+      toastMsg('⚠️ 今日已開始打卡，不能再切換班別');
+      renderAttendanceMode();
+      lockAttendanceSelectors(true);
+      loadPunch();
+      return;
+    }
     if(attendanceDepartment()==='幼兒部') localStorage.setItem('heremay.kindergartenShift',document.getElementById('kindergartenShift')?.value||'正常班');
     else{
       localStorage.setItem('heremay.afterSchoolMode',document.getElementById('afterSchoolMode')?.value||'學期中');
@@ -444,10 +467,12 @@
   }
 
   function loadPunch(){
+    applyEmployeePunchLayout();
     const x=(cloudPunches.find(p=>String(p.date||'')===todayKey())||JSON.parse(localStorage.getItem(punchKey())||'{}'));
     const hi=Boolean(String(x.in||'').trim()),ho=Boolean(String(x.out||'').trim());
     const hdi=Boolean(String(x.dutyIn||'').trim()),hdo=Boolean(String(x.dutyOut||'').trim());
     const recordedDuty=hdi||hdo;
+    lockAttendanceSelectors(hi||hdi);
 
     inTime.textContent=hi?x.in:'--:--';
     outTime.textContent=ho?x.out:'--:--';
