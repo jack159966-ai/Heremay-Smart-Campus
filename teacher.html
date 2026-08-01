@@ -636,6 +636,12 @@
           <span>每日例行檢核與班級工作清單</span>
         </button>
 
+        <button class="btn" onclick="openMediaSubmission()">
+          <div class="icon">📸</div>
+          <strong>班級素材投稿</strong>
+          <span>提供粉絲專頁文章與 3～30 張活動照片</span>
+        </button>
+
         <button class="btn" onclick="openPersonalSettings()">
           <div class="icon">⚙️</div>
           <strong>個人設定</strong>
@@ -645,7 +651,7 @@
       </div>
     </section>
 
-    <div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v13.5｜新增個人薪資條</div>
+    <div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v13.6｜新增班級素材投稿</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -905,6 +911,16 @@
 
     function openFeature(name){
       showToast(`已點選「${name}」：這裡之後會接到對應功能頁。`, 2200);
+    }
+
+    function openMediaSubmission(){
+      const params = new URLSearchParams();
+      const name = String(currentEmployee?.name || currentUser || '').trim();
+      const className = String(currentEmployee?.className || currentEmployee?.class || '').trim();
+      if(name) params.set('name', name);
+      if(className) params.set('class', className);
+      const query = params.toString();
+      window.location.href = `http://192.168.0.235:8787/${query ? `?${query}` : ''}`;
     }
 
     function ackStorageKey(id){
