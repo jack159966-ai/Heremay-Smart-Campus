@@ -580,7 +580,7 @@
     </section>
 
     <section class="dashCard">
-      <button class="patrolButton" type="button" onclick="location.href='http://192.168.0.235:8787/admin'">
+      <button class="patrolButton" type="button" onclick="openMediaAdminInbox()">
         <span class="pIcon">📥</span>
         <span><strong>粉專素材收件匣</strong><span>預覽老師投稿、複製文章、下載素材與更新發布狀態</span></span>
         <span class="arrow">›</span>
@@ -627,7 +627,7 @@
       </div>
     </section>
 
-    <div class="versionStamp">主管工作台 v24.8｜2026-08-01｜新增粉專素材收件匣</div>
+    <div class="versionStamp">主管工作台 v24.9｜2026-08-02｜粉專收件匣改接 Google 雲端</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
@@ -636,8 +636,24 @@
 
 <script>
 const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
+// Google 雲端主管收件匣部署完成後，只需更換這個網址。
+const MEDIA_ADMIN_URL = 'PASTE_GOOGLE_APPS_SCRIPT_ADMIN_URL_HERE';
 
 let currentAdminEmployee = null;
+
+function openMediaAdminInbox(){
+  if(!MEDIA_ADMIN_URL || MEDIA_ADMIN_URL.includes('PASTE_GOOGLE_APPS_SCRIPT')){
+    showToast('雲端收件匣網址尚未設定，請先完成 Google Apps Script 部署。');
+    return;
+  }
+
+  const adminName = String(currentAdminEmployee?.name || '主管').trim();
+  const params = new URLSearchParams();
+  if(adminName) params.set('admin', adminName);
+
+  const separator = MEDIA_ADMIN_URL.includes('?') ? '&' : '?';
+  location.href = `${MEDIA_ADMIN_URL}${separator}${params.toString()}`;
+}
 
 function readCurrentEmployee(){
   try{

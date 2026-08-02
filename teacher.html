@@ -651,7 +651,7 @@
       </div>
     </section>
 
-    <div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v13.6｜新增班級素材投稿</div>
+    <div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v13.7｜粉專投稿改接 Google 雲端</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -716,6 +716,8 @@
 
   <script>
     const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
+    // Google 雲端投稿頁部署完成後，只需更換這個網址。
+    const MEDIA_SUBMISSION_URL = 'PASTE_GOOGLE_APPS_SCRIPT_SUBMISSION_URL_HERE';
 
     let currentUser = '教保人員';
     let currentEmployee = null;
@@ -914,13 +916,31 @@
     }
 
     function openMediaSubmission(){
+      if(!MEDIA_SUBMISSION_URL || MEDIA_SUBMISSION_URL.includes('PASTE_GOOGLE_APPS_SCRIPT')){
+        showToast('雲端投稿網址尚未設定，請先完成 Google Apps Script 部署。', 3600);
+        return;
+      }
+
       const params = new URLSearchParams();
-      const name = String(currentEmployee?.name || currentUser || '').trim();
-      const className = String(currentEmployee?.className || currentEmployee?.class || '').trim();
-      if(name) params.set('name', name);
+      const uploaderName = String(currentEmployee?.name || currentUser || '').trim();
+      const authorName = uploaderName; // 投稿頁可改選真正的文章作者
+      const className = String(
+        currentEmployee?.className ||
+        currentEmployee?.class ||
+        currentEmployee?.group ||
+        ''
+      ).trim();
+      const employeeId = String(currentEmployee?.employeeId || '').trim();
+      const department = currentDepartment();
+
+      if(authorName) params.set('author', authorName);
+      if(uploaderName) params.set('uploader', uploaderName);
       if(className) params.set('class', className);
-      const query = params.toString();
-      window.location.href = `http://192.168.0.235:8787/${query ? `?${query}` : ''}`;
+      if(employeeId) params.set('employeeId', employeeId);
+      if(department) params.set('department', department);
+
+      const separator = MEDIA_SUBMISSION_URL.includes('?') ? '&' : '?';
+      window.location.href = `${MEDIA_SUBMISSION_URL}${separator}${params.toString()}`;
     }
 
     function ackStorageKey(id){
