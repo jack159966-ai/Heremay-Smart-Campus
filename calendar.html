@@ -131,7 +131,7 @@
     .calendar-day.selected{background:#eaf4ff;border-color:var(--primary-dark)}
     .calendar-day.form-date{background:#fff8ec;border-color:#d89a33}
     .day-number{font-weight:900}
-    .day-week{font-size:.72rem;color:var(--muted);margin-top:2px}
+    .day-lunar{font-size:.72rem;color:var(--muted);margin-top:2px}
     .event-badge{
       position:absolute;right:7px;bottom:7px;min-width:22px;height:22px;padding:0 6px;
       border-radius:999px;background:var(--danger);color:#fff;font-size:.75rem;
@@ -147,7 +147,7 @@
       .reminder-row{grid-template-columns:1fr 1fr}
       .reminder-row .remove{grid-column:1/-1}
       .calendar-day{min-height:58px;padding:6px 4px}
-      .day-week{display:none}
+      .day-lunar{display:none}
       .month-grid{gap:4px}
     }
   </style>
@@ -166,7 +166,7 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v2.8.9</span>
+      <span class="pill" id="versionStatus">版本 v2.8.10</span>
       <span class="pill" id="timezoneStatus">時區檢查中</span>
       <span class="pill" id="travelStatus">出國模式：關</span>
     </div>
@@ -385,7 +385,7 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v2.8.9｜2026-08-04｜月曆納入週期工作但排除農曆日期標記</div>
+  <div class="version">行事曆 v2.8.10｜2026-08-04｜月曆加入農曆日期顯示</div>
 </main>
 
 <div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
@@ -394,9 +394,9 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='2.8.9';
+const APP_VERSION='2.8.10';
 const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null,shareTargets:[],calendarCursor:new Date(),selectedDate:new Date()};
-const FIRED_KEY='heremay_calendar_fired_v289';
+const FIRED_KEY='heremay_calendar_fired_v2810';
 
 document.getElementById('todayText').textContent=
   new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
@@ -886,6 +886,20 @@ function parseDateInput(value){
 }
 function sameCalendarDay(a,b){return !!a&&!!b&&a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
 function weekdayName(date){return date.toLocaleDateString('zh-TW',{weekday:'long'});}
+function lunarDateLabel(date){
+  try{
+    const parts=new Intl.DateTimeFormat('zh-TW-u-ca-chinese',{
+      timeZone:'Asia/Taipei',month:'long',day:'numeric'
+    }).formatToParts(date);
+    const monthPart=parts.find(p=>p.type==='month')?.value||'';
+    const dayNumber=Number(parts.find(p=>p.type==='day')?.value||0);
+    const lunarDays=['','初一','初二','初三','初四','初五','初六','初七','初八','初九','初十',
+      '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
+      '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+    if(dayNumber===1 && monthPart) return monthPart;
+    return lunarDays[dayNumber]||'';
+  }catch(_){return '';}
+}
 function eventsForCalendarDate(date){
   return state.events.filter(item=>occursOnDate(item,date)).sort((a,b)=>String(a.開始時間||'').localeCompare(String(b.開始時間||'')));
 }
@@ -948,15 +962,14 @@ function renderMonthCalendar(){
   for(let i=0;i<42;i++){
     const date=new Date(gridStart.getFullYear(),gridStart.getMonth(),gridStart.getDate()+i);
     const key=dateKey(date);
-    const calendarItems=eventsForCalendarDate(date).filter(item=>normalizeRepeat(item).unit!=='lunar');
-    const eventCount=calendarItems.length;
+    const eventCount=eventsForCalendarDate(date).length;
     const badgeText=eventCount>=3?'3+':String(eventCount);
     const classes=['calendar-day'];
     if(date.getMonth()!==month)classes.push('outside');
     if(sameCalendarDay(date,today))classes.push('today');
     if(sameCalendarDay(date,state.selectedDate))classes.push('selected');
     if(sameCalendarDay(date,startDate)||sameCalendarDay(date,endDate))classes.push('form-date');
-    html+=`<button class="${classes.join(' ')}" type="button" onclick="selectCalendarDate('${key}')"><div class="day-number">${date.getDate()}</div><div class="day-week">${weekdayName(date)}</div>${eventCount?`<span class="event-badge" aria-label="${eventCount}筆行程">${badgeText}</span>`:''}</button>`;
+    html+=`<button class="${classes.join(' ')}" type="button" onclick="selectCalendarDate('${key}')"><div class="day-number">${date.getDate()}</div><div class="day-lunar">${lunarDateLabel(date)}</div>${eventCount?`<span class="event-badge" aria-label="${eventCount}筆行程">${badgeText}</span>`:''}</button>`;
   }
   box.innerHTML=html;
 }
@@ -1449,7 +1462,7 @@ function downloadBackup(){
 
 
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js?v=289',{updateViaCache:'none'})
+  navigator.serviceWorker.register('./sw.js?v=2810',{updateViaCache:'none'})
     .then(reg=>{
       reg.update().catch(()=>{});
       if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -1457,8 +1470,8 @@ if('serviceWorker' in navigator){
     .catch(error=>console.warn('Service Worker 註冊失敗',error));
 
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(!sessionStorage.getItem('heremay_sw_reloaded_289')){
-      sessionStorage.setItem('heremay_sw_reloaded_289','1');
+    if(!sessionStorage.getItem('heremay_sw_reloaded_2810')){
+      sessionStorage.setItem('heremay_sw_reloaded_2810','1');
       location.reload();
     }
   });
