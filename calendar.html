@@ -119,11 +119,36 @@
     .share-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff}.share-summary-text{font-weight:800;color:var(--primary-dark);line-height:1.5}
     .modal-mask{position:fixed;inset:0;background:rgba(26,39,56,.62);display:none;align-items:center;justify-content:center;padding:16px;z-index:130}.modal-mask.show{display:flex}.modal-card{width:min(520px,100%);max-height:82vh;overflow:auto;background:#fff;border-radius:22px;padding:18px;box-shadow:0 24px 70px rgba(0,0,0,.28)}
     .modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.modal-head h3{margin:0;color:var(--primary-dark)}.choice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.choice-btn{border:1px solid var(--line);border-radius:14px;padding:14px 12px;background:#f8fbff;color:var(--text);font-weight:850;cursor:pointer;text-align:left}.choice-check{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:14px;padding:12px;background:#f8fbff;font-weight:800}.choice-check input{width:auto;transform:scale(1.15)}.sound-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+    .month-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .month-title{font-size:1.12rem;font-weight:900;color:var(--primary-dark);min-width:150px;text-align:center}
+    .month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}
+    .weekday{text-align:center;font-weight:900;font-size:.82rem;color:var(--muted);padding:6px 2px}
+    .weekday.sun{color:#d65b5b}.weekday.sat{color:#4f86c6}
+    .calendar-day{position:relative;min-height:72px;border:1px solid var(--line);border-radius:13px;background:#fff;padding:8px 6px;cursor:pointer;text-align:left;color:var(--text)}
+    .calendar-day:hover{border-color:var(--primary);background:#f5faff}
+    .calendar-day.outside{opacity:.36}
+    .calendar-day.today{box-shadow:inset 0 0 0 2px var(--primary)}
+    .calendar-day.selected{background:#eaf4ff;border-color:var(--primary-dark)}
+    .calendar-day.form-date{background:#fff8ec;border-color:#d89a33}
+    .day-number{font-weight:900}
+    .day-week{font-size:.72rem;color:var(--muted);margin-top:2px}
+    .event-badge{
+      position:absolute;right:7px;bottom:7px;min-width:22px;height:22px;padding:0 6px;
+      border-radius:999px;background:var(--danger);color:#fff;font-size:.75rem;
+      font-weight:900;display:flex;align-items:center;justify-content:center;
+      box-shadow:0 3px 8px rgba(214,91,91,.25)
+    }
+    .selected-date-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:14px}
+    .selected-date-title{font-weight:900;color:var(--primary-dark)}
+    .date-check{margin-top:6px;padding:9px 11px;border-radius:12px;background:#eef7ff;color:var(--primary-dark);font-weight:800;display:none}
     @media(max-width:700px){
       .grid{grid-template-columns:1fr}
       .three-day-grid{grid-template-columns:1fr}
       .reminder-row{grid-template-columns:1fr 1fr}
       .reminder-row .remove{grid-column:1/-1}
+      .calendar-day{min-height:58px;padding:6px 4px}
+      .day-week{display:none}
+      .month-grid{gap:4px}
     }
   </style>
 </head>
@@ -141,7 +166,7 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v2.8.5</span>
+      <span class="pill" id="versionStatus">版本 v2.8.7</span>
       <span class="pill" id="timezoneStatus">時區檢查中</span>
       <span class="pill" id="travelStatus">出國模式：關</span>
     </div>
@@ -153,6 +178,26 @@
     <button class="toolbtn" type="button" onclick="updateAndSync()">🔄 更新與同步</button>
     <button class="toolbtn" type="button" onclick="toggleMoreSettings()">⚙️ 更多設定</button>
   </div>
+
+  <section class="panel" id="monthCalendarPanel">
+    <div class="panel-head">
+      <h2>月曆總覽</h2>
+      <button class="btn" type="button" onclick="goCalendarToday()">回到今天</button>
+    </div>
+    <div class="panel-body">
+      <div class="month-nav">
+        <button class="btn" type="button" onclick="changeCalendarMonth(-1)">← 上個月</button>
+        <div class="month-title" id="monthTitle">載入中…</div>
+        <button class="btn" type="button" onclick="changeCalendarMonth(1)">下個月 →</button>
+      </div>
+      <div class="month-grid" id="monthCalendar"></div>
+      <div class="selected-date-head">
+        <div class="selected-date-title" id="selectedDateTitle">請點選日期查看行程</div>
+        <span class="pill" id="selectedDateCount">0 項</span>
+      </div>
+      <div class="list" id="selectedDateList"><div class="empty">尚未選擇日期</div></div>
+    </div>
+  </section>
 
   <section class="panel" id="moreSettingsPanel" style="display:none">
     <div class="panel-head">
@@ -191,6 +236,7 @@
           <div class="field">
             <label>開始日期</label>
             <input type="date" name="開始日期" required>
+            <div class="date-check" id="startDateCheck"></div>
           </div>
           <div class="field">
             <label>開始時間</label>
@@ -200,6 +246,7 @@
           <div class="field">
             <label>結束日期</label>
             <input type="date" name="結束日期">
+            <div class="date-check" id="endDateCheck"></div>
           </div>
           <div class="field">
             <label>結束時間</label>
@@ -338,7 +385,7 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v2.8.5｜2026-08-04｜修正日期格式造成鬧鈴不觸發</div>
+  <div class="version">行事曆 v2.8.7｜2026-08-04｜月曆只標示一般行程並顯示筆數</div>
 </main>
 
 <div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
@@ -347,9 +394,9 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='2.8.5';
-const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null,shareTargets:[]};
-const FIRED_KEY='heremay_calendar_fired_v285';
+const APP_VERSION='2.8.7';
+const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null,shareTargets:[],calendarCursor:new Date(),selectedDate:new Date()};
+const FIRED_KEY='heremay_calendar_fired_v287';
 
 document.getElementById('todayText').textContent=
   new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
@@ -547,7 +594,7 @@ function collapseForm(){
   body.style.display=willOpen?'':'none';
   setEditingMode(willOpen);
   if(!willOpen){
-    document.getElementById('threeDayPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
+    document.getElementById('monthCalendarPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
   }
 }
 function resetEventForm(){
@@ -571,6 +618,8 @@ function resetEventForm(){
   form.elements['強提醒'].checked=false;
   form.elements['提醒聲音'].value='gentle';
   applyRepeatDefaults(false);
+  updateDateCheckLabels();
+  renderMonthCalendar();
 }
 function isRepeatingForm(){
   const unit=document.getElementById('eventForm').elements['重複單位'].value;
@@ -605,6 +654,7 @@ function editEvent(id){
   set('開始時間',item.開始時間);
   set('結束日期',item.結束日期);
   set('結束時間',item.結束時間);
+  syncCalendarWithFormDate('開始日期');
   set('地點',item.地點);
   set('說明',item.說明);
   set('私人／公務',item['私人／公務']||'公務');
@@ -821,7 +871,106 @@ function renderEvents(){
     ?routineEvents.map(item=>renderEventCard(item,{routine:true})).join('')
     :'<div class="empty">目前沒有週期性工作</div>';
   renderThreeDayReminders();
+  renderMonthCalendar();
+  renderSelectedDateEvents();
 }
+
+function pad2(value){return String(value).padStart(2,'0')}
+function dateKey(date){return `${date.getFullYear()}-${pad2(date.getMonth()+1)}-${pad2(date.getDate())}`;}
+function parseDateInput(value){
+  const normalized=normalizeDateForAlarm(value);
+  if(!normalized)return null;
+  const [y,m,d]=normalized.split('-').map(Number);
+  const result=new Date(y,m-1,d);
+  return isNaN(result.getTime())?null:result;
+}
+function sameCalendarDay(a,b){return !!a&&!!b&&a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
+function weekdayName(date){return date.toLocaleDateString('zh-TW',{weekday:'long'});}
+function eventsForCalendarDate(date){
+  return state.events.filter(item=>occursOnDate(item,date)).sort((a,b)=>String(a.開始時間||'').localeCompare(String(b.開始時間||'')));
+}
+function changeCalendarMonth(offset){
+  const current=state.calendarCursor||new Date();
+  state.calendarCursor=new Date(current.getFullYear(),current.getMonth()+Number(offset||0),1);
+  renderMonthCalendar();
+}
+function goCalendarToday(){
+  const today=new Date();
+  state.calendarCursor=new Date(today.getFullYear(),today.getMonth(),1);
+  state.selectedDate=today;
+  renderMonthCalendar();
+  renderSelectedDateEvents();
+}
+function selectCalendarDate(dateText){
+  const date=parseDateInput(dateText);
+  if(!date)return;
+  state.selectedDate=date;
+  state.calendarCursor=new Date(date.getFullYear(),date.getMonth(),1);
+  renderMonthCalendar();
+  renderSelectedDateEvents();
+}
+function syncCalendarWithFormDate(fieldName){
+  const form=document.getElementById('eventForm');
+  const date=parseDateInput(form.elements[fieldName]?.value);
+  updateDateCheckLabels();
+  if(!date){renderMonthCalendar();return}
+  state.calendarCursor=new Date(date.getFullYear(),date.getMonth(),1);
+  state.selectedDate=date;
+  renderMonthCalendar();
+  renderSelectedDateEvents();
+}
+function updateDateCheckLabels(){
+  const form=document.getElementById('eventForm');
+  [['開始日期','startDateCheck'],['結束日期','endDateCheck']].forEach(([name,id])=>{
+    const box=document.getElementById(id);
+    const date=parseDateInput(form.elements[name]?.value);
+    if(!box)return;
+    if(!date){box.style.display='none';box.textContent='';return}
+    box.style.display='';
+    box.textContent=`${date.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'})}｜${weekdayName(date)}`;
+  });
+}
+function renderMonthCalendar(){
+  const box=document.getElementById('monthCalendar');
+  const title=document.getElementById('monthTitle');
+  if(!box||!title)return;
+  const cursor=state.calendarCursor||new Date();
+  const year=cursor.getFullYear(),month=cursor.getMonth();
+  title.textContent=`${year} 年 ${month+1} 月`;
+  const weekdays=['日','一','二','三','四','五','六'];
+  let html=weekdays.map((day,index)=>`<div class="weekday ${index===0?'sun':index===6?'sat':''}">週${day}</div>`).join('');
+  const first=new Date(year,month,1);
+  const gridStart=new Date(year,month,1-first.getDay());
+  const today=new Date();
+  const form=document.getElementById('eventForm');
+  const startDate=parseDateInput(form?.elements['開始日期']?.value);
+  const endDate=parseDateInput(form?.elements['結束日期']?.value);
+  for(let i=0;i<42;i++){
+    const date=new Date(gridStart.getFullYear(),gridStart.getMonth(),gridStart.getDate()+i);
+    const key=dateKey(date);
+    const regularCount=eventsForCalendarDate(date).filter(item=>!isPeriodicItem(item)).length;
+    const badgeText=regularCount>=3?'3+':String(regularCount);
+    const classes=['calendar-day'];
+    if(date.getMonth()!==month)classes.push('outside');
+    if(sameCalendarDay(date,today))classes.push('today');
+    if(sameCalendarDay(date,state.selectedDate))classes.push('selected');
+    if(sameCalendarDay(date,startDate)||sameCalendarDay(date,endDate))classes.push('form-date');
+    html+=`<button class="${classes.join(' ')}" type="button" onclick="selectCalendarDate('${key}')"><div class="day-number">${date.getDate()}</div><div class="day-week">${weekdayName(date)}</div>${regularCount?`<span class="event-badge" aria-label="${regularCount}筆一般行程">${badgeText}</span>`:''}</button>`;
+  }
+  box.innerHTML=html;
+}
+function renderSelectedDateEvents(){
+  const title=document.getElementById('selectedDateTitle');
+  const count=document.getElementById('selectedDateCount');
+  const list=document.getElementById('selectedDateList');
+  if(!title||!count||!list)return;
+  const date=state.selectedDate||new Date();
+  const items=eventsForCalendarDate(date);
+  title.textContent=`${date.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'})}｜${weekdayName(date)}`;
+  count.textContent=`${items.length} 項`;
+  list.innerHTML=items.length?items.map(item=>renderEventCard(item,{routine:isPeriodicItem(item)})).join(''):'<div class="empty">這一天沒有行程</div>';
+}
+
 function formObject(form){
   const fd=new FormData(form),obj={};
   fd.forEach((v,k)=>obj[k]=v);
@@ -934,7 +1083,7 @@ document.getElementById('eventForm').addEventListener('submit',async e=>{
     resetEventForm();
     document.getElementById('eventFormBody').style.display='none';
     setEditingMode(false);
-    document.getElementById('threeDayPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
+    document.getElementById('monthCalendarPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
     if(result.calendarSynced){
       showToast('行程已儲存並同步 Google 日曆');
     }else{
@@ -1299,7 +1448,7 @@ function downloadBackup(){
 
 
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js?v=285',{updateViaCache:'none'})
+  navigator.serviceWorker.register('./sw.js?v=287',{updateViaCache:'none'})
     .then(reg=>{
       reg.update().catch(()=>{});
       if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -1307,8 +1456,8 @@ if('serviceWorker' in navigator){
     .catch(error=>console.warn('Service Worker 註冊失敗',error));
 
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(!sessionStorage.getItem('heremay_sw_reloaded_285')){
-      sessionStorage.setItem('heremay_sw_reloaded_285','1');
+    if(!sessionStorage.getItem('heremay_sw_reloaded_287')){
+      sessionStorage.setItem('heremay_sw_reloaded_287','1');
       location.reload();
     }
   });
@@ -1317,8 +1466,16 @@ if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
   document.getElementById('routineSelect')?.addEventListener('change',()=>applyRoutineDefaults(true));
   resetEventForm();
+  const eventForm=document.getElementById('eventForm');
+  eventForm.elements['開始日期'].addEventListener('change',()=>syncCalendarWithFormDate('開始日期'));
+  eventForm.elements['結束日期'].addEventListener('change',()=>syncCalendarWithFormDate('結束日期'));
   document.getElementById('eventFormBody').style.display='none';
   setEditingMode(false);
+  state.calendarCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+  state.selectedDate=new Date();
+  updateDateCheckLabels();
+  renderMonthCalendar();
+  renderSelectedDateEvents();
   updateTravelUI();
   syncAll();
   checkVersion();
