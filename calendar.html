@@ -141,17 +141,17 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v2.8.2</span>
+      <span class="pill" id="versionStatus">版本 v2.8.4</span>
       <span class="pill" id="timezoneStatus">時區檢查中</span>
       <span class="pill" id="travelStatus">出國模式：關</span>
     </div>
   </section>
 
   <div class="toolbar">
+    <button class="toolbtn" type="button" onclick="location.href='secretary.html'">← 返回智慧秘書</button>
     <button class="toolbtn primary" type="button" onclick="startNewEvent()">＋ 新增行程</button>
     <button class="toolbtn" type="button" onclick="updateAndSync()">🔄 更新與同步</button>
     <button class="toolbtn" type="button" onclick="toggleMoreSettings()">⚙️ 更多設定</button>
-    <button class="toolbtn" type="button" onclick="location.href='secretary.html'">返回智慧秘書</button>
   </div>
 
   <section class="panel" id="moreSettingsPanel" style="display:none">
@@ -175,7 +175,7 @@
       <h2 id="eventFormTitle">新增行程</h2>
       <button class="btn" type="button" onclick="collapseForm()">收合</button>
     </div>
-    <div class="panel-body" id="eventFormBody">
+    <div class="panel-body" id="eventFormBody" style="display:none">
       <div class="notice">公務與週期性工作預設採台灣時間。人在海外且當地為夜間時，系統只顯示靜音通知；開啟出國／休假模式可暫停週期性工作的強提醒。</div>
       <form id="eventForm">
         <input type="hidden" name="行程ID">
@@ -244,6 +244,7 @@
               <option value="week">每 X 週</option>
               <option value="month">每 X 個月</option>
               <option value="year">每 X 年</option>
+              <option value="lunar">農曆每月</option>
             </select>
             <input type="hidden" name="重複規則">
           </div>
@@ -257,6 +258,18 @@
               <option value="10">10</option><option value="11">11</option><option value="12">12</option>
             </select>
             <div class="hint" id="repeatSummary">每 1 天一次</div>
+          </div>
+
+          <div class="field full" id="lunarDaysField" style="display:none">
+            <div class="section-box">
+              <div class="section-title">🌙 農曆提醒日期（可複選）</div>
+              <div class="checks">
+                <label class="check"><input type="checkbox" name="農曆初二" value="2" onchange="updateLunarDays()"> 初二</label>
+                <label class="check"><input type="checkbox" name="農曆十六" value="16" onchange="updateLunarDays()"> 十六</label>
+              </div>
+              <input type="hidden" name="農曆日期JSON">
+              <div class="hint">可只選初二、只選十六，或同時勾選初二與十六；巡堂等其他行程不受影響。</div>
+            </div>
           </div>
 
           <div class="field full"><div class="section-box"><div class="section-title">📣 分享與通知對象</div><input type="hidden" name="分享對象JSON"><input type="hidden" name="分享對象"><input type="hidden" name="主管分類"><input type="hidden" name="指定分享對象"><input type="hidden" name="分享路徑"><div class="share-summary"><div><div class="share-summary-text" id="shareSummaryText">僅自己</div><div class="hint">可同時勾選主管、幼兒部、安親部與庶務部；再次開啟可繼續增減，不會覆蓋前一次選擇。</div></div><button class="btn purple" type="button" onclick="openShareLevel1()">選擇分享對象</button></div></div></div>
@@ -289,7 +302,7 @@
     </div>
   </section>
 
-  <section class="panel">
+  <section class="panel" id="threeDayPanel">
     <div class="panel-head">
       <h2>今日、明日、後天提醒</h2>
       <span class="pill" id="threeDayCount">0 項</span>
@@ -325,7 +338,7 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v2.8.2｜2026-08-03｜延長手機同步等待時間</div>
+  <div class="version">行事曆 v2.8.4｜2026-08-04｜新增農曆初二、十六複選提醒</div>
 </main>
 
 <div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
@@ -334,9 +347,9 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='2.8.2';
+const APP_VERSION='2.8.4';
 const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null,shareTargets:[]};
-const FIRED_KEY='heremay_calendar_fired_v282';
+const FIRED_KEY='heremay_calendar_fired_v284';
 
 document.getElementById('todayText').textContent=
   new Date().toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
@@ -518,14 +531,24 @@ function setReminderSettings(reminders){
   box.innerHTML='';
   (Array.isArray(reminders)?reminders:[]).forEach(r=>addReminderRow(r.value,r.unit));
 }
+function setEditingMode(isEditing){
+  const threeDayPanel=document.getElementById('threeDayPanel');
+  if(threeDayPanel) threeDayPanel.style.display=isEditing?'none':'';
+}
 function startNewEvent(){
   resetEventForm();
   document.getElementById('eventFormBody').style.display='';
+  setEditingMode(true);
   document.getElementById('eventPanel').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function collapseForm(){
   const body=document.getElementById('eventFormBody');
-  body.style.display=body.style.display==='none'?'':'none';
+  const willOpen=body.style.display==='none';
+  body.style.display=willOpen?'':'none';
+  setEditingMode(willOpen);
+  if(!willOpen){
+    document.getElementById('threeDayPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
+  }
 }
 function resetEventForm(){
   const form=document.getElementById('eventForm');
@@ -541,6 +564,9 @@ function resetEventForm(){
   form.elements['時區規則'].value='taipei';
   form.elements['重複單位'].value='none';
   form.elements['重複間隔'].value='1';
+  form.elements['農曆初二'].checked=false;
+  form.elements['農曆十六'].checked=false;
+  form.elements['農曆日期JSON'].value='[]';
   updateRepeatUI();
   form.elements['強提醒'].checked=false;
   form.elements['提醒聲音'].value='gentle';
@@ -597,6 +623,7 @@ function editEvent(id){
   document.getElementById('eventFormTitle').textContent='編輯行程';
   document.getElementById('eventSubmitBtn').textContent='儲存修改';
   document.getElementById('eventFormBody').style.display='';
+  setEditingMode(true);
   document.getElementById('eventPanel').scrollIntoView({behavior:'smooth',block:'start'});
 }
 async function deleteEventItem(id){
@@ -615,22 +642,52 @@ function normalizeRepeat(item={}){
   let interval=Math.max(1,Number(item.重複間隔||1));
   const legacy=String(item.重複規則||'').trim();
   if(!unit||unit==='none'){
-    const map={daily:['day',1],weekdays:['weekdays',1],weekly:['week',1],monthly:['month',1],quarterly:['month',3],yearly:['year',1]};
+    const map={daily:['day',1],weekdays:['weekdays',1],weekly:['week',1],monthly:['month',1],quarterly:['month',3],yearly:['year',1],lunar:['lunar',1]};
     if(map[legacy]) [unit,interval]=map[legacy];
     else unit='none';
   }
   return {unit,interval};
 }
-function repeatRuleValue(unit,interval){
+function repeatRuleValue(unit,interval,lunarDays=[]){
   if(unit==='none')return '';
   if(unit==='weekdays')return 'weekdays';
+  if(unit==='lunar')return `lunar:${normalizeLunarDays(lunarDays).join(',')}`;
   return `${unit}:${Math.max(1,Number(interval||1))}`;
+}
+function normalizeLunarDays(value){
+  let list=value;
+  if(!Array.isArray(list)){
+    try{list=JSON.parse(String(value||'[]'))}catch(_){list=[]}
+  }
+  return [...new Set(list.map(Number).filter(v=>v===2||v===16))].sort((a,b)=>a-b);
+}
+function getLunarDays(){
+  const form=document.getElementById('eventForm');
+  const days=[];
+  if(form.elements['農曆初二']?.checked)days.push(2);
+  if(form.elements['農曆十六']?.checked)days.push(16);
+  return days;
+}
+function setLunarDays(value){
+  const form=document.getElementById('eventForm');
+  const days=normalizeLunarDays(value);
+  form.elements['農曆初二'].checked=days.includes(2);
+  form.elements['農曆十六'].checked=days.includes(16);
+  form.elements['農曆日期JSON'].value=JSON.stringify(days);
+}
+function updateLunarDays(){
+  const form=document.getElementById('eventForm');
+  const days=getLunarDays();
+  form.elements['農曆日期JSON'].value=JSON.stringify(days);
+  updateRepeatSummary();
 }
 function updateRepeatUI(){
   const form=document.getElementById('eventForm');
   const unit=form.elements['重複單位'].value;
   const box=document.getElementById('repeatIntervalField');
+  const lunarBox=document.getElementById('lunarDaysField');
   box.style.display=['day','week','month','year'].includes(unit)?'':'none';
+  if(lunarBox)lunarBox.style.display=unit==='lunar'?'':'none';
   updateRepeatSummary();
   applyRepeatDefaults(true);
 }
@@ -641,13 +698,16 @@ function updateRepeatSummary(){
   const names={day:'天',week:'週',month:'個月',year:'年'};
   const summary=document.getElementById('repeatSummary');
   if(summary&&names[unit]) summary.textContent=`每 ${interval} ${names[unit]}一次${unit==='month'&&interval===3?'（每季）':''}`;
-  form.elements['重複規則'].value=repeatRuleValue(unit,interval);
+  const lunarDays=getLunarDays();
+  form.elements['農曆日期JSON'].value=JSON.stringify(lunarDays);
+  form.elements['重複規則'].value=repeatRuleValue(unit,interval,lunarDays);
 }
 function setRepeatFromItem(item){
   const form=document.getElementById('eventForm');
   const repeat=normalizeRepeat(item);
   form.elements['重複單位'].value=repeat.unit;
   form.elements['重複間隔'].value=String(Math.min(12,repeat.interval));
+  setLunarDays(item.農曆日期JSON||[]);
   updateRepeatUI();
 }
 function repeatLabel(itemOrRule){
@@ -655,6 +715,10 @@ function repeatLabel(itemOrRule){
   const {unit,interval}=normalizeRepeat(item);
   if(unit==='none')return '不重複';
   if(unit==='weekdays')return '每週一至週五';
+  if(unit==='lunar'){
+    const days=normalizeLunarDays(item.農曆日期JSON||[]);
+    return days.length?`農曆每月${days.map(v=>v===2?'初二':'十六').join('、')}`:'農曆每月';
+  }
   const names={day:'天',week:'週',month:'個月',year:'年'};
   if(unit==='month'&&interval===3)return '每 3 個月一次（每季）';
   return `每 ${interval} ${names[unit]||unit}一次`;
@@ -685,12 +749,27 @@ function isPeriodicItem(item){
 }
 function dateOnly(d){ return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
 function daysBetween(a,b){ return Math.round((dateOnly(b)-dateOnly(a))/86400000); }
+function lunarDayOfDate(target){
+  try{
+    const parts=new Intl.DateTimeFormat('zh-TW-u-ca-chinese',{
+      timeZone:'Asia/Taipei',
+      day:'numeric'
+    }).formatToParts(target);
+    const part=parts.find(p=>p.type==='day');
+    const day=Number(part?.value);
+    return Number.isFinite(day)?day:null;
+  }catch(_){return null}
+}
 function occursOnDate(item,target){
   const start=zonedWallTimeToDate(item.開始日期||'',item.開始時間||'00:00','Asia/Taipei');
   if(!start || dateOnly(target)<dateOnly(start)) return false;
   const {unit,interval}=normalizeRepeat(item);
   if(unit==='none') return dateOnly(start).getTime()===dateOnly(target).getTime();
   if(unit==='weekdays'){ const day=target.getDay(); return day>=1&&day<=5; }
+  if(unit==='lunar'){
+    const days=normalizeLunarDays(item.農曆日期JSON||[]);
+    return days.includes(lunarDayOfDate(target));
+  }
   if(unit==='day') return daysBetween(start,target)%interval===0;
   if(unit==='week') return daysBetween(start,target)%(interval*7)===0;
   if(unit==='month'){
@@ -832,7 +911,12 @@ document.getElementById('eventForm').addEventListener('submit',async e=>{
   data.提醒設定JSON=getReminderSettings();
   data.重複單位=form.elements['重複單位'].value;
   data.重複間隔=Math.max(1,Number(form.elements['重複間隔'].value||1));
-  data.重複規則=repeatRuleValue(data.重複單位,data.重複間隔);
+  data.農曆日期JSON=getLunarDays();
+  if(data.重複單位==='lunar'&&!data.農曆日期JSON.length){
+    showToast('請至少勾選農曆初二或十六');
+    return;
+  }
+  data.重複規則=repeatRuleValue(data.重複單位,data.重複間隔,data.農曆日期JSON);
   data.固定巡檢=data.重複單位!=='none';
   data.分享對象JSON=[...state.shareTargets];
   data.提醒設定=JSON.stringify(data.提醒設定JSON);
@@ -848,6 +932,9 @@ document.getElementById('eventForm').addEventListener('submit',async e=>{
     if(!result.ok)throw new Error(result.message||'儲存失敗');
     await syncAll();
     resetEventForm();
+    document.getElementById('eventFormBody').style.display='none';
+    setEditingMode(false);
+    document.getElementById('threeDayPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
     if(result.calendarSynced){
       showToast('行程已儲存並同步 Google 日曆');
     }else{
@@ -1204,7 +1291,7 @@ function downloadBackup(){
 
 
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js?v=282',{updateViaCache:'none'})
+  navigator.serviceWorker.register('./sw.js?v=284',{updateViaCache:'none'})
     .then(reg=>{
       reg.update().catch(()=>{});
       if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -1212,8 +1299,8 @@ if('serviceWorker' in navigator){
     .catch(error=>console.warn('Service Worker 註冊失敗',error));
 
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(!sessionStorage.getItem('heremay_sw_reloaded_282')){
-      sessionStorage.setItem('heremay_sw_reloaded_282','1');
+    if(!sessionStorage.getItem('heremay_sw_reloaded_284')){
+      sessionStorage.setItem('heremay_sw_reloaded_284','1');
       location.reload();
     }
   });
@@ -1222,6 +1309,8 @@ if('serviceWorker' in navigator){
 window.addEventListener('load',()=>{
   document.getElementById('routineSelect')?.addEventListener('change',()=>applyRoutineDefaults(true));
   resetEventForm();
+  document.getElementById('eventFormBody').style.display='none';
+  setEditingMode(false);
   updateTravelUI();
   syncAll();
   checkVersion();
