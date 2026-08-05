@@ -889,10 +889,10 @@ async function deleteAdminReport(id){
 }
 async function loadCloudDashboard(){
  try{
-  // 主管首頁需掌握所有仍有效的公告，不受公告發布對象限制。
-  const result=await adminJsonp('getDashboardBundle');
+  const result=await adminJsonp('getDashboardBundle',{target:'主管'});
   if(!result.ok)throw new Error(result.message||'讀取失敗');
-  cloudAnnouncements=Array.isArray(result.announcements)?result.announcements:[];
+  cloudAnnouncements=(Array.isArray(result.announcements)?result.announcements:[])
+    .filter(x=>adminNoticeTargets(x).includes('主管'));
   cloudReports=Array.isArray(result.reports)?result.reports:[];
   cloudLeaves=Array.isArray(result.leaves)?result.leaves:[];
   localStorage.setItem('heremay.sharedLeaveRecords',JSON.stringify(cloudLeaves));
@@ -902,7 +902,8 @@ async function loadCloudDashboard(){
  }catch(err){
   console.warn(err);
   try{
-    cloudAnnouncements=JSON.parse(localStorage.getItem('heremay.announcements')||'[]');
+    cloudAnnouncements=JSON.parse(localStorage.getItem('heremay.announcements')||'[]')
+      .filter(x=>adminNoticeTargets(x).includes('主管'));
   }catch(e){cloudAnnouncements=[]}
   try{cloudReports=JSON.parse(localStorage.getItem('heremay.reports')||'[]')}catch(e){cloudReports=[]}
   renderAdminNotices();renderAdminReports();renderAllLeaves();
