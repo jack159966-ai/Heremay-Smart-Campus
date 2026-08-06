@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.5</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.10</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -486,11 +486,11 @@
     @media(max-width:520px){.leaveDay{min-height:64px;padding:5px}.leaveDay .leaveCount{font-size:12px}.leaveDay .leaveSplit{font-size:10px}}
 
   
-    .bottomToolGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
-    .bottomSquareBtn{aspect-ratio:1/1;border:1px solid #dfe8f6;border-radius:22px;background:#fff;padding:14px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;cursor:pointer;box-shadow:0 8px 20px rgba(45,82,132,.10)}
-    .bottomSquareBtn .sqIcon{font-size:34px;line-height:1}
-    .bottomSquareBtn strong{font-size:18px;color:#183f73}
-    .bottomSquareBtn span{font-size:12px;color:#6d8095;font-weight:750;line-height:1.35}
+    .bottomToolGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:14px}
+    .bottomSquareBtn{min-height:170px;border:1px solid #dfe8f6;border-radius:24px;background:#fff;padding:20px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;cursor:pointer;box-shadow:0 8px 20px rgba(45,82,132,.10)}
+    .bottomSquareBtn .sqIcon{font-size:42px;line-height:1}
+    .bottomSquareBtn strong{font-size:21px;color:#183f73}
+    .bottomSquareBtn span{font-size:14px;color:#6d8095;font-weight:750;line-height:1.35}
 
     .desktopToolCard{margin-top:16px}
     .desktopToolHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
@@ -517,7 +517,7 @@
       .desktopToolBtn strong{font-size:14px}
       .desktopToolBtn span{display:none}
     }
-    @media(max-width:520px){.bottomToolGrid{gap:8px}.bottomSquareBtn{border-radius:18px;padding:10px 6px}.bottomSquareBtn .sqIcon{font-size:30px}.bottomSquareBtn strong{font-size:15px}.bottomSquareBtn span{display:none}}
+    @media(max-width:520px){.bottomToolGrid{gap:10px}.bottomSquareBtn{min-height:150px;border-radius:20px;padding:16px 8px}.bottomSquareBtn .sqIcon{font-size:38px}.bottomSquareBtn strong{font-size:18px}.bottomSquareBtn span{display:block;font-size:12px}}
   </style>
 </head>
 <body class="auth-pending">
@@ -595,9 +595,6 @@
       <button class="bottomSquareBtn" type="button" onclick="location.href='secretary.html'">
         <span class="sqIcon">🤖</span><strong>智慧秘書</strong><span>行事曆、公告與專案</span>
       </button>
-      <button class="bottomSquareBtn" type="button" onclick="openModal('system')">
-        <span class="sqIcon">⚙️</span><strong>系統管理</strong><span>人員、權限與設定</span>
-      </button>
     </section>
 
     <section class="dashCard desktopToolCard">
@@ -627,7 +624,7 @@
       </div>
     </section>
 
-    <div class="versionStamp">主管工作台 v24.9｜2026-08-02｜粉專收件匣改接 Google 雲端</div>
+    <div class="versionStamp">主管工作台 v24.10｜2026-08-06｜移除手機系統管理並放大常用按鍵</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
