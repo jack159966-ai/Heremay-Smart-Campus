@@ -1,4 +1,4 @@
-const CACHE_NAME = 'heremay-smart-campus-v2.4.2';
+const CACHE_NAME = 'heremay-smart-campus-v2.4.3';
 const CORE_FILES = [
   './',
   './index.html'
