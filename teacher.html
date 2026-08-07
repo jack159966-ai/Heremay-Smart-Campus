@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v13.4 同步資料與版本更新</title>
+  <title>和美智慧校園｜教保人員首頁 v13.8 手機版面修正</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -30,16 +30,26 @@
       color:var(--ink);
       min-height:100vh;
     }
+    body::before{
+      content:"";
+      position:fixed;
+      top:0;
+      left:0;
+      right:0;
+      height:env(safe-area-inset-top, 0px);
+      background:var(--bg1);
+      z-index:100;
+      pointer-events:none;
+    }
     .phone{
       width:min(100%, 480px);
       margin:0 auto;
-      padding:18px 16px 30px;
+      padding:calc(18px + env(safe-area-inset-top, 0px)) 16px calc(30px + env(safe-area-inset-bottom, 0px));
     }
     .top{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
+      display:grid;
+      grid-template-columns:minmax(0,1fr);
+      gap:10px;
       margin-bottom:14px;
     }
     .brand{
@@ -64,7 +74,8 @@
       line-height:1.1;
       color:#6d2840;
       letter-spacing:.5px;
-      white-space:nowrap;
+      white-space:normal;
+      overflow-wrap:anywhere;
     }
     .brand .sub{
       margin-top:4px;
@@ -73,13 +84,16 @@
       font-size:13px;
     }
     .datetime{
-      text-align:right;
-      flex:0 0 auto;
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      text-align:left;
       background:rgba(255,255,255,.78);
       border:1px solid var(--line);
       border-radius:18px;
       padding:9px 10px;
-      min-width:108px;
       box-shadow:0 8px 20px rgba(230,82,137,.10);
     }
     .date{
@@ -93,6 +107,7 @@
       color:var(--pink);
       letter-spacing:.5px;
       line-height:1.05;
+      white-space:nowrap;
     }
     .repeat-alert{
       display:none;
@@ -501,6 +516,7 @@
     .refresh-sync-btn[disabled]{opacity:.65;cursor:wait}
     @media (max-width:380px){
       .brand h1{font-size:21px}
+      .date{font-size:14px}
       .time{font-size:23px}
       .grid{grid-template-columns:1fr}
       .primary{grid-column:span 1}
@@ -651,7 +667,7 @@
       </div>
     </section>
 
-    <div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v13.7｜粉專投稿改接 Google 雲端</div>
+    <div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v13.8｜修正手機頂端文字重疊</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
