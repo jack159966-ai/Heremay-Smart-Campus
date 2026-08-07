@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.10</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.13</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -627,7 +627,7 @@
       </div>
     </section>
 
-    <div class="versionStamp">主管工作台 v24.12｜2026-08-07｜主管手機可看班表；排班編輯限謝秉儒、吳玉華電腦版</div>
+    <div class="versionStamp">主管工作台 v24.13｜2026-08-07｜排班權限改由員工登入資料控制</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
@@ -1489,8 +1489,8 @@ function isDesktopDevice(){
 
 function setupDesktopTools(){
   const desktop = isDesktopDevice();
-  const scheduleEditors = ['謝秉儒','吳玉華'];
-  const currentName = String(currentAdminEmployee?.name || '').trim();
+  const employee = currentAdminEmployee || readCurrentEmployee() || {};
+  const canEditSchedule = employee.scheduleAdmin === true;
 
   document.querySelectorAll('[data-desktop-tool]').forEach(button=>{
     const href = button.dataset.desktopTool || '';
@@ -1506,7 +1506,7 @@ function setupDesktopTools(){
         return;
       }
 
-      if(scheduleEditors.includes(currentName)){
+      if(canEditSchedule){
         button.title = '開啟排班管理';
         button.onclick = ()=>{ location.href = 'schedule_admin.html'; };
       }else{

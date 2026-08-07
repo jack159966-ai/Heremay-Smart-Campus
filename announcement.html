@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#dceeff">
-<title>和美智慧校園｜公布欄管理 v1.1.1</title>
+<title>和美智慧校園｜公布欄管理 v1.1.3</title>
 <style>
 :root{--bg:#eef7ff;--card:#fff;--primary:#4f86c6;--deep:#356ba9;--text:#23364d;--muted:#6d7d90;--line:#d9e7f3;--danger:#d65b5b;--shadow:0 10px 28px rgba(49,91,133,.13)}
-*{box-sizing:border-box}body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:linear-gradient(180deg,#eaf5ff,#f8fbff);color:var(--text);min-height:100vh}
+*{box-sizing:border-box}body.auth-pending .app{visibility:hidden}body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:linear-gradient(180deg,#eaf5ff,#f8fbff);color:var(--text);min-height:100vh}
 button,input,textarea,select{font:inherit}.app{width:min(850px,100%);margin:auto;padding:16px 12px 46px}.top,.panel{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
 .brand{display:flex;gap:12px;align-items:center}.logo{width:62px;height:62px;object-fit:contain}.brand h1{margin:0;color:var(--deep);font-size:1.4rem}.sub{color:var(--muted);margin-top:4px}
 .toolbar,.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.btn{border:0;border-radius:13px;padding:11px 14px;font-weight:900;cursor:pointer;background:#eaf3fb;color:var(--deep)}.btn.primary{background:var(--primary);color:#fff}.btn.danger{background:#fff0f0;color:var(--danger)}
@@ -17,11 +17,11 @@ button,input,textarea,select{font:inherit}.app{width:min(850px,100%);margin:auto
 @media(max-width:620px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.targets{grid-template-columns:1fr}}
 </style>
 </head>
-<body>
+<body class="auth-pending">
 <main class="app">
 <section class="top">
   <div class="brand"><img class="logo" src="assets/logo.png?v=20260727" alt="Logo"><div><h1>📣 公布欄管理</h1><div class="sub">快速發布臨時消息，並設定對象與自動下架時間</div></div></div>
-  <div class="toolbar"><button class="btn" onclick="location.href='secretary.html'">返回智慧秘書</button><button class="btn" onclick="location.href='admin.html'">返回主管首頁</button></div>
+  <div class="toolbar"><button class="btn" onclick="returnHome()">返回我的首頁</button></div>
 </section>
 <section class="panel">
   <h2 id="formTitle">新增公告</h2>
@@ -41,14 +41,73 @@ button,input,textarea,select{font:inherit}.app{width:min(850px,100%);margin:auto
   <div class="actions"><button class="btn primary" onclick="saveNotice()">儲存公告</button><button class="btn" onclick="resetForm()">清除</button></div>
 </section>
 <section class="panel"><h2>目前公告</h2><div id="noticeList"></div></section>
-<div class="version">公布欄管理 v1.1.1｜雲端連線修正版</div>
+<div class="version">公布欄管理 v1.1.3｜雲端連線修正版</div>
 </main>
 <script>
 const SERVICE_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
 const LOCAL_KEY='heremay.announcements';
 
+function readCurrentEmployee(){
+  try{
+    const raw=localStorage.getItem('heremay.currentEmployee');
+    return raw?JSON.parse(raw):null;
+  }catch(e){return null}
+}
+function isManagementEmployee(employee){
+  const loginRole=String(localStorage.getItem('heremay.currentRole')||'').trim().toLowerCase();
+  if(loginRole==='admin')return true;
+  if(!employee)return false;
+
+  const homeType=String(employee.homeType??employee.home??employee['首頁類型']??'').trim();
+  const role=String(employee.role??employee.userRole??employee['角色']??'').trim().toLowerCase();
+  const identity=String(employee.identity??employee.identityType??employee['身分類別']??'').trim();
+  const jobTitle=String(employee.jobTitle??employee.title??employee.position??employee['職稱']??'').trim();
+
+  return homeType==='管理首頁'||role==='admin'||identity==='行政主管'||identity==='管理層'||/負責人|園長|主任/.test(jobTitle);
+}
+function canManageAnnouncements(employee){
+  return isManagementEmployee(employee) || employee?.announcementAdmin === true;
+}
+function denyAnnouncementAccess(){
+  document.body.classList.remove('auth-pending');
+  document.body.innerHTML=`
+    <main class="app">
+      <section class="top" style="text-align:center;margin-top:40px">
+        <div style="font-size:50px">🔒</div>
+        <h2 style="color:#356ba9">沒有公告發布權限</h2>
+        <p class="sub">此頁只開放主管及指定公告發布人員使用。</p>
+        <div class="toolbar" style="justify-content:center">
+          <button class="btn primary" onclick="returnHome()">返回我的首頁</button>
+        </div>
+      </section>
+    </main>`;
+}
+function returnHome(){
+  const employee=readCurrentEmployee()||{};
+  const homeType=String(employee.homeType??employee.home??employee['首頁類型']??'').trim();
+
+  if(isManagementEmployee(employee)||homeType==='管理首頁'){
+    location.href='admin.html';
+  }else if(homeType==='教保首頁'){
+    location.href='teacher.html';
+  }else if(homeType==='庶務首頁'){
+    location.href='support.html';
+  }else{
+    location.href='index.html';
+  }
+}
+function requireAnnouncementAccess(){
+  const employee=readCurrentEmployee();
+  if(!canManageAnnouncements(employee)){
+    denyAnnouncementAccess();
+    return false;
+  }
+  document.body.classList.remove('auth-pending');
+  return true;
+}
+
 function esc(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
-function currentName(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}').name||'主管'}catch(e){return '主管'}}
+function currentName(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}').name||''}catch(e){return ''}}
 function jsonp(action,params={}){
   return new Promise((resolve,reject)=>{
     const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
@@ -145,7 +204,9 @@ function render(){
  const box=document.getElementById('noticeList');
  box.innerHTML=cloudNotices.length?cloudNotices.map(x=>`<article class="item"><h3>${esc(x.title)}</h3><div>${esc(x.content).replace(/\n/g,'<br>')}</div><div class="meta">對象：${(x.targets||[]).join('、')}｜發布：${x.createdAt?new Date(x.createdAt).toLocaleString('zh-TW',{hour12:false}):''}${x.expiresAt?'｜下架：'+String(x.expiresAt).replace('T',' '):'｜手動下架'}</div><div class="actions"><button class="btn" onclick="editNotice('${x.id}')">修改</button><button class="btn danger" onclick="deleteNotice('${x.id}')">刪除</button></div></article>`).join(''):'<div class="empty">目前沒有公告</div>';
 }
-toggleExpire();
-(async()=>{await loadNotices(false);await migrateLocalNotices();})();
+if(requireAnnouncementAccess()){
+  toggleExpire();
+  (async()=>{await loadNotices(false);await migrateLocalNotices();})();
+}
 </script>
 </body></html>
