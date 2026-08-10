@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>和美智慧校園｜大量參數設定 v1.2</title>
+<style>
+body{margin:0;font-family:"Microsoft JhengHei",Arial,sans-serif;background:linear-gradient(180deg,#f6f9ff,#eef7ff);color:#20323d;min-height:100vh}
+.app{width:min(820px,100%);margin:0 auto;padding:18px 14px 34px;box-sizing:border-box}
+.top,.card{background:#fff;border:1px solid #dce7f7;border-radius:24px;padding:16px;box-shadow:0 10px 28px rgba(45,82,132,.10);margin-bottom:14px}
+.top{display:flex;align-items:center;gap:12px}
+.back{border:1px solid #cfe2ff;background:#edf4ff;color:#245fc2;border-radius:14px;padding:10px 13px;font-weight:900;cursor:pointer}
+h1,h2{margin:0;color:#173f75}.sub{margin:5px 0 0;color:#6d8095;font-size:13px;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
+.tool{min-height:125px;border:1px solid #dce7f7;border-radius:20px;background:#fff;padding:16px;text-align:left;cursor:pointer}
+.tool .icon{font-size:34px;display:block;margin-bottom:8px}
+.tool strong{display:block;color:#173f75;font-size:18px}
+.tool span{display:block;color:#6d8095;font-size:13px;line-height:1.5;margin-top:6px}
+.disabled{background:#f4f6f9;opacity:.7;cursor:not-allowed}
+.note{background:#fff9e9;border:1px solid #ffe4a5;border-radius:18px;padding:12px;color:#755d2d;font-size:14px;line-height:1.6}
+.version{text-align:center;color:#7890a6;font-size:12px;font-weight:800;margin-top:18px}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="app">
+<header class="top">
+<button class="back" onclick="location.href='admin.html'">← 返回主管首頁</button>
+<div>
+<h1>⚙️ 大量參數設定</h1>
+<p class="sub">先處理班級資料，再建立人員基本資料，之後再完成年資、假別與薪資參數。</p>
+</div>
+</header>
+
+<section class="card">
+<h2>🏫 班級管理</h2>
+<div class="grid">
+<button class="tool disabled" onclick="alert('班級管理尚未建置')">
+<span class="icon">🏫</span>
+<strong>班級管理</strong>
+<span>班級名稱、年級、班級代碼、導師與人員編組等設定。</span>
+</button>
+</div>
+</section>
+
+<section class="card">
+<h2>👥 人員管理</h2>
+<div class="grid">
+<button class="tool" onclick="location.href='employee_admin.html'">
+<span class="icon">👩‍💼</span>
+<strong>人員基本資料</strong>
+<span>新增與修改員工資料、職稱、編組、首頁類型、管理級別與各項功能權限。</span>
+</button>
+
+<button class="tool disabled" onclick="alert('年資異動管理將在人員基本資料完成後接續建置')">
+<span class="icon">🧑‍🍼</span>
+<strong>年資異動管理</strong>
+<span>育嬰留停、一般留職停薪與其他影響年資的歷史紀錄。</span>
+</button>
+</div>
+</section>
+
+<section class="card">
+<h2>💰 假別與薪資設定</h2>
+<div class="grid">
+<button class="tool disabled" onclick="alert('假別設定尚未建置')">
+<span class="icon">🏖️</span>
+<strong>假別設定</strong>
+<span>特休、病假、事假及各類請假規則與參數。</span>
+</button>
+
+<button class="tool disabled" onclick="alert('薪資參數尚未建置')">
+<span class="icon">💰</span>
+<strong>薪資參數</strong>
+<span>薪資計算、加扣項與相關參數。</span>
+</button>
+</div>
+</section>
+
+<div class="note">
+第一階段先完成「班級管理」與「人員基本資料」。所有會影響登入、首頁、主管層級與功能權限的欄位，都由管理頁面維護，不再把主管或權限寫死在 HTML 程式裡。
+</div>
+
+<div class="version">大量參數設定 v1.2｜2026-08-10</div>
+</main>
+</body>
+</html>

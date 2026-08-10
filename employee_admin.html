@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>和美智慧校園｜人員基本資料 v2.3</title>
+<style>
+:root{
+  --bg:#f3f8ff; --card:#fff; --line:#dce7f7; --deep:#173f75;
+  --blue:#2f68d8; --soft:#edf4ff; --muted:#6d8095; --green:#27885f;
+  --warn:#fff8e6; --warnline:#ffe0a0; --shadow:0 10px 28px rgba(45,82,132,.10);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;
+  background:linear-gradient(180deg,#f6f9ff 0%,#eef7ff 60%,#f9fbff 100%);
+  color:#20323d;min-height:100vh;
+}
+.app{width:min(980px,100%);margin:0 auto;padding:18px 14px 36px}
+.top{
+  display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);
+  border-radius:26px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px
+}
+.back{
+  border:1px solid #cfe2ff;background:var(--soft);color:#245fc2;border-radius:14px;
+  padding:10px 13px;font-weight:900;cursor:pointer;white-space:nowrap
+}
+.titleIcon{font-size:36px}
+h1{margin:0;color:var(--deep);font-size:25px}
+.sub{margin:5px 0 0;color:var(--muted);font-size:13px;font-weight:750}
+.toolbar{
+  display:grid;grid-template-columns:1fr auto;gap:10px;background:#fff;border:1px solid var(--line);
+  border-radius:22px;padding:14px;box-shadow:var(--shadow);margin-bottom:14px
+}
+.searchBox{display:flex;gap:8px}
+input,select,textarea{
+  width:100%;border:1px solid #cfdff1;border-radius:14px;padding:11px 12px;
+  font-size:15px;background:#fbfdff;color:#24384b
+}
+textarea{min-height:84px;resize:vertical}
+.btn{
+  border:0;border-radius:14px;padding:11px 15px;background:#2f68d8;color:#fff;
+  font-weight:900;cursor:pointer
+}
+.btn.secondary{background:#edf4ff;color:#245fc2;border:1px solid #cfe2ff}
+.section{
+  background:#fff;border:1px solid var(--line);border-radius:24px;padding:17px;
+  box-shadow:var(--shadow);margin-bottom:14px
+}
+.section h2{margin:0 0 13px;color:var(--deep);font-size:20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.field label{display:block;color:#42617d;font-size:13px;font-weight:900;margin:0 0 6px}
+.field small{display:block;color:#8496a8;font-size:11px;margin-top:5px;line-height:1.4}
+.inlineChecks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.checkCard{
+  border:1px solid #dce7f7;border-radius:16px;padding:12px;background:#f9fbff;
+  display:flex;align-items:center;gap:9px;font-weight:900;color:#355776
+}
+.checkCard input{width:auto}
+.note{
+  background:var(--warn);border:1px solid var(--warnline);border-radius:18px;padding:12px;
+  color:#725a25;font-size:13px;line-height:1.6;margin-bottom:14px
+}
+.preview{
+  background:#f8fbff;border:1px dashed #c7d8ee;border-radius:18px;padding:13px;
+  color:#58728e;font-size:13px;line-height:1.6
+}
+.footerActions{
+  position:sticky;bottom:10px;display:flex;justify-content:flex-end;gap:10px;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(8px);
+  border:1px solid #dbe7f5;border-radius:18px;padding:10px;box-shadow:0 10px 26px rgba(45,82,132,.13)
+}
+.version{text-align:center;color:#8295a9;font-size:12px;font-weight:800;margin-top:12px}
+.tag{
+  display:inline-block;background:#eef6ff;color:#2a66c7;border:1px solid #d7e6ff;
+  border-radius:999px;padding:4px 8px;font-size:11px;font-weight:900;margin-left:6px
+}
+.employeeListWrap{background:#fff;border:1px solid #dce7f7;border-radius:22px;padding:14px;box-shadow:0 8px 22px rgba(45,82,132,.08);margin-bottom:14px}
+.employeeListHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.employeeListHead h2{margin:0;color:#173f75;font-size:20px}
+.employeeCount{font-size:12px;font-weight:900;color:#5d7895;background:#eef5ff;border-radius:999px;padding:6px 9px}
+.tableScroller{overflow:auto;border:1px solid #e2ebf7;border-radius:15px}
+.employeeTable{width:100%;border-collapse:collapse;min-width:760px;background:#fff}
+.employeeTable th,.employeeTable td{padding:10px 11px;border-bottom:1px solid #edf1f7;text-align:left;font-size:13px;white-space:nowrap}
+.employeeTable th{position:sticky;top:0;background:#f5f9ff;color:#355d88;font-weight:900;z-index:1}
+.employeeTable tbody tr{cursor:pointer}
+.employeeTable tbody tr:hover{background:#f0f6ff}
+.employeeTable tbody tr.active{background:#e8f1ff}
+.emptyRow{text-align:center!important;color:#8295a9!important;padding:22px!important}
+.fileHelp{margin-top:9px;padding:10px 12px;border-radius:14px;background:#f6f9ff;border:1px solid #dce7f7;color:#60778f;font-size:12px;line-height:1.6}
+.fileHelp strong{color:#365c86}
+.comparePanel{display:none;background:#fff;border:1px solid #dce7f7;border-radius:22px;padding:14px;box-shadow:0 8px 22px rgba(45,82,132,.08);margin-bottom:14px}
+.comparePanel.show{display:block}
+.compareSummary{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.compareBadge{border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;border:1px solid #d9e6f5;background:#f8fbff}
+.compareBadge.new{background:#edf9f2;border-color:#cfead9;color:#26724d}
+.compareBadge.diff{background:#fff8e7;border-color:#f0dcab;color:#7a6025}
+.compareBadge.same{background:#f4f6f8;border-color:#e1e5e9;color:#65717b}
+.compareBadge.missing{background:#fff0f0;border-color:#efcaca;color:#9a3f3f}
+.statusPill{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:900}
+.status-new{background:#eaf8ef;color:#26724d}
+.status-diff{background:#fff5da;color:#7a6025}
+.status-same{background:#eef1f4;color:#66737e}
+.status-missing{background:#ffecec;color:#963e3e}
+.profileStatus{margin-top:8px;font-size:12px;font-weight:800;color:#6b8096}
+.profileStatus.ok{color:#27885f}
+.profileStatus.error{color:#a34a4a}
+.searchResults{display:none;background:#fff;border:1px solid #dce7f7;border-radius:18px;padding:10px;margin:-4px 0 14px;box-shadow:0 8px 22px rgba(45,82,132,.08)}
+.searchResults.show{display:block}
+.resultBtn{width:100%;border:0;border-bottom:1px solid #e8eef7;background:#fff;padding:11px 12px;text-align:left;cursor:pointer;border-radius:10px}
+.resultBtn:last-child{border-bottom:0}
+.resultBtn:hover{background:#f3f7ff}
+.resultBtn strong{color:#173f75;font-size:15px}
+.resultBtn span{display:block;color:#6d8095;font-size:12px;margin-top:3px}
+@media(max-width:720px){
+  .grid2,.grid3,.inlineChecks{grid-template-columns:1fr}
+  .toolbar{grid-template-columns:1fr}
+  .searchBox{flex-direction:column}
+  .top{align-items:flex-start}
+}
+</style>
+</head>
+<body>
+<main class="app">
+
+<header class="top">
+  <button class="back" type="button" onclick="location.href='settings_admin.html'">← 返回參數設定</button>
+  <div class="titleIcon">👩‍💼</div>
+  <div>
+    <h1>人員基本資料</h1>
+    <p class="sub">建立一次，統一管理登入、主管層級、功能權限、班別與考勤參數。</p>
+  </div>
+</header>
+
+<div class="note">
+  目前已接上「完整人員清單＋搜尋篩選＋CSV 下載／上傳比對」。上傳只做預覽，不會修改正式資料；儲存功能仍尚未啟用。
+</div>
+
+<section class="toolbar">
+  <div class="searchBox">
+    <input id="employeeSearch" placeholder="輸入員工編號、姓名、帳號、職稱或部門；空白＝顯示全部">
+    <button class="btn secondary" type="button" id="searchEmployeeBtn" onclick="filterEmployeeList(true)">篩選人員</button>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+    <button class="btn secondary" type="button" onclick="downloadEmployeeCsv()">⬇ 下載完整表單</button>
+    <button class="btn secondary" type="button" onclick="document.getElementById('employeeImportFile').click()">⬆ 上傳比對</button>
+    <input id="employeeImportFile" type="file" accept=".csv,text/csv" style="display:none" onchange="handleEmployeeImportFile(event)">
+    <button class="btn" type="button" onclick="clearForm()">＋ 新增人員</button>
+  </div>
+</section>
+
+<div class="fileHelp">
+  <strong>大量修改說明：</strong>
+  「下載完整表單」會產生 <strong>CSV</strong> 檔，可用 Excel 開啟與修改；
+  修改後請另存為 CSV，再用「上傳比對」檢查差異。上傳後不會立刻覆蓋正式資料。
+</div>
+
+<section class="employeeListWrap">
+  <div class="employeeListHead">
+    <h2>全部人員</h2>
+    <span id="employeeCount" class="employeeCount">讀取中…</span>
+  </div>
+  <div class="tableScroller">
+    <table class="employeeTable">
+      <thead>
+        <tr>
+          <th>員工編號</th>
+          <th>姓名</th>
+          <th>職稱</th>
+          <th>部門／編組</th>
+          <th>班別</th>
+          <th>首頁類型</th>
+          <th>登入</th>
+        </tr>
+      </thead>
+      <tbody id="employeeTableBody">
+        <tr><td colspan="7" class="emptyRow">正在讀取人員資料…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div id="searchResults" class="searchResults"></div>
+
+<section id="comparePanel" class="comparePanel">
+  <div class="employeeListHead">
+    <h2>上傳比對結果</h2>
+    <button class="btn secondary" type="button" onclick="closeComparePanel()">關閉</button>
+  </div>
+  <div id="compareSummary" class="compareSummary"></div>
+  <div class="tableScroller">
+    <table class="employeeTable">
+      <thead>
+        <tr>
+          <th>狀態</th>
+          <th>員工編號</th>
+          <th>姓名</th>
+          <th>職稱</th>
+          <th>部門</th>
+          <th>班別</th>
+          <th>差異欄位</th>
+        </tr>
+      </thead>
+      <tbody id="compareTableBody"></tbody>
+    </table>
+  </div>
+  <div class="preview" style="margin-top:10px">
+    此版「上傳」只做比對預覽，不會自動覆蓋正式資料。確認比對邏輯無誤後，再加入勾選更新功能。
+  </div>
+</section>
+
+<section class="section">
+  <h2>① 基本身分</h2>
+  <div class="grid3">
+    <div class="field">
+      <label>員工編號 *</label>
+      <input id="employeeId" placeholder="例如 E21、P05、S04">
+    </div>
+    <div class="field">
+      <label>姓名 *</label>
+      <input id="name" placeholder="請輸入姓名">
+    </div>
+    <div class="field">
+      <label>登入帳號 *</label>
+      <input id="login" placeholder="Email 或登入帳號">
+    </div>
+
+    <div class="field">
+      <label>職稱 *</label>
+      <input id="jobTitle" placeholder="例如 教保員、教學組長、主任">
+    </div>
+    <div class="field">
+      <label>身分類別 *</label>
+      <select id="identity">
+        <option value="">請選擇</option>
+        <option>管理層</option>
+        <option>教保人員</option>
+        <option>庶務人員</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>編組／部門 *</label>
+      <select id="group">
+        <option value="">請選擇</option>
+        <option>行政組</option>
+        <option>幼兒部</option>
+        <option>安親部</option>
+        <option>庶務組</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>班別</label>
+      <select id="classGroup">
+        <option value="">無／未指定</option>
+        <option>A1</option><option>A2</option><option>A3</option>
+        <option>B1</option><option>B2</option><option>B3</option>
+        <option>C1</option><option>C2</option><option>C3</option>
+        <option>Y1</option>
+      </select>
+      <small>使用固定選單，避免大小寫、漏字或多字。</small>
+    </div>
+    <div class="field">
+      <label>職級</label>
+      <select id="grade">
+        <option value="">無／未指定</option>
+        <option>A</option>
+        <option>B</option>
+        <option>C</option>
+      </select>
+      <small>固定使用 A／B／C，避免自由輸入造成格式不一致。</small>
+    </div>
+    <div class="field">
+      <label>員工類型</label>
+      <select id="employeeType">
+        <option>全職</option>
+        <option>兼職</option>
+        <option>時薪</option>
+        <option>其他</option>
+      </select>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>② 登入與管理層級</h2>
+  <div class="grid3">
+    <div class="field">
+      <label>首頁類型 *</label>
+      <select id="homeType">
+        <option>教保首頁</option>
+        <option>中階主管首頁</option>
+        <option>管理首頁</option>
+        <option>庶務首頁</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>管理級別 <span class="tag">新規劃欄位</span></label>
+      <select id="managementLevel">
+        <option>一般人員</option>
+        <option>中階主管</option>
+        <option>高階主管</option>
+      </select>
+      <small>之後換主管時直接改這裡，不再修改 HTML。</small>
+    </div>
+
+    <div class="field">
+      <label>臨時密碼</label>
+      <input id="tempPassword" placeholder="新帳號初始密碼">
+    </div>
+  </div>
+
+  <div class="inlineChecks" style="margin-top:12px">
+    <label class="checkCard"><input type="checkbox" id="canLogin" checked> 是否可登入</label>
+    <label class="checkCard"><input type="checkbox" id="announcementAdmin"> 公告管理</label>
+    <label class="checkCard"><input type="checkbox" id="scheduleAdmin"> 排班管理</label>
+  </div>
+</section>
+
+<section class="section">
+  <h2>③ 職務與年資</h2>
+  <div class="grid3">
+    <div class="field">
+      <label>職務狀態</label>
+      <select id="employmentStatus">
+        <option>在職</option>
+        <option>留職停薪</option>
+        <option>離職</option>
+      </select>
+      <small>離職人員保留歷史資料，不刪除。正式接上儲存後，設為「離職」時會搭配停用登入、停止打卡並排除後續正式統計。</small>
+    </div>
+    <div class="field">
+      <label>到職日期</label>
+      <input id="hireDate" type="date">
+    </div>
+    <div class="field">
+      <label>年資起算日</label>
+      <input id="seniorityDate" type="date">
+      <small>原始年資基準；留停期間另外由「年資異動管理」扣除。</small>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>④ 出勤與請假參數</h2>
+  <div class="grid2">
+    <div class="field">
+      <label>出勤規則</label>
+      <select id="attendanceRule">
+        <option>出勤規則(非固定時間,排班制)</option>
+        <option>出勤規則(每週固定時間上下班)</option>
+        <option>時薪人員</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>請假規則</label>
+      <select id="leaveRule">
+        <option>正職人員休假規則</option>
+        <option>時薪人員</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid3" style="margin-top:12px">
+    <div class="field">
+      <label>每日標準工時</label>
+      <input id="standardHours" type="number" step="0.5" value="8">
+    </div>
+    <div class="field">
+      <label>預設上班時間</label>
+      <input id="defaultStart" type="time">
+    </div>
+    <div class="field">
+      <label>預設下班時間</label>
+      <input id="defaultEnd" type="time">
+    </div>
+  </div>
+
+  <div class="inlineChecks" style="margin-top:12px">
+    <label class="checkCard"><input type="checkbox" id="testAccount"> 是否測試帳號</label>
+    <label class="checkCard"><input type="checkbox" id="includeStats" checked> 是否列入正式統計</label>
+  </div>
+</section>
+
+<section class="section">
+  <h2>⑤ 留職停薪／年資異動</h2>
+
+  <div class="preview" style="margin-bottom:12px">
+    <strong>既有紀錄</strong><br>
+    正式接上雲端後，選到既有人員時，這裡只會列出已儲存的歷史紀錄，不會把舊資料重新塞回「新增紀錄」欄位。
+  </div>
+
+  <div id="seniorityHistory" class="preview" style="margin-bottom:8px">
+    目前尚未載入既有紀錄。
+  </div>
+  <div id="profileStatus" class="profileStatus"></div>
+
+  <label class="checkCard" style="margin-bottom:12px">
+    <input type="checkbox" id="hasSeniorityChange" onchange="toggleSeniorityFields()">
+    ＋ 新增一筆留職停薪／年資異動
+  </label>
+
+  <div id="seniorityFields" style="display:none">
+    <div class="grid3">
+      <div class="field">
+        <label>異動類型</label>
+        <select id="seniorityType">
+          <option>育嬰留停</option>
+          <option>一般留職停薪</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>開始日</label>
+        <input id="seniorityStart" type="date">
+      </div>
+      <div class="field">
+        <label>結束日</label>
+        <input id="seniorityEnd" type="date">
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:12px">
+      <div class="field">
+        <label>是否計入年資</label>
+        <select id="countSeniority">
+          <option value="否" selected>否</option>
+          <option value="是">是</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>異動備註</label>
+        <input id="seniorityNote" placeholder="例如：2026/08/01 復職">
+      </div>
+    </div>
+
+    <div class="preview" style="margin-top:12px">
+      每次儲存後，這一筆會加入上方「既有紀錄」，新增區會自動清空。未來若同一位老師第二次育嬰留停，只要再次勾選「＋新增一筆」並填入新的日期即可。
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>⑥ 其他備註</h2>
+  <div class="field">
+    <label>人事備註</label>
+    <textarea id="remarks" placeholder="其他特殊職務、人事說明或資料來源；沒有可留白"></textarea>
+  </div>
+  <div class="preview" style="margin-top:12px">
+    目前搜尋先讀取「員工登入資料」。下一階段再接「員工出勤主檔」與儲存同步，避免兩邊資料不一致。
+  </div>
+</section>
+
+<div class="footerActions">
+  <button class="btn secondary" type="button" onclick="location.href='settings_admin.html'">取消</button>
+  <button class="btn" type="button" onclick="previewSave()">儲存人員資料</button>
+</div>
+
+<div class="version">人員基本資料 v2.3｜2026-08-10｜修正搜尋輸入被改寫問題</div>
+</main>
+
+<script>
+const EMPLOYEE_SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzbZ6r6c8XjHuKad0U5TIJXr8i141fCBwNJcVsKnoGa1-NXG_JOzapeRF5cVlnGI4F7/exec';
+let employeeAdminList = [];
+let pendingEmployeeSearch = '';
+let employeeSearchTimer = null;
+
+function postEmployeeService(fields){
+  const iframeName = `heremayEmployeeAdminFrame_${Date.now()}`;
+
+  const iframe = document.createElement('iframe');
+  iframe.name = iframeName;
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = EMPLOYEE_SERVICE_URL;
+  form.target = iframeName;
+  form.style.display = 'none';
+
+  Object.entries(fields).forEach(([name, value])=>{
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = String(value ?? '');
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+
+  setTimeout(()=>{
+    form.remove();
+    iframe.remove();
+  },15000);
+}
+
+window.addEventListener('message', event=>{
+  const data = event.data || {};
+  const acceptedTypes = [
+    'HEREMAY_EMPLOYEE_ADMIN_LIST_RESULT',
+    'HEREMAY_EMPLOYEE_FULL_PROFILE_RESULT',
+    'HEREMAY_SERVICE_RESULT',
+    'HEREMAY_LOGIN_RESULT'
+  ];
+  if(!acceptedTypes.includes(data.type)) return;
+
+  const payload = data.payload || {};
+
+  if(data.type === 'HEREMAY_EMPLOYEE_FULL_PROFILE_RESULT'){
+    handleFullProfileResult(payload);
+    return;
+  }
+
+  if(employeeSearchTimer){
+    clearTimeout(employeeSearchTimer);
+    employeeSearchTimer = null;
+  }
+
+  const button = document.getElementById('searchEmployeeBtn');
+  if(button){
+    button.disabled = false;
+    button.textContent = '篩選人員';
+  }
+
+  if(data.type === 'HEREMAY_LOGIN_RESULT'){
+    alert(
+      '雲端有回應，但目前部署中的程式仍把這次要求當成「登入」。\n\n' +
+      '這通常代表 Web App 尚未使用到剛才新增 getEmployeeAdminList 的版本。'
+    );
+    return;
+  }
+
+  if(data.type === 'HEREMAY_SERVICE_RESULT'){
+    alert(payload.message || '雲端服務有回應，但人員讀取發生錯誤。');
+    return;
+  }
+
+  if(!payload.ok){
+    alert(payload.message || '無法讀取員工資料');
+    return;
+  }
+
+  employeeAdminList = Array.isArray(payload.employees) ? payload.employees : [];
+  renderEmployeeTable(employeeAdminList);
+
+  if(pendingEmployeeSearch){
+    filterEmployeeList(true);
+  }
+});
+
+
+function toggleSeniorityFields(){
+  const checked = document.getElementById('hasSeniorityChange')?.checked;
+  const box = document.getElementById('seniorityFields');
+  if(box) box.style.display = checked ? '' : 'none';
+  if(!checked){
+    document.getElementById('seniorityStart').value='';
+    document.getElementById('seniorityEnd').value='';
+    document.getElementById('seniorityNote').value='';
+    document.getElementById('seniorityType').value='育嬰留停';
+    document.getElementById('countSeniority').value='否';
+  }
+}
+
+function clearForm(){
+  document.querySelectorAll('input').forEach(el=>{
+    if(el.type==='checkbox') el.checked = ['canLogin','includeStats'].includes(el.id);
+    else if(el.type==='radio') el.checked = false;
+    else el.value='';
+  });
+  document.querySelectorAll('textarea').forEach(el=>el.value='');
+  document.getElementById('classGroup').value='';
+  document.getElementById('grade').value='';
+  document.getElementById('employeeType').value='全職';
+  document.getElementById('homeType').value='教保首頁';
+  document.getElementById('managementLevel').value='一般人員';
+  document.getElementById('employmentStatus').value='在職';
+  document.getElementById('attendanceRule').value='出勤規則(非固定時間,排班制)';
+  document.getElementById('leaveRule').value='正職人員休假規則';
+  document.getElementById('standardHours').value='8';
+  toggleSeniorityFields();
+}
+
+function loadAllEmployees(){
+  const button = document.getElementById('searchEmployeeBtn');
+  if(button){
+    button.disabled = true;
+    button.textContent = '讀取中…';
+  }
+
+  postEmployeeService({action:'getEmployeeAdminList'});
+
+  if(employeeSearchTimer) clearTimeout(employeeSearchTimer);
+  employeeSearchTimer = setTimeout(()=>{
+    const btn = document.getElementById('searchEmployeeBtn');
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = '篩選人員';
+    }
+    const count = document.getElementById('employeeCount');
+    const body = document.getElementById('employeeTableBody');
+    if(count) count.textContent = '讀取失敗';
+    if(body) body.innerHTML = '<tr><td colspan="7" class="emptyRow">雲端讀取超過 15 秒仍沒有回應。</td></tr>';
+  },15000);
+}
+
+function filterEmployeeList(autoLoadSingle = false){
+  const query = String(document.getElementById('employeeSearch')?.value || '').trim().toLowerCase();
+
+  if(!employeeAdminList.length){
+    pendingEmployeeSearch = query;
+    loadAllEmployees();
+    return;
+  }
+
+  const results = employeeAdminList.filter(emp=>{
+    if(!query) return true;
+    return [
+      emp['員工編號'],
+      emp['姓名'],
+      emp['登入帳號'],
+      emp['職稱'],
+      emp['身分類別'],
+      emp['編組'],
+      emp['班別'],
+      emp['職級'],
+      emp['首頁類型']
+    ].some(value=>String(value || '').trim().toLowerCase().includes(query));
+  });
+
+  renderEmployeeTable(results);
+
+  // 只有按「篩選人員」或 Enter 時，單筆結果才自動帶入。
+  // 純打字時只篩選清單，避免尚未輸入完成就改寫搜尋欄。
+  if(autoLoadSingle && results.length === 1){
+    loadEmployeeRecord(results[0]);
+  }
+}
+
+function renderEmployeeTable(list){
+  const body = document.getElementById('employeeTableBody');
+  const count = document.getElementById('employeeCount');
+  const button = document.getElementById('searchEmployeeBtn');
+
+  if(button){
+    button.disabled = false;
+    button.textContent = '篩選人員';
+  }
+  if(employeeSearchTimer){
+    clearTimeout(employeeSearchTimer);
+    employeeSearchTimer = null;
+  }
+
+  const rows = Array.isArray(list) ? list : [];
+  if(count) count.textContent = `顯示 ${rows.length}／${employeeAdminList.length || rows.length} 人`;
+
+  if(!body) return;
+  if(!rows.length){
+    body.innerHTML = '<tr><td colspan="7" class="emptyRow">找不到符合的人員。</td></tr>';
+    return;
+  }
+
+  body.innerHTML = rows.map((emp,index)=>`
+    <tr onclick="loadEmployeeById('${escapeJs(emp['員工編號'] || '')}')">
+      <td>${escapeHtml(emp['員工編號'] || '')}</td>
+      <td><strong>${escapeHtml(emp['姓名'] || '')}</strong></td>
+      <td>${escapeHtml(emp['職稱'] || '')}</td>
+      <td>${escapeHtml(emp['編組'] || '')}</td>
+      <td>${escapeHtml(emp['班別'] || '')}</td>
+      <td>${escapeHtml(emp['首頁類型'] || '')}</td>
+      <td>${String(emp['是否可登入'] || '').trim() === '是' ? '是' : '否'}</td>
+    </tr>
+  `).join('');
+}
+
+function loadEmployeeById(employeeId){
+  const emp = employeeAdminList.find(item=>String(item['員工編號'] || '').trim() === String(employeeId || '').trim());
+  if(emp) loadEmployeeRecord(emp);
+}
+
+function showEmployeeMatches(query){
+  const q = String(query || '').trim().toLowerCase();
+  const results = employeeAdminList.filter(emp=>{
+    const id = String(emp['員工編號'] || '').trim().toLowerCase();
+    const name = String(emp['姓名'] || '').trim().toLowerCase();
+    const account = String(emp['登入帳號'] || '').trim().toLowerCase();
+    return id.includes(q) || name.includes(q) || account.includes(q);
+  });
+
+  const box = document.getElementById('searchResults');
+  if(!box) return;
+
+  if(!results.length){
+    box.classList.add('show');
+    box.innerHTML = '<div style="padding:8px 10px;color:#6d8095;font-weight:800">找不到符合的人員。</div>';
+    return;
+  }
+
+  if(results.length === 1){
+    box.classList.remove('show');
+    box.innerHTML = '';
+    loadEmployeeRecord(results[0]);
+    return;
+  }
+
+  box.classList.add('show');
+  box.innerHTML = results.map((emp,index)=>`
+    <button class="resultBtn" type="button" onclick="chooseEmployeeMatch(${index})">
+      <strong>${escapeHtml(emp['姓名'] || '未具名')}｜${escapeHtml(emp['員工編號'] || '')}</strong>
+      <span>${escapeHtml(emp['職稱'] || '')}｜${escapeHtml(emp['編組'] || '')}｜${escapeHtml(emp['登入帳號'] || '')}</span>
+    </button>
+  `).join('');
+
+  box.dataset.matches = JSON.stringify(results);
+}
+
+function chooseEmployeeMatch(index){
+  const box = document.getElementById('searchResults');
+  let list = [];
+  try{ list = JSON.parse(box?.dataset.matches || '[]'); }catch(e){}
+  const employee = list[index];
+  if(employee) loadEmployeeRecord(employee);
+  if(box){
+    box.classList.remove('show');
+    box.innerHTML = '';
+    box.dataset.matches = '';
+  }
+}
+
+function loadEmployeeRecord(emp){
+  document.getElementById('employeeId').value = emp['員工編號'] || '';
+  document.getElementById('name').value = emp['姓名'] || '';
+  document.getElementById('login').value = emp['登入帳號'] || '';
+  document.getElementById('jobTitle').value = emp['職稱'] || '';
+  setSelectValue('identity', emp['身分類別']);
+  setSelectValue('group', emp['編組']);
+  setSelectValue('homeType', emp['首頁類型']);
+  setSelectValue('classGroup', emp['班別']);
+  setSelectValue('grade', emp['職級']);
+
+  document.getElementById('tempPassword').value = emp['臨時密碼'] || '';
+  document.getElementById('canLogin').checked = String(emp['是否可登入'] || '').trim() === '是';
+  document.getElementById('announcementAdmin').checked = String(emp['公告管理'] || '').trim() === '是';
+  document.getElementById('scheduleAdmin').checked = String(emp['排班管理'] || '').trim() === '是';
+
+  const homeType = String(emp['首頁類型'] || '').trim();
+  const identity = String(emp['身分類別'] || '').trim();
+  if(homeType === '管理首頁' || identity === '管理層'){
+    setSelectValue('managementLevel','高階主管');
+  }else if(homeType === '中階主管首頁'){
+    setSelectValue('managementLevel','中階主管');
+  }else{
+    setSelectValue('managementLevel','一般人員');
+  }
+
+  // 不改寫搜尋欄內容，避免使用者輸入途中被系統插入姓名。
+  // 載入登入主表後，接著讀取員工出勤主檔與年資異動紀錄。
+  clearFullProfileFields();
+  loadEmployeeFullProfile(emp['員工編號'] || '');
+
+  const firstFormSection = document.querySelector('.section');
+  if(firstFormSection){
+    firstFormSection.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+
+
+function clearFullProfileFields(){
+  const ids = [
+    'hireDate','seniorityDate','standardHours',
+    'defaultStart','defaultEnd','remarks'
+  ];
+  ids.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+
+  setSelectValue('employeeType','全職');
+  setSelectValue('employmentStatus','在職');
+  setSelectValue('attendanceRule','出勤規則(非固定時間,排班制)');
+  setSelectValue('leaveRule','正職人員休假規則');
+
+  const test = document.getElementById('testAccount');
+  const stats = document.getElementById('includeStats');
+  if(test) test.checked = false;
+  if(stats) stats.checked = true;
+
+  const history = document.getElementById('seniorityHistory');
+  if(history) history.innerHTML = '正在讀取既有紀錄…';
+
+  const status = document.getElementById('profileStatus');
+  if(status){
+    status.className = 'profileStatus';
+    status.textContent = '正在讀取員工出勤主檔與年資異動紀錄…';
+  }
+}
+
+function loadEmployeeFullProfile(employeeId){
+  const id = String(employeeId || '').trim();
+  if(!id) return;
+  postEmployeeService({
+    action:'getEmployeeFullProfile',
+    employeeId:id
+  });
+}
+
+function handleFullProfileResult(payload){
+  const status = document.getElementById('profileStatus');
+
+  if(!payload || !payload.ok){
+    if(status){
+      status.className = 'profileStatus error';
+      status.textContent = payload?.message || '完整人事資料讀取失敗。';
+    }
+    return;
+  }
+
+  const attendance = payload.attendance || {};
+  const seniorityRecords = Array.isArray(payload.seniorityRecords)
+    ? payload.seniorityRecords
+    : [];
+
+  setSelectValue('employeeType', attendance['員工類型'] || '全職');
+  setSelectValue('employmentStatus', attendance['職務狀態'] || '在職');
+  setSelectValue('attendanceRule', attendance['出勤規則'] || '');
+  setSelectValue('leaveRule', attendance['請假規則'] || '');
+
+  setInputValue('hireDate', normalizeDateInput(attendance['到職日期']));
+  setInputValue('seniorityDate', normalizeDateInput(attendance['年資起算日']));
+  setInputValue('standardHours', attendance['每日標準工時'] || '');
+  setInputValue('defaultStart', normalizeTimeInput(attendance['預設上班時間']));
+  setInputValue('defaultEnd', normalizeTimeInput(attendance['預設下班時間']));
+  setInputValue('remarks', attendance['備註'] || '');
+
+  const test = document.getElementById('testAccount');
+  const stats = document.getElementById('includeStats');
+  if(test) test.checked = String(attendance['是否測試帳號'] || '').trim() === '是';
+  if(stats) stats.checked = String(attendance['是否列入正式統計'] || '').trim() === '是';
+
+  renderSeniorityHistory(seniorityRecords);
+
+  if(status){
+    status.className = 'profileStatus ok';
+    status.textContent = `完整人事資料已載入｜年資異動 ${seniorityRecords.length} 筆`;
+  }
+}
+
+function renderSeniorityHistory(records){
+  const box = document.getElementById('seniorityHistory');
+  if(!box) return;
+
+  if(!records.length){
+    box.innerHTML = '<strong>既有紀錄</strong><br>目前沒有年資異動紀錄。';
+    return;
+  }
+
+  const rows = records.map((record,index)=>{
+    const type = escapeHtml(record['異動類型'] || '未指定');
+    const start = escapeHtml(record['開始日'] || '');
+    const end = escapeHtml(record['結束日'] || '');
+    const counted = escapeHtml(record['是否計入年資'] || '');
+    const note = escapeHtml(record['備註'] || '');
+
+    return `
+      <div style="padding:10px 0;${index ? 'border-top:1px solid #dce7f7;' : ''}">
+        <strong>${index + 1}. ${type}</strong><br>
+        ${start || '未填開始日'} ～ ${end || '未填結束日'}｜
+        ${counted ? `是否計入年資：${counted}` : ''}
+        ${note ? `<br><span style="color:#6d8095">備註：${note}</span>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  box.innerHTML = '<strong>既有紀錄</strong>' + rows;
+}
+
+function setInputValue(id,value){
+  const el = document.getElementById(id);
+  if(el) el.value = value ?? '';
+}
+
+function normalizeDateInput(value){
+  const s = String(value || '').trim();
+  if(!s) return '';
+  const match = s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+  if(!match) return '';
+  return `${match[1]}-${String(match[2]).padStart(2,'0')}-${String(match[3]).padStart(2,'0')}`;
+}
+
+function normalizeTimeInput(value){
+  const s = String(value || '').trim();
+  if(!s) return '';
+  const match = s.match(/(\d{1,2}):(\d{2})/);
+  if(!match) return '';
+  return `${String(match[1]).padStart(2,'0')}:${match[2]}`;
+}
+
+function setSelectValue(id,value){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const target = String(value || '').trim();
+  const exists = Array.from(el.options).some(option=>option.value === target || option.text === target);
+  if(exists) el.value = target;
+}
+
+function escapeJs(value){
+  return String(value ?? '')
+    .replace(/\\/g,'\\\\')
+    .replace(/'/g,"\\'");
+}
+
+function escapeHtml(value){
+  return String(value ?? '').replace(/[&<>"']/g,c=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+function previewSave(){
+  const id=document.getElementById('employeeId').value.trim();
+  const name=document.getElementById('name').value.trim();
+  const login=document.getElementById('login').value.trim();
+  if(!id || !name || !login){
+    alert('請先填寫員工編號、姓名與登入帳號。');
+    return;
+  }
+  alert('畫面確認版：尚未寫入正式資料。\\n\\n下一階段會把這些欄位接上 Google Apps Script。');
+}
+
+function csvEscape(value){
+  const s = String(value ?? '');
+  if(/[",\r\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+  return s;
+}
+
+function downloadEmployeeCsv(){
+  if(!employeeAdminList.length){
+    alert('人員資料尚未載入完成。');
+    return;
+  }
+
+  const preferredHeaders = [
+    '員工編號','姓名','登入帳號','職稱','身分類別','編組','首頁類型',
+    '是否可登入','臨時密碼','公告管理','排班管理','班別','職級'
+  ];
+
+  const extraHeaders = [];
+  employeeAdminList.forEach(emp=>{
+    Object.keys(emp || {}).forEach(key=>{
+      if(key && !preferredHeaders.includes(key) && !extraHeaders.includes(key)){
+        extraHeaders.push(key);
+      }
+    });
+  });
+
+  const headers = preferredHeaders.concat(extraHeaders);
+  const lines = [
+    headers.map(csvEscape).join(','),
+    ...employeeAdminList.map(emp=>headers.map(h=>csvEscape(emp[h] || '')).join(','))
+  ];
+
+  const csv = '\uFEFF' + lines.join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const d = String(now.getDate()).padStart(2,'0');
+  a.href = url;
+  a.download = `和美智慧校園_完整人員表_${y}${m}${d}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function parseCsv(text){
+  const rows = [];
+  let row = [], cell = '', quoted = false;
+
+  for(let i=0;i<text.length;i++){
+    const ch = text[i];
+    const next = text[i+1];
+
+    if(quoted){
+      if(ch === '"' && next === '"'){
+        cell += '"'; i++;
+      }else if(ch === '"'){
+        quoted = false;
+      }else{
+        cell += ch;
+      }
+    }else{
+      if(ch === '"'){
+        quoted = true;
+      }else if(ch === ','){
+        row.push(cell); cell = '';
+      }else if(ch === '\n'){
+        row.push(cell); rows.push(row); row = []; cell = '';
+      }else if(ch !== '\r'){
+        cell += ch;
+      }
+    }
+  }
+
+  if(cell.length || row.length){
+    row.push(cell);
+    rows.push(row);
+  }
+
+  return rows.filter(r=>r.some(v=>String(v).trim() !== ''));
+}
+
+function handleEmployeeImportFile(event){
+  const file = event.target.files && event.target.files[0];
+  event.target.value = '';
+  if(!file) return;
+
+  if(!employeeAdminList.length){
+    alert('請先等完整人員清單載入後再上傳比對。');
+    return;
+  }
+
+  if(!/\.csv$/i.test(file.name)){
+    alert('目前第一版先支援 CSV。請先用「下載完整表單」取得系統格式，再用 Excel 編輯後另存 CSV 上傳。');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      compareImportedCsv(String(reader.result || ''));
+    }catch(error){
+      console.error(error);
+      alert('無法解析這份 CSV，請使用系統下載的完整表單格式。');
+    }
+  };
+  reader.readAsText(file,'UTF-8');
+}
+
+function compareImportedCsv(text){
+  text = text.replace(/^\uFEFF/,'');
+  const rows = parseCsv(text);
+  if(rows.length < 1){
+    alert('上傳檔案沒有資料。');
+    return;
+  }
+
+  const headers = rows[0].map(v=>String(v || '').trim());
+  const idIndex = headers.indexOf('員工編號');
+  if(idIndex < 0){
+    alert('找不到「員工編號」欄位，請使用系統下載的完整表單格式。');
+    return;
+  }
+
+  const uploaded = rows.slice(1).map(row=>{
+    const obj = {};
+    headers.forEach((h,i)=>{ if(h) obj[h] = String(row[i] ?? '').trim(); });
+    return obj;
+  }).filter(emp=>String(emp['員工編號'] || '').trim());
+
+  const currentMap = new Map(employeeAdminList.map(emp=>[
+    String(emp['員工編號'] || '').trim(),
+    emp
+  ]));
+  const uploadMap = new Map(uploaded.map(emp=>[
+    String(emp['員工編號'] || '').trim(),
+    emp
+  ]));
+
+  const importantFields = [
+    '姓名','登入帳號','職稱','身分類別','編組','首頁類型',
+    '是否可登入','公告管理','排班管理','班別','職級'
+  ];
+
+  const results = [];
+
+  uploaded.forEach(emp=>{
+    const id = String(emp['員工編號'] || '').trim();
+    const current = currentMap.get(id);
+
+    if(!current){
+      results.push({status:'new', emp, diffs:['系統目前無此員工']});
+      return;
+    }
+
+    const diffs = importantFields.filter(field=>
+      String(current[field] || '').trim() !== String(emp[field] || '').trim()
+    );
+
+    results.push({
+      status: diffs.length ? 'diff' : 'same',
+      emp,
+      diffs
+    });
+  });
+
+  employeeAdminList.forEach(emp=>{
+    const id = String(emp['員工編號'] || '').trim();
+    if(id && !uploadMap.has(id)){
+      results.push({
+        status:'missing',
+        emp,
+        diffs:['上傳檔案中沒有此員工']
+      });
+    }
+  });
+
+  renderCompareResults(results);
+}
+
+function renderCompareResults(results){
+  const panel = document.getElementById('comparePanel');
+  const summary = document.getElementById('compareSummary');
+  const body = document.getElementById('compareTableBody');
+
+  const counts = {new:0,diff:0,same:0,missing:0};
+  results.forEach(r=>counts[r.status]++);
+
+  summary.innerHTML = `
+    <span class="compareBadge new">新增 ${counts.new}</span>
+    <span class="compareBadge diff">資料不同 ${counts.diff}</span>
+    <span class="compareBadge same">完全相同 ${counts.same}</span>
+    <span class="compareBadge missing">系統有／上傳無 ${counts.missing}</span>
+  `;
+
+  const labels = {
+    new:'新增人員',
+    diff:'資料不同',
+    same:'完全相同',
+    missing:'系統有／上傳無'
+  };
+
+  body.innerHTML = results.map(r=>`
+    <tr>
+      <td><span class="statusPill status-${r.status}">${labels[r.status]}</span></td>
+      <td>${escapeHtml(r.emp['員工編號'] || '')}</td>
+      <td>${escapeHtml(r.emp['姓名'] || '')}</td>
+      <td>${escapeHtml(r.emp['職稱'] || '')}</td>
+      <td>${escapeHtml(r.emp['編組'] || '')}</td>
+      <td>${escapeHtml(r.emp['班別'] || '')}</td>
+      <td>${escapeHtml((r.diffs || []).join('、') || '—')}</td>
+    </tr>
+  `).join('');
+
+  panel.classList.add('show');
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function closeComparePanel(){
+  document.getElementById('comparePanel')?.classList.remove('show');
+}
+
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  const search = document.getElementById('employeeSearch');
+  if(search){
+    search.addEventListener('input', ()=>{
+      if(employeeAdminList.length) filterEmployeeList(false);
+    });
+    search.addEventListener('keydown', event=>{
+      if(event.key === 'Enter'){
+        event.preventDefault();
+        filterEmployeeList(true);
+      }
+    });
+  }
+  loadAllEmployees();
+});
+</script>
+</body>
+</html>
