@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v14.0 權限版</title>
+  <title>和美智慧校園｜中階主管首頁 v1.0</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -528,10 +528,10 @@
   <main class="phone">
     <header class="top">
       <div class="brand">
-        <div class="logo">👩‍🏫</div>
+        <div class="logo">👩‍💼</div>
         <div>
-          <h1 id="pageTitle">教保人員首頁</h1>
-          <div class="sub" id="userSummary">和美智慧校園｜班級工作台</div>
+          <h1 id="pageTitle">中階主管首頁</h1>
+          <div class="sub" id="userSummary">和美智慧校園｜中階主管工作台</div>
         </div>
       </div>
       <div class="datetime">
@@ -604,8 +604,8 @@
 
     <section class="section">
       <div class="section-title">
-        <span>教保工作選項</span>
-        <span class="tag">粉紅版</span>
+        <span>中階主管工作選項</span>
+        <span class="tag">權限版</span>
       </div>
       <div class="grid">
         <button class="btn primary" onclick="window.location.href='attendance.html'">
@@ -652,7 +652,7 @@
           <span>查看本週及未來兩週的各項輪值</span>
         </button>
 
-        <button class="btn" id="announcementAdminBtn" style="display:none" onclick="window.location.href='announcement_v1.1.3.html'">
+        <button class="btn" id="announcementAdminBtn" style="display:none" onclick="window.location.href='announcement.html'">
           <div class="icon">📢</div>
           <strong>公告管理</strong>
           <span>發布、修改與管理園方正式公告</span>
@@ -679,7 +679,7 @@
       </div>
     </section>
 
-    <div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v14.0｜新增公告與排班權限入口</div>
+    <div class="footer">🔔 重要公告請點選「我已收到」；管理功能依個人權限顯示。<br>中階主管首頁 v1.0｜以教保首頁為基底新增管理權限</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -747,7 +747,7 @@
     // Google 雲端投稿頁部署完成後，只需更換這個網址。
     const MEDIA_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbzs1cNvsDJFhu0J_8qAepgL-a6MGIPnyVFNw5JFAespotS4uKtEf4EaYIY7oKzGDMak/exec';
 
-    let currentUser = '教保人員';
+    let currentUser = '中階主管';
     let currentEmployee = null;
     let pendingAckId = null;
 
@@ -858,7 +858,7 @@
         const account = localStorage.getItem('heremay.lastFaceAccount') || '';
 
         document.getElementById('pageTitle').textContent =
-          `${currentUser}｜教保人員首頁`;
+          `${currentUser}｜中階主管首頁`;
 
         document.getElementById('userSummary').textContent =
           [jobTitle, group, '和美智慧校園'].filter(Boolean).join('｜');
@@ -867,7 +867,7 @@
         document.getElementById('profileTitle').textContent = jobTitle || '教保人員';
         document.getElementById('profileAccount').textContent = account || '未提供';
       }else{
-        document.getElementById('pageTitle').textContent = '教保人員首頁';
+        document.getElementById('pageTitle').textContent = '中階主管首頁';
         document.getElementById('userSummary').textContent =
           '尚未取得登入者資料｜請由登入首頁重新進入';
 
