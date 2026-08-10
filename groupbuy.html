@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.9.7</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.9.8</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -424,7 +424,7 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.9.7｜2026-07-24｜直式 PDF 與精簡明細欄位</div>
+<div class="version">團購／報名中心 v1.9.8｜2026-08-10｜數字欄位 0 自動清空防誤輸入</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -532,6 +532,31 @@ function fillQuickFromData(source){const products=source.products||[];document.g
 
 function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(window.tt);window.tt=setTimeout(()=>t.classList.remove('show'),1500)}
+
+/* v1.9.8：所有允許 0 的數字欄位，進入時若為 0 就先清空；
+   離開時若仍空白則恢復 0。使用事件委派，動態建立的數量／價格欄也會套用。 */
+document.addEventListener('focusin',event=>{
+  const input=event.target;
+  if(!(input instanceof HTMLInputElement) || input.type!=='number')return;
+  const minAttr=input.getAttribute('min');
+  const minValue=minAttr===null ? null : Number(minAttr);
+  const allowsZero=minValue===null || (!Number.isNaN(minValue) && minValue<=0);
+  if(allowsZero && String(input.value).trim()==='0'){
+    input.value='';
+  }
+});
+
+document.addEventListener('focusout',event=>{
+  const input=event.target;
+  if(!(input instanceof HTMLInputElement) || input.type!=='number')return;
+  const minAttr=input.getAttribute('min');
+  const minValue=minAttr===null ? null : Number(minAttr);
+  const allowsZero=minValue===null || (!Number.isNaN(minValue) && minValue<=0);
+  if(allowsZero && String(input.value).trim()===''){
+    input.value='0';
+    input.dispatchEvent(new Event('input',{bubbles:true}));
+  }
+});
 function currentEmployee(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}')}catch(e){return {}}}
 function currentName(){return currentEmployee().name||'目前使用者'}
 function getC(){try{return JSON.parse(localStorage.getItem(CK)||'[]')}catch(e){return []}}
@@ -793,7 +818,7 @@ async function cloudWrite(action,payload,successMessage){
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
-const APP_VERSION='1.9.7';
+const APP_VERSION='1.9.8';
 async function updateAppNow(){
  toast('正在檢查新版…');
  try{
