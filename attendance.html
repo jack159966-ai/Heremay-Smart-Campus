@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.6</title>
+  <title>和美智慧校園｜打卡與出勤 v2.6.1</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -31,7 +31,7 @@
     .panel{display:none}.panel.active{display:block}
     .balance{display:grid;grid-template-columns:1fr 1fr;gap:10px}.balance-box{border:1px solid var(--line);border-radius:18px;padding:13px;background:#f8fcff}.balance-box b{display:block;font-size:24px;color:#245c84}.balance-box span{font-size:12px;color:var(--muted);font-weight:800}.warning{margin-top:10px;border:1px solid #ffd49a;background:#fff9ec;color:#996000;border-radius:16px;padding:10px;font-size:13px;font-weight:800;line-height:1.5}
     .calendar-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}.month-btn{border:0;background:#eaf5fc;color:#245c84;border-radius:12px;padding:8px 11px;font-weight:900;cursor:pointer}.month-title{font-size:18px;font-weight:950;color:#245c84}
-    .week,.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.week div{text-align:center;font-size:11px;color:var(--muted);font-weight:900;padding:5px 0}.day{min-height:52px;border:1px solid var(--line);background:white;border-radius:12px;padding:5px;cursor:pointer;position:relative;text-align:left}.day.empty{visibility:hidden}.day.off{background:#f3f3f3;color:#aaa}.day.full{background:#fff1f3;border-color:#f3b8c0}.day.selected{background:#e5f5ff;border:2px solid var(--blue)}.num{font-size:13px;font-weight:950}.quota{display:none}.mark{position:absolute;right:4px;top:4px;font-size:10px;color:var(--blue);font-weight:950}
+    .week,.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.week div{text-align:center;font-size:11px;color:var(--muted);font-weight:900;padding:5px 0}.day{min-height:52px;border:1px solid var(--line);background:white;border-radius:12px;padding:5px;cursor:pointer;position:relative;text-align:left}.day.empty{visibility:hidden}.day.off{background:#f3f3f3;color:#aaa}.day.full{background:#fff1f3;border-color:#f3b8c0}.day.alert-red{background:#fff1f3;border-color:#f3b8c0}.day.selected{background:#e5f5ff;border:2px solid var(--blue)}.num{font-size:13px;font-weight:950}.quota{display:none}.mark{position:absolute;right:4px;top:4px;font-size:10px;color:var(--blue);font-weight:950}.mark.red{color:var(--red)}
     .form-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}.input{width:100%;border:1px solid var(--line);border-radius:14px;padding:11px;background:#fbfdff}.wide{grid-column:1/-1}.apply{width:100%;border:0;border-radius:17px;padding:13px;background:linear-gradient(135deg,var(--blue),var(--blue2));color:white;font-weight:950;margin-top:11px;cursor:pointer}.selected-list{margin-top:11px;display:grid;gap:7px}.selected-item,.record{border:1px solid var(--line);border-radius:15px;padding:10px;background:#fbfdff;display:flex;justify-content:space-between;gap:8px;align-items:center}.selected-item strong,.record strong{font-size:14px}.selected-item span,.record span{font-size:12px;color:var(--muted);font-weight:800}.remove{border:0;background:#ffe9ed;color:#b84154;border-radius:10px;padding:6px 8px;font-weight:900;cursor:pointer}.record{display:block}.record .meta{margin-top:4px}.record .state{float:right;border-radius:999px;padding:4px 7px;background:#e8f8ef;color:#23794f}.state.pending{background:#fff3d8;color:#986000}.my-leave-box{margin-top:16px;padding-top:14px;border-top:1px dashed var(--line)}.my-leave-box h3{margin:0 0 9px;color:#245c84;font-size:17px}.cancel-leave{border:0;background:#ffe9ed;color:#b84154;border-radius:12px;padding:8px 10px;font-weight:900;cursor:pointer;margin-top:8px}.cancel-leave:disabled{opacity:.55;cursor:not-allowed}.hint{font-size:12px;color:var(--muted);font-weight:800;line-height:1.45;margin-top:6px}
     .salary{border:1px dashed var(--line);border-radius:18px;padding:14px;background:#f8fcff;text-align:center}.salary h3{margin:0;color:#245c84}.salary p{color:var(--muted);font-size:13px;font-weight:750;line-height:1.5}.salary-lock{font-weight:900;color:#98713c}
     .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(120px);width:min(92%,430px);padding:13px 15px;border-radius:18px;background:#304b5d;color:white;font-weight:850;box-shadow:0 18px 35px rgba(0,0,0,.22);transition:.25s;z-index:30}.toast.show{transform:translateX(-50%) translateY(0)}
@@ -68,7 +68,7 @@
   <header class="top">
     <button class="back" onclick="goBack()">← 返回</button>
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
-    <span class="version">v2.6 人力警戒</span>
+    <span class="version">v2.6.1 人力警戒提示</span>
   </header>
 
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
@@ -659,7 +659,7 @@
     };
   }
   function publishSharedLeaves(){try{localStorage.setItem('heremay.sharedLeaveRecords',JSON.stringify(sharedLeaves()))}catch(e){}}
-  function renderCalendar(){publishSharedLeaves();const y=viewDate.getFullYear(),m=viewDate.getMonth();monthTitle.textContent=`${y} 年 ${m+1} 月｜${leavePool()}`;calendar.innerHTML='';const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();for(let i=0;i<first;i++){const e=document.createElement('div');e.className='day empty';calendar.append(e)}for(let n=1;n<=days;n++){const d=new Date(y,m,n),key=`${y}-${pad(m+1)}-${pad(n)}`,q=availability(key),el=document.createElement('button');el.className='day'+(q.off?' off':'')+(selectedDates.has(key)?' selected':'');const people=q.rows?.length?`<span class="mark">${q.rows.length}人</span>`:(selectedDates.has(key)?'<span class="mark">✓</span>':'');el.innerHTML=`<span class="num">${n}</span>${people}`;el.disabled=q.off;el.onclick=()=>selectDate(key);calendar.append(el)}renderSelected()}
+  function renderCalendar(){publishSharedLeaves();const y=viewDate.getFullYear(),m=viewDate.getMonth();monthTitle.textContent=`${y} 年 ${m+1} 月｜${leavePool()}`;calendar.innerHTML='';const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();for(let i=0;i<first;i++){const e=document.createElement('div');e.className='day empty';calendar.append(e)}for(let n=1;n<=days;n++){const d=new Date(y,m,n),key=`${y}-${pad(m+1)}-${pad(n)}`,q=availability(key),el=document.createElement('button');const redAlert=!q.off&&(q.amUsed>=4||q.pmUsed>=4);el.className='day'+(q.off?' off':'')+(redAlert?' alert-red':'')+(selectedDates.has(key)?' selected':'');const people=q.rows?.length?`<span class="mark${redAlert?' red':''}">${q.rows.length}人</span>`:(selectedDates.has(key)?'<span class="mark">✓</span>':'');el.innerHTML=`<span class="num">${n}</span>${people}`;el.disabled=q.off;el.onclick=()=>selectDate(key);calendar.append(el)}renderSelected()}
   function selectDate(key){
     if(selectedDates.has(key)){selectedDates.delete(key);renderCalendar();return}
     const mine=myActiveLeaveOn(key);
@@ -738,14 +738,26 @@
   function closePeriodModal(e){if(e.target.id==='periodModal')hidePeriodModal()}
   function renderSelected(){selectedList.innerHTML='';[...selectedDates.entries()].sort().forEach(([d,p])=>{const el=document.createElement('div');el.className='selected-item';el.innerHTML=`<div><strong>${d}</strong><span>${p}</span></div><button class="remove" onclick="removeDate('${d}')">移除</button>`;selectedList.append(el)})}
   function removeDate(d){selectedDates.delete(d);renderCalendar()}
-  function submitLeave(){if(!selectedDates.size){toastMsg('請先從月曆選擇日期');return}const type=leaveType.value,reasonText=reason.value.trim();if(type!=='特休'&&!reasonText){toastMsg('其他假別請填寫申請原因');return}const items=[...selectedDates.entries()];submitLeaveQueue(items,type,reasonText,0)}
-  async function submitLeaveQueue(items,type,reasonText,index){
+  function submitLeave(){if(!selectedDates.size){toastMsg('請先從月曆選擇日期');return}const type=leaveType.value,reasonText=reason.value.trim();if(type!=='特休'&&!reasonText){toastMsg('其他假別請填寫申請原因');return}const items=[...selectedDates.entries()];submitLeaveQueue(items,type,reasonText,0,[])}
+  async function submitLeaveQueue(items,type,reasonText,index,results){
     if(index>=items.length){
       selectedDates.clear();
       reason.value='';
       await loadCloudData(true);
       renderMyLeaves();
-      toastMsg(type==='特休'?'✅ 特休已成立，已顯示在「我的已送出請假」':'✅ 申請已送出，已顯示在「我的已送出請假」');
+
+      const hasStaffingReview=(results||[]).some(r=>r&&r.staffing&&r.staffing.requiresReview);
+      const hasPending=(results||[]).some(r=>r&&r.leave&&String(r.leave.status||'')==='待審核');
+
+      if(hasStaffingReview){
+        toastMsg('🔴 申請已送出，因人力警戒需主管覆核，尚未生效');
+      }else if(hasPending){
+        toastMsg('✅ 申請已送出，等待主管審核');
+      }else if(type==='特休'){
+        toastMsg('✅ 特休已成立，已顯示在「我的已送出請假」');
+      }else{
+        toastMsg('✅ 申請已送出，已顯示在「我的已送出請假」');
+      }
       return;
     }
     const [date,period]=items[index];
@@ -753,7 +765,7 @@
       employeeId:employeeKey(),employeeName:employeeNameText(),identity:employee.identityCategory||'',
       pool:leavePool(),date,period,type,reason:reasonText,dailyHours:employee.dailyHours||8,
       isTest:employee.isTest||'否'
-    },'submitLeave',{next:()=>submitLeaveQueue(items,type,reasonText,index+1)});
+    },'submitLeave',{next:(result)=>submitLeaveQueue(items,type,reasonText,index+1,[...(results||[]),result])});
   }
   function addRecord(title,note){const key=`heremay.activityRecords.${employeeKey()}`,arr=JSON.parse(localStorage.getItem(key)||'[]');arr.unshift({title,note,time:new Date().toLocaleString('zh-TW',{hour12:false})});localStorage.setItem(key,JSON.stringify(arr.slice(0,30)))}
   function allPunches(){if(cloudReady)return cloudPunches;const prefix=`heremay.attendance.${employeeKey()}.`;const rows=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(prefix)){try{const x=JSON.parse(localStorage.getItem(k)||'{}');x.date=x.date||k.slice(prefix.length);rows.push(x)}catch(e){}}}return rows}
@@ -831,7 +843,7 @@
       setPunchPending(kind,false);
 
       if(current&&current.options&&typeof current.options.next==='function'){
-        current.options.next();
+        current.options.next(result);
         return;
       }
 
