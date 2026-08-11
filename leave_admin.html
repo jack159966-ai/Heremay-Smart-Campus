@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>和美智慧校園｜請假管理 v1.1</title>
+<title>和美智慧校園｜請假管理 v1.3</title>
 <style>
 :root{--blue:#2f68d8;--deep:#173f75;--line:#dfe8f6;--bg:#f4f8ff}
 *{box-sizing:border-box}
@@ -24,6 +24,17 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
 .day{min-height:76px;border:1px solid var(--line);border-radius:14px;background:#fff;padding:7px;text-align:left;cursor:pointer}.day.empty{visibility:hidden}.day.has{background:#f4f9ff;border-color:#bdd8ff}.num{font-weight:950;color:#183f73}.people{display:block;margin-top:8px;color:#2f68d8;font-weight:950;font-size:14px}.split{display:block;margin-top:3px;color:#6d8095;font-size:11px;font-weight:800}
 .mask{position:fixed;inset:0;background:rgba(18,42,58,.32);display:none;align-items:flex-end;justify-content:center;padding:12px}.mask.show{display:flex}.modal{width:min(620px,100%);max-height:85vh;overflow:auto;background:#fff;border-radius:26px;padding:18px}.modalHead{display:flex;justify-content:space-between;align-items:center}.close{border:0;background:#edf4ff;color:#245fc2;border-radius:12px;padding:8px 11px;font-weight:900}
 .version{text-align:center;color:#7890a6;font-size:12px;font-weight:800}
+.reviewCard{border:1px solid #f3b8c0;background:#fff7f8;border-radius:18px;padding:13px;margin-top:10px}
+.reviewTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.reviewBadge{background:#ffe5e9;color:#b7394c;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:950;white-space:nowrap}
+.reviewMeta{margin-top:7px;color:#5d7284;font-size:13px;font-weight:800;line-height:1.55}
+.reviewActions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.reviewBtn{border:1px solid #cfe2ff;background:#edf4ff;color:#245fc2;border-radius:12px;padding:10px 8px;font-weight:950;cursor:pointer}
+.reviewBtn.ok{background:#e9f8ef;border-color:#bfe3cc;color:#23794f}
+.reviewBtn.warn{background:#fff6e7;border-color:#ffd79a;color:#986000}
+.reviewBtn.no{background:#ffe9ed;border-color:#f4c1ca;color:#b84154}
+.reviewEmpty{background:#f5fbff;border:1px solid #d7edf8;border-radius:16px;padding:12px;color:#607987;font-weight:800}
+
 @media(max-width:620px){.grid2{grid-template-columns:1fr}.day{min-height:64px;padding:5px}.header{grid-template-columns:1fr}.header h1{font-size:23px}.headerActions{width:100%}.headerActions .back{flex:1}}
 </style>
 </head>
@@ -45,6 +56,13 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
     </div>
   </section>
 
+
+  <section class="card">
+    <h2 class="title">🔴 人力覆核待處理 <span class="count" id="reviewCount">0 筆</span></h2>
+    <div class="hint">此區只顯示已觸發人力警戒、尚待主管處理的請假。主管可先確認人力，再決定核准、調度後核准或不宜核准。</div>
+    <div id="reviewList"></div>
+  </section>
+
   <section class="card">
     <h2 class="title">請假月曆 <span class="count" id="count">0 筆</span></h2>
     <div class="calHead"><button onclick="changeMonth(-1)">‹ 上個月</button><strong id="monthTitle"></strong><button onclick="changeMonth(1)">下個月 ›</button></div>
@@ -53,7 +71,7 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
   </section>
 
   <div id="loadStatus" class="hint" style="margin-bottom:12px;text-align:center">準備讀取請假資料…</div>
-  <div class="version">請假管理 v1.2｜2026-07-30</div>
+  <div class="version">請假管理 v1.3｜2026-08-11｜人力覆核待處理</div>
 </main>
 
 <div class="mask" id="mask" onclick="if(event.target.id==='mask')closeModal()"><section class="modal" id="modal"></section></div>
@@ -88,12 +106,52 @@ async function loadData(){
     if(btn){btn.disabled=false;btn.textContent='🔄 重新整理'}
   }
 }
+
+function isStaffingReviewPending(x){
+  return active(x) &&
+    (x.staffingReview===true || String(x.是否觸發人力覆核||'')==='是') &&
+    String(x.staffingReviewResult||x.人力覆核結果||'待覆核')==='待覆核';
+}
+function renderReviewQueue(){
+  const rows=leaves.filter(isStaffingReviewPending)
+    .sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||String(a.created||'').localeCompare(String(b.created||'')));
+  const box=document.getElementById('reviewList');
+  const count=document.getElementById('reviewCount');
+  if(count)count.textContent=`${rows.length} 筆`;
+  if(!box)return;
+  if(!rows.length){box.innerHTML='<div class="reviewEmpty">目前沒有待處理的人力覆核。</div>';return}
+  box.innerHTML=rows.map(x=>{
+    const am=Number(x.staffingAm||x.申請當下上午缺勤數||0);
+    const pm=Number(x.staffingPm||x.申請當下下午缺勤數||0);
+    const alertText=x.staffingAlert||x.申請當下人力警戒||'紅燈';
+    const note=x.staffingReviewNote||x.人力覆核備註||'';
+    const leaveId=String(x.leaveId||'').replace(/'/g,"\\'");
+    return `<div class="reviewCard">
+      <div class="reviewTop">
+        <div><strong>${esc(x.date||'')}｜${esc(x.employeeName||'未具名')}｜${esc(x.type||'請假')}・${esc(x.period||'全天')}</strong></div>
+        <span class="reviewBadge">${esc(alertText)}</span>
+      </div>
+      <div class="reviewMeta">部門：${esc(x.pool||'')}｜上午缺勤 ${am} 人｜下午缺勤 ${pm} 人｜狀態：${esc(x.status||'待審核')}</div>
+      ${note?`<div class="reviewMeta">人力備註：${esc(note)}</div>`:''}
+      <div class="reviewActions">
+        <button class="reviewBtn ok" onclick="chooseReview('${leaveId}','可核准')">可核准</button>
+        <button class="reviewBtn warn" onclick="chooseReview('${leaveId}','需調度後核准')">需調度後核准</button>
+        <button class="reviewBtn no" onclick="chooseReview('${leaveId}','不宜核准')">不宜核准</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function chooseReview(leaveId,result){
+  const row=leaves.find(x=>String(x.leaveId||'')===String(leaveId||''));
+  if(!row)return;
+  alert(`這一步目前先做主管端畫面確認。\n\n${row.employeeName||''}｜${row.date||''} ${row.period||''}\n建議結果：${result}\n\n下一步才接後端正式寫入。`);
+}
 function renderList(day,id){const rows=leaves.filter(x=>x.date===day&&active(x)),box=document.getElementById(id);box.innerHTML=rows.length?rows.map(x=>`<div class="item">${esc(x.employeeName||'未具名')}｜${esc(x.period||'全天')}｜${esc(x.type||'請假')}｜${esc(x.status||'')}</div>`).join(''):'<div class="hint">無人請假。</div>'}
 function changeMonth(n){view.setMonth(view.getMonth()+n);renderCalendar()}
 function renderCalendar(){const y=view.getFullYear(),m=view.getMonth(),key=`${y}-${pad(m+1)}`,rows=leaves.filter(x=>String(x.date||'').startsWith(key));document.getElementById('count').textContent=`${rows.length} 筆`;document.getElementById('monthTitle').textContent=`${y} 年 ${m+1} 月`;const box=document.getElementById('calendar');box.innerHTML='';const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();for(let i=0;i<first;i++){const e=document.createElement('div');e.className='day empty';box.appendChild(e)}for(let d=1;d<=days;d++){const dk=`${y}-${pad(m+1)}-${pad(d)}`,dr=rows.filter(x=>x.date===dk&&active(x));let am=0,pm=0;dr.forEach(x=>{const p=String(x.period||'');if(p==='全天'){am++;pm++}else if(p==='上午')am++;else if(p==='下午')pm++});const b=document.createElement('button');b.className='day'+(dr.length?' has':'');b.innerHTML=`<span class="num">${d}</span>${dr.length?`<span class="people">${dr.length} 人</span><span class="split">上午 ${am}｜下午 ${pm}</span>`:''}`;b.onclick=()=>showDay(dk,dr);box.appendChild(b)}}
 function showDay(date,rows){document.getElementById('modal').innerHTML=`<div class="modalHead"><h3>${esc(date)} 請假名單</h3><button class="close" onclick="closeModal()">關閉</button></div>${rows.length?rows.map(x=>`<div class="item"><strong>${esc(x.employeeName||'未具名')}</strong>｜${esc(x.type||'請假')}｜${esc(x.period||'全天')}<br><small>部門：${esc(x.pool||'')}｜狀態：${esc(x.status||'')}｜申請：${esc(x.created||'')}</small></div>`).join(''):'<div class="hint">當天沒有人請假。</div>'}`;document.getElementById('mask').classList.add('show')}
 function closeModal(){document.getElementById('mask').classList.remove('show')}
-function renderAll(){renderList(dateKey(0),'today');renderList(dateKey(1),'tomorrow');renderCalendar()}
+function renderAll(){renderReviewQueue();renderList(dateKey(0),'today');renderList(dateKey(1),'tomorrow');renderCalendar()}
 document.getElementById('refreshBtn').addEventListener('click',loadData);
 loadData();
 </script>
