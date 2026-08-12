@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>和美智慧校園｜請假管理 v1.3</title>
+<title>和美智慧校園｜請假管理 v1.4</title>
 <style>
 :root{--blue:#2f68d8;--deep:#173f75;--line:#dfe8f6;--bg:#f4f8ff}
 *{box-sizing:border-box}
@@ -32,7 +32,7 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
 .reviewBtn{border:1px solid #cfe2ff;background:#edf4ff;color:#245fc2;border-radius:12px;padding:10px 8px;font-weight:950;cursor:pointer}
 .reviewBtn.ok{background:#e9f8ef;border-color:#bfe3cc;color:#23794f}
 .reviewBtn.warn{background:#fff6e7;border-color:#ffd79a;color:#986000}
-.reviewBtn.no{background:#ffe9ed;border-color:#f4c1ca;color:#b84154}
+.reviewBtn.no{background:#ffe9ed;border-color:#f4c1ca;color:#b84154}.reviewBtn:disabled{opacity:.55;cursor:wait}
 .reviewEmpty{background:#f5fbff;border:1px solid #d7edf8;border-radius:16px;padding:12px;color:#607987;font-weight:800}
 
 @media(max-width:620px){.grid2{grid-template-columns:1fr}.day{min-height:64px;padding:5px}.header{grid-template-columns:1fr}.header h1{font-size:23px}.headerActions{width:100%}.headerActions .back{flex:1}}
@@ -71,7 +71,7 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
   </section>
 
   <div id="loadStatus" class="hint" style="margin-bottom:12px;text-align:center">準備讀取請假資料…</div>
-  <div class="version">請假管理 v1.3｜2026-08-11｜人力覆核待處理</div>
+  <div class="version">請假管理 v1.4｜2026-08-12｜主管人力覆核</div>
 </main>
 
 <div class="mask" id="mask" onclick="if(event.target.id==='mask')closeModal()"><section class="modal" id="modal"></section></div>
@@ -141,10 +141,54 @@ function renderReviewQueue(){
     </div>`;
   }).join('');
 }
-function chooseReview(leaveId,result){
+function reviewerName(){
+  try{
+    const e=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'null')||{};
+    return String(e.name||e['姓名']||e.employeeName||localStorage.getItem('heremay.lastFaceAccount')||'主管').trim()||'主管';
+  }catch(_){
+    return String(localStorage.getItem('heremay.lastFaceAccount')||'主管').trim()||'主管';
+  }
+}
+async function chooseReview(leaveId,result){
   const row=leaves.find(x=>String(x.leaveId||'')===String(leaveId||''));
   if(!row)return;
-  alert(`這一步目前先做主管端畫面確認。\n\n${row.employeeName||''}｜${row.date||''} ${row.period||''}\n建議結果：${result}\n\n下一步才接後端正式寫入。`);
+
+  let note='';
+  if(result==='需調度後核准'){
+    note=prompt('請填寫人力調度方式或備註，例如：主任代班、園長支援、跨班調度。','')||'';
+    if(!note.trim())return;
+  }else if(result==='不宜核准'){
+    note=prompt('可填寫不宜核准原因，讓紀錄更完整。','')||'';
+  }
+
+  const ok=confirm(
+    `${row.employeeName||''}｜${row.date||''} ${row.period||''}\n`+
+    `${row.type||'請假'}｜上午缺勤 ${Number(row.staffingAm||0)} 人｜下午缺勤 ${Number(row.staffingPm||0)} 人\n\n`+
+    `確定覆核為「${result}」嗎？`
+  );
+  if(!ok)return;
+
+  document.querySelectorAll('.reviewBtn').forEach(b=>b.disabled=true);
+  const status=document.getElementById('loadStatus');
+  if(status)status.textContent='正在寫入主管覆核結果…';
+
+  try{
+    const payload={
+      leaveId:String(leaveId||''),
+      decision:result,
+      reviewerName:reviewerName(),
+      note:note.trim()
+    };
+    const r=await jsonp('reviewLeaveStaffing',{payload:JSON.stringify(payload)});
+    if(!r||!r.ok)throw new Error((r&&r.message)||'覆核寫入失敗');
+
+    if(status)status.textContent=`✅ ${r.message||'人力覆核已完成'}`;
+    await loadData();
+  }catch(e){
+    if(status)status.textContent=`⚠️ 覆核失敗：${e.message}`;
+    alert('覆核失敗：'+e.message);
+    document.querySelectorAll('.reviewBtn').forEach(b=>b.disabled=false);
+  }
 }
 function renderList(day,id){const rows=leaves.filter(x=>x.date===day&&active(x)),box=document.getElementById(id);box.innerHTML=rows.length?rows.map(x=>`<div class="item">${esc(x.employeeName||'未具名')}｜${esc(x.period||'全天')}｜${esc(x.type||'請假')}｜${esc(x.status||'')}</div>`).join(''):'<div class="hint">無人請假。</div>'}
 function changeMonth(n){view.setMonth(view.getMonth()+n);renderCalendar()}
