@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>和美智慧校園｜請假管理 v1.5</title>
+<title>和美智慧校園｜請假管理 v1.5.1</title>
 <style>
 :root{--blue:#2f68d8;--deep:#173f75;--line:#dfe8f6;--bg:#f4f8ff}
 *{box-sizing:border-box}
@@ -28,7 +28,7 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
 .reviewTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
 .reviewBadge{background:#ffe5e9;color:#b7394c;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:950;white-space:nowrap}
 .reviewMeta{margin-top:7px;color:#d55f18;font-size:13px;font-weight:900;line-height:1.55}.reviewMeta.critical{color:#c92f47}
-.reviewActions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.reviewActions{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
 .reviewBtn{border:1px solid #cfe2ff;background:#edf4ff;color:#245fc2;border-radius:12px;padding:10px 8px;font-weight:950;cursor:pointer}
 .reviewBtn.ok{background:#e9f8ef;border-color:#bfe3cc;color:#23794f}
 .reviewBtn.warn{background:#fff6e7;border-color:#ffd79a;color:#986000}
@@ -71,7 +71,7 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
   </section>
 
   <div id="loadStatus" class="hint" style="margin-bottom:12px;text-align:center">準備讀取請假資料…</div>
-  <div class="version">請假管理 v1.5｜2026-08-12｜人力燈號強化</div>
+  <div class="version">請假管理 v1.5.1｜2026-08-12｜簡化主管覆核</div>
 </main>
 
 <div class="mask" id="mask" onclick="if(event.target.id==='mask')closeModal()"><section class="modal" id="modal"></section></div>
@@ -135,7 +135,6 @@ function renderReviewQueue(){
       ${note?`<div class="reviewMeta critical">人力備註：${esc(note)}</div>`:''}
       <div class="reviewActions">
         <button class="reviewBtn ok" onclick="chooseReview('${leaveId}','可核准')">可核准</button>
-        <button class="reviewBtn warn" onclick="chooseReview('${leaveId}','需調度後核准')">需調度後核准</button>
         <button class="reviewBtn no" onclick="chooseReview('${leaveId}','不宜核准')">不宜核准</button>
       </div>
     </div>`;
@@ -154,10 +153,7 @@ async function chooseReview(leaveId,result){
   if(!row)return;
 
   let note='';
-  if(result==='需調度後核准'){
-    note=prompt('請填寫人力調度方式或備註，例如：主任代班、園長支援、跨班調度。','')||'';
-    if(!note.trim())return;
-  }else if(result==='不宜核准'){
+  if(result==='不宜核准'){
     note=prompt('可填寫不宜核准原因，讓紀錄更完整。','')||'';
   }
 
