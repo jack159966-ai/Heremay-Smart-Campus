@@ -23,7 +23,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 </head>
 <body><main class="app">
 <div class="mobileBlock"><h2>排班管理限電腦操作</h2><p>請改用電腦開啟主管工作台。</p><button class="btn" onclick="history.back()">返回</button></div>
-<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v1.5.1</h1><p>115學年度上學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button><button class="btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button></div></header>
+<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v1.5.2</h1><p>115學年度上學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button><button class="btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button></div></header>
 
 <section class="card">
 <h2>建立／調整班表</h2><p class="sub">人員名單與班表類型由排班中心 Apps Script 一次讀取；這一版仍不會寫入 Google Sheet。</p>
@@ -42,7 +42,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 <div class="tableWrap"><table><thead><tr><th rowspan="2">週次</th><th colspan="3">幼兒部早值</th><th colspan="3">幼兒部晚值</th><th colspan="2">掃地區域</th></tr><tr><th>A組</th><th>B組</th><th>AB組</th><th>A組</th><th>B組</th><th>AB組</th><th>走廊</th><th>樓梯</th></tr></thead><tbody id="body"></tbody></table></div>
 <div class="legend"><span>早值優先</span><span>同週早、晚值不得同人</span><span>一般輪值異動由主管發布</span></div>
 </section>
-<div class="footer">和美智慧校園｜主管排班管理 v1.5.1</div>
+<div class="footer">和美智慧校園｜主管排班管理 v1.5.2</div>
 </main>
 
 <script src="schedule_data.js"></script>
@@ -60,76 +60,42 @@ function loadBootstrap(){
   cloudStatus.className='cloudStatus';
   cloudStatus.textContent='正在連線排班中心資料…';
 
+  const callbackName='scheduleBootstrapCallback_'+Date.now();
+
+  window[callbackName]=function(data){
+    try{
+      receiveBootstrap(data);
+    }finally{
+      try{ delete window[callbackName]; }catch(e){ window[callbackName]=undefined; }
+      const old=document.getElementById('bootstrapApiJsonp');
+      if(old) old.remove();
+    }
+  };
+
   const old=document.getElementById('bootstrapApiJsonp');
   if(old) old.remove();
 
   const script=document.createElement('script');
   script.id='bootstrapApiJsonp';
-  script.src=SCHEDULE_API+'?action=bootstrap&callback=receiveBootstrap&t='+Date.now();
-  script.onerror=()=>setBootstrapError('無法連線排班中心 Apps Script');
-  document.body.appendChild(script);
+  script.async=true;
+  script.src=SCHEDULE_API
+    +'?action=bootstrap'
+    +'&callback='+encodeURIComponent(callbackName)
+    +'&t='+Date.now();
+
+  script.onerror=()=>{
+    try{ delete window[callbackName]; }catch(e){ window[callbackName]=undefined; }
+    setBootstrapError('無法載入排班中心資料');
+  };
+
+  document.head.appendChild(script);
 
   setTimeout(()=>{
     if(!BOOTSTRAP_READY){
-      setBootstrapError('讀取排班中心資料逾時，請確認 Web App 已更新至 v1.2.0');
+      try{ delete window[callbackName]; }catch(e){ window[callbackName]=undefined; }
+      setBootstrapError('排班中心回應逾時');
     }
-  },10000);
-}
-
-function receiveBootstrap(data){
-  if(!data || data.ok!==true || !Array.isArray(data.people) || !Array.isArray(data.types)){
-    setBootstrapError(data && data.message ? data.message : '排班中心回傳格式不正確');
-    return;
-  }
-
-  PEOPLE = data.people.map(p=>[
-    String(p.name||'').trim(),
-    String(p.department||'').trim(),
-    String(p.grade||'').trim(),
-    String(p.className||'').trim(),
-    String(p.title||'').trim()
-  ]).filter(p=>p[0]);
-
-  SCHEDULE_TYPES = data.types;
-  TYPE_DEF = {};
-
-  typeSelect.innerHTML='<option value="">請選擇</option>';
-
-  SCHEDULE_TYPES.forEach(t=>{
-    const code=String(t.code||'').trim();
-    const name=String(t.name||'').trim();
-    if(!code || !name) return;
-
-    const positions=Array.isArray(t.positions) ? t.positions.filter(Boolean) : [];
-    const count=Number(t.assignmentCount || t.weeklyCount || positions.length || 1);
-
-    TYPE_DEF[code]={
-      name:name,
-      dept:String(t.department||'').trim(),
-      level:String(t.rotationLevel||'老師').trim(),
-      count:Number.isFinite(count) && count>0 ? count : 1,
-      slots:positions.length ? positions : Array.from(
-        {length:(Number.isFinite(count) && count>0 ? count : 1)},
-        (_,i)=>`位置${i+1}`
-      ),
-      mode:String(t.mode||'通用').trim(),
-      conflictGroup:String(t.conflictGroup||'').trim(),
-      qualificationRule:String(t.qualificationRule||'').trim(),
-      continueRotation:!!t.continueRotation,
-      supervisorOverride:!!t.supervisorOverride
-    };
-
-    const opt=document.createElement('option');
-    opt.value=code;
-    opt.textContent=name;
-    typeSelect.appendChild(opt);
-  });
-
-  BOOTSTRAP_READY = true;
-  cloudStatus.className='cloudStatus ok';
-  cloudStatus.textContent=`排班中心連線成功｜${PEOPLE.length} 位啟用人員｜${SCHEDULE_TYPES.length} 種啟用班表`;
-
-  renderBuilder();
+  },12000);
 }
 
 function setBootstrapError(msg){
