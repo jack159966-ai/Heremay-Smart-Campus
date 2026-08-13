@@ -15,7 +15,7 @@
 select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-weight:800;color:var(--deep);background:#fff}
 .stageBar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.stage{padding:8px 12px;border-radius:999px;background:#f1f5f8;color:#7890a0;font-size:13px;font-weight:900;border:1px solid #dae8ef}.stage.active{background:#dff1fb;color:var(--deep);border-color:#a9d4e8}
 .builder{margin-top:16px;border:1px dashed #a8cfe1;border-radius:16px;padding:16px;background:#fbfeff}.builder.empty{text-align:center;color:var(--muted);font-weight:800}
-.slotGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.slotCard{border:1px solid var(--line);border-radius:14px;padding:13px;background:#fff}.slotCard strong{display:block;color:var(--deep);margin-bottom:7px}.slotCard small{color:var(--muted);font-weight:700}.pickGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.pickGrid select{width:100%}.picked{margin-top:10px;padding:9px 10px;border-radius:10px;background:var(--soft);color:var(--deep);font-weight:900;min-height:38px}
+.slotGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.slotCard{border:1px solid var(--line);border-radius:14px;padding:13px;background:#fff}.slotCard strong{display:block;color:var(--deep);margin-bottom:7px}.slotCard small{color:var(--muted);font-weight:700}.pickGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.pickGrid select{width:100%}.picked{margin-top:10px;padding:9px 10px;border-radius:10px;background:var(--soft);color:var(--deep);font-weight:900;min-height:38px}.cloudStatus{margin-top:12px;padding:10px 12px;border-radius:12px;background:#f5f8fa;color:var(--muted);font-weight:900}.cloudStatus.ok{background:#eaf7f0;color:#256e4c}.cloudStatus.err{background:#fff0f0;color:#a33}
 .tableWrap{overflow:auto;margin-top:14px;border:1px solid var(--line);border-radius:16px}table{border-collapse:collapse;width:100%;min-width:900px}th{background:var(--deep);color:#fff;padding:12px 9px}td{padding:11px 9px;border-bottom:1px solid #e2edf3;text-align:center;font-weight:750}tr.current td{background:#fff4d9}td:first-child{font-weight:900;color:var(--deep)}
 .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}.legend span{background:var(--soft);padding:8px 11px;border-radius:10px;font-weight:800}.footer{text-align:center;color:#6d8798;margin-top:16px;font-weight:700;font-size:13px}
 .mobileBlock{display:none}@media(max-width:540px){.app>*:not(.mobileBlock){display:none}.mobileBlock{display:block;background:#fff;border:2px solid var(--line);border-radius:24px;padding:30px 20px;text-align:center;margin-top:50px}}
@@ -23,16 +23,17 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 </head>
 <body><main class="app">
 <div class="mobileBlock"><h2>排班管理限電腦操作</h2><p>請改用電腦開啟主管工作台。</p><button class="btn" onclick="history.back()">返回</button></div>
-<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v1.1</h1><p>115學年度上學期｜操作流程骨架</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button><button class="btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button></div></header>
+<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v1.3</h1><p>115學年度上學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button><button class="btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button></div></header>
 
 <section class="card">
-<h2>建立／調整班表</h2><p class="sub">先測試操作順序；這一版不會寫入 Google Sheet。</p>
+<h2>建立／調整班表</h2><p class="sub">人員名單改由排班中心 Apps Script 即時讀取；這一版仍不會寫入 Google Sheet。</p>
 <div class="formGrid">
 <div class="field"><label>① 班表類型</label><select id="typeSelect"><option value="">請選擇班表</option><option value="KINDER_EARLY">幼兒部早值</option><option value="KINDER_LATE">幼兒部晚值</option><option value="AFTER_DUTY">安親部晚值</option><option value="CLEANING">掃地區域</option><option value="FB_POST">粉專投稿</option><option value="MORNING_ACTIVITY">晨間遊戲區</option><option value="MORNING_HOST">晨間活動主持</option></select></div>
 <div class="field"><label>② 週次</label><select id="weekSelect"><option value="">請選擇週次</option></select></div>
 <div class="field"><label>③ 狀態</label><select disabled><option>草稿</option></select></div>
 </div>
 <div class="stageBar"><span class="stage active">選班表</span><span class="stage">選週次</span><span class="stage">安排人員／單位</span><span class="stage">儲存草稿</span><span class="stage">發布</span></div>
+<div id="cloudStatus" class="cloudStatus">正在連線排班中心人員主檔…</div>
 <div id="builder" class="builder empty">請先選擇「班表類型」與「週次」。</div>
 </section>
 
@@ -41,7 +42,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 <div class="tableWrap"><table><thead><tr><th rowspan="2">週次</th><th colspan="3">幼兒部早值</th><th colspan="3">幼兒部晚值</th><th colspan="2">掃地區域</th></tr><tr><th>A組</th><th>B組</th><th>AB組</th><th>A組</th><th>B組</th><th>AB組</th><th>走廊</th><th>樓梯</th></tr></thead><tbody id="body"></tbody></table></div>
 <div class="legend"><span>早值優先</span><span>同週早、晚值不得同人</span><span>一般輪值異動由主管發布</span></div>
 </section>
-<div class="footer">和美智慧校園｜主管排班管理 v1.1</div>
+<div class="footer">和美智慧校園｜主管排班管理 v1.3</div>
 </main>
 
 <script src="schedule_data.js"></script>
@@ -56,33 +57,58 @@ MORNING_ACTIVITY:{label:'晨間遊戲區',slots:['年級／遊戲區'],mode:'通
 MORNING_HOST:{label:'晨間活動主持',slots:['主持人'],mode:'通用',dept:'幼兒部'}
 };
 
-const PEOPLE = [
-['呂昭慧','幼兒部','大班','A1班','主教'],
-['黃雯君','幼兒部','大班','A1班','助教'],
-['劉羽晴','幼兒部','大班','A2班','主教'],
-['陳子盼','幼兒部','大班','A2班','助教'],
-['許芸瑄','幼兒部','大班','A3班','主教'],
-['陳玟婷','幼兒部','大班','A3班','助教'],
-['鄭憶茹','幼兒部','中班','B1班','主教'],
-['徐美惠','幼兒部','中班','B1班','助教'],
-['呂綉萍','幼兒部','中班','B2班','主教'],
-['張庭瑄','幼兒部','中班','B2班','助教'],
-['倪學翠','幼兒部','中班','B2班','助教'],
-['葉秀敏','幼兒部','中班','B3班','主教'],
-['陳淑蓉','幼兒部','小班','C1班','主教'],
-['唐巧羚','幼兒部','小班','C1班','助教'],
-['姜珮雯','幼兒部','小班','C1班','助教'],
-['林恬寧','幼兒部','小班','C2班','主教'],
-['許亞霖','幼兒部','小班','C2班','助教'],
-['楊雅甄','幼兒部','小班','C3班','主教'],
-['陳憶馨','幼兒部','幼幼班','Y1班','主教'],
-['張羽涵','幼兒部','幼幼班','Y1班','助教'],
-['劉艾倫','安親部','安親部','P1班','主教'],
-['許嘉芸','安親部','安親部','P2班','主教'],
-['江謝惠菁','安親部','安親部','P3班','主教'],
-['吳玉華','安親部','安親部','P4班','主教'],
-['王藝蓉','安親部','安親部','P5班','主教']
-];
+const SCHEDULE_API = 'https://script.google.com/macros/s/AKfycbyODBee6ctnIkbctDEe6G3M_lnMXvYcsGaVoLmu_V5ywb8cTm7n4s7NhdP9Em9gobzyZA/exec';
+let PEOPLE = [];
+let PEOPLE_READY = false;
+
+function loadPeople(){
+  cloudStatus.className='cloudStatus';
+  cloudStatus.textContent='正在連線排班中心人員主檔…';
+
+  const old=document.getElementById('peopleApiJsonp');
+  if(old) old.remove();
+
+  const script=document.createElement('script');
+  script.id='peopleApiJsonp';
+  script.src=SCHEDULE_API+'?action=people&callback=receivePeople&t='+Date.now();
+  script.onerror=()=>setPeopleError('無法連線排班中心 Apps Script');
+  document.body.appendChild(script);
+
+  setTimeout(()=>{
+    if(!PEOPLE_READY) setPeopleError('讀取人員主檔逾時，請確認 Web App 部署權限');
+  },10000);
+}
+
+function receivePeople(data){
+  if(!data || data.ok!==true || !Array.isArray(data.people)){
+    setPeopleError(data && data.message ? data.message : '人員主檔回傳格式不正確');
+    return;
+  }
+
+  PEOPLE = data.people.map(p=>[
+    String(p.name||'').trim(),
+    String(p.department||'').trim(),
+    String(p.grade||'').trim(),
+    String(p.className||'').trim(),
+    String(p.title||'').trim()
+  ]).filter(p=>p[0]);
+
+  PEOPLE_READY = true;
+  cloudStatus.className='cloudStatus ok';
+  cloudStatus.textContent=`人員主檔連線成功｜已載入 ${PEOPLE.length} 位啟用人員`;
+
+  if(typeSelect.value && weekSelect.value){
+    renderBuilder();
+  }
+}
+
+function setPeopleError(msg){
+  if(PEOPLE_READY) return;
+  PEOPLE=[];
+  cloudStatus.className='cloudStatus err';
+  cloudStatus.textContent='人員主檔連線失敗｜'+msg;
+  renderBuilder();
+}
 
 function d(s){return new Date(s+'T00:00:00')}
 function f(s){const x=d(s);return `${x.getMonth()+1}/${x.getDate()}`}
@@ -147,6 +173,11 @@ function renderBuilder(){
     builder.textContent='請先選擇「班表類型」與「週次」。';
     return
   }
+  if(!PEOPLE_READY){
+    builder.className='builder empty';
+    builder.textContent='人員主檔尚未載入，請先確認上方連線狀態。';
+    return
+  }
   const [s,e]=w.split('|');
   builder.className='builder';
   builder.innerHTML=`
@@ -208,6 +239,6 @@ function showPicked(i){
 range.onchange=render;
 typeSelect.onchange=renderBuilder;
 weekSelect.onchange=renderBuilder;
-fillWeeks();render();renderBuilder();
+fillWeeks();render();renderBuilder();loadPeople();
 </script>
 </body></html>
