@@ -23,17 +23,17 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 </head>
 <body><main class="app">
 <div class="mobileBlock"><h2>排班管理限電腦操作</h2><p>請改用電腦開啟主管工作台。</p><button class="btn" onclick="history.back()">返回</button></div>
-<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v1.3</h1><p>115學年度上學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button><button class="btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button></div></header>
+<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v1.4</h1><p>115學年度上學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button><button class="btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button></div></header>
 
 <section class="card">
-<h2>建立／調整班表</h2><p class="sub">人員名單改由排班中心 Apps Script 即時讀取；這一版仍不會寫入 Google Sheet。</p>
+<h2>建立／調整班表</h2><p class="sub">人員名單與班表類型都改由排班中心 Apps Script 即時讀取；這一版仍不會寫入 Google Sheet。</p>
 <div class="formGrid">
 <div class="field"><label>① 班表類型</label><select id="typeSelect"><option value="">請選擇班表</option><option value="KINDER_EARLY">幼兒部早值</option><option value="KINDER_LATE">幼兒部晚值</option><option value="AFTER_DUTY">安親部晚值</option><option value="CLEANING">掃地區域</option><option value="FB_POST">粉專投稿</option><option value="MORNING_ACTIVITY">晨間遊戲區</option><option value="MORNING_HOST">晨間活動主持</option></select></div>
 <div class="field"><label>② 週次</label><select id="weekSelect"><option value="">請選擇週次</option></select></div>
 <div class="field"><label>③ 狀態</label><select disabled><option>草稿</option></select></div>
 </div>
 <div class="stageBar"><span class="stage active">選班表</span><span class="stage">選週次</span><span class="stage">安排人員／單位</span><span class="stage">儲存草稿</span><span class="stage">發布</span></div>
-<div id="cloudStatus" class="cloudStatus">正在連線排班中心人員主檔…</div>
+<div id="cloudStatus" class="cloudStatus">正在連線排班中心資料…</div>
 <div id="builder" class="builder empty">請先選擇「班表類型」與「週次」。</div>
 </section>
 
@@ -42,24 +42,99 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 <div class="tableWrap"><table><thead><tr><th rowspan="2">週次</th><th colspan="3">幼兒部早值</th><th colspan="3">幼兒部晚值</th><th colspan="2">掃地區域</th></tr><tr><th>A組</th><th>B組</th><th>AB組</th><th>A組</th><th>B組</th><th>AB組</th><th>走廊</th><th>樓梯</th></tr></thead><tbody id="body"></tbody></table></div>
 <div class="legend"><span>早值優先</span><span>同週早、晚值不得同人</span><span>一般輪值異動由主管發布</span></div>
 </section>
-<div class="footer">和美智慧校園｜主管排班管理 v1.3</div>
+<div class="footer">和美智慧校園｜主管排班管理 v1.4</div>
 </main>
 
 <script src="schedule_data.js"></script>
 <script>
-const TYPE_DEF={
-KINDER_EARLY:{label:'幼兒部早值',slots:['A組','B組','AB組'],mode:'專用',dept:'幼兒部'},
-KINDER_LATE:{label:'幼兒部晚值',slots:['A組','B組','AB組'],mode:'專用',dept:'幼兒部'},
-AFTER_DUTY:{label:'安親部晚值',slots:['晚值'],mode:'專用',dept:'安親部'},
-CLEANING:{label:'掃地區域',slots:['走廊','樓梯'],mode:'通用',dept:'幼兒部'},
-FB_POST:{label:'粉專投稿',slots:['班級'],mode:'通用',dept:'幼兒部',unit:'班級'},
-MORNING_ACTIVITY:{label:'晨間遊戲區',slots:['年級／遊戲區'],mode:'通用',dept:'幼兒部',unit:'年級'},
-MORNING_HOST:{label:'晨間活動主持',slots:['主持人'],mode:'通用',dept:'幼兒部'}
-};
+let TYPE_DEF = {};
 
 const SCHEDULE_API = 'https://script.google.com/macros/s/AKfycbyODBee6ctnIkbctDEe6G3M_lnMXvYcsGaVoLmu_V5ywb8cTm7n4s7NhdP9Em9gobzyZA/exec';
 let PEOPLE = [];
 let PEOPLE_READY = false;
+let TYPES_READY = false;
+let SCHEDULE_TYPES = [];
+
+function loadScheduleTypes(){
+  const old=document.getElementById('typesApiJsonp');
+  if(old) old.remove();
+
+  const script=document.createElement('script');
+  script.id='typesApiJsonp';
+  script.src=SCHEDULE_API+'?action=types&callback=receiveScheduleTypes&t='+Date.now();
+  script.onerror=()=>setTypesError('無法連線班表類型');
+  document.body.appendChild(script);
+
+  setTimeout(()=>{
+    if(!TYPES_READY) setTypesError('讀取班表類型逾時，請確認 Web App 已重新部署');
+  },10000);
+}
+
+function receiveScheduleTypes(data){
+  if(!data || data.ok!==true || !Array.isArray(data.types)){
+    setTypesError(data && data.message ? data.message : '班表類型回傳格式不正確');
+    return;
+  }
+
+  SCHEDULE_TYPES=data.types;
+  TYPE_DEF={};
+
+  typeSelect.innerHTML='<option value="">請選擇</option>';
+
+  SCHEDULE_TYPES.forEach(t=>{
+    const code=String(t.code||'').trim();
+    const name=String(t.name||'').trim();
+    if(!code || !name) return;
+
+    const positions=Array.isArray(t.positions) ? t.positions.filter(Boolean) : [];
+    const count=Number(t.assignmentCount || t.weeklyCount || positions.length || 1);
+
+    TYPE_DEF[code]={
+      name:name,
+      dept:String(t.department||'').trim(),
+      level:String(t.rotationLevel||'老師').trim(),
+      count:Number.isFinite(count) && count>0 ? count : 1,
+      slots:positions.length ? positions : Array.from(
+        {length:(Number.isFinite(count) && count>0 ? count : 1)},
+        (_,i)=>`位置${i+1}`
+      ),
+      mode:String(t.mode||'通用').trim(),
+      conflictGroup:String(t.conflictGroup||'').trim(),
+      qualificationRule:String(t.qualificationRule||'').trim(),
+      continueRotation:!!t.continueRotation,
+      supervisorOverride:!!t.supervisorOverride
+    };
+
+    const opt=document.createElement('option');
+    opt.value=code;
+    opt.textContent=name;
+    typeSelect.appendChild(opt);
+  });
+
+  TYPES_READY=true;
+  updateCloudStatus();
+  renderBuilder();
+}
+
+function setTypesError(msg){
+  if(TYPES_READY) return;
+  SCHEDULE_TYPES=[];
+  TYPE_DEF={};
+  typeSelect.innerHTML='<option value="">班表類型讀取失敗</option>';
+  cloudStatus.className='cloudStatus err';
+  cloudStatus.textContent='排班中心連線失敗｜'+msg;
+  renderBuilder();
+}
+
+function updateCloudStatus(){
+  if(PEOPLE_READY && TYPES_READY){
+    cloudStatus.className='cloudStatus ok';
+    cloudStatus.textContent=`排班中心連線成功｜${PEOPLE.length} 位啟用人員｜${SCHEDULE_TYPES.length} 種啟用班表`;
+  }else{
+    cloudStatus.className='cloudStatus';
+    cloudStatus.textContent='正在連線排班中心資料…';
+  }
+}
 
 function loadPeople(){
   cloudStatus.className='cloudStatus';
@@ -94,8 +169,7 @@ function receivePeople(data){
   ]).filter(p=>p[0]);
 
   PEOPLE_READY = true;
-  cloudStatus.className='cloudStatus ok';
-  cloudStatus.textContent=`人員主檔連線成功｜已載入 ${PEOPLE.length} 位啟用人員`;
+  updateCloudStatus();
 
   if(typeSelect.value && weekSelect.value){
     renderBuilder();
@@ -106,7 +180,7 @@ function setPeopleError(msg){
   if(PEOPLE_READY) return;
   PEOPLE=[];
   cloudStatus.className='cloudStatus err';
-  cloudStatus.textContent='人員主檔連線失敗｜'+msg;
+  cloudStatus.textContent='排班中心連線失敗｜人員主檔：'+msg;
   renderBuilder();
 }
 
@@ -173,9 +247,9 @@ function renderBuilder(){
     builder.textContent='請先選擇「班表類型」與「週次」。';
     return
   }
-  if(!PEOPLE_READY){
+  if(!PEOPLE_READY || !TYPES_READY){
     builder.className='builder empty';
-    builder.textContent='人員主檔尚未載入，請先確認上方連線狀態。';
+    builder.textContent='排班中心資料尚未載入，請先確認上方連線狀態。';
     return
   }
   const [s,e]=w.split('|');
@@ -239,6 +313,6 @@ function showPicked(i){
 range.onchange=render;
 typeSelect.onchange=renderBuilder;
 weekSelect.onchange=renderBuilder;
-fillWeeks();render();renderBuilder();loadPeople();
+fillWeeks();render();renderBuilder();loadPeople();loadScheduleTypes();
 </script>
 </body></html>
