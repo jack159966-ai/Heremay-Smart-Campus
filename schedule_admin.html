@@ -15,7 +15,7 @@
 select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-weight:800;color:var(--deep);background:#fff}
 .stageBar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.stage{padding:8px 12px;border-radius:999px;background:#f1f5f8;color:#7890a0;font-size:13px;font-weight:900;border:1px solid #dae8ef}.stage.active{background:#dff1fb;color:var(--deep);border-color:#a9d4e8}
 .builder{margin-top:16px;border:1px dashed #a8cfe1;border-radius:16px;padding:16px;background:#fbfeff}.builder.empty{text-align:center;color:var(--muted);font-weight:800}
-.slotGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.slotCard{border:1px solid var(--line);border-radius:14px;padding:13px;background:#fff}.slotCard strong{display:block;color:var(--deep);margin-bottom:7px}.slotCard small{color:var(--muted);font-weight:700}
+.slotGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.slotCard{border:1px solid var(--line);border-radius:14px;padding:13px;background:#fff}.slotCard strong{display:block;color:var(--deep);margin-bottom:7px}.slotCard small{color:var(--muted);font-weight:700}.pickGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.pickGrid select{width:100%}.picked{margin-top:10px;padding:9px 10px;border-radius:10px;background:var(--soft);color:var(--deep);font-weight:900;min-height:38px}
 .tableWrap{overflow:auto;margin-top:14px;border:1px solid var(--line);border-radius:16px}table{border-collapse:collapse;width:100%;min-width:900px}th{background:var(--deep);color:#fff;padding:12px 9px}td{padding:11px 9px;border-bottom:1px solid #e2edf3;text-align:center;font-weight:750}tr.current td{background:#fff4d9}td:first-child{font-weight:900;color:var(--deep)}
 .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}.legend span{background:var(--soft);padding:8px 11px;border-radius:10px;font-weight:800}.footer{text-align:center;color:#6d8798;margin-top:16px;font-weight:700;font-size:13px}
 .mobileBlock{display:none}@media(max-width:540px){.app>*:not(.mobileBlock){display:none}.mobileBlock{display:block;background:#fff;border:2px solid var(--line);border-radius:24px;padding:30px 20px;text-align:center;margin-top:50px}}
@@ -47,19 +47,167 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 <script src="schedule_data.js"></script>
 <script>
 const TYPE_DEF={
-KINDER_EARLY:{label:'幼兒部早值',slots:['A組','B組','AB組'],mode:'專用'},
-KINDER_LATE:{label:'幼兒部晚值',slots:['A組','B組','AB組'],mode:'專用'},
-AFTER_DUTY:{label:'安親部晚值',slots:['晚值'],mode:'專用'},
-CLEANING:{label:'掃地區域',slots:['走廊','樓梯'],mode:'通用'},
-FB_POST:{label:'粉專投稿',slots:['班級'],mode:'通用'},
-MORNING_ACTIVITY:{label:'晨間遊戲區',slots:['年級／遊戲區'],mode:'通用'},
-MORNING_HOST:{label:'晨間活動主持',slots:['主持人'],mode:'通用'}
+KINDER_EARLY:{label:'幼兒部早值',slots:['A組','B組','AB組'],mode:'專用',dept:'幼兒部'},
+KINDER_LATE:{label:'幼兒部晚值',slots:['A組','B組','AB組'],mode:'專用',dept:'幼兒部'},
+AFTER_DUTY:{label:'安親部晚值',slots:['晚值'],mode:'專用',dept:'安親部'},
+CLEANING:{label:'掃地區域',slots:['走廊','樓梯'],mode:'通用',dept:'幼兒部'},
+FB_POST:{label:'粉專投稿',slots:['班級'],mode:'通用',dept:'幼兒部',unit:'班級'},
+MORNING_ACTIVITY:{label:'晨間遊戲區',slots:['年級／遊戲區'],mode:'通用',dept:'幼兒部',unit:'年級'},
+MORNING_HOST:{label:'晨間活動主持',slots:['主持人'],mode:'通用',dept:'幼兒部'}
 };
-function d(s){return new Date(s+'T00:00:00')}function f(s){const x=d(s);return `${x.getMonth()+1}/${x.getDate()}`}
-function startIndex(){const n=new Date();n.setHours(0,0,0,0);let i=HEREMAY_SCHEDULE_DATA.findIndex(r=>d(r[0])<=n&&n<=d(r[1]));if(i<0)i=HEREMAY_SCHEDULE_DATA.findIndex(r=>d(r[0])>n);return i<0?0:i}
-function render(){let data=HEREMAY_SCHEDULE_DATA;const si=startIndex();if(range.value==='3')data=data.slice(si,si+3);body.innerHTML=data.map(r=>`<tr class="${d(r[0])<=new Date()&&new Date()<=new Date(r[1]+'T23:59:59')?'current':''}"><td>${f(r[0])}－${f(r[1])}</td>${r.slice(2).map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')}
-function fillWeeks(){weekSelect.innerHTML='<option value="">請選擇週次</option>';HEREMAY_SCHEDULE_DATA.forEach(r=>{const op=document.createElement('option');op.value=r[0]+'|'+r[1];op.textContent=f(r[0])+'－'+f(r[1]);weekSelect.appendChild(op)})}
-function renderBuilder(){const t=TYPE_DEF[typeSelect.value],w=weekSelect.value;if(!t||!w){builder.className='builder empty';builder.textContent='請先選擇「班表類型」與「週次」。';return}const [s,e]=w.split('|');builder.className='builder';builder.innerHTML=`<div style="margin-bottom:12px"><strong style="font-size:18px;color:var(--deep)">${t.label}</strong><div style="color:var(--muted);font-weight:800;margin-top:4px">${f(s)}－${f(e)}｜${t.mode}排班</div></div><div class="slotGrid">${t.slots.map(x=>`<div class="slotCard"><strong>${x}</strong><small>下一階段加入：部門 → 年級 → 班級 → 姓名</small></div>`).join('')}</div><div style="margin-top:14px"><button class="btn" disabled>儲存草稿（下一階段）</button></div>`}
-range.onchange=render;typeSelect.onchange=renderBuilder;weekSelect.onchange=renderBuilder;fillWeeks();render();renderBuilder();
+
+const PEOPLE = [
+['呂昭慧','幼兒部','大班','A1班','主教'],
+['黃雯君','幼兒部','大班','A1班','助教'],
+['劉羽晴','幼兒部','大班','A2班','主教'],
+['陳子盼','幼兒部','大班','A2班','助教'],
+['許芸瑄','幼兒部','大班','A3班','主教'],
+['陳玟婷','幼兒部','大班','A3班','助教'],
+['鄭憶茹','幼兒部','中班','B1班','主教'],
+['徐美惠','幼兒部','中班','B1班','助教'],
+['呂綉萍','幼兒部','中班','B2班','主教'],
+['張庭瑄','幼兒部','中班','B2班','助教'],
+['倪學翠','幼兒部','中班','B2班','助教'],
+['葉秀敏','幼兒部','中班','B3班','主教'],
+['陳淑蓉','幼兒部','小班','C1班','主教'],
+['唐巧羚','幼兒部','小班','C1班','助教'],
+['姜珮雯','幼兒部','小班','C1班','助教'],
+['林恬寧','幼兒部','小班','C2班','主教'],
+['許亞霖','幼兒部','小班','C2班','助教'],
+['楊雅甄','幼兒部','小班','C3班','主教'],
+['陳憶馨','幼兒部','幼幼班','Y1班','主教'],
+['張羽涵','幼兒部','幼幼班','Y1班','助教'],
+['劉艾倫','安親部','安親部','P1班','主教'],
+['許嘉芸','安親部','安親部','P2班','主教'],
+['江謝惠菁','安親部','安親部','P3班','主教'],
+['吳玉華','安親部','安親部','P4班','主教'],
+['王藝蓉','安親部','安親部','P5班','主教']
+];
+
+function d(s){return new Date(s+'T00:00:00')}
+function f(s){const x=d(s);return `${x.getMonth()+1}/${x.getDate()}`}
+
+function startIndex(){
+  const n=new Date();n.setHours(0,0,0,0);
+  let i=HEREMAY_SCHEDULE_DATA.findIndex(r=>d(r[0])<=n&&n<=d(r[1]));
+  if(i<0)i=HEREMAY_SCHEDULE_DATA.findIndex(r=>d(r[0])>n);
+  return i<0?0:i
+}
+
+function render(){
+  let data=HEREMAY_SCHEDULE_DATA;
+  const si=startIndex();
+  if(range.value==='3')data=data.slice(si,si+3);
+  body.innerHTML=data.map(r=>`<tr class="${d(r[0])<=new Date()&&new Date()<=new Date(r[1]+'T23:59:59')?'current':''}">
+    <td>${f(r[0])}－${f(r[1])}</td>${r.slice(2).map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')
+}
+
+function fillWeeks(){
+  weekSelect.innerHTML='<option value="">請選擇週次</option>';
+  HEREMAY_SCHEDULE_DATA.forEach(r=>{
+    const op=document.createElement('option');
+    op.value=r[0]+'|'+r[1];
+    op.textContent=f(r[0])+'－'+f(r[1]);
+    weekSelect.appendChild(op)
+  })
+}
+
+function uniq(arr){return [...new Set(arr)]}
+function options(items, placeholder){
+  return `<option value="">${placeholder}</option>`+items.map(x=>`<option value="${x}">${x}</option>`).join('')
+}
+
+function personPicker(slotIndex, slotName, type){
+  const fixedDept=type.dept||'';
+  return `
+  <div class="slotCard" data-slot="${slotIndex}">
+    <strong>${slotName}</strong>
+    <div class="pickGrid">
+      <select class="dept" onchange="cascade(${slotIndex},'dept')">
+        ${options(uniq(PEOPLE.map(p=>p[1])), '部門')}
+      </select>
+      <select class="grade" onchange="cascade(${slotIndex},'grade')">
+        <option value="">年級</option>
+      </select>
+      <select class="cls" onchange="cascade(${slotIndex},'cls')">
+        <option value="">班級</option>
+      </select>
+      <select class="person" onchange="showPicked(${slotIndex})">
+        <option value="">姓名</option>
+      </select>
+    </div>
+    <div class="picked" id="picked-${slotIndex}">尚未選擇</div>
+  </div>`;
+}
+
+function renderBuilder(){
+  const t=TYPE_DEF[typeSelect.value],w=weekSelect.value;
+  if(!t||!w){
+    builder.className='builder empty';
+    builder.textContent='請先選擇「班表類型」與「週次」。';
+    return
+  }
+  const [s,e]=w.split('|');
+  builder.className='builder';
+  builder.innerHTML=`
+    <div style="margin-bottom:12px">
+      <strong style="font-size:18px;color:var(--deep)">${t.label}</strong>
+      <div style="color:var(--muted);font-weight:800;margin-top:4px">${f(s)}－${f(e)}｜${t.mode}排班</div>
+    </div>
+    <div class="slotGrid">
+      ${t.slots.map((x,i)=>personPicker(i,x,t)).join('')}
+    </div>
+    <div style="margin-top:14px">
+      <button class="btn" disabled>儲存草稿（下一階段）</button>
+    </div>`;
+
+  document.querySelectorAll('.slotCard').forEach((card,i)=>{
+    const dept=card.querySelector('.dept');
+    dept.value=t.dept||'';
+    cascade(i,'dept');
+  });
+}
+
+function getCard(i){return document.querySelector(`.slotCard[data-slot="${i}"]`)}
+
+function cascade(i,level){
+  const card=getCard(i); if(!card)return;
+  const dept=card.querySelector('.dept');
+  const grade=card.querySelector('.grade');
+  const cls=card.querySelector('.cls');
+  const person=card.querySelector('.person');
+
+  if(level==='dept'){
+    const rows=PEOPLE.filter(p=>!dept.value||p[1]===dept.value);
+    grade.innerHTML=options(uniq(rows.map(p=>p[2])),'年級');
+    cls.innerHTML='<option value="">班級</option>';
+    person.innerHTML='<option value="">姓名</option>';
+    document.getElementById(`picked-${i}`).textContent='尚未選擇';
+  }
+  if(level==='grade'){
+    const rows=PEOPLE.filter(p=>(!dept.value||p[1]===dept.value)&&(!grade.value||p[2]===grade.value));
+    cls.innerHTML=options(uniq(rows.map(p=>p[3])),'班級');
+    person.innerHTML='<option value="">姓名</option>';
+    document.getElementById(`picked-${i}`).textContent='尚未選擇';
+  }
+  if(level==='cls'){
+    const rows=PEOPLE.filter(p=>(!dept.value||p[1]===dept.value)&&(!grade.value||p[2]===grade.value)&&(!cls.value||p[3]===cls.value));
+    person.innerHTML=options(rows.map(p=>p[0]),'姓名');
+    document.getElementById(`picked-${i}`).textContent='尚未選擇';
+  }
+}
+
+function showPicked(i){
+  const card=getCard(i); if(!card)return;
+  const person=card.querySelector('.person').value;
+  const cls=card.querySelector('.cls').value;
+  const picked=document.getElementById(`picked-${i}`);
+  picked.textContent=person ? `${cls}｜${person}` : '尚未選擇';
+}
+
+range.onchange=render;
+typeSelect.onchange=renderBuilder;
+weekSelect.onchange=renderBuilder;
+fillWeeks();render();renderBuilder();
 </script>
 </body></html>
