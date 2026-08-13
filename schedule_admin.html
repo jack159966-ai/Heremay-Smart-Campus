@@ -23,7 +23,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 </head>
 <body><main class="app">
 <div class="mobileBlock"><h2>排班管理限電腦操作</h2><p>請改用電腦開啟主管工作台。</p><button class="btn" onclick="history.back()">返回</button></div>
-<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v1.4</h1><p>115學年度上學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button><button class="btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button></div></header>
+<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v1.4.1</h1><p>115學年度上學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button><button class="btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button></div></header>
 
 <section class="card">
 <h2>建立／調整班表</h2><p class="sub">人員名單與班表類型都改由排班中心 Apps Script 即時讀取；這一版仍不會寫入 Google Sheet。</p>
@@ -42,7 +42,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 <div class="tableWrap"><table><thead><tr><th rowspan="2">週次</th><th colspan="3">幼兒部早值</th><th colspan="3">幼兒部晚值</th><th colspan="2">掃地區域</th></tr><tr><th>A組</th><th>B組</th><th>AB組</th><th>A組</th><th>B組</th><th>AB組</th><th>走廊</th><th>樓梯</th></tr></thead><tbody id="body"></tbody></table></div>
 <div class="legend"><span>早值優先</span><span>同週早、晚值不得同人</span><span>一般輪值異動由主管發布</span></div>
 </section>
-<div class="footer">和美智慧校園｜主管排班管理 v1.4</div>
+<div class="footer">和美智慧校園｜主管排班管理 v1.4.1</div>
 </main>
 
 <script src="schedule_data.js"></script>
@@ -170,6 +170,11 @@ function receivePeople(data){
 
   PEOPLE_READY = true;
   updateCloudStatus();
+
+  // 人員主檔成功後，再讀班表類型，避免同時發出兩個 JSONP 請求。
+  if(!TYPES_READY){
+    loadScheduleTypes();
+  }
 
   if(typeSelect.value && weekSelect.value){
     renderBuilder();
@@ -313,6 +318,6 @@ function showPicked(i){
 range.onchange=render;
 typeSelect.onchange=renderBuilder;
 weekSelect.onchange=renderBuilder;
-fillWeeks();render();renderBuilder();loadPeople();loadScheduleTypes();
+fillWeeks();render();renderBuilder();loadPeople();
 </script>
 </body></html>
