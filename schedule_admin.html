@@ -19,11 +19,32 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 .tableWrap{overflow:auto;margin-top:14px;border:1px solid var(--line);border-radius:16px}table{border-collapse:collapse;width:100%;min-width:900px}th{background:var(--deep);color:#fff;padding:12px 9px}td{padding:11px 9px;border-bottom:1px solid #e2edf3;text-align:center;font-weight:750}tr.current td{background:#fff4d9}td:first-child{font-weight:900;color:var(--deep)}
 .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}.legend span{background:var(--soft);padding:8px 11px;border-radius:10px;font-weight:800}.footer{text-align:center;color:#6d8798;margin-top:16px;font-weight:700;font-size:13px}
 .mobileBlock{display:none}@media(max-width:540px){.app>*:not(.mobileBlock){display:none}.mobileBlock{display:block;background:#fff;border:2px solid var(--line);border-radius:24px;padding:30px 20px;text-align:center;margin-top:50px}}
+
+.monthWorkspace{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;align-items:start}
+.monthBoard{background:#fff;border:1px solid #cfe2ee;border-radius:16px;overflow:auto}
+.monthHead,.monthRow{display:grid;grid-template-columns:150px repeat(var(--slot-count),minmax(130px,1fr))}
+.monthHead{background:#174a70;color:#fff;font-weight:900}
+.monthHead>div,.monthRow>div{padding:12px;border-right:1px solid #dbe8ef}
+.monthRow{border-top:1px solid #dbe8ef}
+.weekCell{font-weight:900}
+.assignCell{min-height:68px;cursor:pointer}
+.assignCell:hover,.assignCell.selected{background:#eef8fd}
+.slotName{font-size:12px;color:#6f8798;margin-bottom:5px;font-weight:800}
+.personName{font-weight:900;color:#173f5f}
+.emptyText{color:#9aaebc;font-weight:800}
+.drawer{position:sticky;top:12px;background:#fff;border:1px solid #cfe2ee;border-radius:16px;padding:16px}
+.drawer h3{margin:0 0 6px}
+.drawer .pickerGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.drawer select{width:100%;padding:10px;border:1px solid #bfd7e5;border-radius:10px;background:#fff;font-weight:800}
+.drawer .picked{margin-top:12px;padding:10px;border-radius:10px;background:#eef7fb;font-weight:900}
+.recent{margin-top:14px;border-top:1px solid #e3edf3;padding-top:12px}
+.recentItem{padding:8px 10px;border-radius:9px;background:#f5f8fa;font-size:13px;margin-bottom:7px}
+@media(max-width:900px){.monthWorkspace{grid-template-columns:1fr}.drawer{position:static}.monthHead,.monthRow{min-width:760px}}
 </style>
 </head>
 <body><main class="app">
 <div class="mobileBlock"><h2>排班管理限電腦操作</h2><p>請改用電腦開啟主管工作台。</p><button class="btn" onclick="history.back()">返回</button></div>
-<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v1.5.6</h1><p>115學年度上學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button><button class="btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button></div></header>
+<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v1.7</h1><p>115學年度上學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button><button class="btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button></div></header>
 
 <section class="card">
 <h2>建立／調整班表</h2><p class="sub">人員名單與班表類型由排班中心 Apps Script 一次讀取；這一版仍不會寫入 Google Sheet。</p>
@@ -42,70 +63,56 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 <div class="tableWrap"><table><thead><tr><th rowspan="2">週次</th><th colspan="3">幼兒部早值</th><th colspan="3">幼兒部晚值</th><th colspan="2">掃地區域</th></tr><tr><th>A組</th><th>B組</th><th>AB組</th><th>A組</th><th>B組</th><th>AB組</th><th>走廊</th><th>樓梯</th></tr></thead><tbody id="body"></tbody></table></div>
 <div class="legend"><span>早值優先</span><span>同週早、晚值不得同人</span><span>一般輪值異動由主管發布</span></div>
 </section>
-<div class="footer">和美智慧校園｜主管排班管理 v1.5.6</div>
+<div class="footer">和美智慧校園｜主管排班管理 v1.7</div>
 </main>
 
 <script src="schedule_data.js"></script>
 <script>
-let TYPE_DEF = {};
+let TYPE_DEF={};
 
-const SCHEDULE_API = 'https://script.google.com/macros/s/AKfycbw-vNSfGNciRGnEC3rNTHk0qnZzZSD0m17WrhISxN2HD_YvO3JscLPdQPLcgr2fFYrz/exec';
+const SCHEDULE_API='https://script.google.com/macros/s/AKfycbw-vNSfGNciRGnEC3rNTHk0qnZzZSD0m17WrhISxN2HD_YvO3JscLPdQPLcgr2fFYrz/exec';
 
-const typeSelect = document.getElementById('typeSelect');
-const weekSelect = document.getElementById('weekSelect');
-const statusSelect = document.getElementById('statusSelect');
-const cloudStatus = document.getElementById('cloudStatus');
-const builder = document.getElementById('builder');
-const range = document.getElementById('range');
+const typeSelect=document.getElementById('typeSelect');
+const weekSelect=document.getElementById('weekSelect');
+const cloudStatus=document.getElementById('cloudStatus');
+const builder=document.getElementById('builder');
+const range=document.getElementById('range');
+const body=document.getElementById('body');
 
-
-let PEOPLE = [];
-let SCHEDULE_TYPES = [];
-
-let BOOTSTRAP_READY = false;
+let PEOPLE=[];
+let SCHEDULE_TYPES=[];
+let BOOTSTRAP_READY=false;
 
 function loadBootstrap(){
   cloudStatus.className='cloudStatus';
-  cloudStatus.textContent='正在連線排班中心資料…';
-
-  const callbackName='scheduleBootstrapCallback_'+Date.now();
-
-  window[callbackName]=function(data){
-    try{
-      receiveBootstrap(data);
-    }finally{
-      try{ delete window[callbackName]; }catch(e){ window[callbackName]=undefined; }
-      const old=document.getElementById('bootstrapApiJsonp');
-      if(old) old.remove();
-    }
-  };
+  cloudStatus.textContent='排班中心請求已送出…';
 
   const old=document.getElementById('bootstrapApiJsonp');
   if(old) old.remove();
 
   const script=document.createElement('script');
   script.id='bootstrapApiJsonp';
-  script.async=true;
-  script.src=SCHEDULE_API
-    +'?action=bootstrap'
-    +'&callback='+encodeURIComponent(callbackName)
-    +'&t='+Date.now();
+  script.src=SCHEDULE_API+'?action=bootstrap&callback=receiveBootstrap&t='+Date.now();
 
-  script.onerror=()=>{
-    try{ delete window[callbackName]; }catch(e){ window[callbackName]=undefined; }
+  script.onload=function(){
+    if(!BOOTSTRAP_READY){
+      cloudStatus.className='cloudStatus';
+      cloudStatus.textContent='排班中心已回應，正在接收資料…';
+    }
+  };
+
+  script.onerror=function(){
     setBootstrapError('無法載入排班中心資料');
   };
 
   document.head.appendChild(script);
 
-  setTimeout(()=>{
+  setTimeout(function(){
     if(!BOOTSTRAP_READY){
-      try{ delete window[callbackName]; }catch(e){ window[callbackName]=undefined; }
       setBootstrapError('排班中心回應逾時');
     }
   },12000);
 }
-
 
 function receiveBootstrap(data){
   try{
@@ -114,165 +121,229 @@ function receiveBootstrap(data){
       return;
     }
 
-    PEOPLE = data.people.map(p=>[
-      String(p.name||'').trim(),
-      String(p.department||'').trim(),
-      String(p.grade||'').trim(),
-      String(p.className||'').trim(),
-      String(p.title||'').trim()
-    ]).filter(p=>p[0]);
+    PEOPLE=data.people.map(function(p){
+      return [
+        String(p.name||'').trim(),
+        String(p.department||'').trim(),
+        String(p.grade||'').trim(),
+        String(p.className||'').trim(),
+        String(p.title||'').trim()
+      ];
+    }).filter(function(p){return p[0];});
 
-    SCHEDULE_TYPES = data.types;
-    TYPE_DEF = {};
-
-    if(!typeSelect){
-      throw new Error('找不到 typeSelect 元件');
-    }
-    if(!cloudStatus){
-      throw new Error('找不到 cloudStatus 元件');
-    }
-    if(!builder){
-      throw new Error('找不到 builder 元件');
-    }
-
+    SCHEDULE_TYPES=data.types;
+    TYPE_DEF={};
     typeSelect.innerHTML='<option value="">請選擇</option>';
 
-    SCHEDULE_TYPES.forEach(t=>{
+    SCHEDULE_TYPES.forEach(function(t){
       const code=String(t.code||'').trim();
       const name=String(t.name||'').trim();
-      if(!code || !name) return;
+      if(!code || !name)return;
 
-      const positions=Array.isArray(t.positions) ? t.positions.filter(Boolean) : [];
-      const count=Number(t.assignmentCount || t.weeklyCount || positions.length || 1);
+      const positions=Array.isArray(t.positions)?t.positions.filter(Boolean):[];
+      const count=Number(t.assignmentCount||t.weeklyCount||positions.length||1);
 
       TYPE_DEF[code]={
         label:name,
-        name:name,
-        dept:String(t.department||'').trim(),
-        level:String(t.rotationLevel||'老師').trim(),
-        count:Number.isFinite(count) && count>0 ? count : 1,
-        slots:positions.length ? positions : Array.from(
-          {length:(Number.isFinite(count) && count>0 ? count : 1)},
-          (_,i)=>`位置${i+1}`
+        slots:positions.length?positions:Array.from(
+          {length:(Number.isFinite(count)&&count>0?count:1)},
+          function(_,i){return '位置'+(i+1);}
         ),
         mode:String(t.mode||'通用').trim(),
+        dept:String(t.department||'').trim(),
+        unit:String(t.rotationLevel||'老師').trim(),
         conflictGroup:String(t.conflictGroup||'').trim(),
         qualificationRule:String(t.qualificationRule||'').trim(),
         continueRotation:!!t.continueRotation,
         supervisorOverride:!!t.supervisorOverride
       };
 
-      const opt=document.createElement('option');
-      opt.value=code;
-      opt.textContent=name;
-      typeSelect.appendChild(opt);
+      const op=document.createElement('option');
+      op.value=code;
+      op.textContent=name;
+      typeSelect.appendChild(op);
     });
 
-    BOOTSTRAP_READY = true;
+    BOOTSTRAP_READY=true;
     cloudStatus.className='cloudStatus ok';
-    cloudStatus.textContent=`排班中心連線成功｜${PEOPLE.length} 位啟用人員｜${SCHEDULE_TYPES.length} 種啟用班表`;
+    cloudStatus.textContent='排班中心連線成功｜'+PEOPLE.length+' 位啟用人員｜'+SCHEDULE_TYPES.length+' 種啟用班表';
 
     renderBuilder();
-
   }catch(err){
-    setBootstrapError('接收資料時發生錯誤：'+(err && err.message ? err.message : String(err)));
+    setBootstrapError('接收資料時發生錯誤：'+(err&&err.message?err.message:String(err)));
   }
 }
 
 function setBootstrapError(msg){
-  if(BOOTSTRAP_READY) return;
-
+  if(BOOTSTRAP_READY)return;
   PEOPLE=[];
   SCHEDULE_TYPES=[];
   TYPE_DEF={};
   typeSelect.innerHTML='<option value="">班表資料讀取失敗</option>';
-
   cloudStatus.className='cloudStatus err';
   cloudStatus.textContent='排班中心連線失敗｜'+msg;
-  renderBuilder();
+}
+
+function d(s){return new Date(s+'T00:00:00')}
+function f(s){const x=d(s);return `${x.getMonth()+1}/${x.getDate()}`}
+
+function startIndex(){
+  const n=new Date();n.setHours(0,0,0,0);
+  let i=HEREMAY_SCHEDULE_DATA.findIndex(r=>d(r[0])<=n&&n<=d(r[1]));
+  if(i<0)i=HEREMAY_SCHEDULE_DATA.findIndex(r=>d(r[0])>n);
+  return i<0?0:i
+}
+
+function render(){
+  let data=HEREMAY_SCHEDULE_DATA;
+  const si=startIndex();
+  if(range.value==='3')data=data.slice(si,si+3);
+  body.innerHTML=data.map(r=>`<tr class="${d(r[0])<=new Date()&&new Date()<=new Date(r[1]+'T23:59:59')?'current':''}">
+    <td>${f(r[0])}－${f(r[1])}</td>${r.slice(2).map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')
+}
+
+function fillWeeks(){
+  weekSelect.innerHTML='<option value="">請選擇週次</option>';
+  HEREMAY_SCHEDULE_DATA.forEach(r=>{
+    const op=document.createElement('option');
+    op.value=r[0]+'|'+r[1];
+    op.textContent=f(r[0])+'－'+f(r[1]);
+    weekSelect.appendChild(op)
+  })
+}
+
+function uniq(arr){return [...new Set(arr)]}
+function options(items, placeholder){
+  return `<option value="">${placeholder}</option>`+items.map(x=>`<option value="${x}">${x}</option>`).join('')
+}
+
+
+let CURRENT_CELL=null;
+let MONTH_ASSIGNMENTS={};
+
+function monthKey(code,week,slot){return code+'__'+week+'__'+slot;}
+
+function buildWeeks(centerValue){
+  const all=[...weekSelect.options].map(o=>o.value).filter(Boolean);
+  let idx=all.indexOf(centerValue); if(idx<0)idx=0;
+  const s=Math.max(0,idx-2);
+  return all.slice(s,s+5);
+}
+
+function personPicker(prefix){
+  return `<div class="pickerGrid">
+    <select id="${prefix}_dept"></select><select id="${prefix}_grade"></select>
+    <select id="${prefix}_class"></select><select id="${prefix}_name"></select>
+  </div><div id="${prefix}_picked" class="picked">尚未選擇</div>`;
 }
 
 function renderBuilder(){
-  const t=TYPE_DEF[typeSelect.value],w=weekSelect.value;
-  if(!t||!w){
-    builder.className='builder empty';
-    builder.textContent='請先選擇「班表類型」與「週次」。';
-    return
+  const code=typeSelect.value, selectedWeek=weekSelect.value, t=TYPE_DEF[code];
+  if(!code||!selectedWeek||!t){
+    builder.className='builder empty'; builder.textContent='請先選擇「班表類型」與「週次」。'; return;
   }
   if(!BOOTSTRAP_READY){
-    builder.className='builder empty';
-    builder.textContent='排班中心資料尚未載入，請先確認上方連線狀態。';
-    return
+    builder.className='builder empty'; builder.textContent='排班中心資料尚未載入，請先確認上方連線狀態。'; return;
   }
-  const [s,e]=w.split('|');
+  const weeks=buildWeeks(selectedWeek);
+  const slots=(t.slots&&t.slots.length)?t.slots:['位置1'];
   builder.className='builder';
   builder.innerHTML=`
-    <div style="margin-bottom:12px">
-      <strong style="font-size:18px;color:var(--deep)">${t.label}</strong>
-      <div style="color:var(--muted);font-weight:800;margin-top:4px">${f(s)}－${f(e)}｜${t.mode}排班</div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:21px;font-weight:900;color:#174a70">${t.label||code}</div>
+      <div style="color:#6d8798;margin-top:4px">顯示 ${weeks.length} 週｜點班表格子後，右側選人</div>
     </div>
-    <div class="slotGrid">
-      ${t.slots.map((x,i)=>personPicker(i,x,t)).join('')}
-    </div>
-    <div style="margin-top:14px">
-      <button class="btn" disabled>儲存草稿（下一階段）</button>
+    <div class="monthWorkspace">
+      <div class="monthBoard" style="--slot-count:${slots.length}">
+        <div class="monthHead"><div>週次</div>${slots.map(s=>`<div>${s}</div>`).join('')}</div>
+        ${weeks.map(w=>`<div class="monthRow">
+          <div class="weekCell">${w}${w===selectedWeek?'<div style="font-size:12px;color:#2f86b4;margin-top:4px">目前排班週</div>':''}</div>
+          ${slots.map(s=>{
+            const a=MONTH_ASSIGNMENTS[monthKey(code,w,s)];
+            return `<div class="assignCell" data-code="${code}" data-week="${w}" data-slot="${s}">
+              <div class="slotName">${s}</div>
+              ${a?`<div class="personName">${a.className}｜${a.name}</div>`:`<div class="emptyText">點此安排</div>`}
+            </div>`;
+          }).join('')}
+        </div>`).join('')}
+      </div>
+      <aside class="drawer">
+        <h3>安排人員</h3>
+        <div id="drawerContext" style="color:#617b8e;margin-bottom:14px">請先點左側班表格子。</div>
+        <div id="drawerPicker" style="display:none">
+          ${personPicker('drawer')}
+          <div class="recent"><b>近期輪值參考</b><div id="recentList" style="margin-top:8px"></div></div>
+          <div style="font-size:13px;color:#71899a;margin-top:12px">此版只測試操作，不會寫入 Google Sheet。</div>
+        </div>
+      </aside>
     </div>`;
-
-  document.querySelectorAll('.slotCard').forEach((card,i)=>{
-    const dept=card.querySelector('.dept');
-    dept.value=t.dept||'';
-    cascade(i,'dept');
-  });
+  builder.querySelectorAll('.assignCell').forEach(el=>el.addEventListener('click',()=>openDrawer(el)));
 }
 
-function getCard(i){return document.querySelector(`.slotCard[data-slot="${i}"]`)}
+function openDrawer(el){
+  if(CURRENT_CELL)CURRENT_CELL.classList.remove('selected');
+  CURRENT_CELL=el; el.classList.add('selected');
+  const code=el.dataset.code, week=el.dataset.week, slot=el.dataset.slot;
+  document.getElementById('drawerContext').textContent=week+'｜'+slot;
+  document.getElementById('drawerPicker').style.display='block';
+  setupCascade('drawer',code,week,slot);
+  renderRecent(code,week,slot);
+}
 
-function cascade(i,level){
-  const card=getCard(i); if(!card)return;
-  const dept=card.querySelector('.dept');
-  const grade=card.querySelector('.grade');
-  const cls=card.querySelector('.cls');
-  const person=card.querySelector('.person');
-
-  if(level==='dept'){
-    const rows=PEOPLE.filter(p=>!dept.value||p[1]===dept.value);
-    grade.innerHTML=options(uniq(rows.map(p=>p[2])),'年級');
-    cls.innerHTML='<option value="">班級</option>';
-    person.innerHTML='<option value="">姓名</option>';
-    document.getElementById(`picked-${i}`).textContent='尚未選擇';
-  }
-  if(level==='grade'){
-    const rows=PEOPLE.filter(p=>(!dept.value||p[1]===dept.value)&&(!grade.value||p[2]===grade.value));
-    cls.innerHTML=options(uniq(rows.map(p=>p[3])),'班級');
-    person.innerHTML='<option value="">姓名</option>';
-    document.getElementById(`picked-${i}`).textContent='尚未選擇';
-  }
-  if(level==='cls'){
+function setupCascade(prefix,code,week,slot){
+  const dept=document.getElementById(prefix+'_dept');
+  const grade=document.getElementById(prefix+'_grade');
+  const cls=document.getElementById(prefix+'_class');
+  const name=document.getElementById(prefix+'_name');
+  const picked=document.getElementById(prefix+'_picked');
+  const type=TYPE_DEF[code]||{};
+  function fill(sel,items,ph){sel.innerHTML='<option value="">'+ph+'</option>'+uniq(items).map(v=>`<option>${v}</option>`).join('');}
+  fill(dept,PEOPLE.map(p=>p[1]),'部門');
+  if(type.dept&&[...dept.options].some(o=>o.value===type.dept))dept.value=type.dept;
+  function g(){fill(grade,PEOPLE.filter(p=>!dept.value||p[1]===dept.value).map(p=>p[2]),'年級');c();}
+  function c(){fill(cls,PEOPLE.filter(p=>(!dept.value||p[1]===dept.value)&&(!grade.value||p[2]===grade.value)).map(p=>p[3]),'班級');n();}
+  function n(){
     const rows=PEOPLE.filter(p=>(!dept.value||p[1]===dept.value)&&(!grade.value||p[2]===grade.value)&&(!cls.value||p[3]===cls.value));
-    person.innerHTML=options(rows.map(p=>p[0]),'姓名');
-    document.getElementById(`picked-${i}`).textContent='尚未選擇';
+    name.innerHTML='<option value="">姓名</option>'+rows.map(p=>`<option value="${p[0]}">${p[0]}</option>`).join('');
+    show();
   }
+  function show(){
+    const p=PEOPLE.find(x=>x[0]===name.value);
+    if(!p){picked.textContent='尚未選擇';return;}
+    picked.textContent=p[3]+'｜'+p[0];
+    MONTH_ASSIGNMENTS[monthKey(code,week,slot)]={name:p[0],department:p[1],grade:p[2],className:p[3],title:p[4]};
+    renderBuilder();
+    const target=[...builder.querySelectorAll('.assignCell')].find(x=>x.dataset.week===week&&x.dataset.slot===slot);
+    if(target)openDrawer(target);
+  }
+  dept.onchange=g;grade.onchange=c;cls.onchange=n;name.onchange=show;g();
 }
 
-function showPicked(i){
-  const card=getCard(i); if(!card)return;
-  const person=card.querySelector('.person').value;
-  const cls=card.querySelector('.cls').value;
-  const picked=document.getElementById(`picked-${i}`);
-  picked.textContent=person ? `${cls}｜${person}` : '尚未選擇';
+function renderRecent(code,week,slot){
+  const list=document.getElementById('recentList');
+  const arr=[];
+  Object.entries(MONTH_ASSIGNMENTS).forEach(([k,v])=>{
+    if(!k.startsWith(code+'__'))return;
+    const parts=k.split('__');
+    if(parts[1]===week&&parts[2]===slot)return;
+    arr.push({week:parts[1],slot:parts[2],...v});
+  });
+  list.innerHTML=arr.length?arr.slice(-8).reverse().map(x=>`<div class="recentItem"><b>${x.week}</b>｜${x.slot}<br>${x.className}｜${x.name}</div>`).join(''):'<div class="recentItem">目前尚無本頁面已安排的近期紀錄。</div>';
 }
 
-if(range) range.onchange=render;
-if(typeSelect) typeSelect.onchange=renderBuilder;
-if(weekSelect) weekSelect.onchange=renderBuilder;
-
+if(range)range.onchange=render;
+if(typeSelect)typeSelect.onchange=renderBuilder;
+if(weekSelect)weekSelect.onchange=renderBuilder;
 window.addEventListener('error',function(e){
-  if(cloudStatus && !BOOTSTRAP_READY){
+  if(cloudStatus&&!BOOTSTRAP_READY){
     cloudStatus.className='cloudStatus err';
     cloudStatus.textContent='頁面程式錯誤｜'+e.message;
   }
 });
 
-fillWeeks();render();renderBuilder();loadBootstrap();
+fillWeeks();
+render();
+renderBuilder();
+loadBootstrap();
 </script>
 </body></html>
