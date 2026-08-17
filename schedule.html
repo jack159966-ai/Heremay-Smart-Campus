@@ -16,15 +16,19 @@
 </head>
 <body><main class="app">
   <header class="head"><div class="icon">🗓️</div><div><h1>排班表</h1><p>本週與未來兩週</p></div><button class="back" onclick="history.back()">返回</button></header>
-  <nav class="tabs" id="tabs"></nav><div class="notice">班表以園方發布內容為準；同仁請假時，依下一週班表自行聯繫遞補。</div><section class="weeks" id="weeks"></section>
+  <nav class="tabs" id="tabs"></nav><div class="notice">班表以園方發布內容為準；同仁請假時，依下一週班表自行聯繫遞補。<br><small id="syncState">正在讀取排班資料…</small></div><section class="weeks" id="weeks"></section>
   <div class="footer">和美智慧校園｜115學年度上學期排班中心</div>
 </main><script src="schedule_data.js"></script><script>
 const types={early:{label:'幼兒部早值',slots:['A組','B組','AB組'],idx:[2,3,4]},late:{label:'幼兒部晚值',slots:['A組','B組','AB組'],idx:[5,6,7]},clean:{label:'掃地區域',slots:['走廊','樓梯'],idx:[8,9]},after:{label:'安親部晚值',slots:['晚值'],idx:[]}};
-let active='early';
+const SCHEDULE_SERVICE_URL='https://script.google.com/macros/s/AKfycbw-vNSfGNciRGnEC3rNTHk0qnZzZSD0m17WrhISxN2HD_YvO3JscLPdQPLcgr2fFYrz/exec';
+let active='early',scheduleRows=Array.isArray(window.HEREMAY_SCHEDULE_DATA)?window.HEREMAY_SCHEDULE_DATA:[];
 function localDate(s){return new Date(s+'T00:00:00')}
 function fmt(s){const d=localDate(s);return `${d.getMonth()+1}/${d.getDate()}`}
-function visibleWeeks(){const now=new Date();now.setHours(0,0,0,0);let i=HEREMAY_SCHEDULE_DATA.findIndex(r=>localDate(r[0])<=now&&now<=localDate(r[1]));if(i<0)i=HEREMAY_SCHEDULE_DATA.findIndex(r=>localDate(r[0])>now);if(i<0)i=Math.max(0,HEREMAY_SCHEDULE_DATA.length-3);return HEREMAY_SCHEDULE_DATA.slice(i,i+3)}
+function visibleWeeks(){const now=new Date();now.setHours(0,0,0,0);let i=scheduleRows.findIndex(r=>localDate(r[0])<=now&&now<=localDate(r[1]));if(i<0)i=scheduleRows.findIndex(r=>localDate(r[0])>now);if(i<0)i=Math.max(0,scheduleRows.length-3);return scheduleRows.slice(i,i+3)}
 function renderTabs(){tabs.innerHTML=Object.entries(types).map(([k,t])=>`<button class="tab ${k===active?'active':''}" onclick="active='${k}';renderTabs();renderWeeks()">${t.label}</button>`).join('')}
-function renderWeeks(){const t=types[active],data=visibleWeeks();weeks.innerHTML=data.map((r,i)=>{const rows=t.idx.length?t.idx.map((x,n)=>`<div class="duty"><small>${t.slots[n]}</small><strong>${r[x]}</strong></div>`).join(''):`<div class="empty">這項班表尚未匯入，發布後會在此顯示。</div>`;return `<article class="week ${i===0?'current':''}"><h2>${fmt(r[0])}－${fmt(r[1])}<span class="badge">${i===0?'本週':`未來第 ${i} 週`}</span></h2><div class="rows">${rows}</div></article>`}).join('')}
-renderTabs();renderWeeks();
+function renderWeeks(){const t=types[active],data=visibleWeeks();weeks.innerHTML=data.length?data.map((r,i)=>{const rows=t.idx.length?t.idx.map((x,n)=>`<div class="duty"><small>${t.slots[n]}</small><strong>${r[x]||'尚未安排'}</strong></div>`).join(''):`<div class="empty">這項班表尚未匯入，發布後會在此顯示。</div>`;return `<article class="week ${i===0?'current':''}"><h2>${fmt(r[0])}－${fmt(r[1])}<span class="badge">${i===0?'本週':`未來第 ${i} 週`}</span></h2><div class="rows">${rows}</div></article>`}).join(''):'<article class="week"><div class="empty">目前沒有已發布的班表。</div></article>'}
+function jsonp(action,params={}){return new Promise((resolve,reject)=>{const callback='scheduleCb_'+Date.now()+'_'+Math.random().toString(36).slice(2),script=document.createElement('script'),timer=setTimeout(()=>finish(new Error('同步逾時')),12000);function finish(error,data){clearTimeout(timer);delete window[callback];script.remove();error?reject(error):resolve(data)}window[callback]=data=>finish(null,data);script.onerror=()=>finish(new Error('無法連線排班資料庫'));const query=new URLSearchParams({...params,action,callback});script.src=SCHEDULE_SERVICE_URL+'?'+query.toString();document.head.appendChild(script)})}
+function cloudToRows(items){const map=new Map(),indexes={'幼兒部早值|A組':2,'幼兒部早值|B組':3,'幼兒部早值|AB組':4,'幼兒部晚值|A組':5,'幼兒部晚值|B組':6,'幼兒部晚值|AB組':7,'掃地區域|走廊':8,'掃地區域|樓梯':9};items.forEach(item=>{const key=item.weekStart+'|'+item.weekEnd;if(!map.has(key))map.set(key,[item.weekStart,item.weekEnd,'','','','','','','','']);const index=indexes[item.type+'|'+item.slot];if(index!=null)map.get(key)[index]=item.assignee||''});return [...map.values()].sort((a,b)=>a[0].localeCompare(b[0]))}
+async function syncCloud(){try{const result=await jsonp('getPublishedSchedules',{term:'115學年度上學期'});if(!result||!result.ok)throw new Error(result?.message||'同步失敗');const rows=cloudToRows(result.schedules||[]);if(rows.length){scheduleRows=rows;renderWeeks()}syncState.textContent='✓ 已同步園方最新發布班表'}catch(error){console.warn(error);syncState.textContent='目前顯示裝置內班表；稍後重新開啟會再次同步'}}
+renderTabs();renderWeeks();syncCloud();
 </script></body></html>

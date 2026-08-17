@@ -6,7 +6,7 @@
 <style>
 :root{--blue:#317fa9;--deep:#173f61;--line:#cde2ef;--soft:#eff8fd;--muted:#668498}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei",sans-serif;background:#edf7fc;color:#263b49}
-.app{width:min(1200px,100%);margin:auto;padding:22px}.head,.card{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 8px 24px #2b6d9120}
+.app{width:min(1720px,calc(100% - 20px));margin:auto;padding:16px 10px}.head,.card{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 8px 24px #2b6d9120}
 .head{padding:20px 24px;display:flex;align-items:center;gap:14px}.head h1{margin:0;color:var(--deep)}.head p{margin:5px 0 0;color:#658399;font-weight:700}
 .actions{margin-left:auto;display:flex;gap:8px}.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:900;cursor:pointer;background:var(--blue);color:#fff}
 .btn.secondary{background:var(--soft);color:var(--deep);border:1px solid var(--line)}.btn:disabled{opacity:.45;cursor:not-allowed}
@@ -20,13 +20,13 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}.legend span{background:var(--soft);padding:8px 11px;border-radius:10px;font-weight:800}.footer{text-align:center;color:#6d8798;margin-top:16px;font-weight:700;font-size:13px}
 .mobileBlock{display:none}@media(max-width:540px){.app>*:not(.mobileBlock){display:none}.mobileBlock{display:block;background:#fff;border:2px solid var(--line);border-radius:24px;padding:30px 20px;text-align:center;margin-top:50px}}
 
-.monthWorkspace{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;align-items:start}
+.monthWorkspace{display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:16px;align-items:start}
 .monthBoard{background:#fff;border:1px solid #cfe2ee;border-radius:16px;overflow:auto}
-.monthHead,.monthRow{display:grid;grid-template-columns:150px repeat(var(--slot-count),minmax(130px,1fr))}
+.monthHead,.monthRow{display:grid;grid-template-columns:135px repeat(var(--slot-count),minmax(135px,1fr))}
 .monthHead{background:#174a70;color:#fff;font-weight:900}
 .monthHead>div,.monthRow>div{padding:12px;border-right:1px solid #dbe8ef}
 .monthRow{border-top:1px solid #dbe8ef}
-.weekCell{font-weight:900}
+.weekCell{font-weight:900;text-align:center;padding-left:6px!important;padding-right:6px!important}
 .assignCell{min-height:68px;cursor:pointer}
 .assignCell:hover,.assignCell.selected{background:#eef8fd}
 .slotName{font-size:12px;color:#6f8798;margin-bottom:5px;font-weight:800}
@@ -37,33 +37,88 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 .drawer .pickerGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .drawer select{width:100%;padding:10px;border:1px solid #bfd7e5;border-radius:10px;background:#fff;font-weight:800}
 .drawer .picked{margin-top:12px;padding:10px;border-radius:10px;background:#eef7fb;font-weight:900}
-.recent{margin-top:14px;border-top:1px solid #e3edf3;padding-top:12px}
-.recentItem{padding:8px 10px;border-radius:9px;background:#f5f8fa;font-size:13px;margin-bottom:7px}
+.semesterBar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}.semesterBar select{padding:9px 12px;border:1px solid #bfd7e5;border-radius:10px;background:#fff;font-weight:800}.candidateHint{margin-top:12px;padding:10px;border-radius:10px;background:#f5f8fa;color:#58748a;font-size:13px;line-height:1.55}
 @media(max-width:900px){.monthWorkspace{grid-template-columns:1fr}.drawer{position:static}.monthHead,.monthRow{min-width:760px}}
+
+.statsPanel{margin-top:18px;border-top:1px solid #e1ebf1;padding-top:14px}
+.statsPanel h4{margin:0 0 10px;color:#315a75;font-size:16px}
+.gradeStats{margin-bottom:14px}.gradeStatsTitle{font-weight:900;color:#174a70;margin-bottom:7px}
+.statsList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.statsItem{display:block;padding:7px 8px;border-radius:9px;background:#f5f8fa;font-size:12px;line-height:1.35}
+.statsItem.zero{background:#fff7df}.statsItem .who{font-weight:900;color:#274e68;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.statsItem .meta{margin-top:3px;color:#6f8798}.statsItem .count{font-weight:900;color:#174a70}
+.statsSummary{font-size:12px;color:#6f8798;margin-bottom:10px}
+.roleLabel{font-size:12px;font-weight:900;color:#547287;margin:8px 0 5px}
+@media(min-width:1500px){.statsList{grid-template-columns:repeat(2,minmax(0,1fr))}.monthWorkspace{grid-template-columns:minmax(0,1fr) 440px}}
+
+.latePreviewPanel{margin-top:16px;border:1px solid #cde2ef;border-radius:16px;background:#f9fcfe;padding:16px}
+.latePreviewPanel h3{margin:0 0 6px;color:#173f61}
+.latePreviewPanel .hint{color:#668498;font-size:13px;font-weight:700;line-height:1.6;margin-bottom:12px}
+.lateStartGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.lateStartGrid .field{background:#fff;border:1px solid #dbe8ef;border-radius:12px;padding:10px}
+.latePreviewActions{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.latePreviewStatus{font-weight:900;color:#668498}
+.latePreviewStatus.ok{color:#256e4c}.latePreviewStatus.err{color:#a33}
+.autoTag{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;background:#eaf7f0;color:#256e4c;font-size:11px;font-weight:900}
+.skipNote{margin-top:4px;color:#a26b16;font-size:11px;font-weight:800;line-height:1.4}
+@media(max-width:900px){.lateStartGrid{grid-template-columns:1fr}}
+
+.integratedStats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.integratedStatsBox{border:1px solid #dbe8ef;border-radius:14px;padding:12px;background:#fbfdfe}
+.integratedStatsBox h4{margin:0 0 8px;color:#174a70;font-size:15px}
+.integratedStatsBox .statsList{grid-template-columns:1fr}
+.integratedStatsBox .gradeStats{margin-bottom:10px}
+.integratedStatsBox .gradeStatsTitle{font-size:13px}
+.integratedStatsBox .roleLabel{font-size:11px}
+@media(max-width:1200px){.integratedStats{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body><main class="app">
 <div class="mobileBlock"><h2>排班管理限電腦操作</h2><p>請改用電腦開啟主管工作台。</p><button class="btn" onclick="history.back()">返回</button></div>
-<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v1.7</h1><p>115學年度上學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button><button class="btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button></div></header>
+<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v2.8</h1><p>115學年度上學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button><button class="btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button></div></header>
 
 <section class="card">
-<h2>建立／調整班表</h2><p class="sub">人員名單與班表類型由排班中心 Apps Script 一次讀取；這一版仍不會寫入 Google Sheet。</p>
+<h2>建立／調整班表</h2><p class="sub">人員名單與班表類型由排班中心 Apps Script 讀取；早晚值會一次產生整學期草稿，主管確認後一次固定。</p>
 <div class="formGrid">
-<div class="field"><label>① 班表類型</label><select id="typeSelect"><option value="">請選擇班表</option><option value="KINDER_EARLY">幼兒部早值</option><option value="KINDER_LATE">幼兒部晚值</option><option value="AFTER_DUTY">安親部晚值</option><option value="CLEANING">掃地區域</option><option value="FB_POST">粉專投稿</option><option value="MORNING_ACTIVITY">晨間遊戲區</option><option value="MORNING_HOST">晨間活動主持</option></select></div>
+<div class="field"><label>① 班表類型</label><select id="typeSelect"><option value="">請選擇班表</option><option value="KINDER_EARLY">幼兒部早、晚值</option><option value="AFTER_DUTY">安親部晚值</option><option value="CLEANING">掃地區域</option><option value="FB_POST">粉專投稿</option><option value="MORNING_ACTIVITY">晨間遊戲區</option><option value="MORNING_HOST">晨間活動主持</option></select></div>
 <div class="field"><label>② 週次</label><select id="weekSelect"><option value="">請選擇週次</option></select></div>
 <div class="field"><label>③ 狀態</label><select disabled><option>草稿</option></select></div>
 </div>
 <div class="stageBar"><span class="stage active">選班表</span><span class="stage">選週次</span><span class="stage">安排人員／單位</span><span class="stage">儲存草稿</span><span class="stage">發布</span></div>
 <div id="cloudStatus" class="cloudStatus">正在連線排班中心資料…</div>
 <div id="builder" class="builder empty">請先選擇「班表類型」與「週次」。</div>
+
+
+<div id="earlyPreviewPanel" class="latePreviewPanel" style="display:none">
+  <h3>早晚值整學期整合排班</h3>
+  <div class="hint">
+    系統會先完成早值公平排班，再直接用同一份早值結果推演晚值。
+    主管只需要確認一次，最後一次固定早值 78 筆＋晚值 78 筆，共 156 筆。
+  </div>
+  <div class="lateStartGrid">
+    <div class="field"><label>早值主教組起點</label><select id="earlyStartA"><option value="">請選擇</option></select></div>
+    <div class="field"><label>早值助教組起點</label><select id="earlyStartB"><option value="">請選擇</option></select></div>
+    <div class="field"><label>早值綜合組起點</label><select id="earlyStartAB"><option value="">請選擇</option></select></div>
+  </div>
+  <div class="latePreviewActions">
+    <button id="earlyPreviewBtn" class="btn" type="button">產生早晚值整學期草稿</button>
+    <button id="earlyFixBtn" class="btn secondary" type="button" disabled>固定早晚值</button>
+    <span id="earlyPreviewStatus" class="latePreviewStatus">尚未產生</span>
+  </div>
+</div>
+
+<div id="latePreviewPanel" class="latePreviewPanel" style="display:none">
+  <h3>晚值已併入早晚值整合排班</h3>
+  <div class="hint">
+    晚值現在由系統依早值結果自動推演，不再單獨產生或固定。
+    請切換到「幼兒部早值」，使用「產生早晚值整學期草稿」與「固定早晚值」。
+  </div>
+</div>
+
 </section>
 
-<section class="card">
-<div><label>顯示範圍 <select id="range"><option value="all">整學期</option><option value="3">本週起三週</option></select></label></div>
-<div class="tableWrap"><table><thead><tr><th rowspan="2">週次</th><th colspan="3">幼兒部早值</th><th colspan="3">幼兒部晚值</th><th colspan="2">掃地區域</th></tr><tr><th>A組</th><th>B組</th><th>AB組</th><th>A組</th><th>B組</th><th>AB組</th><th>走廊</th><th>樓梯</th></tr></thead><tbody id="body"></tbody></table></div>
-<div class="legend"><span>早值優先</span><span>同週早、晚值不得同人</span><span>一般輪值異動由主管發布</span></div>
-</section>
-<div class="footer">和美智慧校園｜主管排班管理 v1.7</div>
+<div class="footer">和美智慧校園｜主管排班管理 v2.8</div>
 </main>
 
 <script src="schedule_data.js"></script>
@@ -82,6 +137,20 @@ const body=document.getElementById('body');
 let PEOPLE=[];
 let SCHEDULE_TYPES=[];
 let BOOTSTRAP_READY=false;
+let EARLY_SEMESTER_PREVIEW=null;
+let EARLY_PREVIEW_READY=false;
+let LATE_SEMESTER_PREVIEW=null;
+let LATE_PREVIEW_READY=false;
+
+const earlyPreviewPanel=document.getElementById('earlyPreviewPanel');
+const earlyStartA=document.getElementById('earlyStartA');
+const earlyStartB=document.getElementById('earlyStartB');
+const earlyStartAB=document.getElementById('earlyStartAB');
+const earlyPreviewBtn=document.getElementById('earlyPreviewBtn');
+const earlyFixBtn=document.getElementById('earlyFixBtn');
+const earlyPreviewStatus=document.getElementById('earlyPreviewStatus');
+
+const latePreviewPanel=document.getElementById('latePreviewPanel');
 
 function loadBootstrap(){
   cloudStatus.className='cloudStatus';
@@ -158,16 +227,22 @@ function receiveBootstrap(data){
         supervisorOverride:!!t.supervisorOverride
       };
 
-      const op=document.createElement('option');
-      op.value=code;
-      op.textContent=name;
-      typeSelect.appendChild(op);
+      // 早、晚值已整合成一個主管操作項目。
+      // KINDER_LATE 仍保留 TYPE_DEF 供主表資料使用，但不另顯示選項。
+      if(code!=='KINDER_LATE'){
+        const op=document.createElement('option');
+        op.value=code;
+        op.textContent=(code==='KINDER_EARLY')?'幼兒部早、晚值':name;
+        typeSelect.appendChild(op);
+      }
     });
 
     BOOTSTRAP_READY=true;
     cloudStatus.className='cloudStatus ok';
     cloudStatus.textContent='排班中心連線成功｜'+PEOPLE.length+' 位啟用人員｜'+SCHEDULE_TYPES.length+' 種啟用班表';
 
+    fillEarlyStartSelectors();
+    toggleAutoPreviewPanels();
     renderBuilder();
   }catch(err){
     setBootstrapError('接收資料時發生錯誤：'+(err&&err.message?err.message:String(err)));
@@ -194,13 +269,6 @@ function startIndex(){
   return i<0?0:i
 }
 
-function render(){
-  let data=HEREMAY_SCHEDULE_DATA;
-  const si=startIndex();
-  if(range.value==='3')data=data.slice(si,si+3);
-  body.innerHTML=data.map(r=>`<tr class="${d(r[0])<=new Date()&&new Date()<=new Date(r[1]+'T23:59:59')?'current':''}">
-    <td>${f(r[0])}－${f(r[1])}</td>${r.slice(2).map(x=>`<td>${x}</td>`).join('')}</tr>`).join('')
-}
 
 function fillWeeks(){
   weekSelect.innerHTML='<option value="">請選擇週次</option>';
@@ -218,121 +286,697 @@ function options(items, placeholder){
 }
 
 
+
 let CURRENT_CELL=null;
-let MONTH_ASSIGNMENTS={};
+let SEMESTER_ASSIGNMENTS={};
 
-function monthKey(code,week,slot){return code+'__'+week+'__'+slot;}
+function assignmentKey(code,week,slot){return code+'__'+week+'__'+slot;}
 
-function buildWeeks(centerValue){
-  const all=[...weekSelect.options].map(o=>o.value).filter(Boolean);
-  let idx=all.indexOf(centerValue); if(idx<0)idx=0;
-  const s=Math.max(0,idx-2);
-  return all.slice(s,s+5);
+function allWeeks(){
+  return [...weekSelect.options].map(o=>o.value).filter(Boolean);
+}
+
+function yearFromWeekValue(v){
+  const m=String(v||'').match(/^(\d{4})-/);
+  return m?m[1]:'';
+}
+
+function fmtWeek(v,prevYear){
+  const s=String(v||'');
+  const m=s.match(/^(\d{4})-(\d{2})-(\d{2})\|(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m)return {year:'',date:s};
+  const y1=m[1],mo1=m[2],d1=m[3],y2=m[4],mo2=m[5],d2=m[6];
+  const year=(y1!==prevYear)?y1:'';
+  const date=(y1===y2)
+    ? `${mo1}/${d1}－${mo2}/${d2}`
+    : `${mo1}/${d1}－${y2}/${mo2}/${d2}`;
+  return {year,date,currentYear:y1};
+}
+
+function fmtWeekTwoLines(v){
+  const s=String(v||'');
+  const m=s.match(/^(\d{4})-(\d{2})-(\d{2})\|(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m)return s;
+  return `<div>${m[2]}/${m[3]}</div><div style="color:#89a0af;font-size:11px;line-height:1">｜</div><div>${m[5]}/${m[6]}</div>`;
 }
 
 function personPicker(prefix){
   return `<div class="pickerGrid">
     <select id="${prefix}_dept"></select><select id="${prefix}_grade"></select>
     <select id="${prefix}_class"></select><select id="${prefix}_name"></select>
-  </div><div id="${prefix}_picked" class="picked">尚未選擇</div>`;
+  </div>
+  <div id="${prefix}_picked" class="picked">尚未選擇</div>
+  <div id="${prefix}_candidateHint" class="candidateHint">
+    姓名選單會顯示「本學期已排次數｜上次輪值」，只供判斷公平性，不會因曾排過而禁止再選。
+  </div>`;
+}
+
+
+
+function fillEarlyStartSelectors(){
+  if(!earlyStartA||!earlyStartB||!earlyStartAB)return;
+
+  const kinder=PEOPLE.filter(p=>p[1]==='幼兒部');
+  const masters=kinder.filter(p=>p[4]==='主教');
+  const assistants=kinder.filter(p=>p[4]==='助教');
+
+  function fill(sel,rows,placeholder){
+    const current=sel.value;
+    sel.innerHTML='<option value="">'+placeholder+'</option>'+
+      rows.map(p=>`<option value="${p[0]}">${p[3]}｜${p[0]}</option>`).join('');
+    if([...sel.options].some(o=>o.value===current))sel.value=current;
+  }
+
+  fill(earlyStartA,masters,'請選擇主教組起點');
+  fill(earlyStartB,assistants,'請選擇助教組起點');
+  fill(earlyStartAB,kinder,'請選擇綜合組起點');
+}
+
+function toggleAutoPreviewPanels(){
+  if(earlyPreviewPanel){
+    earlyPreviewPanel.style.display=(typeSelect.value==='KINDER_EARLY')?'block':'none';
+  }
+  if(latePreviewPanel){
+    latePreviewPanel.style.display=(typeSelect.value==='KINDER_LATE')?'block':'none';
+  }
+}
+
+function loadEarlySemesterPreview(){
+  if(!BOOTSTRAP_READY){
+    setEarlyPreviewStatus('排班中心資料尚未載入','err');
+    return;
+  }
+
+  const a=earlyStartA.value;
+  const b=earlyStartB.value;
+  const ab=earlyStartAB.value;
+
+  if(!a||!b||!ab){
+    setEarlyPreviewStatus('請先選擇早值主教組、助教組、綜合組起點','err');
+    return;
+  }
+
+  EARLY_PREVIEW_READY=false;
+  LATE_PREVIEW_READY=false;
+  if(earlyFixBtn){
+    earlyFixBtn.disabled=true;
+    earlyFixBtn.textContent='固定早晚值';
+  }
+
+  setEarlyPreviewStatus('正在產生整學期早晚值草稿…','');
+
+  const old=document.getElementById('earlyLateSemesterPreviewJsonp');
+  if(old)old.remove();
+
+  const script=document.createElement('script');
+  script.id='earlyLateSemesterPreviewJsonp';
+  script.src=SCHEDULE_API+
+    '?action=earlyLateSemesterPreview'+
+    '&semester='+encodeURIComponent('115學年度上學期')+
+    '&startA='+encodeURIComponent(a)+
+    '&startB='+encodeURIComponent(b)+
+    '&startAB='+encodeURIComponent(ab)+
+    '&callback=receiveEarlyLateSemesterPreview'+
+    '&t='+Date.now();
+
+  script.onerror=function(){
+    setEarlyPreviewStatus('早晚值整合草稿連線失敗','err');
+  };
+
+  document.head.appendChild(script);
+}
+
+function receiveEarlyLateSemesterPreview(data){
+  try{
+    if(
+      !data ||
+      data.ok!==true ||
+      !data.early ||
+      !Array.isArray(data.early.weeks) ||
+      !data.late ||
+      !Array.isArray(data.late.weeks)
+    ){
+      setEarlyPreviewStatus(
+        data&&data.message?data.message:'早晚值整合草稿回傳格式不正確',
+        'err'
+      );
+      return;
+    }
+
+    EARLY_SEMESTER_PREVIEW=data.early;
+    LATE_SEMESTER_PREVIEW=data.late;
+    EARLY_PREVIEW_READY=true;
+    LATE_PREVIEW_READY=true;
+
+    data.early.weeks.forEach(w=>{
+      const weekValue=String(w.weekStart||'')+'|'+String(w.weekEnd||'');
+      const groups=w.groups||{};
+
+      [['A','A組'],['B','B組'],['AB','AB組']].forEach(pair=>{
+        const key=pair[0],slot=pair[1];
+        const g=groups[key];
+        if(!g||!g.selected)return;
+
+        SEMESTER_ASSIGNMENTS[assignmentKey('KINDER_EARLY',weekValue,slot)]={
+          name:String(g.selected.name||''),
+          department:String(g.selected.department||''),
+          grade:String(g.selected.grade||''),
+          className:String(g.selected.className||''),
+          title:'',
+          autoPreview:true,
+          skipped:Array.isArray(g.skipped)?g.skipped:[]
+        };
+      });
+    });
+
+    data.late.weeks.forEach(w=>{
+      const weekValue=String(w.weekStart||'')+'|'+String(w.weekEnd||'');
+      const groups=w.groups||{};
+
+      [['A','A組'],['B','B組'],['AB','AB組']].forEach(pair=>{
+        const key=pair[0],slot=pair[1];
+        const g=groups[key];
+        if(!g||!g.selected)return;
+
+        SEMESTER_ASSIGNMENTS[assignmentKey('KINDER_LATE',weekValue,slot)]={
+          name:String(g.selected.name||''),
+          department:String(g.selected.department||''),
+          grade:String(g.selected.grade||''),
+          className:String(g.selected.className||''),
+          title:'',
+          autoPreview:true,
+          skipped:Array.isArray(g.skipped)?g.skipped:[]
+        };
+      });
+    });
+
+    if(earlyFixBtn)earlyFixBtn.disabled=false;
+
+    setEarlyPreviewStatus(
+      '完成｜早值 '+data.early.weekCount+' 週＋晚值 '+data.late.weekCount+' 週｜可一次固定 156 筆',
+      'ok'
+    );
+
+    renderBuilder();
+  }catch(err){
+    setEarlyPreviewStatus(
+      '接收早晚值整合草稿時發生錯誤：'+(err&&err.message?err.message:String(err)),
+      'err'
+    );
+  }
+}
+
+function fixEarlySemester(){
+  if(!BOOTSTRAP_READY){
+    setEarlyPreviewStatus('排班中心資料尚未載入','err');
+    return;
+  }
+
+  if(
+    !EARLY_PREVIEW_READY ||
+    !LATE_PREVIEW_READY ||
+    !EARLY_SEMESTER_PREVIEW ||
+    !LATE_SEMESTER_PREVIEW
+  ){
+    setEarlyPreviewStatus('請先產生完整早晚值草稿，再進行固定','err');
+    return;
+  }
+
+  const a=earlyStartA.value;
+  const b=earlyStartB.value;
+  const ab=earlyStartAB.value;
+
+  if(!a||!b||!ab){
+    setEarlyPreviewStatus('找不到目前草稿的早值主教組、助教組、綜合組起點','err');
+    return;
+  }
+
+  if(!confirm('確定要一次固定目前整學期早值＋晚值嗎？\n\n將寫入早值78筆＋晚值78筆，共156筆；尚未正式發布。')){
+    return;
+  }
+
+  if(earlyFixBtn)earlyFixBtn.disabled=true;
+  setEarlyPreviewStatus('正在一次固定整學期早晚值…','');
+
+  const old=document.getElementById('earlyLateSemesterFixJsonp');
+  if(old)old.remove();
+
+  const script=document.createElement('script');
+  script.id='earlyLateSemesterFixJsonp';
+  script.src=SCHEDULE_API+
+    '?action=earlyLateSemesterFix'+
+    '&semester='+encodeURIComponent('115學年度上學期')+
+    '&startA='+encodeURIComponent(a)+
+    '&startB='+encodeURIComponent(b)+
+    '&startAB='+encodeURIComponent(ab)+
+    '&callback=receiveEarlyLateSemesterFix'+
+    '&t='+Date.now();
+
+  script.onerror=function(){
+    if(earlyFixBtn)earlyFixBtn.disabled=false;
+    setEarlyPreviewStatus('固定早晚值連線失敗','err');
+  };
+
+  document.head.appendChild(script);
+}
+
+function receiveEarlyLateSemesterFix(data){
+  try{
+    if(!data || data.ok!==true || data.fixed!==true){
+      if(earlyFixBtn)earlyFixBtn.disabled=false;
+      setEarlyPreviewStatus(
+        data&&data.message?data.message:'固定早晚值回傳格式不正確',
+        'err'
+      );
+      return;
+    }
+
+    setEarlyPreviewStatus(
+      '已固定｜早值 '+data.earlyRowCount+' 筆＋晚值 '+data.lateRowCount+' 筆＝共 '+data.totalRowCount+' 筆｜尚未發布',
+      'ok'
+    );
+
+    if(earlyFixBtn){
+      earlyFixBtn.disabled=true;
+      earlyFixBtn.textContent='早晚值已固定';
+    }
+  }catch(err){
+    if(earlyFixBtn)earlyFixBtn.disabled=false;
+    setEarlyPreviewStatus(
+      '接收固定結果時發生錯誤：'+(err&&err.message?err.message:String(err)),
+      'err'
+    );
+  }
+}
+
+function setEarlyPreviewStatus(msg,state){
+  if(!earlyPreviewStatus)return;
+  earlyPreviewStatus.className='latePreviewStatus'+(state?' '+state:'');
+  earlyPreviewStatus.textContent=msg;
+}
+
+function skipSummary(a){
+  if(!a||!Array.isArray(a.skipped)||!a.skipped.length)return '';
+  const names=a.skipped.map(x=>x.name+'（'+x.reason+'）');
+  return `<div class="skipNote">略過：${names.join('、')}</div>`;
 }
 
 function renderBuilder(){
-  const code=typeSelect.value, selectedWeek=weekSelect.value, t=TYPE_DEF[code];
-  if(!code||!selectedWeek||!t){
-    builder.className='builder empty'; builder.textContent='請先選擇「班表類型」與「週次」。'; return;
+  const code=typeSelect.value;
+  const selectedWeek=weekSelect.value;
+  const t=TYPE_DEF[code];
+
+  if(!code||!t){
+    builder.className='builder empty';
+    builder.textContent='請先選擇「班表類型」。';
+    return;
   }
   if(!BOOTSTRAP_READY){
-    builder.className='builder empty'; builder.textContent='排班中心資料尚未載入，請先確認上方連線狀態。'; return;
+    builder.className='builder empty';
+    builder.textContent='排班中心資料尚未載入，請先確認上方連線狀態。';
+    return;
   }
-  const weeks=buildWeeks(selectedWeek);
-  const slots=(t.slots&&t.slots.length)?t.slots:['位置1'];
-  builder.className='builder';
-  builder.innerHTML=`
-    <div style="margin-bottom:14px">
-      <div style="font-size:21px;font-weight:900;color:#174a70">${t.label||code}</div>
-      <div style="color:#6d8798;margin-top:4px">顯示 ${weeks.length} 週｜點班表格子後，右側選人</div>
-    </div>
-    <div class="monthWorkspace">
-      <div class="monthBoard" style="--slot-count:${slots.length}">
-        <div class="monthHead"><div>週次</div>${slots.map(s=>`<div>${s}</div>`).join('')}</div>
-        ${weeks.map(w=>`<div class="monthRow">
-          <div class="weekCell">${w}${w===selectedWeek?'<div style="font-size:12px;color:#2f86b4;margin-top:4px">目前排班週</div>':''}</div>
-          ${slots.map(s=>{
-            const a=MONTH_ASSIGNMENTS[monthKey(code,w,s)];
-            return `<div class="assignCell" data-code="${code}" data-week="${w}" data-slot="${s}">
-              <div class="slotName">${s}</div>
-              ${a?`<div class="personName">${a.className}｜${a.name}</div>`:`<div class="emptyText">點此安排</div>`}
+
+  const weeks=allWeeks();
+
+  if(code==='KINDER_EARLY'){
+    const cols=[
+      {code:'KINDER_EARLY',slot:'A組',label:'早值 主教組'},
+      {code:'KINDER_EARLY',slot:'B組',label:'早值 助教組'},
+      {code:'KINDER_EARLY',slot:'AB組',label:'早值 綜合組'},
+      {code:'KINDER_LATE',slot:'A組',label:'晚值 主教組'},
+      {code:'KINDER_LATE',slot:'B組',label:'晚值 助教組'},
+      {code:'KINDER_LATE',slot:'AB組',label:'晚值 綜合組'}
+    ];
+
+    let prevYear='';
+
+    builder.className='builder';
+    builder.innerHTML=`
+      <div class="semesterBar">
+        <div>
+          <div style="font-size:21px;font-weight:900;color:#174a70">幼兒部早晚值</div>
+          <div style="color:#6d8798;margin-top:4px">整學期早值＋晚值整合表｜主管一次確認</div>
+        </div>
+        <div style="margin-left:auto">
+          <label style="font-weight:900;color:#45667d">學期：</label>
+          <select id="semesterViewSelect">
+            <option>115學年度上學期</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="monthWorkspace">
+        <div class="monthBoard" style="--slot-count:6">
+          <div class="monthHead">
+            <div>週次</div>
+            ${cols.map(c=>`<div>${c.label}</div>`).join('')}
+          </div>
+
+          ${weeks.map(w=>{
+            const fw=fmtWeek(w,prevYear);
+            if(fw.currentYear)prevYear=fw.currentYear;
+
+            return `<div class="monthRow">
+              <div class="weekCell">
+                ${fw.year?`<div style="font-size:13px;color:#6d8798">${fw.year}</div>`:''}
+                <div style="line-height:1.15">${fmtWeekTwoLines(w)}</div>
+                ${w===selectedWeek?'<div style="font-size:11px;color:#2f86b4;margin-top:4px">目前</div>':''}
+              </div>
+
+              ${cols.map(c=>{
+                const a=SEMESTER_ASSIGNMENTS[assignmentKey(c.code,w,c.slot)];
+                return `<div class="assignCell" data-code="${c.code}" data-week="${w}" data-slot="${c.slot}">
+                  <div class="slotName">${c.label}</div>
+                  ${a
+                    ? `<div class="personName">${a.className}｜${a.name}${a.autoPreview?'<span class="autoTag">自動草稿</span>':''}</div>`
+                    : `<div class="emptyText">尚未產生</div>`}
+                </div>`;
+              }).join('')}
             </div>`;
           }).join('')}
-        </div>`).join('')}
+        </div>
+
+        <aside class="drawer">
+          <h3>本學期輪值統計</h3>
+          <div class="statsSummary">早值、晚值分開統計，可直接確認兩邊是否都維持公平分布。</div>
+          <div class="integratedStats">
+            <div class="integratedStatsBox">
+              <h4>早值統計</h4>
+              <div id="earlyRotationStats"></div>
+            </div>
+            <div class="integratedStatsBox">
+              <h4>晚值統計</h4>
+              <div id="lateRotationStats"></div>
+            </div>
+          </div>
+        </aside>
+      </div>`;
+
+    renderIntegratedRotationStats();
+    return;
+  }
+
+  if(code==='KINDER_LATE'){
+    builder.className='builder';
+    builder.innerHTML=`
+      <div style="padding:22px;text-align:center">
+        <div style="font-size:22px;font-weight:900;color:#174a70;margin-bottom:8px">晚值已併入早晚值整合表</div>
+        <div style="color:#6d8798;font-weight:800;line-height:1.7">
+          請選擇「幼兒部早值」，即可在同一張表同時查看早值主教組／助教組／綜合組 與晚值主教組／助教組／綜合組。
+        </div>
+      </div>`;
+    return;
+  }
+
+  const slots=(t.slots&&t.slots.length)?t.slots:['位置1'];
+  let prevYear='';
+
+  builder.className='builder';
+  builder.innerHTML=`
+    <div class="semesterBar">
+      <div>
+        <div style="font-size:21px;font-weight:900;color:#174a70">${t.label||code}</div>
+        <div style="color:#6d8798;margin-top:4px">整學期班表｜點任一格後，右側選人</div>
       </div>
+      <div style="margin-left:auto">
+        <label style="font-weight:900;color:#45667d">學期：</label>
+        <select id="semesterViewSelect">
+          <option>115學年度上學期</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="monthWorkspace">
+      <div class="monthBoard" style="--slot-count:${slots.length}">
+        <div class="monthHead">
+          <div>週次</div>${slots.map(s=>`<div>${s}</div>`).join('')}
+        </div>
+
+        ${weeks.map(w=>{
+          const fw=fmtWeek(w,prevYear);
+          if(fw.currentYear)prevYear=fw.currentYear;
+          return `<div class="monthRow">
+            <div class="weekCell">
+              ${fw.year?`<div style="font-size:13px;color:#6d8798">${fw.year}</div>`:''}
+              <div>${fw.date}</div>
+              ${w===selectedWeek?'<div style="font-size:12px;color:#2f86b4;margin-top:4px">目前排班週</div>':''}
+            </div>
+            ${slots.map(s=>{
+              const a=SEMESTER_ASSIGNMENTS[assignmentKey(code,w,s)];
+              return `<div class="assignCell" data-code="${code}" data-week="${w}" data-slot="${s}">
+                <div class="slotName">${s}</div>
+                ${a?`<div class="personName">${a.className}｜${a.name}${a.autoPreview?'<span class="autoTag">自動草稿</span>':''}</div>${skipSummary(a)}`:`<div class="emptyText">點此安排</div>`}
+              </div>`;
+            }).join('')}
+          </div>`;
+        }).join('')}
+      </div>
+
       <aside class="drawer">
         <h3>安排人員</h3>
         <div id="drawerContext" style="color:#617b8e;margin-bottom:14px">請先點左側班表格子。</div>
         <div id="drawerPicker" style="display:none">
           ${personPicker('drawer')}
-          <div class="recent"><b>近期輪值參考</b><div id="recentList" style="margin-top:8px"></div></div>
           <div style="font-size:13px;color:#71899a;margin-top:12px">此版只測試操作，不會寫入 Google Sheet。</div>
+        </div>
+        <div class="statsPanel">
+          <h4>本學期輪值統計</h4>
+          <div class="statsSummary">依次數由少到多排列；0 次的人會特別標示。</div>
+          <div id="rotationStats"></div>
         </div>
       </aside>
     </div>`;
-  builder.querySelectorAll('.assignCell').forEach(el=>el.addEventListener('click',()=>openDrawer(el)));
+
+  builder.querySelectorAll('.assignCell').forEach(el=>{
+    el.addEventListener('click',()=>openDrawer(el));
+  });
+  renderRotationStats(code);
 }
 
 function openDrawer(el){
   if(CURRENT_CELL)CURRENT_CELL.classList.remove('selected');
-  CURRENT_CELL=el; el.classList.add('selected');
+  CURRENT_CELL=el;
+  el.classList.add('selected');
+
   const code=el.dataset.code, week=el.dataset.week, slot=el.dataset.slot;
   document.getElementById('drawerContext').textContent=week+'｜'+slot;
   document.getElementById('drawerPicker').style.display='block';
+
   setupCascade('drawer',code,week,slot);
-  renderRecent(code,week,slot);
 }
 
+function statsForPerson(code,name,currentWeek,currentSlot){
+  let count=0;
+  const weeks=[];
+
+  Object.entries(SEMESTER_ASSIGNMENTS).forEach(([k,v])=>{
+    if(!k.startsWith(code+'__'))return;
+    const parts=k.split('__');
+    const wk=parts[1],sl=parts[2];
+    if(wk===currentWeek && sl===currentSlot)return;
+    if(v && v.name===name){
+      count++;
+      weeks.push(wk);
+    }
+  });
+
+  weeks.sort();
+  return {
+    count,
+    last: weeks.length ? weeks[weeks.length-1] : ''
+  };
+}
+
+
+function personSemesterCount(code,name){
+  let count=0;
+  Object.entries(SEMESTER_ASSIGNMENTS).forEach(([k,v])=>{
+    if(k.startsWith(code+'__') && v && v.name===name)count++;
+  });
+  return count;
+}
+
+function renderStatsInto(containerId,code){
+  const box=document.getElementById(containerId);
+  if(!box)return;
+
+  const rows=PEOPLE.map(p=>({
+    name:p[0],
+    department:p[1],
+    grade:p[2],
+    className:p[3],
+    title:p[4],
+    count:personSemesterCount(code,p[0])
+  }));
+
+  const grades=uniq(rows.map(r=>r.grade).filter(Boolean));
+
+  box.innerHTML=grades.map(g=>{
+    const group=rows.filter(r=>r.grade===g).sort((a,b)=>{
+      const roleRank=x=>x.title==='主教'?0:(x.title==='助教'?1:2);
+      return roleRank(a)-roleRank(b) ||
+        a.count-b.count ||
+        a.className.localeCompare(b.className,'zh-Hant') ||
+        a.name.localeCompare(b.name,'zh-Hant');
+    });
+
+    const roles=['主教','助教','其他'];
+
+    const sections=roles.map(role=>{
+      const list=group.filter(r=>{
+        if(role==='其他') return r.title!=='主教' && r.title!=='助教';
+        return r.title===role;
+      });
+
+      if(!list.length)return '';
+
+      return `<div class="roleLabel">${role}</div><div class="statsList">
+        ${list.map(r=>`<div class="statsItem ${r.count===0?'zero':''}">
+          <div class="who">${r.className}｜${r.name}</div>
+          <div class="meta"><span class="count">${r.count} 次</span></div>
+        </div>`).join('')}
+      </div>`;
+    }).join('');
+
+    return `<div class="gradeStats">
+      <div class="gradeStatsTitle">${g}</div>
+      ${sections}
+    </div>`;
+  }).join('');
+}
+
+function renderIntegratedRotationStats(){
+  renderStatsInto('earlyRotationStats','KINDER_EARLY');
+  renderStatsInto('lateRotationStats','KINDER_LATE');
+}
+
+function renderRotationStats(code){
+  const box=document.getElementById('rotationStats'); if(!box)return;
+  const rows=PEOPLE.map(p=>({name:p[0],department:p[1],grade:p[2],className:p[3],title:p[4],count:personSemesterCount(code,p[0])}));
+  const grades=uniq(rows.map(r=>r.grade).filter(Boolean));
+  box.innerHTML=grades.map(g=>{
+    const group=rows.filter(r=>r.grade===g).sort((a,b)=>{
+      const roleRank=x=>x.title==='主教'?0:(x.title==='助教'?1:2);
+      return roleRank(a)-roleRank(b) || a.count-b.count || a.className.localeCompare(b.className,'zh-Hant') || a.name.localeCompare(b.name,'zh-Hant');
+    });
+
+    const roles=['主教','助教','其他'];
+    const sections=roles.map(role=>{
+      const list=group.filter(r=>{
+        if(role==='其他') return r.title!=='主教' && r.title!=='助教';
+        return r.title===role;
+      });
+      if(!list.length)return '';
+      return `<div class="roleLabel">${role}</div><div class="statsList">
+        ${list.map(r=>`<div class="statsItem ${r.count===0?'zero':''}">
+          <div class="who">${r.className}｜${r.name}</div>
+          <div class="meta"><span class="count">${r.count} 次</span></div>
+        </div>`).join('')}
+      </div>`;
+    }).join('');
+
+    return `<div class="gradeStats"><div class="gradeStatsTitle">${g}</div>${sections}</div>`;
+  }).join('');
+}
 function setupCascade(prefix,code,week,slot){
   const dept=document.getElementById(prefix+'_dept');
   const grade=document.getElementById(prefix+'_grade');
   const cls=document.getElementById(prefix+'_class');
   const name=document.getElementById(prefix+'_name');
   const picked=document.getElementById(prefix+'_picked');
+
   const type=TYPE_DEF[code]||{};
-  function fill(sel,items,ph){sel.innerHTML='<option value="">'+ph+'</option>'+uniq(items).map(v=>`<option>${v}</option>`).join('');}
-  fill(dept,PEOPLE.map(p=>p[1]),'部門');
-  if(type.dept&&[...dept.options].some(o=>o.value===type.dept))dept.value=type.dept;
-  function g(){fill(grade,PEOPLE.filter(p=>!dept.value||p[1]===dept.value).map(p=>p[2]),'年級');c();}
-  function c(){fill(cls,PEOPLE.filter(p=>(!dept.value||p[1]===dept.value)&&(!grade.value||p[2]===grade.value)).map(p=>p[3]),'班級');n();}
-  function n(){
-    const rows=PEOPLE.filter(p=>(!dept.value||p[1]===dept.value)&&(!grade.value||p[2]===grade.value)&&(!cls.value||p[3]===cls.value));
-    name.innerHTML='<option value="">姓名</option>'+rows.map(p=>`<option value="${p[0]}">${p[0]}</option>`).join('');
-    show();
+
+  function fill(sel,items,ph){
+    sel.innerHTML='<option value="">'+ph+'</option>'+uniq(items).map(v=>`<option>${v}</option>`).join('');
   }
-  function show(){
+
+  fill(dept,PEOPLE.map(p=>p[1]),'部門');
+  if(type.dept && [...dept.options].some(o=>o.value===type.dept))dept.value=type.dept;
+
+  function refreshGrade(){
+    fill(
+      grade,
+      PEOPLE.filter(p=>!dept.value||p[1]===dept.value).map(p=>p[2]),
+      '年級'
+    );
+    refreshClass();
+  }
+
+  function refreshClass(){
+    fill(
+      cls,
+      PEOPLE.filter(p=>
+        (!dept.value||p[1]===dept.value) &&
+        (!grade.value||p[2]===grade.value)
+      ).map(p=>p[3]),
+      '班級'
+    );
+    refreshName();
+  }
+
+  function refreshName(){
+    const rows=PEOPLE.filter(p=>
+      (!dept.value||p[1]===dept.value) &&
+      (!grade.value||p[2]===grade.value) &&
+      (!cls.value||p[3]===cls.value)
+    );
+
+    const items=rows.map(p=>`<option value="${p[0]}">${p[0]}</option>`).join('');
+    name.innerHTML='<option value="">姓名</option>'+items;
+    showPicked();
+  }
+
+  function showPicked(){
     const p=PEOPLE.find(x=>x[0]===name.value);
-    if(!p){picked.textContent='尚未選擇';return;}
+    if(!p){
+      picked.textContent='尚未選擇';
+      return;
+    }
+
     picked.textContent=p[3]+'｜'+p[0];
-    MONTH_ASSIGNMENTS[monthKey(code,week,slot)]={name:p[0],department:p[1],grade:p[2],className:p[3],title:p[4]};
+
+    SEMESTER_ASSIGNMENTS[assignmentKey(code,week,slot)]={
+      name:p[0],
+      department:p[1],
+      grade:p[2],
+      className:p[3],
+      title:p[4]
+    };
+
+    renderRotationStats(code);
     renderBuilder();
-    const target=[...builder.querySelectorAll('.assignCell')].find(x=>x.dataset.week===week&&x.dataset.slot===slot);
+
+    const target=[...builder.querySelectorAll('.assignCell')].find(x=>
+      x.dataset.week===week && x.dataset.slot===slot
+    );
     if(target)openDrawer(target);
   }
-  dept.onchange=g;grade.onchange=c;cls.onchange=n;name.onchange=show;g();
-}
 
-function renderRecent(code,week,slot){
-  const list=document.getElementById('recentList');
-  const arr=[];
-  Object.entries(MONTH_ASSIGNMENTS).forEach(([k,v])=>{
-    if(!k.startsWith(code+'__'))return;
-    const parts=k.split('__');
-    if(parts[1]===week&&parts[2]===slot)return;
-    arr.push({week:parts[1],slot:parts[2],...v});
-  });
-  list.innerHTML=arr.length?arr.slice(-8).reverse().map(x=>`<div class="recentItem"><b>${x.week}</b>｜${x.slot}<br>${x.className}｜${x.name}</div>`).join(''):'<div class="recentItem">目前尚無本頁面已安排的近期紀錄。</div>';
-}
+  dept.onchange=refreshGrade;
+  grade.onchange=refreshClass;
+  cls.onchange=refreshName;
+  name.onchange=showPicked;
 
-if(range)range.onchange=render;
-if(typeSelect)typeSelect.onchange=renderBuilder;
+  refreshGrade();
+
+  const existing=SEMESTER_ASSIGNMENTS[assignmentKey(code,week,slot)];
+  if(existing){
+    dept.value=existing.department||'';
+    refreshGrade();
+    grade.value=existing.grade||'';
+    refreshClass();
+    cls.value=existing.className||'';
+    refreshName();
+    name.value=existing.name||'';
+    picked.textContent=existing.className+'｜'+existing.name;
+  }
+}
+if(typeSelect)typeSelect.onchange=function(){
+  toggleAutoPreviewPanels();
+  renderBuilder();
+};
 if(weekSelect)weekSelect.onchange=renderBuilder;
 window.addEventListener('error',function(e){
   if(cloudStatus&&!BOOTSTRAP_READY){
@@ -341,8 +985,10 @@ window.addEventListener('error',function(e){
   }
 });
 
+if(earlyPreviewBtn)earlyPreviewBtn.onclick=loadEarlySemesterPreview;
+if(earlyFixBtn)earlyFixBtn.onclick=fixEarlySemester;
+
 fillWeeks();
-render();
 renderBuilder();
 loadBootstrap();
 </script>
