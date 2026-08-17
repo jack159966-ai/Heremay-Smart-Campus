@@ -26,7 +26,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 .monthHead{background:#174a70;color:#fff;font-weight:900}
 .monthHead>div,.monthRow>div{padding:12px;border-right:1px solid #dbe8ef}
 .monthRow{border-top:1px solid #dbe8ef}
-.weekCell{font-weight:900;text-align:center;padding-left:6px!important;padding-right:6px!important}
+.weekCell{font-weight:900;font-size:16px;text-align:center;padding-left:6px!important;padding-right:6px!important}
 .assignCell{min-height:68px;cursor:pointer}
 .assignCell:hover,.assignCell.selected{background:#eef8fd}
 .slotName{font-size:12px;color:#6f8798;margin-bottom:5px;font-weight:800}
@@ -59,7 +59,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 .latePreviewActions{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
 .latePreviewStatus{font-weight:900;color:#668498}
 .latePreviewStatus.ok{color:#256e4c}.latePreviewStatus.err{color:#a33}
-.autoTag{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;background:#eaf7f0;color:#256e4c;font-size:11px;font-weight:900}
+.autoTag{display:none}
 .skipNote{margin-top:4px;color:#a26b16;font-size:11px;font-weight:800;line-height:1.4}
 @media(max-width:900px){.lateStartGrid{grid-template-columns:1fr}}
 
@@ -72,11 +72,201 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 .integratedStatsBox .roleLabel{font-size:11px}
 @media(max-width:1200px){.integratedStats{grid-template-columns:1fr}}
 
+
+@media print{
+  @page{size:A4 portrait;margin:6mm}
+  html,body{background:#fff!important}
+  body{font-family:"Microsoft JhengHei",sans-serif}
+
+  .app{
+    width:100%!important;
+    max-width:none!important;
+    padding:0!important;
+    margin:0!important
+  }
+
+  .head{
+    box-shadow:none!important;
+    border:0!important;
+    border-radius:0!important;
+    padding:0 0 4px!important
+  }
+  .head>div:first-child,.head p,.actions{display:none!important}
+  .head h1{font-size:16px!important;color:#000!important}
+
+  .card{
+    box-shadow:none!important;
+    border:0!important;
+    border-radius:0!important;
+    padding:0!important;
+    margin:0!important
+  }
+
+  .card>h2,.card>.sub,.formGrid,.stageBar,#cloudStatus,
+  #earlyPreviewPanel,#latePreviewPanel,.footer,.drawer,.mobileBlock{
+    display:none!important
+  }
+
+  .builder{
+    border:0!important;
+    padding:0!important;
+    margin:0!important;
+    background:#fff!important
+  }
+
+  .semesterBar{margin:0 0 4px!important}
+  .semesterBar>div:first-child>div:first-child{font-size:14px!important}
+  .semesterBar>div:first-child>div:nth-child(2){display:none!important}
+  .semesterBar select{
+    border:0!important;
+    padding:0!important;
+    font-size:10.5px!important;
+    appearance:none!important
+  }
+
+  .monthWorkspace{display:block!important}
+  .monthBoard{
+    border:1px solid #777!important;
+    border-radius:0!important;
+    overflow:visible!important;
+    width:100%!important
+  }
+
+  .monthHead,.monthRow{
+    grid-template-columns:42px repeat(6,minmax(0,1fr))!important;
+    min-width:0!important;
+    width:100%!important
+  }
+
+  .monthHead{
+    background:#eee!important;
+    color:#000!important;
+    font-size:9px!important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact
+  }
+
+  .monthHead>div,.monthRow>div{
+    padding:2px 2px!important;
+    border-right:1px solid #aaa!important
+  }
+
+  .monthRow{
+    border-top:1px solid #aaa!important;
+    break-inside:avoid;
+    page-break-inside:avoid
+  }
+
+  .assignCell,.compactAssign{
+    min-height:46px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important
+  }
+
+  .slotName,.autoTag,.skipNote{display:none!important}
+
+  .personName{
+    font-size:15.5px!important;
+    line-height:1.12!important;
+    color:#000!important;
+    white-space:normal!important;
+    word-break:keep-all!important
+  }
+
+  .weekCell{
+    font-size:9.5px!important;
+    line-height:1.05!important;
+    color:#000!important;
+    padding-left:1px!important;
+    padding-right:1px!important
+  }
+
+  .weekCell div[style*="font-size:13px"]{font-size:8.5px!important}
+  .emptyText{font-size:9.5px!important}
+}
+
+
+.compactAssign{min-height:56px!important;display:flex;align-items:center}
+.compactAssign .personName{margin:0;font-size:18px;line-height:1.32;font-weight:800}
+
+@media print{
+  body.print-aftercare .aftercareScreenTable{display:none!important}
+  body.print-aftercare .aftercarePrintGrid{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:8mm!important;
+    width:100%!important;
+    margin:0!important;
+  }
+
+  body.print-aftercare .aftercarePrintCol{
+    border:1px solid #777!important;
+  }
+
+  body.print-aftercare .aftercarePrintHead,
+  body.print-aftercare .aftercarePrintRow{
+    display:grid!important;
+    grid-template-columns:58px minmax(0,1fr)!important;
+  }
+
+  body.print-aftercare .aftercarePrintHead{
+    background:#eee!important;
+    font-size:10.5px!important;
+    font-weight:900!important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+
+  body.print-aftercare .aftercarePrintHead>div,
+  body.print-aftercare .aftercarePrintRow>div{
+    padding:4px 5px!important;
+    border-right:1px solid #aaa!important;
+  }
+
+  body.print-aftercare .aftercarePrintRow{
+    border-top:1px solid #aaa!important;
+    min-height:38px!important;
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+
+  body.print-aftercare .aftercarePrintWeek{
+    font-size:9px!important;
+    line-height:1.05!important;
+    text-align:center!important;
+    font-weight:800!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+  }
+
+  body.print-aftercare .aftercarePrintName{
+    font-size:15px!important;
+    line-height:1.15!important;
+    font-weight:900!important;
+    display:flex!important;
+    align-items:center!important;
+    white-space:nowrap!important;
+  }
+
+  body.print-aftercare .semesterBar>div:first-child>div:first-child{
+    font-size:16px!important;
+  }
+
+  body.print-aftercare .semesterBar select{
+    font-size:11px!important;
+  }
+}
+
+
+.aftercarePrintGrid{display:none}
+
 </style>
 </head>
 <body><main class="app">
 <div class="mobileBlock"><h2>排班管理限電腦操作</h2><p>請改用電腦開啟主管工作台。</p><button class="btn" onclick="history.back()">返回</button></div>
-<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v2.8</h1><p>115學年度上學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button><button class="btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button></div></header>
+<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v3.7</h1><p>115學年度上學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button><button class="btn secondary" onclick="printSchedulePdf()">PDF／列印</button><button class="btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button></div></header>
 
 <section class="card">
 <h2>建立／調整班表</h2><p class="sub">人員名單與班表類型由排班中心 Apps Script 讀取；早晚值會一次產生整學期草稿，主管確認後一次固定。</p>
@@ -96,13 +286,12 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
     系統會先完成早值公平排班，再直接用同一份早值結果推演晚值。
     主管只需要確認一次，最後一次固定早值 78 筆＋晚值 78 筆，共 156 筆。
   </div>
-  <div class="lateStartGrid">
-    <div class="field"><label>早值主教組起點</label><select id="earlyStartA"><option value="">請選擇</option></select></div>
-    <div class="field"><label>早值助教組起點</label><select id="earlyStartB"><option value="">請選擇</option></select></div>
-    <div class="field"><label>早值綜合組起點</label><select id="earlyStartAB"><option value="">請選擇</option></select></div>
+  <div class="hint" style="margin-top:10px">
+    APP 會自動搜尋主教組、助教組、綜合組的合格起點，並完整驗證早值公平、晚值公平與同週互斥。
+    主管不需指定起點。
   </div>
   <div class="latePreviewActions">
-    <button id="earlyPreviewBtn" class="btn" type="button">產生早晚值整學期草稿</button>
+    <button id="earlyPreviewBtn" class="btn" type="button">產生早晚值整學期班表</button>
     <button id="earlyFixBtn" class="btn secondary" type="button" disabled>固定早晚值</button>
     <span id="earlyPreviewStatus" class="latePreviewStatus">尚未產生</span>
   </div>
@@ -116,9 +305,32 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
   </div>
 </div>
 
+
+<div id="aftercarePreviewPanel" class="latePreviewPanel" style="display:none">
+  <h3>安親部晚值｜連續週輪值</h3>
+  <div class="hint">
+    一週一位安親老師。第一次由主管指定起點；之後依序周而復始輪替，
+    本學期結束後系統會保存「下一位」，下學期直接接續。
+  </div>
+
+  <div class="lateStartGrid" style="grid-template-columns:minmax(260px,420px)">
+    <div class="field">
+      <label>本學期起點</label>
+      <select id="aftercareStart">
+        <option value="">自動使用上次保存的下一位</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="latePreviewActions">
+    <button id="aftercarePreviewBtn" class="btn" type="button">產生安親晚值整學期班表</button>
+    <button id="aftercareCommitBtn" class="btn secondary" type="button" disabled>確認並保存下一位</button>
+    <span id="aftercarePreviewStatus" class="latePreviewStatus">尚未產生</span>
+  </div>
+</div>
 </section>
 
-<div class="footer">和美智慧校園｜主管排班管理 v2.8</div>
+<div class="footer">和美智慧校園｜主管排班管理 v3.7</div>
 </main>
 
 <script src="schedule_data.js"></script>
@@ -141,13 +353,18 @@ let EARLY_SEMESTER_PREVIEW=null;
 let EARLY_PREVIEW_READY=false;
 let LATE_SEMESTER_PREVIEW=null;
 let LATE_PREVIEW_READY=false;
+let AFTERCARE_PREVIEW_READY=false;
+let AFTERCARE_PREVIEW_DATA=null;
 
 const earlyPreviewPanel=document.getElementById('earlyPreviewPanel');
-const earlyStartA=document.getElementById('earlyStartA');
-const earlyStartB=document.getElementById('earlyStartB');
-const earlyStartAB=document.getElementById('earlyStartAB');
 const earlyPreviewBtn=document.getElementById('earlyPreviewBtn');
 const earlyFixBtn=document.getElementById('earlyFixBtn');
+const aftercarePreviewPanel=document.getElementById('aftercarePreviewPanel');
+const aftercareStart=document.getElementById('aftercareStart');
+const aftercarePreviewBtn=document.getElementById('aftercarePreviewBtn');
+const aftercareCommitBtn=document.getElementById('aftercareCommitBtn');
+const aftercarePreviewStatus=document.getElementById('aftercarePreviewStatus');
+
 const earlyPreviewStatus=document.getElementById('earlyPreviewStatus');
 
 const latePreviewPanel=document.getElementById('latePreviewPanel');
@@ -238,10 +455,11 @@ function receiveBootstrap(data){
     });
 
     BOOTSTRAP_READY=true;
+    fillAftercareStartSelector();
+
     cloudStatus.className='cloudStatus ok';
     cloudStatus.textContent='排班中心連線成功｜'+PEOPLE.length+' 位啟用人員｜'+SCHEDULE_TYPES.length+' 種啟用班表';
 
-    fillEarlyStartSelectors();
     toggleAutoPreviewPanels();
     renderBuilder();
   }catch(err){
@@ -333,31 +551,38 @@ function personPicker(prefix){
 
 
 
-function fillEarlyStartSelectors(){
-  if(!earlyStartA||!earlyStartB||!earlyStartAB)return;
 
-  const kinder=PEOPLE.filter(p=>p[1]==='幼兒部');
-  const masters=kinder.filter(p=>p[4]==='主教');
-  const assistants=kinder.filter(p=>p[4]==='助教');
+function fillAftercareStartSelector(){
+  if(!aftercareStart)return;
 
-  function fill(sel,rows,placeholder){
-    const current=sel.value;
-    sel.innerHTML='<option value="">'+placeholder+'</option>'+
-      rows.map(p=>`<option value="${p[0]}">${p[3]}｜${p[0]}</option>`).join('');
-    if([...sel.options].some(o=>o.value===current))sel.value=current;
-  }
+  const current=aftercareStart.value;
+  aftercareStart.innerHTML='<option value="">自動使用上次保存的下一位</option>';
 
-  fill(earlyStartA,masters,'請選擇主教組起點');
-  fill(earlyStartB,assistants,'請選擇助教組起點');
-  fill(earlyStartAB,kinder,'請選擇綜合組起點');
+  PEOPLE
+    .filter(p=>p[1]==='安親部')
+    .forEach(p=>{
+      const op=document.createElement('option');
+      op.value=p[0];
+      op.textContent=(p[3]?p[3]+'｜':'')+p[0];
+      aftercareStart.appendChild(op);
+    });
+
+  if(current)aftercareStart.value=current;
 }
 
 function toggleAutoPreviewPanels(){
+  const code=typeSelect.value;
+
   if(earlyPreviewPanel){
-    earlyPreviewPanel.style.display=(typeSelect.value==='KINDER_EARLY')?'block':'none';
+    earlyPreviewPanel.style.display=(code==='KINDER_EARLY')?'block':'none';
   }
+
   if(latePreviewPanel){
-    latePreviewPanel.style.display=(typeSelect.value==='KINDER_LATE')?'block':'none';
+    latePreviewPanel.style.display='none';
+  }
+
+  if(aftercarePreviewPanel){
+    aftercarePreviewPanel.style.display=(code==='AFTER_DUTY')?'block':'none';
   }
 }
 
@@ -367,40 +592,32 @@ function loadEarlySemesterPreview(){
     return;
   }
 
-  const a=earlyStartA.value;
-  const b=earlyStartB.value;
-  const ab=earlyStartAB.value;
-
-  if(!a||!b||!ab){
-    setEarlyPreviewStatus('請先選擇早值主教組、助教組、綜合組起點','err');
-    return;
-  }
-
   EARLY_PREVIEW_READY=false;
   LATE_PREVIEW_READY=false;
+
   if(earlyFixBtn){
     earlyFixBtn.disabled=true;
     earlyFixBtn.textContent='固定早晚值';
   }
 
-  setEarlyPreviewStatus('正在產生整學期早晚值草稿…','');
+  if(earlyPreviewBtn)earlyPreviewBtn.disabled=true;
 
-  const old=document.getElementById('earlyLateSemesterPreviewJsonp');
+  setEarlyPreviewStatus('APP 正在自動搜尋合格起點並產生整學期早晚值…','');
+
+  const old=document.getElementById('earlyLateAutoPreviewJsonp');
   if(old)old.remove();
 
   const script=document.createElement('script');
-  script.id='earlyLateSemesterPreviewJsonp';
+  script.id='earlyLateAutoPreviewJsonp';
   script.src=SCHEDULE_API+
-    '?action=earlyLateSemesterPreview'+
+    '?action=earlyLateAutoPreview'+
     '&semester='+encodeURIComponent('115學年度上學期')+
-    '&startA='+encodeURIComponent(a)+
-    '&startB='+encodeURIComponent(b)+
-    '&startAB='+encodeURIComponent(ab)+
     '&callback=receiveEarlyLateSemesterPreview'+
     '&t='+Date.now();
 
   script.onerror=function(){
-    setEarlyPreviewStatus('早晚值整合草稿連線失敗','err');
+    if(earlyPreviewBtn)earlyPreviewBtn.disabled=false;
+    setEarlyPreviewStatus('早晚值全自動排班連線失敗','err');
   };
 
   document.head.appendChild(script);
@@ -416,6 +633,7 @@ function receiveEarlyLateSemesterPreview(data){
       !data.late ||
       !Array.isArray(data.late.weeks)
     ){
+      if(earlyPreviewBtn)earlyPreviewBtn.disabled=false;
       setEarlyPreviewStatus(
         data&&data.message?data.message:'早晚值整合草稿回傳格式不正確',
         'err'
@@ -471,14 +689,22 @@ function receiveEarlyLateSemesterPreview(data){
     });
 
     if(earlyFixBtn)earlyFixBtn.disabled=false;
+    if(earlyPreviewBtn)earlyPreviewBtn.disabled=false;
+
+    const attempts=data.search&&data.search.attempts?data.search.attempts:'';
+    const elapsed=data.search&&data.search.elapsedMs?data.search.elapsedMs:'';
 
     setEarlyPreviewStatus(
-      '完成｜早值 '+data.early.weekCount+' 週＋晚值 '+data.late.weekCount+' 週｜可一次固定 156 筆',
+      '完成｜早值 '+data.early.weekCount+' 週＋晚值 '+data.late.weekCount+' 週｜'+
+      (attempts?('自動搜尋 '+attempts+' 組｜'):'')+
+      (elapsed?('約 '+(elapsed/1000).toFixed(1)+' 秒｜'):'')+
+      '可一次固定 156 筆',
       'ok'
     );
 
     renderBuilder();
   }catch(err){
+    if(earlyPreviewBtn)earlyPreviewBtn.disabled=false;
     setEarlyPreviewStatus(
       '接收早晚值整合草稿時發生錯誤：'+(err&&err.message?err.message:String(err)),
       'err'
@@ -498,16 +724,7 @@ function fixEarlySemester(){
     !EARLY_SEMESTER_PREVIEW ||
     !LATE_SEMESTER_PREVIEW
   ){
-    setEarlyPreviewStatus('請先產生完整早晚值草稿，再進行固定','err');
-    return;
-  }
-
-  const a=earlyStartA.value;
-  const b=earlyStartB.value;
-  const ab=earlyStartAB.value;
-
-  if(!a||!b||!ab){
-    setEarlyPreviewStatus('找不到目前草稿的早值主教組、助教組、綜合組起點','err');
+    setEarlyPreviewStatus('請先產生完整早晚值班表，再進行固定','err');
     return;
   }
 
@@ -518,17 +735,14 @@ function fixEarlySemester(){
   if(earlyFixBtn)earlyFixBtn.disabled=true;
   setEarlyPreviewStatus('正在一次固定整學期早晚值…','');
 
-  const old=document.getElementById('earlyLateSemesterFixJsonp');
+  const old=document.getElementById('earlyLateAutoFixJsonp');
   if(old)old.remove();
 
   const script=document.createElement('script');
-  script.id='earlyLateSemesterFixJsonp';
+  script.id='earlyLateAutoFixJsonp';
   script.src=SCHEDULE_API+
-    '?action=earlyLateSemesterFix'+
+    '?action=earlyLateAutoFix'+
     '&semester='+encodeURIComponent('115學年度上學期')+
-    '&startA='+encodeURIComponent(a)+
-    '&startB='+encodeURIComponent(b)+
-    '&startAB='+encodeURIComponent(ab)+
     '&callback=receiveEarlyLateSemesterFix'+
     '&t='+Date.now();
 
@@ -551,8 +765,12 @@ function receiveEarlyLateSemesterFix(data){
       return;
     }
 
+    const attempts=data.search&&data.search.attempts?data.search.attempts:'';
+
     setEarlyPreviewStatus(
-      '已固定｜早值 '+data.earlyRowCount+' 筆＋晚值 '+data.lateRowCount+' 筆＝共 '+data.totalRowCount+' 筆｜尚未發布',
+      '已固定｜早值 '+data.earlyRowCount+' 筆＋晚值 '+data.lateRowCount+' 筆＝共 '+data.totalRowCount+' 筆｜'+
+      (attempts?('APP 自動搜尋 '+attempts+' 組｜'):'')+
+      '尚未發布',
       'ok'
     );
 
@@ -646,8 +864,7 @@ function renderBuilder(){
 
               ${cols.map(c=>{
                 const a=SEMESTER_ASSIGNMENTS[assignmentKey(c.code,w,c.slot)];
-                return `<div class="assignCell" data-code="${c.code}" data-week="${w}" data-slot="${c.slot}">
-                  <div class="slotName">${c.label}</div>
+                return `<div class="assignCell compactAssign" data-code="${c.code}" data-week="${w}" data-slot="${c.slot}">
                   ${a
                     ? `<div class="personName">${a.className}｜${a.name}${a.autoPreview?'<span class="autoTag">自動草稿</span>':''}</div>`
                     : `<div class="emptyText">尚未產生</div>`}
@@ -686,6 +903,87 @@ function renderBuilder(){
           請選擇「幼兒部早值」，即可在同一張表同時查看早值主教組／助教組／綜合組 與晚值主教組／助教組／綜合組。
         </div>
       </div>`;
+    return;
+  }
+
+
+  if(code==='AFTER_DUTY'){
+    let prevYear='';
+
+    builder.className='builder';
+    builder.innerHTML=`
+      <div class="semesterBar">
+        <div>
+          <div style="font-size:21px;font-weight:900;color:#174a70">安親部晚值</div>
+          <div style="color:#6d8798;margin-top:4px">一週一位｜連續輪值｜下學期接續下一位</div>
+        </div>
+        <div style="margin-left:auto">
+          <label style="font-weight:900;color:#45667d">學期：</label>
+          <select id="semesterViewSelect">
+            <option>115學年度上學期</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="monthWorkspace">
+        <div class="monthBoard aftercareScreenTable" style="--slot-count:1">
+          <div class="monthHead">
+            <div>週次</div>
+            <div>安親晚值</div>
+          </div>
+
+          ${weeks.map(w=>{
+            const fw=fmtWeek(w,prevYear);
+            if(fw.currentYear)prevYear=fw.currentYear;
+            const a=SEMESTER_ASSIGNMENTS[assignmentKey('AFTER_DUTY',w,'晚值')];
+
+            return `<div class="monthRow">
+              <div class="weekCell">
+                ${fw.year?`<div style="font-size:13px;color:#6d8798">${fw.year}</div>`:''}
+                <div style="line-height:1.15">${fmtWeekTwoLines(w)}</div>
+              </div>
+              <div class="assignCell compactAssign">
+                ${a
+                  ? `<div class="personName">${a.className? a.className+'｜':''}${a.name}</div>`
+                  : `<div class="emptyText">尚未產生</div>`}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+
+        <div class="aftercarePrintGrid">
+          ${[weeks.slice(0,13),weeks.slice(13,26)].map(part=>`
+            <div class="aftercarePrintCol">
+              <div class="aftercarePrintHead">
+                <div>週次</div>
+                <div>安親晚值</div>
+              </div>
+              ${part.map(w=>{
+                const a=SEMESTER_ASSIGNMENTS[assignmentKey('AFTER_DUTY',w,'晚值')];
+                return `<div class="aftercarePrintRow">
+                  <div class="aftercarePrintWeek">${fmtWeekTwoLines(w)}</div>
+                  <div class="aftercarePrintName">
+                    ${a
+                      ? `${a.className? a.className+'｜':''}${a.name}`
+                      : '尚未產生'}
+                  </div>
+                </div>`;
+              }).join('')}
+            </div>
+          `).join('')}
+        </div>
+
+        <aside class="drawer">
+          <h3>輪值狀態</h3>
+          <div id="aftercareStateSummary" style="color:#617b8e;line-height:1.8">
+            ${AFTERCARE_PREVIEW_DATA
+              ? `本學期起點：<b>${AFTERCARE_PREVIEW_DATA.startTarget}</b><br>
+                 下學期下一位：<b>${AFTERCARE_PREVIEW_DATA.nextTarget}</b>`
+              : '尚未產生安親晚值班表。'}
+          </div>
+        </aside>
+      </div>`;
+
     return;
   }
 
@@ -973,11 +1271,218 @@ function setupCascade(prefix,code,week,slot){
     picked.textContent=existing.className+'｜'+existing.name;
   }
 }
+
+
+function setAftercarePreviewStatus(msg,state){
+  if(!aftercarePreviewStatus)return;
+  aftercarePreviewStatus.textContent=msg||'';
+  aftercarePreviewStatus.className='latePreviewStatus'+
+    (state==='ok'?' ok':state==='err'?' err':'');
+}
+
+function loadAftercarePreview(){
+  if(!BOOTSTRAP_READY){
+    setAftercarePreviewStatus('排班中心資料尚未載入','err');
+    return;
+  }
+
+  AFTERCARE_PREVIEW_READY=false;
+  AFTERCARE_PREVIEW_DATA=null;
+
+  if(aftercareCommitBtn)aftercareCommitBtn.disabled=true;
+  if(aftercarePreviewBtn)aftercarePreviewBtn.disabled=true;
+
+  setAftercarePreviewStatus('正在產生整學期安親晚值…','');
+
+  const start=aftercareStart?aftercareStart.value:'';
+
+  const old=document.getElementById('aftercarePreviewJsonp');
+  if(old)old.remove();
+
+  const script=document.createElement('script');
+  script.id='aftercarePreviewJsonp';
+  script.src=SCHEDULE_API+
+    '?action=continuousRotationPreview'+
+    '&semester='+encodeURIComponent('115學年度上學期')+
+    '&scheduleCode='+encodeURIComponent('AFTER_DUTY')+
+    '&scheduleName='+encodeURIComponent('安親部晚值')+
+    '&rotationUnit='+encodeURIComponent('AFTERCARE')+
+    '&department='+encodeURIComponent('安親部')+
+    '&weeklyCount=1'+
+    '&manualStartTarget='+encodeURIComponent(start)+
+    '&callback=receiveAftercarePreview'+
+    '&t='+Date.now();
+
+  script.onerror=function(){
+    if(aftercarePreviewBtn)aftercarePreviewBtn.disabled=false;
+    setAftercarePreviewStatus('安親晚值連線失敗','err');
+  };
+
+  document.head.appendChild(script);
+}
+
+function receiveAftercarePreview(data){
+  try{
+    if(!data || data.ok!==true || !Array.isArray(data.weeks)){
+      if(aftercarePreviewBtn)aftercarePreviewBtn.disabled=false;
+      setAftercarePreviewStatus(
+        data&&data.message?data.message:'安親晚值回傳格式不正確',
+        'err'
+      );
+      return;
+    }
+
+    AFTERCARE_PREVIEW_READY=true;
+    AFTERCARE_PREVIEW_DATA=data;
+
+    data.weeks.forEach(w=>{
+      const weekValue=String(w.weekStart||'')+'|'+String(w.weekEnd||'');
+      const selected=w.selected&&w.selected[0];
+
+      if(selected){
+        SEMESTER_ASSIGNMENTS[
+          assignmentKey('AFTER_DUTY',weekValue,'晚值')
+        ]={
+          name:String(selected.name||selected.key||''),
+          department:String(selected.department||'安親部'),
+          grade:'',
+          className:String(selected.className||''),
+          title:'',
+          autoPreview:true
+        };
+      }
+    });
+
+    if(aftercarePreviewBtn)aftercarePreviewBtn.disabled=false;
+    if(aftercareCommitBtn)aftercareCommitBtn.disabled=false;
+
+    setAftercarePreviewStatus(
+      '完成｜'+data.weekCount+' 週｜起點：'+data.startTarget+
+      '｜下學期下一位：'+data.nextTarget,
+      'ok'
+    );
+
+    renderBuilder();
+  }catch(err){
+    if(aftercarePreviewBtn)aftercarePreviewBtn.disabled=false;
+    setAftercarePreviewStatus(
+      '接收安親晚值時發生錯誤：'+(err&&err.message?err.message:String(err)),
+      'err'
+    );
+  }
+}
+
+function commitAftercareRotation(){
+  if(!AFTERCARE_PREVIEW_READY || !AFTERCARE_PREVIEW_DATA){
+    setAftercarePreviewStatus('請先產生安親晚值班表','err');
+    return;
+  }
+
+  if(!confirm(
+    '確定目前安親晚值班表嗎？\n\n'+
+    '本學期起點：'+AFTERCARE_PREVIEW_DATA.startTarget+'\n'+
+    '下學期將從：'+AFTERCARE_PREVIEW_DATA.nextTarget+' 開始'
+  )){
+    return;
+  }
+
+  if(aftercareCommitBtn)aftercareCommitBtn.disabled=true;
+  setAftercarePreviewStatus('正在保存下一位…','');
+
+  const start=aftercareStart?aftercareStart.value:'';
+
+  const old=document.getElementById('aftercareCommitJsonp');
+  if(old)old.remove();
+
+  const script=document.createElement('script');
+  script.id='aftercareCommitJsonp';
+  script.src=SCHEDULE_API+
+    '?action=continuousRotationCommit'+
+    '&semester='+encodeURIComponent('115學年度上學期')+
+    '&scheduleCode='+encodeURIComponent('AFTER_DUTY')+
+    '&scheduleName='+encodeURIComponent('安親部晚值')+
+    '&rotationUnit='+encodeURIComponent('AFTERCARE')+
+    '&department='+encodeURIComponent('安親部')+
+    '&weeklyCount=1'+
+    '&manualStartTarget='+encodeURIComponent(start)+
+    '&callback=receiveAftercareCommit'+
+    '&t='+Date.now();
+
+  script.onerror=function(){
+    if(aftercareCommitBtn)aftercareCommitBtn.disabled=false;
+    setAftercarePreviewStatus('保存下一位連線失敗','err');
+  };
+
+  document.head.appendChild(script);
+}
+
+function receiveAftercareCommit(data){
+  try{
+    if(!data || data.ok!==true || data.stateUpdated!==true){
+      if(aftercareCommitBtn)aftercareCommitBtn.disabled=false;
+      setAftercarePreviewStatus(
+        data&&data.message?data.message:'保存下一位失敗',
+        'err'
+      );
+      return;
+    }
+
+    setAftercarePreviewStatus(
+      '已確認｜下學期下一位：'+data.nextTarget,
+      'ok'
+    );
+
+    if(aftercareCommitBtn){
+      aftercareCommitBtn.disabled=true;
+      aftercareCommitBtn.textContent='下一位已保存';
+    }
+  }catch(err){
+    if(aftercareCommitBtn)aftercareCommitBtn.disabled=false;
+    setAftercarePreviewStatus(
+      '接收保存結果時發生錯誤：'+(err&&err.message?err.message:String(err)),
+      'err'
+    );
+  }
+}
+
+function printSchedulePdf(){
+  const code=typeSelect?typeSelect.value:'';
+
+  if(code==='KINDER_EARLY'){
+    if(!EARLY_PREVIEW_READY || !LATE_PREVIEW_READY){
+      alert('請先產生完整的早晚值整學期班表，再進行 PDF／列印。');
+      return;
+    }
+    document.body.classList.remove('print-aftercare');
+    document.body.classList.add('print-earlylate');
+    window.print();
+    return;
+  }
+
+  if(code==='AFTER_DUTY'){
+    if(!AFTERCARE_PREVIEW_READY || !AFTERCARE_PREVIEW_DATA){
+      alert('請先產生完整的安親部晚值整學期班表，再進行 PDF／列印。');
+      return;
+    }
+    document.body.classList.remove('print-earlylate');
+    document.body.classList.add('print-aftercare');
+    window.print();
+    return;
+  }
+
+  alert('目前這個班表類型尚未設定 PDF／列印版型。');
+}
+
 if(typeSelect)typeSelect.onchange=function(){
   toggleAutoPreviewPanels();
   renderBuilder();
 };
 if(weekSelect)weekSelect.onchange=renderBuilder;
+window.addEventListener('afterprint',function(){
+  document.body.classList.remove('print-aftercare');
+  document.body.classList.remove('print-earlylate');
+});
+
 window.addEventListener('error',function(e){
   if(cloudStatus&&!BOOTSTRAP_READY){
     cloudStatus.className='cloudStatus err';
@@ -987,6 +1492,9 @@ window.addEventListener('error',function(e){
 
 if(earlyPreviewBtn)earlyPreviewBtn.onclick=loadEarlySemesterPreview;
 if(earlyFixBtn)earlyFixBtn.onclick=fixEarlySemester;
+if(aftercarePreviewBtn)aftercarePreviewBtn.onclick=loadAftercarePreview;
+if(aftercareCommitBtn)aftercareCommitBtn.onclick=commitAftercareRotation;
+
 
 fillWeeks();
 renderBuilder();
