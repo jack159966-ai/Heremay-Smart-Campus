@@ -74,7 +74,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 
 
 @media print{
-  @page{size:A4 portrait;margin:6mm}
+  @page{size:A4 portrait;margin:6mm 10mm}
   html,body{background:#fff!important}
   body{font-family:"Microsoft JhengHei",sans-serif}
 
@@ -195,7 +195,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
   body.print-aftercare .aftercarePrintGrid{
     display:grid!important;
     grid-template-columns:1fr 1fr!important;
-    gap:8mm!important;
+    gap:5mm!important;
     width:100%!important;
     margin:0!important;
   }
@@ -207,7 +207,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
   body.print-aftercare .aftercarePrintHead,
   body.print-aftercare .aftercarePrintRow{
     display:grid!important;
-    grid-template-columns:58px minmax(0,1fr)!important;
+    grid-template-columns:52px minmax(0,1fr)!important;
   }
 
   body.print-aftercare .aftercarePrintHead{
@@ -220,13 +220,13 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 
   body.print-aftercare .aftercarePrintHead>div,
   body.print-aftercare .aftercarePrintRow>div{
-    padding:4px 5px!important;
+    padding:3px 4px!important;
     border-right:1px solid #aaa!important;
   }
 
   body.print-aftercare .aftercarePrintRow{
     border-top:1px solid #aaa!important;
-    min-height:38px!important;
+    min-height:30px!important;
     break-inside:avoid!important;
     page-break-inside:avoid!important;
   }
@@ -242,7 +242,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
   }
 
   body.print-aftercare .aftercarePrintName{
-    font-size:15px!important;
+    font-size:13.5px!important;
     line-height:1.15!important;
     font-weight:900!important;
     display:flex!important;
@@ -262,24 +262,978 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 
 .aftercarePrintGrid{display:none}
 
+
+@media print{
+  body.print-aftercare .aftercarePrintGrid{align-items:start!important}
+  body.print-aftercare .aftercarePrintCol{align-self:start!important}
+  body.print-aftercare .aftercarePrintName{justify-content:flex-start!important}
+}
+
+
+/* v3.9 操作動線 */
+.formGrid{
+  grid-template-columns:
+    minmax(220px,300px)
+    minmax(160px,200px)
+    minmax(105px,130px)
+    auto!important;
+  justify-content:start;
+  align-items:end;
+}
+
+/* 原本下方的產生按鈕保留在 DOM，供上方按鈕安全呼叫，但不再顯示 */
+#earlyPreviewBtn,
+#aftercarePreviewBtn{
+  display:none!important;
+}
+
+#topGenerateBtn{
+  white-space:nowrap;
+}
+
+@media(max-width:900px){
+  .formGrid{
+    grid-template-columns:1fr!important;
+  }
+}
+
+
+.fieldActionGroup{
+  display:flex;
+  gap:8px;
+  align-items:end;
+  justify-content:flex-start;
+  flex-wrap:wrap;
+  padding-bottom:1px;
+}
+.fieldActionGroup .btn{
+  white-space:nowrap;
+}
+@media(max-width:1200px){
+  .formGrid{
+    grid-template-columns:
+      minmax(200px,280px)
+      minmax(145px,180px)
+      minmax(95px,120px)
+      1fr!important;
+  }
+}
+@media(max-width:900px){
+  .fieldActionGroup{
+    grid-column:1/-1;
+  }
+}
+
+
+/* v3.12 操作列定案：
+   班表類型｜週次｜狀態｜產生班表｜PDF／列印｜開啟正式版資料庫 */
+.formGrid{
+  display:grid!important;
+  grid-template-columns:
+    304px
+    202px
+    130px
+    max-content!important;
+  column-gap:12px!important;
+  row-gap:8px!important;
+  align-items:end!important;
+  justify-content:start!important;
+}
+
+.fieldActionGroup{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  gap:10px!important;
+  align-items:flex-end!important;
+  justify-content:flex-start!important;
+  width:max-content!important;
+  min-width:max-content!important;
+  padding:0 0 1px 0!important;
+  margin:0!important;
+  align-self:end!important;
+}
+
+.fieldActionGroup .btn{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:auto!important;
+  min-width:0!important;
+  white-space:nowrap!important;
+  flex:0 0 auto!important;
+  margin:0!important;
+}
+
+#topGenerateBtn{
+  white-space:nowrap!important;
+}
+
+/* 桌機版固定同一排；只有真正窄螢幕才改為直向 */
+@media(max-width:980px){
+  .formGrid{
+    grid-template-columns:1fr!important;
+  }
+  .fieldActionGroup{
+    grid-column:1/-1!important;
+    flex-wrap:wrap!important;
+    width:auto!important;
+    min-width:0!important;
+  }
+}
+
+
+/* v3.13：真正把三顆按鈕放進 formGrid，接在「狀態」右側 */
+.formGrid{
+  display:grid!important;
+  grid-template-columns:304px 202px 130px max-content!important;
+  gap:12px!important;
+  align-items:end!important;
+  justify-content:start!important;
+}
+
+.fieldActionGroup{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  gap:10px!important;
+  align-items:flex-end!important;
+  width:max-content!important;
+  min-width:max-content!important;
+  margin:0!important;
+  padding:0 0 1px 0!important;
+}
+
+.fieldActionGroup .btn{
+  display:inline-flex!important;
+  width:auto!important;
+  min-width:0!important;
+  flex:0 0 auto!important;
+  white-space:nowrap!important;
+  margin:0!important;
+}
+
+@media(max-width:980px){
+  .formGrid{
+    grid-template-columns:1fr!important;
+  }
+  .fieldActionGroup{
+    grid-column:1/-1!important;
+    flex-wrap:wrap!important;
+    width:auto!important;
+    min-width:0!important;
+  }
+}
+
+
+/* v3.14 最終操作列 */
+.formGrid{
+  display:grid!important;
+  grid-template-columns:304px 202px 130px max-content!important;
+  column-gap:12px!important;
+  row-gap:8px!important;
+  align-items:end!important;
+  justify-content:start!important;
+}
+
+.fieldActionGroup{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  gap:10px!important;
+  align-items:flex-end!important;
+  justify-content:flex-start!important;
+  width:max-content!important;
+  min-width:max-content!important;
+  margin:0!important;
+  padding:0 0 1px 0!important;
+}
+
+.fieldActionGroup .btn{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:auto!important;
+  min-width:0!important;
+  flex:0 0 auto!important;
+  white-space:nowrap!important;
+  margin:0!important;
+}
+
+@media(max-width:980px){
+  .formGrid{
+    grid-template-columns:1fr!important;
+  }
+  .fieldActionGroup{
+    grid-column:1/-1!important;
+    flex-wrap:wrap!important;
+    width:auto!important;
+    min-width:0!important;
+  }
+}
+
+
+/* v3.15：情境輪值操作區移到主操作列下方 */
+.contextActionArea{
+  margin-top:10px;
+}
+
+.contextActionArea .latePreviewPanel{
+  margin:0 0 10px 0!important;
+  padding:12px 14px!important;
+}
+
+#aftercarePreviewPanel{
+  display:none;
+}
+
+#aftercarePreviewPanel h3{
+  margin:0 0 4px 0!important;
+}
+
+#aftercarePreviewPanel .hint{
+  margin-bottom:8px!important;
+}
+
+#aftercarePreviewPanel .lateStartGrid{
+  display:inline-grid!important;
+  width:min(420px,100%)!important;
+  margin:0 10px 0 0!important;
+  vertical-align:bottom!important;
+}
+
+#aftercarePreviewPanel .latePreviewActions{
+  display:inline-flex!important;
+  flex-direction:row!important;
+  flex-wrap:wrap!important;
+  gap:10px!important;
+  align-items:flex-end!important;
+  vertical-align:bottom!important;
+  margin:0!important;
+}
+
+#aftercareCommitBtn{
+  white-space:nowrap!important;
+}
+
+#aftercarePreviewStatus{
+  align-self:center!important;
+}
+
+/* 早晚值的固定按鈕也跟著移到上方 */
+#earlyPreviewPanel{
+  margin-top:0!important;
+}
+
+@media(max-width:980px){
+  #aftercarePreviewPanel .lateStartGrid{
+    display:grid!important;
+    width:100%!important;
+    margin:0 0 8px 0!important;
+  }
+  #aftercarePreviewPanel .latePreviewActions{
+    display:flex!important;
+  }
+}
+
+
+/* v3.16：PDF 上方只保留「學期 + 班表名稱」 */
+.printSimpleHeader{
+  display:none;
+}
+
+@media print{
+  /* 所有操作介面一律不列印 */
+  header,
+  .pageHeader,
+  .topbar,
+  .actions,
+  .formGrid,
+  #contextActionArea,
+  .contextActionArea,
+  .stageBar,
+  .statusBar,
+  .latePreviewPanel,
+  #earlyPreviewPanel,
+  #latePreviewPanel,
+  #aftercarePreviewPanel,
+  .drawer,
+  .semesterBar{
+    display:none!important;
+  }
+
+  /* 簡單列印標題 */
+  .printSimpleHeader{
+    display:flex!important;
+    align-items:flex-end!important;
+    justify-content:space-between!important;
+    gap:12px!important;
+    margin:0 0 5mm 0!important;
+    padding:0 0 2mm 0!important;
+    border-bottom:1px solid #777!important;
+  }
+
+  .printSemesterTitle{
+    font-size:15px!important;
+    line-height:1.2!important;
+    font-weight:900!important;
+  }
+
+  .printScheduleTitle{
+    font-size:18px!important;
+    line-height:1.2!important;
+    font-weight:900!important;
+    text-align:right!important;
+  }
+
+  /* 班表直接接在標題下方 */
+  #builder{
+    margin-top:0!important;
+    padding-top:0!important;
+  }
+
+  /* 隱藏班表區內重複的畫面標題，避免 PDF 再出現第二次名稱/學期 */
+  #builder h2,
+  #builder h3,
+  #builder > .sectionTitle,
+  #builder .sectionSubtitle{
+    display:none!important;
+  }
+}
+
+
+/* v3.17 自訂輪值項目 */
+.fieldLabelRow{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+}
+
+.miniLinkBtn,
+.miniCloseBtn{
+  border:0;
+  background:transparent;
+  color:#17648f;
+  font:inherit;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+  padding:0;
+  white-space:nowrap;
+}
+
+.miniLinkBtn:hover,
+.miniCloseBtn:hover{
+  text-decoration:underline;
+}
+
+.customRotationPanel{
+  margin:12px 0 10px 0;
+  padding:16px;
+  border:1px solid #b9d7e8;
+  border-radius:16px;
+  background:#f8fcfe;
+}
+
+.customRotationHead{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:flex-start;
+  margin-bottom:12px;
+}
+
+.customRotationHead h3{
+  margin:0 0 4px 0;
+  color:#174a70;
+}
+
+.customRotationGrid{
+  display:grid;
+  grid-template-columns:
+    minmax(260px,1.5fr)
+    minmax(150px,.8fr)
+    minmax(150px,.8fr)
+    minmax(150px,.8fr)
+    minmax(170px,.9fr)
+    minmax(110px,.55fr);
+  gap:10px;
+  align-items:end;
+}
+
+.customRotationPanel input,
+.customRotationPanel select{
+  width:100%;
+  box-sizing:border-box;
+  min-height:44px;
+  border:1px solid #b9d7e8;
+  border-radius:12px;
+  background:white;
+  color:#123e5e;
+  font:inherit;
+  font-weight:700;
+  padding:0 12px;
+}
+
+.customRotationRuleHint{
+  margin-top:10px;
+  padding:9px 11px;
+  border-radius:10px;
+  background:#eef7fb;
+  color:#47697f;
+  font-size:13px;
+  line-height:1.5;
+}
+
+.customRotationActions{
+  margin-top:12px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+@media(max-width:1350px){
+  .customRotationGrid{
+    grid-template-columns:repeat(3,minmax(180px,1fr));
+  }
+}
+
+@media(max-width:900px){
+  .customRotationGrid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media print{
+  #customRotationPanel{
+    display:none!important;
+  }
+}
+
+
+/* v3.18：新增輪值項目改成真正可見的操作按鈕 */
+#openCustomRotationBtn{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:30px!important;
+  padding:5px 10px!important;
+  border:1px solid #2f86b3!important;
+  border-radius:9px!important;
+  background:#eaf6fc!important;
+  color:#0b5d88!important;
+  font-size:13px!important;
+  font-weight:900!important;
+  line-height:1!important;
+  box-shadow:none!important;
+}
+
+#openCustomRotationBtn:hover{
+  background:#d9eff9!important;
+  text-decoration:none!important;
+}
+
+.customSavedSummary{
+  display:none;
+  margin-top:10px;
+  padding:10px 12px;
+  border:1px solid #b9dfc8;
+  border-radius:10px;
+  background:#eef9f2;
+  color:#1c6a3a;
+  font-size:13px;
+  font-weight:800;
+  line-height:1.5;
+}
+
+.customSavedSummary.show{
+  display:block;
+}
+
+
+/* v3.19 自訂輪值可參加名單 */
+.customRosterPanel{
+  margin:10px 0;
+  padding:14px 16px;
+  border:1px solid #b9d7e8;
+  border-radius:16px;
+  background:#fbfdff;
+}
+
+.customRosterList{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+
+.customRosterItem{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:38px;
+  padding:6px 10px;
+  border:1px solid #c7ddea;
+  border-radius:10px;
+  background:white;
+  color:#173f5e;
+  font-size:13px;
+  font-weight:800;
+  cursor:pointer;
+  user-select:none;
+}
+
+.customRosterItem input{
+  width:16px;
+  height:16px;
+  accent-color:auto;
+}
+
+.customRosterItem .gradeTag{
+  font-size:11px;
+  font-weight:700;
+  color:#6b8798;
+}
+
+@media print{
+  #customRosterPanel{
+    display:none!important;
+  }
+}
+
+
+@media print{
+  body.print-custom #customFixPanel,
+  body.print-custom #customRosterPanel,
+  body.print-custom #customRotationPanel{
+    display:none!important;
+  }
+
+  body.print-custom .monthWorkspace{
+    display:block!important;
+  }
+
+  body.print-custom .monthBoard{
+    width:100%!important;
+    max-width:none!important;
+  }
+
+  body.print-custom .monthHead,
+  body.print-custom .monthRow{
+    font-size:11px!important;
+  }
+
+  body.print-custom .monthHead>div,
+  body.print-custom .monthRow>div{
+    padding:4px 6px!important;
+  }
+
+  body.print-custom .assignCell{
+    min-height:30px!important;
+  }
+
+  body.print-custom .personName{
+    font-size:13.5px!important;
+    line-height:1.15!important;
+    font-weight:900!important;
+  }
+
+  body.print-custom .autoTag,
+  body.print-custom .slotName{
+    display:none!important;
+  }
+}
+
+
+.customPrintGrid{display:none}
+
+@media print{
+  body.print-custom #builder{
+    display:none!important;
+  }
+
+  body.print-custom .customPrintGrid{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:5mm!important;
+    width:100%!important;
+    margin:0!important;
+  }
+
+  body.print-custom .customPrintCol{
+    border:1px solid #777!important;
+  }
+
+  body.print-custom .customPrintHead,
+  body.print-custom .customPrintRow{
+    display:grid!important;
+    grid-template-columns:52px minmax(0,1fr)!important;
+  }
+
+  body.print-custom .customPrintHead{
+    background:#eee!important;
+    font-size:10.5px!important;
+    font-weight:900!important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+
+  body.print-custom .customPrintHead>div,
+  body.print-custom .customPrintRow>div{
+    padding:3px 4px!important;
+    border-right:1px solid #aaa!important;
+  }
+
+  body.print-custom .customPrintRow{
+    border-top:1px solid #aaa!important;
+    min-height:30px!important;
+    break-inside:avoid!important;
+    page-break-inside:avoid!important;
+  }
+
+  body.print-custom .customPrintWeek{
+    font-size:8.5px!important;
+    line-height:1.05!important;
+    text-align:center!important;
+    font-weight:800!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+  }
+
+  body.print-custom .customPrintName{
+    font-size:13.5px!important;
+    line-height:1.15!important;
+    font-weight:900!important;
+    display:flex!important;
+    align-items:center!important;
+    white-space:nowrap!important;
+  }
+}
+
+
+.customStartPanel{
+  margin:10px 0;
+  padding:12px 14px;
+  border:1px solid #b9d7e8;
+  border-radius:14px;
+  background:#fbfdff;
+}
+.customStartInfo{
+  display:flex;
+  align-items:end;
+  gap:18px;
+  flex-wrap:wrap;
+}
+.customStartLabel{
+  font-size:12px;
+  color:#6d8798;
+  font-weight:800;
+  margin-bottom:4px;
+}
+.customLastTarget{
+  min-width:170px;
+  min-height:44px;
+  display:flex;
+  align-items:center;
+  padding:0 12px;
+  border-radius:11px;
+  background:#eef7fb;
+  color:#174a70;
+  font-size:15px;
+  font-weight:900;
+}
+.customStartField{min-width:240px}
+#customStartTarget{min-height:44px}
+@media print{
+  #customStartPanel{display:none!important}
+}
+
+
+.customTypeTools{
+  display:inline-flex;
+  gap:8px;
+  align-items:center;
+}
+
+#openCustomManageBtn{
+  border-color:#8aaec3!important;
+  background:#f5fafc!important;
+  color:#345e76!important;
+}
+
+.customManagePanel{
+  margin:12px 0 10px 0;
+  padding:16px;
+  border:1px solid #b9d7e8;
+  border-radius:16px;
+  background:#fbfdff;
+}
+
+.customManageList{
+  display:grid;
+  gap:8px;
+  margin-top:10px;
+}
+
+.customManageRow{
+  display:grid;
+  grid-template-columns:minmax(220px,1.2fr) 120px 110px 130px max-content;
+  gap:10px;
+  align-items:center;
+  padding:10px 12px;
+  border:1px solid #d2e3ec;
+  border-radius:10px;
+  background:white;
+}
+
+.customManageName{
+  font-weight:900;
+  color:#174a70;
+}
+
+.customManageMeta{
+  font-size:12px;
+  color:#6b8798;
+}
+
+.customDeleteBtn{
+  border:1px solid #d36f6f;
+  background:#fff5f5;
+  color:#a83232;
+  border-radius:9px;
+  padding:7px 10px;
+  font:inherit;
+  font-size:12px;
+  font-weight:900;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
+.customDeleteBtn:hover{
+  background:#ffe9e9;
+}
+
+@media(max-width:980px){
+  .customManageRow{
+    grid-template-columns:1fr;
+  }
+}
+
+@media print{
+  #customManagePanel{display:none!important}
+}
+
+
+/* v3.29：新增／管理改成真正的主操作按鈕 */
+.customTypeTools{
+  display:inline-flex!important;
+  gap:10px!important;
+  align-items:center!important;
+}
+
+#openCustomRotationBtn,
+#openCustomManageBtn{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:38px!important;
+  padding:8px 14px!important;
+  border-radius:10px!important;
+  font-size:14px!important;
+  line-height:1!important;
+  font-weight:900!important;
+  white-space:nowrap!important;
+  text-decoration:none!important;
+  cursor:pointer!important;
+  box-shadow:none!important;
+}
+
+#openCustomRotationBtn{
+  border:1px solid #2f86b3!important;
+  background:#eaf6fc!important;
+  color:#0b5d88!important;
+}
+
+#openCustomRotationBtn:hover{
+  background:#d8eff9!important;
+}
+
+#openCustomManageBtn{
+  border:1px solid #6f93aa!important;
+  background:#f3f8fb!important;
+  color:#244f69!important;
+}
+
+#openCustomManageBtn:hover{
+  background:#e6f0f5!important;
+}
+
+.fieldLabelRow{
+  align-items:center!important;
+}
+
 </style>
 </head>
 <body><main class="app">
 <div class="mobileBlock"><h2>排班管理限電腦操作</h2><p>請改用電腦開啟主管工作台。</p><button class="btn" onclick="history.back()">返回</button></div>
-<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v3.7</h1><p>115學年度上學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button><button class="btn secondary" onclick="printSchedulePdf()">PDF／列印</button><button class="btn" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button></div></header>
+<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v3.38</h1><p id="headerSemesterText">排班學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button></div></header>
 
 <section class="card">
 <h2>建立／調整班表</h2><p class="sub">人員名單與班表類型由排班中心 Apps Script 讀取；早晚值會一次產生整學期草稿，主管確認後一次固定。</p>
 <div class="formGrid">
-<div class="field"><label>① 班表類型</label><select id="typeSelect"><option value="">請選擇班表</option><option value="KINDER_EARLY">幼兒部早、晚值</option><option value="AFTER_DUTY">安親部晚值</option><option value="CLEANING">掃地區域</option><option value="FB_POST">粉專投稿</option><option value="MORNING_ACTIVITY">晨間遊戲區</option><option value="MORNING_HOST">晨間活動主持</option></select></div>
-<div class="field"><label>② 週次</label><select id="weekSelect"><option value="">請選擇週次</option></select></div>
-<div class="field"><label>③ 狀態</label><select disabled><option>草稿</option></select></div>
+<div class="field"><label>① 排班學期</label><select id="semesterSelect"><option value="">讀取學期中…</option></select></div>
+<div class="field">
+<label class="fieldLabelRow">
+  <span>② 班表類型</span>
+  <span class="customTypeTools">
+    <button id="openCustomRotationBtn" class="miniLinkBtn" type="button">＋新增輪值項目</button>
+    <button id="openCustomManageBtn" class="miniLinkBtn manageBtn" type="button">管理／刪除</button>
+  </span>
+</label>
+<select id="typeSelect"><option value="">請選擇班表</option></select></div>
+<div class="field"><label>③ 週次</label><select id="weekSelect"><option value="">請選擇週次</option></select></div>
+<div class="field"><label>④ 狀態</label><select id="scheduleStatusSelect" disabled><option>草稿</option></select></div>
+<div class="fieldActionGroup">
+  <button id="topGenerateBtn" class="btn" type="button">產生班表</button>
+  <button id="customTopFixBtn" class="btn secondary" type="button" style="display:none" disabled>確認班表</button>
+  <button class="btn secondary" type="button" onclick="printSchedulePdf()">PDF／列印</button>
+  <button class="btn" type="button" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button>
 </div>
-<div class="stageBar"><span class="stage active">選班表</span><span class="stage">選週次</span><span class="stage">安排人員／單位</span><span class="stage">儲存草稿</span><span class="stage">發布</span></div>
-<div id="cloudStatus" class="cloudStatus">正在連線排班中心資料…</div>
-<div id="builder" class="builder empty">請先選擇「班表類型」與「週次」。</div>
+</div>
 
 
+
+<div id="customManagePanel" class="customManagePanel" style="display:none">
+  <div class="customRotationHead">
+    <div>
+      <h3>管理／刪除</h3>
+      <div class="hint">可直接刪除不再需要的自訂輪值項目。刪除時會一併清除其可參加名單、已確認班表及輪值狀態。</div>
+    </div>
+    <button id="closeCustomManageBtn" class="miniCloseBtn" type="button">關閉</button>
+  </div>
+  <div id="customManageList" class="customManageList"></div>
+  <div id="customManageStatus" class="latePreviewStatus"></div>
+</div>
+
+<div id="customRotationPanel" class="customRotationPanel" style="display:none">
+  <div class="customRotationHead">
+    <div>
+      <h3>新增自訂輪值項目</h3>
+      <div class="hint">先建立輪值規則；下一步再設定哪些班級／人員可以參加。</div>
+    </div>
+    <button id="closeCustomRotationBtn" class="miniCloseBtn" type="button">關閉</button>
+  </div>
+
+  <div class="customRotationGrid">
+    <div class="field customNameField">
+      <label>輪值名稱</label>
+      <input id="customRotationName" type="text" maxlength="40" placeholder="例如：粉絲專頁投稿">
+    </div>
+
+    <div class="field">
+      <label>部門</label>
+      <select id="customRotationDepartment">
+        <option value="幼兒部">幼兒部</option>
+        <option value="安親部">安親部</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>輪值單位</label>
+      <select id="customRotationUnit">
+        <option value="班級">以班級輪</option>
+        <option value="個人">以個人輪</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>安排方式</label>
+      <select id="customAssignmentMode">
+        <option value="自動輪替">自動輪替</option>
+        <option value="主管指定">主管指定</option>
+      </select>
+    </div>
+
+    <div class="field" id="customClassRotationModeField">
+      <label>班級輪替方式</label>
+      <select id="customClassRotationMode">
+        <option value="一般順序">一般順序輪</option>
+        <option value="跨年級交錯">跨年級交錯輪</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>每週名額</label>
+      <select id="customWeeklyCount">
+        <option value="1">1 個</option>
+        <option value="2">2 個</option>
+        <option value="3">3 個</option>
+        <option value="4">4 個</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="customRotationRuleHint" class="customRotationRuleHint"></div>
+
+  <div class="customRotationActions">
+    <button id="saveCustomRotationBtn" class="btn" type="button">建立輪值項目</button>
+    <span id="customRotationSaveStatus" class="latePreviewStatus">尚未儲存</span>
+  </div>
+  <div id="customSavedSummary" class="customSavedSummary"></div>
+</div>
+
+
+<div id="customRosterPanel" class="customRosterPanel" style="display:none">
+  <div class="customRotationHead">
+    <div>
+      <h3 id="customRosterTitle">可參加名單</h3>
+      <div id="customRosterHint" class="hint">勾選本輪值可以參加的班級／人員；未勾選者不會進入排班。</div>
+    </div>
+  </div>
+
+  <div id="customRosterList" class="customRosterList"></div>
+
+  <div class="customRotationActions">
+    <button id="saveCustomRosterBtn" class="btn" type="button">確認名單</button>
+    <span id="customRosterStatus" class="latePreviewStatus">尚未保存</span>
+  </div>
+</div>
+
+
+
+<div id="customStartPanel" class="customStartPanel" style="display:none">
+  <div class="customStartInfo">
+    <div>
+      <div class="customStartLabel">上次最後輪值</div>
+      <div id="customLastTarget" class="customLastTarget">尚無紀錄</div>
+    </div>
+    <div class="field customStartField">
+      <label>本學期起點</label>
+      <select id="customStartTarget">
+        <option value="">請選擇起點</option>
+      </select>
+    </div>
+  </div>
+  <div class="hint">
+    上次最後輪值僅供主管參考；本學期可自由選擇起點，用來錯開不同工作的負擔。
+  </div>
+</div>
+
+<div id="customFixPanel" class="latePreviewPanel" style="display:none">
+  <h3 id="customFixTitle">自訂輪值｜確認班表</h3>
+  <div class="hint">
+    產生班表後請先固定目前版本；固定後即可 PDF／列印。
+    如需修改，可重新產生後再重新固定，尚未發布前不會鎖死。
+  </div>
+  <div class="latePreviewActions">
+    <span id="customFixStatus" class="latePreviewStatus">尚未產生</span>
+  </div>
+</div>
+
+<div id="contextActionArea" class="contextActionArea">
 <div id="earlyPreviewPanel" class="latePreviewPanel" style="display:none">
   <h3>早晚值整學期整合排班</h3>
   <div class="hint">
@@ -292,7 +1246,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
   </div>
   <div class="latePreviewActions">
     <button id="earlyPreviewBtn" class="btn" type="button">產生早晚值整學期班表</button>
-    <button id="earlyFixBtn" class="btn secondary" type="button" disabled>固定早晚值</button>
+    <button id="earlyFixBtn" class="btn secondary" type="button" disabled>確認班表</button>
     <span id="earlyPreviewStatus" class="latePreviewStatus">尚未產生</span>
   </div>
 </div>
@@ -305,12 +1259,11 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
   </div>
 </div>
 
-
 <div id="aftercarePreviewPanel" class="latePreviewPanel" style="display:none">
   <h3>安親部晚值｜連續週輪值</h3>
   <div class="hint">
     一週一位安親老師。第一次由主管指定起點；之後依序周而復始輪替，
-    本學期結束後系統會保存「下一位」，下學期直接接續。
+    系統保留上次輪值資訊供參考；每學期仍可由主管選擇起點。
   </div>
 
   <div class="lateStartGrid" style="grid-template-columns:minmax(260px,420px)">
@@ -324,13 +1277,27 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 
   <div class="latePreviewActions">
     <button id="aftercarePreviewBtn" class="btn" type="button">產生安親晚值整學期班表</button>
-    <button id="aftercareCommitBtn" class="btn secondary" type="button" disabled>確認並保存下一位</button>
+    <button id="aftercareCommitBtn" class="btn secondary" type="button" disabled>確認班表</button>
     <span id="aftercarePreviewStatus" class="latePreviewStatus">尚未產生</span>
   </div>
 </div>
+</div>
+
+<div class="stageBar"><span class="stage active">選班表</span><span class="stage">選週次</span><span class="stage">安排人員／單位</span><span class="stage">儲存草稿</span><span class="stage">發布</span></div>
+<div id="cloudStatus" class="cloudStatus">正在連線排班中心資料…</div>
+
+<div id="printSimpleHeader" class="printSimpleHeader" aria-hidden="true">
+  <div id="printSemesterTitle" class="printSemesterTitle"></div>
+  <div id="printScheduleTitle" class="printScheduleTitle"></div>
+</div>
+
+<div id="customPrintGrid" class="customPrintGrid"></div>
+<div id="builder" class="builder empty">請先選擇「班表類型」與「週次」。</div>
+
+
 </section>
 
-<div class="footer">和美智慧校園｜主管排班管理 v3.7</div>
+<div class="footer">和美智慧校園｜主管排班管理 v3.38</div>
 </main>
 
 <script src="schedule_data.js"></script>
@@ -341,6 +1308,7 @@ const SCHEDULE_API='https://script.google.com/macros/s/AKfycbw-vNSfGNciRGnEC3rNT
 
 const typeSelect=document.getElementById('typeSelect');
 const weekSelect=document.getElementById('weekSelect');
+const semesterSelect=document.getElementById('semesterSelect');
 const cloudStatus=document.getElementById('cloudStatus');
 const builder=document.getElementById('builder');
 const range=document.getElementById('range');
@@ -349,12 +1317,19 @@ const body=document.getElementById('body');
 let PEOPLE=[];
 let SCHEDULE_TYPES=[];
 let BOOTSTRAP_READY=false;
+let FIXED_SCHEDULE_ROWS=[];
+let SEMESTER_OPTIONS=[];
+let CURRENT_SEMESTER='';
 let EARLY_SEMESTER_PREVIEW=null;
 let EARLY_PREVIEW_READY=false;
+let EARLY_AUTO_SEARCH_OFFSET=0;
+let EARLY_LATE_CHOSEN_STARTS=null;
 let LATE_SEMESTER_PREVIEW=null;
 let LATE_PREVIEW_READY=false;
 let AFTERCARE_PREVIEW_READY=false;
 let AFTERCARE_PREVIEW_DATA=null;
+let PENDING_CUSTOM_TYPE_CODE='';
+let LAST_CUSTOM_SAVED_ITEM=null;
 
 const earlyPreviewPanel=document.getElementById('earlyPreviewPanel');
 const earlyPreviewBtn=document.getElementById('earlyPreviewBtn');
@@ -407,6 +1382,10 @@ function receiveBootstrap(data){
       return;
     }
 
+    SEMESTER_OPTIONS=Array.isArray(data.semesters)?data.semesters:[];
+    CURRENT_SEMESTER=CURRENT_SEMESTER || String(data.currentSemester||'').trim();
+    fillSemesterOptions();
+
     PEOPLE=data.people.map(function(p){
       return [
         String(p.name||'').trim(),
@@ -417,7 +1396,61 @@ function receiveBootstrap(data){
       ];
     }).filter(function(p){return p[0];});
 
-    SCHEDULE_TYPES=data.types;
+    SCHEDULE_TYPES=Array.isArray(data.types)
+      ? data.types.filter(function(t){
+          return String(t&&t.code||'').trim()!=='AFTER_DUTY';
+        })
+      : [];
+
+    // v3.32：核心特殊班表保護。
+    // 即使雲端班表類型資料暫時少了內建項目，也不能讓已完成的
+    // 幼兒部早晚值／安親部晚值被一般輪值介面取代。
+    const CORE_TYPES=[
+      {
+        name:'幼兒部早值',
+        code:'KINDER_EARLY',
+        rotationUnit:'老師',
+        department:'幼兒部',
+        weeklyCount:3,
+        positions:['A組','B組','AB組'],
+        enabled:true,
+        displayOrder:10,
+        mode:'特殊',
+        continueRotation:true,
+        supervisorOverride:true
+      },
+      {
+        name:'幼兒部晚值',
+        code:'KINDER_LATE',
+        rotationUnit:'老師',
+        department:'幼兒部',
+        weeklyCount:3,
+        positions:['A組','B組','AB組'],
+        enabled:true,
+        displayOrder:11,
+        mode:'特殊',
+        continueRotation:true,
+        supervisorOverride:true
+      }
+    ];
+
+    CORE_TYPES.forEach(function(core){
+      if(!SCHEDULE_TYPES.some(function(t){
+        return String(t&&t.code||'').trim()===core.code;
+      })){
+        SCHEDULE_TYPES.push(core);
+      }
+    });
+
+    SCHEDULE_TYPES.sort(function(a,b){
+      const av=Number(a&&a.displayOrder||999999);
+      const bv=Number(b&&b.displayOrder||999999);
+      return av-bv;
+    });
+
+    FIXED_SCHEDULE_ROWS=Array.isArray(data.fixedSchedules)
+      ? data.fixedSchedules
+      : [];
     TYPE_DEF={};
     typeSelect.innerHTML='<option value="">請選擇</option>';
 
@@ -454,14 +1487,66 @@ function receiveBootstrap(data){
       }
     });
 
+    loadConfirmedAssignmentsIntoMemory();
+
     BOOTSTRAP_READY=true;
+    fillWeeks();
+    loadConfirmedAssignmentsIntoMemory();
+    if(weekSelect.options.length>1 && !weekSelect.value)weekSelect.selectedIndex=1;
     fillAftercareStartSelector();
 
     cloudStatus.className='cloudStatus ok';
-    cloudStatus.textContent='排班中心連線成功｜'+PEOPLE.length+' 位啟用人員｜'+SCHEDULE_TYPES.length+' 種啟用班表';
+    cloudStatus.textContent=
+      '排班中心連線成功｜'+
+      PEOPLE.length+' 位啟用人員｜'+
+      SCHEDULE_TYPES.length+' 種正式班表｜'+
+      FIXED_SCHEDULE_ROWS.length+' 筆已確認資料';
+
+    if(PENDING_CUSTOM_TYPE_CODE){
+      const pending=PENDING_CUSTOM_TYPE_CODE;
+      PENDING_CUSTOM_TYPE_CODE='';
+
+      typeSelect.value=pending;
+
+      if(typeSelect.value===pending){
+        toggleAutoPreviewPanels();
+        renderBuilder();
+
+        if(customRotationPanel){
+          customRotationPanel.style.display='block';
+        }
+
+        // v3.21：新建項目自動選回後，立即載入可參加名單。
+        // 否則 pending 分支會在下方 return，原本的名單載入流程不會執行。
+        setTimeout(loadCustomRosterForCurrentType,0);
+
+        setCustomRotationStatus(
+          LAST_CUSTOM_SAVED_ITEM
+            ? '建立成功，已自動選取「'+LAST_CUSTOM_SAVED_ITEM.name+'」；請確認下方可參加名單'
+            : '建立成功，已自動選取新輪值項目；請確認下方可參加名單',
+          'ok'
+        );
+
+        const summary=document.getElementById('customSavedSummary');
+        if(summary && LAST_CUSTOM_SAVED_ITEM){
+          const i=LAST_CUSTOM_SAVED_ITEM;
+          summary.className='customSavedSummary show';
+          summary.textContent=
+            '已建立｜'+i.name+
+            '｜'+i.department+
+            '｜'+(i.rotationUnit==='班級'?'以班級輪':'以個人輪')+
+            '｜'+i.assignmentMode+
+            (i.classRotationMode?'｜'+i.classRotationMode:'')+
+            '｜每週 '+i.weeklyCount+' 個';
+        }
+
+        return;
+      }
+    }
 
     toggleAutoPreviewPanels();
     renderBuilder();
+    setTimeout(loadCustomRosterForCurrentType,0);
   }catch(err){
     setBootstrapError('接收資料時發生錯誤：'+(err&&err.message?err.message:String(err)));
   }
@@ -488,15 +1573,98 @@ function startIndex(){
 }
 
 
+const LAST_SEMESTER_STORAGE_KEY='heremay_schedule_admin_last_semester';
+
+function readLastSelectedSemester(){
+  try{
+    return String(localStorage.getItem(LAST_SEMESTER_STORAGE_KEY)||'').trim();
+  }catch(_){
+    return '';
+  }
+}
+
+function saveLastSelectedSemester(value){
+  try{
+    const v=String(value||'').trim();
+    if(v)localStorage.setItem(LAST_SEMESTER_STORAGE_KEY,v);
+  }catch(_){}
+}
+
+function getSelectedSemester(){
+  return String((semesterSelect&&semesterSelect.value)||CURRENT_SEMESTER||'').trim();
+}
+
+function currentSemesterInfo(){
+  const label=getSelectedSemester();
+  return SEMESTER_OPTIONS.find(x=>String(x.label||'')===label)||null;
+}
+
+function fillSemesterOptions(){
+  if(!semesterSelect)return;
+  const remembered=readLastSelectedSemester();
+  const rememberedExists=SEMESTER_OPTIONS.some(function(info){
+    return String(info&&info.label||'').trim()===remembered;
+  });
+  const wanted=(rememberedExists?remembered:'') ||
+    CURRENT_SEMESTER ||
+    String((SEMESTER_OPTIONS[0]||{}).label||'');
+  semesterSelect.innerHTML='';
+  SEMESTER_OPTIONS.forEach(info=>{
+    const op=document.createElement('option');
+    op.value=String(info.label||'');
+    op.textContent=String(info.label||'');
+    semesterSelect.appendChild(op);
+  });
+  if(wanted)semesterSelect.value=wanted;
+  if(!semesterSelect.value && semesterSelect.options.length){
+    semesterSelect.selectedIndex=0;
+  }
+  CURRENT_SEMESTER=semesterSelect.value||wanted;
+  saveLastSelectedSemester(CURRENT_SEMESTER);
+  const head=document.getElementById('headerSemesterText');
+  if(head)head.textContent=(CURRENT_SEMESTER||'排班學期')+'｜雲端人員讀取';
+}
+
 function fillWeeks(){
   weekSelect.innerHTML='<option value="">請選擇週次</option>';
-  HEREMAY_SCHEDULE_DATA.forEach(r=>{
+  const info=currentSemesterInfo();
+  const weeks=info&&Array.isArray(info.weeks)?info.weeks:[];
+  weeks.forEach(w=>{
+    const start=String(w.weekStart||'');
+    const end=String(w.weekEnd||'');
+    if(!start||!end)return;
     const op=document.createElement('option');
-    op.value=r[0]+'|'+r[1];
-    op.textContent=f(r[0])+'－'+f(r[1]);
-    weekSelect.appendChild(op)
-  })
+    op.value=start+'|'+end;
+    op.textContent=f(start)+'－'+f(end);
+    weekSelect.appendChild(op);
+  });
 }
+
+function resetSemesterPreviewState(){
+  EARLY_SEMESTER_PREVIEW=null;
+  EARLY_PREVIEW_READY=false;
+  LATE_SEMESTER_PREVIEW=null;
+  LATE_PREVIEW_READY=false;
+  AFTERCARE_PREVIEW_READY=false;
+  AFTERCARE_PREVIEW_DATA=null;
+}
+
+function changeSemester(){
+  CURRENT_SEMESTER=getSelectedSemester();
+  saveLastSelectedSemester(CURRENT_SEMESTER);
+  const head=document.getElementById('headerSemesterText');
+  if(head)head.textContent=(CURRENT_SEMESTER||'排班學期')+'｜雲端人員讀取';
+  resetSemesterPreviewState();
+  fillWeeks();
+  loadConfirmedAssignmentsIntoMemory();
+  if(weekSelect.options.length>1)weekSelect.selectedIndex=1;
+  toggleAutoPreviewPanels();
+  renderBuilder();
+  refreshScheduleStatus();
+  refreshCustomFixAvailability();
+  setTimeout(loadCustomRosterForCurrentType,0);
+}
+
 
 function uniq(arr){return [...new Set(arr)]}
 function options(items, placeholder){
@@ -507,6 +1675,115 @@ function options(items, placeholder){
 
 let CURRENT_CELL=null;
 let SEMESTER_ASSIGNMENTS={};
+
+
+function loadConfirmedAssignmentsIntoMemory(){
+  SEMESTER_ASSIGNMENTS={};
+
+  const selectedSemester=getSelectedSemester();
+
+  FIXED_SCHEDULE_ROWS.forEach(row=>{
+    if(selectedSemester && String(row.semester||'').trim()!==selectedSemester)return;
+    const code=String(row.code||'').trim();
+    const weekStart=String(row.weekStart||'').trim();
+    const weekEnd=String(row.weekEnd||'').trim();
+    let slot=String(row.position||'').trim();
+
+    if(!code || !weekStart || !weekEnd)return;
+
+    // 舊固定資料若位置名稱不同，統一成目前畫面使用名稱。
+    if(code==='KINDER_EARLY' || code==='KINDER_LATE'){
+      if(slot==='A')slot='A組';
+      if(slot==='B')slot='B組';
+      if(slot==='AB')slot='AB組';
+    }
+
+    if(code==='AFTER_DUTY' && !slot){
+      slot='晚值';
+    }
+
+    if(!slot)slot='輪值';
+
+    const weekValue=weekStart+'|'+weekEnd;
+
+    SEMESTER_ASSIGNMENTS[
+      assignmentKey(code,weekValue,slot)
+    ]={
+      name:String(row.name||''),
+      className:String(row.className||''),
+      title:String(row.title||''),
+      autoPreview:false,
+      confirmed:true
+    };
+  });
+
+  refreshScheduleStatus();
+}
+
+function hasConfirmedRowsForCode(code){
+  const semester=getSelectedSemester();
+  return FIXED_SCHEDULE_ROWS.some(row=>
+    String(row.code||'')===String(code||'') &&
+    (!semester || String(row.semester||'')===semester)
+  );
+}
+
+
+function hasAnyAssignmentsForCode(code){
+  return Object.keys(SEMESTER_ASSIGNMENTS||{}).some(function(k){
+    return k.startsWith(String(code||'')+'__');
+  });
+}
+
+function manualCustomScheduleIsComplete(item){
+  if(!item || !item.custom)return false;
+  const code=String(item.code||'');
+  const slots=(TYPE_DEF[code]&&TYPE_DEF[code].slots)||[];
+  const weeks=allWeeks();
+  if(!weeks.length || !slots.length)return false;
+
+  return weeks.every(function(w){
+    return slots.every(function(slot){
+      const a=SEMESTER_ASSIGNMENTS[assignmentKey(code,w,slot)];
+      return !!(a && String(a.name||'').trim());
+    });
+  });
+}
+
+function refreshScheduleStatus(){
+  if(!scheduleStatusSelect)return;
+  const code=typeSelect ? String(typeSelect.value||'') : '';
+  let status='草稿';
+
+  if(code==='KINDER_EARLY'){
+    if(hasConfirmedRowsForCode('KINDER_EARLY') && hasConfirmedRowsForCode('KINDER_LATE')){
+      status='已確認';
+    }
+  }else if(code && hasConfirmedRowsForCode(code)){
+    status='已確認';
+  }
+
+  scheduleStatusSelect.innerHTML='<option>'+status+'</option>';
+}
+
+function refreshCustomFixAvailability(){
+  if(!customTopFixBtn)return;
+  const item=currentScheduleTypeObject();
+
+  if(!item || !item.custom){
+    customTopFixBtn.disabled=true;
+    customTopFixBtn.textContent='確認班表';
+    return;
+  }
+
+  // v3.35：確認按鈕永遠可操作。
+  // 是否能確認改由點擊後的完整性檢查決定，
+  // 避免前端預判條件稍有差異就讓按鈕永久變灰。
+  customTopFixBtn.disabled=false;
+
+  const confirmed=hasConfirmedRowsForCode(item.code);
+  customTopFixBtn.textContent=confirmed?'重新確認班表':'確認班表';
+}
 
 function assignmentKey(code,week,slot){return code+'__'+week+'__'+slot;}
 
@@ -584,6 +1861,56 @@ function toggleAutoPreviewPanels(){
   if(aftercarePreviewPanel){
     aftercarePreviewPanel.style.display=(code==='AFTER_DUTY')?'block':'none';
   }
+
+  if(customFixPanel){
+    const item=(SCHEDULE_TYPES||[]).find(x=>x.code===code);
+    customFixPanel.style.display=(item&&item.custom)?'block':'none';
+
+    if(item&&item.custom&&customFixTitle){
+      customFixTitle.textContent=item.name+'｜確認班表';
+    }
+
+    if(item&&item.custom){
+      const alreadyConfirmed=hasConfirmedRowsForCode(item.code);
+      if(alreadyConfirmed){
+        CUSTOM_ROTATION_FIXED=true;
+        if(customFixStatus){
+          customFixStatus.textContent='已載入上次確認班表｜可直接 PDF／列印，或重新產生後再確認';
+          customFixStatus.className='latePreviewStatus ok';
+        }
+      }
+    }
+
+    if(customTopFixBtn){
+      customTopFixBtn.style.display=(item&&item.custom)?'inline-flex':'none';
+      if(item&&item.custom){
+        customTopFixBtn.disabled=false;
+        refreshCustomFixAvailability();
+      }else{
+        customTopFixBtn.disabled=true;
+        customTopFixBtn.textContent='確認班表';
+      }
+    }
+  }
+
+  if(code==='KINDER_EARLY' && hasConfirmedRowsForCode('KINDER_EARLY')){
+    if(earlyPreviewBtn){
+      earlyPreviewBtn.disabled=false;
+      earlyPreviewBtn.textContent='重新產生班表';
+    }
+    if(earlyPreviewStatus && !EARLY_PREVIEW_READY){
+      setEarlyPreviewStatus('已載入上次確認班表｜如需修改，可直接重新產生','ok');
+    }
+  }
+
+  if(code==='AFTER_DUTY' && hasConfirmedRowsForCode('AFTER_DUTY')){
+    if(aftercarePreviewBtn)aftercarePreviewBtn.disabled=false;
+    if(aftercarePreviewStatus && !AFTERCARE_PREVIEW_READY){
+      setAftercarePreviewStatus('已載入上次確認班表｜如需修改，可更換起點後重新產生','ok');
+    }
+  }
+
+  refreshScheduleStatus();
 }
 
 function loadEarlySemesterPreview(){
@@ -597,12 +1924,15 @@ function loadEarlySemesterPreview(){
 
   if(earlyFixBtn){
     earlyFixBtn.disabled=true;
-    earlyFixBtn.textContent='固定早晚值';
+    earlyFixBtn.textContent='確認班表';
   }
 
-  if(earlyPreviewBtn)earlyPreviewBtn.disabled=true;
+  if(earlyPreviewBtn){
+    earlyPreviewBtn.disabled=true;
+    earlyPreviewBtn.textContent='正在重新產生…';
+  }
 
-  setEarlyPreviewStatus('APP 正在自動搜尋合格起點並產生整學期早晚值…','');
+  setEarlyPreviewStatus('APP 正在搜尋另一組合格起點並產生整學期早晚值…','');
 
   const old=document.getElementById('earlyLateAutoPreviewJsonp');
   if(old)old.remove();
@@ -611,12 +1941,16 @@ function loadEarlySemesterPreview(){
   script.id='earlyLateAutoPreviewJsonp';
   script.src=SCHEDULE_API+
     '?action=earlyLateAutoPreview'+
-    '&semester='+encodeURIComponent('115學年度上學期')+
+    '&semester='+encodeURIComponent(getSelectedSemester())+
+    '&searchOffset='+encodeURIComponent(EARLY_AUTO_SEARCH_OFFSET)+
     '&callback=receiveEarlyLateSemesterPreview'+
     '&t='+Date.now();
 
   script.onerror=function(){
-    if(earlyPreviewBtn)earlyPreviewBtn.disabled=false;
+    if(earlyPreviewBtn){
+      earlyPreviewBtn.disabled=false;
+      earlyPreviewBtn.textContent='重新產生班表';
+    }
     setEarlyPreviewStatus('早晚值全自動排班連線失敗','err');
   };
 
@@ -643,6 +1977,12 @@ function receiveEarlyLateSemesterPreview(data){
 
     EARLY_SEMESTER_PREVIEW=data.early;
     LATE_SEMESTER_PREVIEW=data.late;
+    EARLY_LATE_CHOSEN_STARTS=data.chosenStarts||null;
+    if(data.search && Number.isFinite(Number(data.search.candidateIndex))){
+      EARLY_AUTO_SEARCH_OFFSET=Number(data.search.candidateIndex)+1;
+    }else{
+      EARLY_AUTO_SEARCH_OFFSET+=1;
+    }
     EARLY_PREVIEW_READY=true;
     LATE_PREVIEW_READY=true;
 
@@ -689,7 +2029,10 @@ function receiveEarlyLateSemesterPreview(data){
     });
 
     if(earlyFixBtn)earlyFixBtn.disabled=false;
-    if(earlyPreviewBtn)earlyPreviewBtn.disabled=false;
+    if(earlyPreviewBtn){
+      earlyPreviewBtn.disabled=false;
+      earlyPreviewBtn.textContent='重新產生班表';
+    }
 
     const attempts=data.search&&data.search.attempts?data.search.attempts:'';
     const elapsed=data.search&&data.search.elapsedMs?data.search.elapsedMs:'';
@@ -722,18 +2065,19 @@ function fixEarlySemester(){
     !EARLY_PREVIEW_READY ||
     !LATE_PREVIEW_READY ||
     !EARLY_SEMESTER_PREVIEW ||
-    !LATE_SEMESTER_PREVIEW
+    !LATE_SEMESTER_PREVIEW ||
+    !EARLY_LATE_CHOSEN_STARTS
   ){
-    setEarlyPreviewStatus('請先產生完整早晚值班表，再進行固定','err');
+    setEarlyPreviewStatus('請先產生完整早晚值班表，再進行確認','err');
     return;
   }
 
-  if(!confirm('確定要一次固定目前整學期早值＋晚值嗎？\n\n將寫入早值78筆＋晚值78筆，共156筆；尚未正式發布。')){
+  if(!confirm('確定要確認目前整學期早值＋晚值嗎？\n\n將寫入早值78筆＋晚值78筆，共156筆；尚未正式發布。')){
     return;
   }
 
   if(earlyFixBtn)earlyFixBtn.disabled=true;
-  setEarlyPreviewStatus('正在一次固定整學期早晚值…','');
+  setEarlyPreviewStatus('正在確認目前這一版整學期早晚值…','');
 
   const old=document.getElementById('earlyLateAutoFixJsonp');
   if(old)old.remove();
@@ -741,14 +2085,17 @@ function fixEarlySemester(){
   const script=document.createElement('script');
   script.id='earlyLateAutoFixJsonp';
   script.src=SCHEDULE_API+
-    '?action=earlyLateAutoFix'+
-    '&semester='+encodeURIComponent('115學年度上學期')+
+    '?action=earlyLateSemesterFix'+
+    '&semester='+encodeURIComponent(getSelectedSemester())+
+    '&startA='+encodeURIComponent(EARLY_LATE_CHOSEN_STARTS.A||'')+
+    '&startB='+encodeURIComponent(EARLY_LATE_CHOSEN_STARTS.B||'')+
+    '&startAB='+encodeURIComponent(EARLY_LATE_CHOSEN_STARTS.AB||'')+
     '&callback=receiveEarlyLateSemesterFix'+
     '&t='+Date.now();
 
   script.onerror=function(){
     if(earlyFixBtn)earlyFixBtn.disabled=false;
-    setEarlyPreviewStatus('固定早晚值連線失敗','err');
+    setEarlyPreviewStatus('確認早晚值連線失敗','err');
   };
 
   document.head.appendChild(script);
@@ -767,17 +2114,24 @@ function receiveEarlyLateSemesterFix(data){
 
     const attempts=data.search&&data.search.attempts?data.search.attempts:'';
 
+    if(earlyFixBtn){
+      earlyFixBtn.disabled=false;
+      earlyFixBtn.textContent='重新確認班表';
+    }
+
+    if(earlyPreviewBtn){
+      earlyPreviewBtn.disabled=false;
+    }
+
     setEarlyPreviewStatus(
-      '已固定｜早值 '+data.earlyRowCount+' 筆＋晚值 '+data.lateRowCount+' 筆＝共 '+data.totalRowCount+' 筆｜'+
-      (attempts?('APP 自動搜尋 '+attempts+' 組｜'):'')+
-      '尚未發布',
+      '已確認｜早值 '+data.earlyRowCount+' 筆＋晚值 '+data.lateRowCount+
+      ' 筆＝共 '+data.totalRowCount+
+      ' 筆｜尚未發布｜如需修改，可按「重新產生班表」後再確認',
       'ok'
     );
 
-    if(earlyFixBtn){
-      earlyFixBtn.disabled=true;
-      earlyFixBtn.textContent='早晚值已固定';
-    }
+    BOOTSTRAP_READY=false;
+    loadBootstrap();
   }catch(err){
     if(earlyFixBtn)earlyFixBtn.disabled=false;
     setEarlyPreviewStatus(
@@ -838,9 +2192,7 @@ function renderBuilder(){
         </div>
         <div style="margin-left:auto">
           <label style="font-weight:900;color:#45667d">學期：</label>
-          <select id="semesterViewSelect">
-            <option>115學年度上學期</option>
-          </select>
+          <span style="font-weight:900;color:#174a70">${getSelectedSemester()}</span>
         </div>
       </div>
 
@@ -886,7 +2238,7 @@ function renderBuilder(){
               <h4>晚值統計</h4>
               <div id="lateRotationStats"></div>
             </div>
-          </div>
+</div>
         </aside>
       </div>`;
 
@@ -915,13 +2267,11 @@ function renderBuilder(){
       <div class="semesterBar">
         <div>
           <div style="font-size:21px;font-weight:900;color:#174a70">安親部晚值</div>
-          <div style="color:#6d8798;margin-top:4px">一週一位｜連續輪值｜下學期接續下一位</div>
+          <div style="color:#6d8798;margin-top:4px">一週一位｜整學期輪值｜主管可選起點</div>
         </div>
         <div style="margin-left:auto">
           <label style="font-weight:900;color:#45667d">學期：</label>
-          <select id="semesterViewSelect">
-            <option>115學年度上學期</option>
-          </select>
+          <span style="font-weight:900;color:#174a70">${getSelectedSemester()}</span>
         </div>
       </div>
 
@@ -999,9 +2349,7 @@ function renderBuilder(){
       </div>
       <div style="margin-left:auto">
         <label style="font-weight:900;color:#45667d">學期：</label>
-        <select id="semesterViewSelect">
-          <option>115學年度上學期</option>
-        </select>
+        <span style="font-weight:900;color:#174a70">${getSelectedSemester()}</span>
       </div>
     </div>
 
@@ -1024,7 +2372,7 @@ function renderBuilder(){
               const a=SEMESTER_ASSIGNMENTS[assignmentKey(code,w,s)];
               return `<div class="assignCell" data-code="${code}" data-week="${w}" data-slot="${s}">
                 <div class="slotName">${s}</div>
-                ${a?`<div class="personName">${a.className}｜${a.name}${a.autoPreview?'<span class="autoTag">自動草稿</span>':''}</div>${skipSummary(a)}`:`<div class="emptyText">點此安排</div>`}
+                ${a?`<div class="personName">${a.className? a.className+'｜':''}${a.name}${a.autoPreview?'<span class="autoTag">自動草稿</span>':''}</div>${skipSummary(a)}`:`<div class="emptyText">點此安排</div>`}
               </div>`;
             }).join('')}
           </div>`;
@@ -1245,6 +2593,8 @@ function setupCascade(prefix,code,week,slot){
 
     renderRotationStats(code);
     renderBuilder();
+    refreshCustomFixAvailability();
+    refreshScheduleStatus();
 
     const target=[...builder.querySelectorAll('.assignCell')].find(x=>
       x.dataset.week===week && x.dataset.slot===slot
@@ -1303,7 +2653,7 @@ function loadAftercarePreview(){
   script.id='aftercarePreviewJsonp';
   script.src=SCHEDULE_API+
     '?action=continuousRotationPreview'+
-    '&semester='+encodeURIComponent('115學年度上學期')+
+    '&semester='+encodeURIComponent(getSelectedSemester())+
     '&scheduleCode='+encodeURIComponent('AFTER_DUTY')+
     '&scheduleName='+encodeURIComponent('安親部晚值')+
     '&rotationUnit='+encodeURIComponent('AFTERCARE')+
@@ -1387,7 +2737,7 @@ function commitAftercareRotation(){
   }
 
   if(aftercareCommitBtn)aftercareCommitBtn.disabled=true;
-  setAftercarePreviewStatus('正在保存下一位…','');
+  setAftercarePreviewStatus('正在確認安親晚值班表…','');
 
   const start=aftercareStart?aftercareStart.value:'';
 
@@ -1398,7 +2748,7 @@ function commitAftercareRotation(){
   script.id='aftercareCommitJsonp';
   script.src=SCHEDULE_API+
     '?action=continuousRotationCommit'+
-    '&semester='+encodeURIComponent('115學年度上學期')+
+    '&semester='+encodeURIComponent(getSelectedSemester())+
     '&scheduleCode='+encodeURIComponent('AFTER_DUTY')+
     '&scheduleName='+encodeURIComponent('安親部晚值')+
     '&rotationUnit='+encodeURIComponent('AFTERCARE')+
@@ -1410,7 +2760,7 @@ function commitAftercareRotation(){
 
   script.onerror=function(){
     if(aftercareCommitBtn)aftercareCommitBtn.disabled=false;
-    setAftercarePreviewStatus('保存下一位連線失敗','err');
+    setAftercarePreviewStatus('確認安親晚值連線失敗','err');
   };
 
   document.head.appendChild(script);
@@ -1418,24 +2768,32 @@ function commitAftercareRotation(){
 
 function receiveAftercareCommit(data){
   try{
-    if(!data || data.ok!==true || data.stateUpdated!==true){
+    if(!data || data.ok!==true || data.stateUpdated!==true || data.fixed!==true){
       if(aftercareCommitBtn)aftercareCommitBtn.disabled=false;
       setAftercarePreviewStatus(
-        data&&data.message?data.message:'保存下一位失敗',
+        data&&data.message?data.message:'確認安親晚值失敗',
         'err'
       );
       return;
     }
 
+    if(aftercareCommitBtn){
+      aftercareCommitBtn.disabled=false;
+      aftercareCommitBtn.textContent='重新確認班表';
+    }
+
+    if(aftercarePreviewBtn){
+      aftercarePreviewBtn.disabled=false;
+    }
+
     setAftercarePreviewStatus(
-      '已確認｜下學期下一位：'+data.nextTarget,
+      '已確認｜'+data.fixedRowCount+' 週｜下學期下一位：'+data.nextTarget+
+      '｜如需修改，可更換起點後重新產生，再重新確認',
       'ok'
     );
 
-    if(aftercareCommitBtn){
-      aftercareCommitBtn.disabled=true;
-      aftercareCommitBtn.textContent='下一位已保存';
-    }
+    BOOTSTRAP_READY=false;
+    loadBootstrap();
   }catch(err){
     if(aftercareCommitBtn)aftercareCommitBtn.disabled=false;
     setAftercarePreviewStatus(
@@ -1470,17 +2828,42 @@ function printSchedulePdf(){
     return;
   }
 
+  const item=currentScheduleTypeObject();
+
+  if(item && item.custom){
+    const confirmed=hasConfirmedRowsForCode(item.code);
+
+    if(!CUSTOM_ROTATION_PREVIEW_READY && !confirmed){
+      alert('請先產生並確認完整的自訂輪值班表。');
+      return;
+    }
+
+    if(!CUSTOM_ROTATION_FIXED && !confirmed){
+      alert('請先確認目前班表，再進行 PDF／列印。');
+      return;
+    }
+
+    document.body.classList.remove('print-earlylate');
+    document.body.classList.remove('print-aftercare');
+    document.body.classList.add('print-custom');
+    window.print();
+    return;
+  }
+
   alert('目前這個班表類型尚未設定 PDF／列印版型。');
 }
 
 if(typeSelect)typeSelect.onchange=function(){
   toggleAutoPreviewPanels();
   renderBuilder();
+  refreshScheduleStatus();
+  refreshCustomFixAvailability();
 };
 if(weekSelect)weekSelect.onchange=renderBuilder;
 window.addEventListener('afterprint',function(){
   document.body.classList.remove('print-aftercare');
   document.body.classList.remove('print-earlylate');
+  document.body.classList.remove('print-custom');
 });
 
 window.addEventListener('error',function(e){
@@ -1496,8 +2879,970 @@ if(aftercarePreviewBtn)aftercarePreviewBtn.onclick=loadAftercarePreview;
 if(aftercareCommitBtn)aftercareCommitBtn.onclick=commitAftercareRotation;
 
 
-fillWeeks();
+if(semesterSelect)semesterSelect.addEventListener('change',changeSemester);
 renderBuilder();
 loadBootstrap();
+
+const topGenerateBtn=document.getElementById('topGenerateBtn');
+if(topGenerateBtn){
+  topGenerateBtn.addEventListener('click',()=>{
+    const code=typeSelect ? typeSelect.value : '';
+
+    if(code==='KINDER_EARLY'){
+      const btn=document.getElementById('earlyPreviewBtn');
+      if(btn){ btn.click(); return; }
+    }
+
+    if(code==='AFTER_DUTY'){
+      const btn=document.getElementById('aftercarePreviewBtn');
+      if(btn){ btn.click(); return; }
+    }
+
+    if(!code){
+      alert('請先選擇班表類型。');
+      return;
+    }
+
+    alert('這個輪值項目尚未完成新版「自訂輪值」設定，完成後也會共用這顆「產生班表」按鈕。');
+  });
+}
+
+
+function updateSimplePrintHeader(){
+  const printSemesterSelect=document.getElementById('semesterSelect');
+  const semesterText=
+    printSemesterSelect && printSemesterSelect.options && printSemesterSelect.selectedIndex >= 0
+      ? printSemesterSelect.options[printSemesterSelect.selectedIndex].text
+      : getSelectedSemester();
+
+  const scheduleText =
+    typeSelect && typeSelect.options && typeSelect.selectedIndex >= 0
+      ? typeSelect.options[typeSelect.selectedIndex].text
+      : '';
+
+  const semesterEl=document.getElementById('printSemesterTitle');
+  const scheduleEl=document.getElementById('printScheduleTitle');
+
+  if(semesterEl) semesterEl.textContent=semesterText;
+  if(scheduleEl) scheduleEl.textContent=scheduleText;
+
+  buildCustomPrintGrid();
+}
+
+function buildCustomPrintGrid(){
+  const grid=document.getElementById('customPrintGrid');
+  if(!grid)return;
+
+  const item=currentScheduleTypeObject();
+
+  if(!document.body.classList.contains('print-custom') || !item || !item.custom){
+    grid.innerHTML='';
+    return;
+  }
+
+  let weeks=[];
+
+  if(CUSTOM_ROTATION_PREVIEW && Array.isArray(CUSTOM_ROTATION_PREVIEW.assignments)){
+    weeks=CUSTOM_ROTATION_PREVIEW.assignments;
+  }else{
+    weeks=allWeeks().map(weekValue=>{
+      const parts=String(weekValue).split('|');
+      const selected=[];
+
+      const slots=(TYPE_DEF[item.code]&&TYPE_DEF[item.code].slots)
+        ? TYPE_DEF[item.code].slots
+        : ['輪值'];
+
+      slots.forEach(slot=>{
+        const a=SEMESTER_ASSIGNMENTS[
+          assignmentKey(item.code,weekValue,slot)
+        ];
+        if(a){
+          selected.push({
+            key:a.className||a.name,
+            label:a.name
+          });
+        }
+      });
+
+      return {
+        weekStart:parts[0]||'',
+        weekEnd:parts[1]||'',
+        selected:selected
+      };
+    });
+  }
+
+  const left=weeks.slice(0,13);
+  const right=weeks.slice(13,26);
+
+  function renderCol(part){
+    return `
+      <div class="customPrintCol">
+        <div class="customPrintHead">
+          <div>週次</div>
+          <div>${item.rotationUnit==='班級'?'班級':'輪值'}</div>
+        </div>
+        ${part.map(w=>{
+          const selected=(w.selected||[]).map(x=>item.rotationUnit==='班級'?normalizeClassLabel(x.label||x.key):(x.label||x.key)).join('、');
+          const s=String(w.weekStart||'').slice(5).replace('-','/');
+          const e=String(w.weekEnd||'').slice(5).replace('-','/');
+          return `
+            <div class="customPrintRow">
+              <div class="customPrintWeek">${s}<br>${e}</div>
+              <div class="customPrintName">${selected}</div>
+            </div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  grid.innerHTML=renderCol(left)+renderCol(right);
+}
+
+window.addEventListener('beforeprint', updateSimplePrintHeader);
+
+
+const customRotationPanel=document.getElementById('customRotationPanel');
+const openCustomRotationBtn=document.getElementById('openCustomRotationBtn');
+const openCustomManageBtn=document.getElementById('openCustomManageBtn');
+const customManagePanel=document.getElementById('customManagePanel');
+const closeCustomManageBtn=document.getElementById('closeCustomManageBtn');
+const customManageList=document.getElementById('customManageList');
+const customManageStatus=document.getElementById('customManageStatus');
+const closeCustomRotationBtn=document.getElementById('closeCustomRotationBtn');
+const customRotationName=document.getElementById('customRotationName');
+const customRotationDepartment=document.getElementById('customRotationDepartment');
+const customRotationUnit=document.getElementById('customRotationUnit');
+const customAssignmentMode=document.getElementById('customAssignmentMode');
+const customClassRotationModeField=document.getElementById('customClassRotationModeField');
+const customClassRotationMode=document.getElementById('customClassRotationMode');
+const customWeeklyCount=document.getElementById('customWeeklyCount');
+const saveCustomRotationBtn=document.getElementById('saveCustomRotationBtn');
+const customRotationSaveStatus=document.getElementById('customRotationSaveStatus');
+const customRotationRuleHint=document.getElementById('customRotationRuleHint');
+const customSavedSummary=document.getElementById('customSavedSummary');
+
+function setCustomRotationStatus(msg,state){
+  if(!customRotationSaveStatus)return;
+  customRotationSaveStatus.textContent=msg||'';
+  customRotationSaveStatus.className='latePreviewStatus'+
+    (state==='ok'?' ok':state==='err'?' err':'');
+}
+
+function refreshCustomRotationFields(){
+  const unit=customRotationUnit?customRotationUnit.value:'班級';
+  const mode=customAssignmentMode?customAssignmentMode.value:'自動輪替';
+
+  const showClassMode=(unit==='班級' && mode==='自動輪替');
+
+  if(customClassRotationModeField){
+    customClassRotationModeField.style.display=showClassMode?'block':'none';
+  }
+
+  if(customRotationRuleHint){
+    let text='';
+
+    if(mode==='主管指定'){
+      text='主管指定：每週由主管直接選擇'+
+        (unit==='班級'?'班級':'人員')+
+        '，不使用自動輪值順位。';
+    }else if(unit==='個人'){
+      text='自動輪替：依可參加人員名單順序連續輪替；學期結束保存下一順位，下學期接續。';
+    }else if(customClassRotationMode && customClassRotationMode.value==='跨年級交錯'){
+      text='跨年級交錯：系統會依年級交錯安排班級，例如大班→中班→小班→幼幼班，再各自接續下一班。';
+    }else{
+      text='一般順序：依可參加班級名單的排列順序逐週輪替，學期結束保存下一順位。';
+    }
+
+    customRotationRuleHint.textContent=text;
+  }
+}
+
+function openCustomRotationPanel(){
+  if(customRotationPanel)customRotationPanel.style.display='block';
+  refreshCustomRotationFields();
+  setCustomRotationStatus('尚未儲存','');
+  if(customRotationName)setTimeout(()=>customRotationName.focus(),50);
+}
+
+function closeCustomRotationPanel(){
+  if(customRotationPanel)customRotationPanel.style.display='none';
+}
+
+function saveCustomRotationItem(){
+  if(!BOOTSTRAP_READY){
+    setCustomRotationStatus('排班中心資料尚未載入','err');
+    return;
+  }
+
+  const name=(customRotationName?customRotationName.value:'').trim();
+
+  if(!name){
+    setCustomRotationStatus('請先輸入輪值名稱','err');
+    if(customRotationName)customRotationName.focus();
+    return;
+  }
+
+  const department=customRotationDepartment.value;
+  const rotationUnit=customRotationUnit.value;
+  const assignmentMode=customAssignmentMode.value;
+  const classRotationMode=
+    (rotationUnit==='班級' && assignmentMode==='自動輪替')
+      ? customClassRotationMode.value
+      : '';
+  const weeklyCount=customWeeklyCount.value;
+
+  if(saveCustomRotationBtn)saveCustomRotationBtn.disabled=true;
+  setCustomRotationStatus('正在建立輪值項目…','');
+
+  const old=document.getElementById('customRotationSaveJsonp');
+  if(old)old.remove();
+
+  const script=document.createElement('script');
+  script.id='customRotationSaveJsonp';
+  script.src=SCHEDULE_API+
+    '?action=customRotationSave'+
+    '&name='+encodeURIComponent(name)+
+    '&department='+encodeURIComponent(department)+
+    '&rotationUnit='+encodeURIComponent(rotationUnit)+
+    '&assignmentMode='+encodeURIComponent(assignmentMode)+
+    '&classRotationMode='+encodeURIComponent(classRotationMode)+
+    '&weeklyCount='+encodeURIComponent(weeklyCount)+
+    '&callback=receiveCustomRotationSave'+
+    '&t='+Date.now();
+
+  script.onerror=function(){
+    if(saveCustomRotationBtn)saveCustomRotationBtn.disabled=false;
+    setCustomRotationStatus('建立輪值項目連線失敗','err');
+  };
+
+  document.head.appendChild(script);
+}
+
+function receiveCustomRotationSave(data){
+  try{
+    if(!data || data.ok!==true || !data.item){
+      if(saveCustomRotationBtn)saveCustomRotationBtn.disabled=false;
+      setCustomRotationStatus(
+        data&&data.message?data.message:'建立輪值項目失敗',
+        'err'
+      );
+      return;
+    }
+
+    LAST_CUSTOM_SAVED_ITEM=data.item;
+    PENDING_CUSTOM_TYPE_CODE=data.item.code||'';
+
+    setCustomRotationStatus(
+      '已建立，正在重新載入並選取「'+data.item.name+'」…',
+      'ok'
+    );
+
+    if(customSavedSummary){
+      customSavedSummary.className='customSavedSummary show';
+      customSavedSummary.textContent=
+        '已建立｜'+data.item.name+
+        '｜'+data.item.department+
+        '｜'+(data.item.rotationUnit==='班級'?'以班級輪':'以個人輪')+
+        '｜'+data.item.assignmentMode+
+        (data.item.classRotationMode?'｜'+data.item.classRotationMode:'')+
+        '｜每週 '+data.item.weeklyCount+' 個';
+    }
+
+    // 不清空畫面、不關閉面板；重新讀取後由 receiveBootstrap 精準選回新項目。
+    BOOTSTRAP_READY=false;
+    loadBootstrap();
+
+  }catch(err){
+    if(saveCustomRotationBtn)saveCustomRotationBtn.disabled=false;
+    setCustomRotationStatus(
+      '接收建立結果時發生錯誤：'+
+      (err&&err.message?err.message:String(err)),
+      'err'
+    );
+  }finally{
+    if(saveCustomRotationBtn)saveCustomRotationBtn.disabled=false;
+  }
+}
+
+if(openCustomRotationBtn){
+  openCustomRotationBtn.addEventListener('click',openCustomRotationPanel);
+}
+if(closeCustomRotationBtn){
+  closeCustomRotationBtn.addEventListener('click',closeCustomRotationPanel);
+}
+if(customRotationUnit){
+  customRotationUnit.addEventListener('change',refreshCustomRotationFields);
+}
+if(customAssignmentMode){
+  customAssignmentMode.addEventListener('change',refreshCustomRotationFields);
+}
+if(customClassRotationMode){
+  customClassRotationMode.addEventListener('change',refreshCustomRotationFields);
+}
+if(saveCustomRotationBtn){
+  saveCustomRotationBtn.addEventListener('click',saveCustomRotationItem);
+}
+refreshCustomRotationFields();
+
+
+if(aftercareStart){
+  aftercareStart.addEventListener('change',function(){
+    if(AFTERCARE_PREVIEW_READY){
+      AFTERCARE_PREVIEW_READY=false;
+      AFTERCARE_PREVIEW_DATA=null;
+      if(aftercareCommitBtn){
+        aftercareCommitBtn.disabled=true;
+        aftercareCommitBtn.textContent='確認並保存下一位';
+      }
+      setAftercarePreviewStatus(
+        '起點已變更，請重新按「產生班表」後再確認班表',
+        ''
+      );
+    }
+  });
+}
+
+
+const customRosterPanel=document.getElementById('customRosterPanel');
+const customRosterTitle=document.getElementById('customRosterTitle');
+const customRosterHint=document.getElementById('customRosterHint');
+const customRosterList=document.getElementById('customRosterList');
+const saveCustomRosterBtn=document.getElementById('saveCustomRosterBtn');
+const customRosterStatus=document.getElementById('customRosterStatus');
+const customStartPanel=document.getElementById('customStartPanel');
+const customLastTarget=document.getElementById('customLastTarget');
+const customStartTarget=document.getElementById('customStartTarget');
+const customFixPanel=document.getElementById('customFixPanel');
+const customTopFixBtn=document.getElementById('customTopFixBtn');
+const customFixStatus=document.getElementById('customFixStatus');
+const customFixTitle=document.getElementById('customFixTitle');
+const scheduleStatusSelect=document.getElementById('scheduleStatusSelect');
+
+let CUSTOM_ROSTER_CODE='';
+let CUSTOM_ROSTER_ITEMS=[];
+let CUSTOM_LAST_TARGET='';
+let CUSTOM_ROTATION_PREVIEW=null;
+let CUSTOM_ROTATION_PREVIEW_READY=false;
+let CUSTOM_ROTATION_FIXED=false;
+
+function currentScheduleTypeObject(){
+  const code=typeSelect ? typeSelect.value : '';
+  return (SCHEDULE_TYPES||[]).find(x=>x.code===code) || null;
+}
+
+function setCustomRosterStatus(msg,state){
+  if(!customRosterStatus)return;
+  customRosterStatus.textContent=msg||'';
+  customRosterStatus.className='latePreviewStatus'+
+    (state==='ok'?' ok':state==='err'?' err':'');
+}
+
+function hideCustomRosterPanel(){
+  if(customRosterPanel)customRosterPanel.style.display='none';
+  if(customStartPanel)customStartPanel.style.display='none';
+  CUSTOM_ROSTER_CODE='';
+  CUSTOM_ROSTER_ITEMS=[];
+  CUSTOM_LAST_TARGET='';
+  if(customStartTarget){
+    customStartTarget.innerHTML='<option value="">請選擇起點</option>';
+  }
+  if(customLastTarget){
+    customLastTarget.textContent='尚無紀錄';
+  }
+}
+
+function loadCustomRosterForCurrentType(){
+  const item=currentScheduleTypeObject();
+
+  if(!item || !item.custom){
+    hideCustomRosterPanel();
+    return;
+  }
+
+  if(customRosterPanel)customRosterPanel.style.display='block';
+  if(customRosterTitle)customRosterTitle.textContent=item.name+'｜可參加名單';
+  if(customRosterHint){
+    customRosterHint.textContent=
+      item.rotationUnit==='班級'
+        ? '勾選這個輪值可以參加的班級；未勾選班級不會進入自動排班。'
+        : '勾選這個輪值可以參加的人員；未勾選人員不會進入自動排班。';
+  }
+
+  setCustomRosterStatus('正在讀取名單…','');
+
+  const old=document.getElementById('customRosterJsonp');
+  if(old)old.remove();
+
+  const script=document.createElement('script');
+  script.id='customRosterJsonp';
+  script.src=SCHEDULE_API+
+    '?action=customRotationCandidates'+
+    '&code='+encodeURIComponent(item.code)+
+    '&callback=receiveCustomRosterCandidates'+
+    '&t='+Date.now();
+
+  script.onerror=function(){
+    setCustomRosterStatus('可參加名單讀取失敗','err');
+  };
+
+  document.head.appendChild(script);
+}
+
+function receiveCustomRosterCandidates(data){
+  if(!data || data.ok!==true){
+    setCustomRosterStatus(
+      data&&data.message?data.message:'可參加名單讀取失敗',
+      'err'
+    );
+    return;
+  }
+
+  CUSTOM_ROSTER_CODE=data.item.code;
+  CUSTOM_ROSTER_ITEMS=(data.candidates||[]).map(x=>({...x}));
+
+  if(customRosterList){
+    customRosterList.innerHTML=CUSTOM_ROSTER_ITEMS.map((x,i)=>`
+      <label class="customRosterItem">
+        <input
+          type="checkbox"
+          data-index="${i}"
+          ${x.selected!==false?'checked':''}
+        >
+        <span>${currentScheduleTypeObject()&&currentScheduleTypeObject().rotationUnit==='班級'?normalizeClassLabel(x.label):x.label}</span>
+        ${x.gradeGroup?`<span class="gradeTag">${x.gradeGroup}</span>`:''}
+      </label>
+    `).join('');
+  }
+
+  setCustomRosterStatus(
+    '已讀取 '+CUSTOM_ROSTER_ITEMS.length+' 個可選對象',
+    ''
+  );
+
+  fillCustomStartSelector();
+  loadCustomLastTarget();
+}
+
+function saveCurrentCustomRoster(){
+  if(!CUSTOM_ROSTER_CODE || !CUSTOM_ROSTER_ITEMS.length){
+    setCustomRosterStatus('目前沒有可保存的名單','err');
+    return;
+  }
+
+  const checks=customRosterList
+    ? Array.from(customRosterList.querySelectorAll('input[type="checkbox"]'))
+    : [];
+
+  const members=CUSTOM_ROSTER_ITEMS.map((x,i)=>({
+    key:x.key,
+    label:x.label,
+    gradeGroup:x.gradeGroup||'',
+    enabled:checks[i] ? checks[i].checked : true
+  }));
+
+  if(!members.some(x=>x.enabled)){
+    setCustomRosterStatus('請至少勾選一個可參加對象','err');
+    return;
+  }
+
+  if(saveCustomRosterBtn)saveCustomRosterBtn.disabled=true;
+  setCustomRosterStatus('正在確認名單…','');
+
+  const old=document.getElementById('customRosterSaveJsonp');
+  if(old)old.remove();
+
+  const script=document.createElement('script');
+  script.id='customRosterSaveJsonp';
+  script.src=SCHEDULE_API+
+    '?action=customRotationRosterSave'+
+    '&code='+encodeURIComponent(CUSTOM_ROSTER_CODE)+
+    '&members='+encodeURIComponent(JSON.stringify(members))+
+    '&callback=receiveCustomRosterSave'+
+    '&t='+Date.now();
+
+  script.onerror=function(){
+    if(saveCustomRosterBtn)saveCustomRosterBtn.disabled=false;
+    setCustomRosterStatus('確認名單連線失敗','err');
+  };
+
+  document.head.appendChild(script);
+}
+
+function receiveCustomRosterSave(data){
+  if(saveCustomRosterBtn)saveCustomRosterBtn.disabled=false;
+
+  if(!data || data.ok!==true){
+    setCustomRosterStatus(
+      data&&data.message?data.message:'確認名單失敗',
+      'err'
+    );
+    return;
+  }
+
+  const checks=customRosterList
+    ? Array.from(customRosterList.querySelectorAll('input[type="checkbox"]'))
+    : [];
+
+  CUSTOM_ROSTER_ITEMS.forEach((x,i)=>{
+    x.selected=checks[i] ? checks[i].checked : true;
+  });
+
+  fillCustomStartSelector();
+
+  setCustomRosterStatus(
+    '已確認｜'+data.enabledCount+' 個參加／共 '+data.totalCount+' 個',
+    'ok'
+  );
+}
+
+if(saveCustomRosterBtn){
+  saveCustomRosterBtn.addEventListener('click',saveCurrentCustomRoster);
+}
+
+/* 在班表類型切換後，跟著讀取自訂輪值名單 */
+if(typeSelect){
+  typeSelect.addEventListener('change',function(){
+    setTimeout(loadCustomRosterForCurrentType,0);
+  });
+}
+
+
+function generateCustomRotationSchedule(){
+  const item=currentScheduleTypeObject();
+
+  if(!item || !item.custom){
+    alert('請先選擇自訂輪值項目。');
+    return;
+  }
+
+  if(item.assignmentMode!=='自動輪替'){
+    alert('這個項目目前設定為「主管指定」，請直接點表格安排。');
+    return;
+  }
+
+  if(!CUSTOM_ROSTER_CODE || CUSTOM_ROSTER_CODE!==item.code){
+    loadCustomRosterForCurrentType();
+    alert('這個輪值項目尚未確認可參加名單。\n系統已為你載入名單，請勾選後按「確認名單」，再產生班表。');
+    return;
+  }
+
+  const manualStartTarget=
+    customStartTarget ? customStartTarget.value : '';
+
+  if(!manualStartTarget){
+    alert('請先選擇「本學期起點」，再產生班表。');
+    if(customStartTarget)customStartTarget.focus();
+    return;
+  }
+
+  const semester=getSelectedSemester();
+
+  const old=document.getElementById('customRotationPreviewJsonp');
+  if(old)old.remove();
+
+  cloudStatus.className='cloudStatus';
+  cloudStatus.textContent='正在產生自訂輪值班表…';
+
+  const script=document.createElement('script');
+  script.id='customRotationPreviewJsonp';
+  script.src=SCHEDULE_API+
+    '?action=customRotationPreview'+
+    '&semester='+encodeURIComponent(semester)+
+    '&code='+encodeURIComponent(item.code)+
+    '&manualStartTarget='+encodeURIComponent(manualStartTarget)+
+    '&callback=receiveCustomRotationPreview'+
+    '&t='+Date.now();
+
+  script.onerror=function(){
+    cloudStatus.className='cloudStatus err';
+    cloudStatus.textContent='自訂輪值班表產生失敗';
+  };
+
+  document.head.appendChild(script);
+}
+
+function receiveCustomRotationPreview(data){
+  if(!data || data.ok!==true){
+    cloudStatus.className='cloudStatus err';
+    cloudStatus.textContent=
+      data&&data.message
+        ? data.message
+        : '自訂輪值班表產生失敗';
+    return;
+  }
+
+  CUSTOM_ROTATION_PREVIEW=data;
+  CUSTOM_ROTATION_PREVIEW_READY=true;
+  CUSTOM_ROTATION_FIXED=false;
+
+  if(customTopFixBtn){
+    customTopFixBtn.disabled=false;
+    customTopFixBtn.textContent='確認目前班表';
+  }
+  if(customFixStatus){
+    customFixStatus.textContent='已產生 '+data.weekCount+' 週｜請確認後固定';
+    customFixStatus.className='latePreviewStatus';
+  }
+
+  // 清除此班表舊預覽資料
+  Object.keys(SEMESTER_ASSIGNMENTS).forEach(k=>{
+    if(k.startsWith(data.code+'__')){
+      delete SEMESTER_ASSIGNMENTS[k];
+    }
+  });
+
+  (data.assignments||[]).forEach(w=>{
+    const selected=w.selected||[];
+
+    selected.forEach((x,slotIndex)=>{
+      const pos = data.item.weeklyCount===1
+        ? '輪值'
+        : '位置'+(slotIndex+1);
+
+      const weekValue=
+        String(w.weekStart||'')+'|'+String(w.weekEnd||'');
+
+      SEMESTER_ASSIGNMENTS[
+        assignmentKey(data.code,weekValue,pos)
+      ]={
+        name:data.item.rotationUnit==='班級'?normalizeClassLabel(x.label||x.key):String(x.label||x.key||''),
+        className:'',
+        employeeId:data.item.rotationUnit==='個人'
+          ? String(x.key||'')
+          : '',
+        source:'AUTO_CUSTOM',
+        autoPreview:true
+      };
+    });
+  });
+
+  cloudStatus.className='cloudStatus ok';
+  cloudStatus.textContent=
+    '已產生｜'+data.item.name+
+    '｜'+data.weekCount+' 週｜'+
+    (data.item.classRotationMode||data.item.assignmentMode);
+
+  renderBuilder();
+}
+
+
+function setCustomFixStatus(msg,state){
+  if(!customFixStatus)return;
+  customFixStatus.textContent=msg||'';
+  customFixStatus.className='latePreviewStatus'+
+    (state==='ok'?' ok':state==='err'?' err':'');
+}
+
+function fixCurrentCustomRotation(){
+  const item=currentScheduleTypeObject();
+
+  if(!item || !item.custom){
+    setCustomFixStatus('請先選擇自訂輪值項目','err');
+    return;
+  }
+
+  const isAuto=String(item.assignmentMode||'')==='自動輪替';
+
+  if(isAuto){
+    if(!CUSTOM_ROTATION_PREVIEW_READY || !CUSTOM_ROTATION_PREVIEW){
+      setCustomFixStatus('請先產生完整班表，再進行確認','err');
+      return;
+    }
+  }else{
+    if(!manualCustomScheduleIsComplete(item)){
+      setCustomFixStatus('請先把整學期每一週的名額安排完成，再確認班表','err');
+      return;
+    }
+  }
+
+  if(!confirm(
+    '確定要確認目前「'+item.name+'」整學期班表嗎？\n\n'+
+    '確認後仍可重新調整並重新確認；目前尚未發布。'
+  )){
+    return;
+  }
+
+  const semester=getSelectedSemester();
+
+  if(customTopFixBtn)customTopFixBtn.disabled=true;
+  setCustomFixStatus('正在確認目前班表…','');
+
+  const old=document.getElementById('customRotationFixJsonp');
+  if(old)old.remove();
+
+  const script=document.createElement('script');
+  script.id='customRotationFixJsonp';
+
+  if(isAuto){
+    script.src=SCHEDULE_API+
+      '?action=customRotationFix'+
+      '&semester='+encodeURIComponent(semester)+
+      '&code='+encodeURIComponent(item.code)+
+      '&manualStartTarget='+encodeURIComponent(
+        customStartTarget ? customStartTarget.value : ''
+      )+
+      '&callback=receiveCustomRotationFix'+
+      '&t='+Date.now();
+  }else{
+    const t=TYPE_DEF[item.code]||{};
+    const slots=(t.slots&&t.slots.length)?t.slots:['輪值'];
+
+    const packed=allWeeks().map(function(w){
+      return slots.map(function(slot){
+        const a=SEMESTER_ASSIGNMENTS[assignmentKey(item.code,w,slot)]||{};
+        return {
+          name:String(a.name||''),
+          className:String(a.className||''),
+          title:String(a.title||'')
+        };
+      });
+    });
+
+    script.src=SCHEDULE_API+
+      '?action=customRotationManualFix'+
+      '&semester='+encodeURIComponent(semester)+
+      '&code='+encodeURIComponent(item.code)+
+      '&assignments='+encodeURIComponent(JSON.stringify(packed))+
+      '&callback=receiveCustomRotationFix'+
+      '&t='+Date.now();
+  }
+
+  script.onerror=function(){
+    refreshCustomFixAvailability();
+    setCustomFixStatus('確認班表連線失敗','err');
+  };
+
+  document.head.appendChild(script);
+}
+
+function receiveCustomRotationFix(data){
+  if(customTopFixBtn)customTopFixBtn.disabled=false;
+
+  if(!data || data.ok!==true || data.fixed!==true){
+    setCustomFixStatus(
+      data&&data.message?data.message:'確認班表失敗',
+      'err'
+    );
+    return;
+  }
+
+  CUSTOM_ROTATION_FIXED=true;
+
+  if(customTopFixBtn){
+    customTopFixBtn.textContent='重新確認班表';
+  }
+
+  setCustomFixStatus(
+    '已確認｜'+data.fixedRowCount+' 筆｜尚未發布｜現在可 PDF／列印',
+    'ok'
+  );
+
+  const item=currentScheduleTypeObject();
+  if(item&&item.custom){
+    PENDING_CUSTOM_TYPE_CODE=item.code;
+  }
+
+  // 重新讀取雲端已確認資料，確保離開後再開仍能恢復。
+  BOOTSTRAP_READY=false;
+  loadBootstrap();
+}
+
+if(customTopFixBtn){
+  customTopFixBtn.addEventListener('click',fixCurrentCustomRotation);
+}
+
+/* v3.20：上方「產生班表」若選到自訂輪值，直接呼叫真正自動排班 */
+if(topGenerateBtn){
+  topGenerateBtn.addEventListener('click',function(e){
+    const item=currentScheduleTypeObject();
+    if(item && item.custom){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      generateCustomRotationSchedule();
+    }
+  },true);
+}
+
+
+function fillCustomStartSelector(){
+  if(!customStartTarget)return;
+
+  const previous=customStartTarget.value;
+  const enabled=CUSTOM_ROSTER_ITEMS.filter(x=>x.selected!==false);
+
+  customStartTarget.innerHTML=
+    '<option value="">請選擇起點</option>'+
+    enabled.map(x=>
+      `<option value="${String(x.key).replace(/"/g,'&quot;')}">${x.label}</option>`
+    ).join('');
+
+  if(previous && enabled.some(x=>x.key===previous)){
+    customStartTarget.value=previous;
+  }
+}
+
+function loadCustomLastTarget(){
+  const item=currentScheduleTypeObject();
+
+  if(!item || !item.custom){
+    if(customStartPanel)customStartPanel.style.display='none';
+    return;
+  }
+
+  if(customStartPanel)customStartPanel.style.display='block';
+  if(customLastTarget)customLastTarget.textContent='讀取中…';
+
+  const old=document.getElementById('customLastTargetJsonp');
+  if(old)old.remove();
+
+  const script=document.createElement('script');
+  script.id='customLastTargetJsonp';
+  script.src=SCHEDULE_API+
+    '?action=customRotationLastTarget'+
+    '&code='+encodeURIComponent(item.code)+
+    '&callback=receiveCustomLastTarget'+
+    '&t='+Date.now();
+
+  script.onerror=function(){
+    if(customLastTarget)customLastTarget.textContent='讀取失敗';
+  };
+
+  document.head.appendChild(script);
+}
+
+function receiveCustomLastTarget(data){
+  if(!data || data.ok!==true){
+    CUSTOM_LAST_TARGET='';
+    if(customLastTarget){
+      customLastTarget.textContent=
+        data&&data.message?data.message:'尚無紀錄';
+    }
+    return;
+  }
+
+  CUSTOM_LAST_TARGET=data.found ? (data.lastTarget||'') : '';
+
+  if(customLastTarget){
+    customLastTarget.textContent=
+      data.found
+        ? data.lastTarget+(data.lastDate?'｜'+data.lastDate:'')
+        : '尚無紀錄';
+  }
+}
+
+
+function setCustomManageStatus(msg,state){
+  if(!customManageStatus)return;
+  customManageStatus.textContent=msg||'';
+  customManageStatus.className='latePreviewStatus'+
+    (state==='ok'?' ok':state==='err'?' err':'');
+}
+
+function openCustomManagePanel(){
+  if(customManagePanel)customManagePanel.style.display='block';
+  renderCustomManageList();
+}
+
+function closeCustomManagePanel(){
+  if(customManagePanel)customManagePanel.style.display='none';
+}
+
+function renderCustomManageList(){
+  if(!customManageList)return;
+
+  const items=(SCHEDULE_TYPES||[]).filter(x=>x.custom);
+
+  if(!items.length){
+    customManageList.innerHTML='<div class="hint">目前沒有自訂輪值項目。</div>';
+    return;
+  }
+
+  customManageList.innerHTML=items.map(item=>`
+    <div class="customManageRow">
+      <div>
+        <div class="customManageName">${item.name}</div>
+        <div class="customManageMeta">${item.code}</div>
+      </div>
+      <div>${item.department||''}</div>
+      <div>${item.rotationUnit||''}</div>
+      <div>${item.assignmentMode||''}</div>
+      <button class="customDeleteBtn" type="button" data-code="${item.code}" data-name="${item.name}">刪除整個班表</button>
+    </div>
+  `).join('');
+
+  customManageList.querySelectorAll('.customDeleteBtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      deleteCustomRotationItem(btn.dataset.code,btn.dataset.name);
+    });
+  });
+}
+
+function deleteCustomRotationItem(code,name){
+  if(!code)return;
+
+  const ok=confirm(
+    '確定要刪除整個輪值項目「'+name+'」嗎？\n\n'+
+    '這會一併刪除：\n'+
+    '• 輪值項目設定\n'+
+    '• 可參加名單\n'+
+    '• 已確認班表\n'+
+    '• 輪值狀態\n\n'+
+    '刪除後無法復原。'
+  );
+
+  if(!ok)return;
+
+  setCustomManageStatus('正在刪除「'+name+'」…','');
+
+  const old=document.getElementById('customRotationDeleteJsonp');
+  if(old)old.remove();
+
+  const script=document.createElement('script');
+  script.id='customRotationDeleteJsonp';
+  script.src=SCHEDULE_API+
+    '?action=customRotationDelete'+
+    '&code='+encodeURIComponent(code)+
+    '&callback=receiveCustomRotationDelete'+
+    '&t='+Date.now();
+
+  script.onerror=function(){
+    setCustomManageStatus('刪除輪值項目連線失敗','err');
+  };
+
+  document.head.appendChild(script);
+}
+
+function receiveCustomRotationDelete(data){
+  if(!data || data.ok!==true){
+    setCustomManageStatus(
+      data&&data.message?data.message:'刪除輪值項目失敗',
+      'err'
+    );
+    return;
+  }
+
+  setCustomManageStatus('已刪除「'+data.name+'」','ok');
+
+  BOOTSTRAP_READY=false;
+  loadBootstrap();
+
+  setTimeout(renderCustomManageList,800);
+}
+
+if(openCustomManageBtn){
+  openCustomManageBtn.addEventListener('click',openCustomManagePanel);
+}
+if(closeCustomManageBtn){
+  closeCustomManageBtn.addEventListener('click',closeCustomManagePanel);
+}
+
+
+function normalizeClassLabel(text){
+  const s=String(text||'').trim();
+  if(!s)return '';
+  return /班$/.test(s) ? s : s+'班';
+}
+
 </script>
 </body></html>
