@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>和美智慧校園｜班表查看 v1.2</title>
+  <title>和美智慧校園｜班表查看 v1.3</title>
   <style>
     :root{
       --green:#5f9f7d;
@@ -163,7 +163,7 @@
   <header class="head">
     <div class="icon">🗓️</div>
     <div>
-      <h1>班表查看 <span style="font-size:14px;color:#91a89d;font-weight:800">v1.2</span></h1>
+      <h1>班表查看 <span style="font-size:14px;color:#91a89d;font-weight:800">v1.3</span></h1>
       <p>老師與主管共用｜本週與未來兩週</p>
     </div>
     <button class="back" onclick="history.back()">返回</button>
@@ -184,7 +184,7 @@
 
   <section class="weeks" id="weeks"></section>
 
-  <div class="footer" id="footerText">和美智慧校園｜班表中心｜v1.2</div>
+  <div class="footer" id="footerText">和美智慧校園｜班表中心｜v1.3</div>
 </main>
 
 <script>
@@ -194,6 +194,61 @@ let activeKey='';
 let currentTerm='';
 let publishedItems=[];
 let groups=[];
+
+function readCurrentEmployee(){
+  try{
+    const raw=localStorage.getItem('heremay.currentEmployee');
+    return raw ? JSON.parse(raw) : null;
+  }catch(_){
+    return null;
+  }
+}
+
+function currentViewerScope(){
+  const role=String(localStorage.getItem('heremay.currentRole')||'').trim().toLowerCase();
+  const employee=readCurrentEmployee();
+
+  // 高階主管與中階主管都可查看全部已發布班表。
+  if(role==='admin' || role==='leader'){
+    return {mode:'all',label:'主管｜全部班表'};
+  }
+
+  const raw=String(
+    employee?.group ??
+    employee?.department ??
+    employee?.jobTitle ??
+    employee?.['編組'] ??
+    employee?.['部門'] ??
+    employee?.['職稱'] ??
+    ''
+  ).trim();
+
+  if(raw.includes('T2') || raw.includes('安親')){
+    return {mode:'department',department:'安親部',label:'安親部'};
+  }
+
+  if(raw.includes('T1') || raw.includes('幼兒') || raw.includes('教保')){
+    return {mode:'department',department:'幼兒部',label:'幼兒部'};
+  }
+
+  return {mode:'none',label:'無法確認查看範圍'};
+}
+
+function filterSchedulesForViewer(items){
+  const scope=currentViewerScope();
+
+  if(scope.mode==='all'){
+    return items;
+  }
+
+  if(scope.mode==='department'){
+    return items.filter(item=>
+      String(item.department||'').trim()===scope.department
+    );
+  }
+
+  return [];
+}
 
 const tabs=document.getElementById('tabs');
 const weeks=document.getElementById('weeks');
@@ -390,8 +445,8 @@ function fillTermOptions(semesters,currentSemester){
 
   footerText.textContent=
     currentTerm
-      ? `和美智慧校園｜${currentTerm}班表中心｜v1.2`
-      : '和美智慧校園｜班表中心｜v1.2';
+      ? `和美智慧校園｜${currentTerm}班表中心｜v1.3`
+      : '和美智慧校園｜班表中心｜v1.3';
 }
 
 async function loadBootstrapAndSchedules(){
@@ -425,7 +480,8 @@ async function syncCloud(){
     throw new Error(result?.message||'同步失敗');
   }
 
-  publishedItems=Array.isArray(result.schedules)?result.schedules:[];
+  const allPublishedItems=Array.isArray(result.schedules)?result.schedules:[];
+  publishedItems=filterSchedulesForViewer(allPublishedItems);
   groups=buildGroups(publishedItems);
 
   if(!groups.some(g=>g.key===activeKey)){
@@ -437,13 +493,23 @@ async function syncCloud(){
 
   footerText.textContent=
     currentTerm
-      ? `和美智慧校園｜${currentTerm}班表中心｜v1.2`
-      : '和美智慧校園｜班表中心｜v1.2';
+      ? `和美智慧校園｜${currentTerm}班表中心｜v1.3`
+      : '和美智慧校園｜班表中心｜v1.3';
+
+  const scope=currentViewerScope();
+
+  if(scope.mode==='none'){
+    syncState.textContent='無法確認登入身分，為保護班表資料目前不顯示內容。';
+    weeks.innerHTML='<article class="week"><div class="empty">請由和美智慧校園登入首頁重新登入後，再開啟班表。</div></article>';
+    tabs.innerHTML='';
+    publishMeta.innerHTML='';
+    return;
+  }
 
   syncState.textContent=
     publishedItems.length
-      ? '✓ 已同步園方最新發布班表'
-      : '目前這個學期尚無有效的已發布班表';
+      ? `✓ 已同步園方最新發布班表｜查看範圍：${scope.label}`
+      : `目前這個學期沒有可供「${scope.label}」查看的已發布班表`;
 }
 
 termSelect.addEventListener('change',()=>{
