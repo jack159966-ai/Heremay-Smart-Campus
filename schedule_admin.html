@@ -354,47 +354,6 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
   align-self:end!important;
 }
 
-.publishBtn{
-  background:#2f7d57!important;
-}
-.publishBtn.retract{
-  background:#a65345!important;
-}
-.publicationMeta{
-  margin:10px 0 0;
-  padding:9px 12px;
-  border-radius:12px;
-  background:#f4faf7;
-  border:1px solid #c8e4d5;
-  color:#285c43;
-  font-weight:800;
-}
-.publicationMeta .publishDate{
-  font-size:16px;
-  font-weight:900;
-}
-.publicationMeta .publishVersion{
-  margin-left:6px;
-  font-size:11px;
-  font-weight:700;
-  color:#8aa096;
-}
-.printHeaderRight{
-  text-align:right;
-}
-.printPublishMeta{
-  margin-top:3px;
-  font-size:13px;
-  line-height:1.2;
-  font-weight:900;
-}
-.printPublishMeta .v{
-  margin-left:5px;
-  font-size:9px;
-  font-weight:600;
-  color:#999;
-}
-
 .fieldActionGroup .btn{
   display:inline-flex!important;
   align-items:center!important;
@@ -1120,7 +1079,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 </head>
 <body><main class="app">
 <div class="mobileBlock"><h2>排班管理限電腦操作</h2><p>請改用電腦開啟主管工作台。</p><button class="btn" onclick="history.back()">返回</button></div>
-<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v3.40</h1><p id="headerSemesterText">排班學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button></div></header>
+<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v3.35</h1><p id="headerSemesterText">排班學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button></div></header>
 
 <section class="card">
 <h2>建立／調整班表</h2><p class="sub">人員名單與班表類型由排班中心 Apps Script 讀取；早晚值會一次產生整學期草稿，主管確認後一次固定。</p>
@@ -1140,11 +1099,12 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 <div class="fieldActionGroup">
   <button id="topGenerateBtn" class="btn" type="button">產生班表</button>
   <button id="customTopFixBtn" class="btn secondary" type="button" style="display:none" disabled>確認班表</button>
-  <button id="topPublishBtn" class="btn publishBtn" type="button" disabled>發布班表</button>
+  <button id="publishTopBtn" class="btn secondary" type="button" disabled>發布班表</button>
   <button class="btn secondary" type="button" onclick="printSchedulePdf()">PDF／列印</button>
   <button class="btn" type="button" onclick="window.open('https://docs.google.com/spreadsheets/d/1NlrmL8L0TpKbRsTeINYb2_8fp8GHiGywbMktUNSwaOU/edit','_blank')">開啟正式版資料庫</button>
 </div>
 </div>
+<div id="publishStatusLine" class="latePreviewStatus" style="margin-top:10px"></div>
 
 
 
@@ -1288,7 +1248,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
   </div>
   <div class="latePreviewActions">
     <button id="earlyPreviewBtn" class="btn" type="button">產生早晚值整學期班表</button>
-    <button id="earlyFixBtn" class="btn secondary" type="button" disabled>確認班表</button>
+    <button id="earlyFixBtn" class="btn secondary" type="button" disabled>固定早晚值</button>
     <span id="earlyPreviewStatus" class="latePreviewStatus">尚未產生</span>
   </div>
 </div>
@@ -1319,7 +1279,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 
   <div class="latePreviewActions">
     <button id="aftercarePreviewBtn" class="btn" type="button">產生安親晚值整學期班表</button>
-    <button id="aftercareCommitBtn" class="btn secondary" type="button" disabled>確認班表</button>
+    <button id="aftercareCommitBtn" class="btn secondary" type="button" disabled>確認並保存下一位</button>
     <span id="aftercarePreviewStatus" class="latePreviewStatus">尚未產生</span>
   </div>
 </div>
@@ -1327,14 +1287,10 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 
 <div class="stageBar"><span class="stage active">選班表</span><span class="stage">選週次</span><span class="stage">安排人員／單位</span><span class="stage">儲存草稿</span><span class="stage">發布</span></div>
 <div id="cloudStatus" class="cloudStatus">正在連線排班中心資料…</div>
-<div id="publicationMeta" class="publicationMeta" style="display:none"></div>
 
 <div id="printSimpleHeader" class="printSimpleHeader" aria-hidden="true">
   <div id="printSemesterTitle" class="printSemesterTitle"></div>
-  <div class="printHeaderRight">
-    <div id="printScheduleTitle" class="printScheduleTitle"></div>
-    <div id="printPublishMeta" class="printPublishMeta"></div>
-  </div>
+  <div id="printScheduleTitle" class="printScheduleTitle"></div>
 </div>
 
 <div id="customPrintGrid" class="customPrintGrid"></div>
@@ -1343,7 +1299,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 
 </section>
 
-<div class="footer">和美智慧校園｜主管排班管理 v3.40</div>
+<div class="footer">和美智慧校園｜主管排班管理 v3.35</div>
 </main>
 
 <script src="schedule_data.js"></script>
@@ -1364,13 +1320,11 @@ let PEOPLE=[];
 let SCHEDULE_TYPES=[];
 let BOOTSTRAP_READY=false;
 let FIXED_SCHEDULE_ROWS=[];
-let PUBLISHED_SCHEDULES=[];
+let PUBLISHED_SCHEDULE_ROWS=[];
 let SEMESTER_OPTIONS=[];
 let CURRENT_SEMESTER='';
 let EARLY_SEMESTER_PREVIEW=null;
 let EARLY_PREVIEW_READY=false;
-let EARLY_AUTO_SEARCH_OFFSET=0;
-let EARLY_LATE_CHOSEN_STARTS=null;
 let LATE_SEMESTER_PREVIEW=null;
 let LATE_PREVIEW_READY=false;
 let AFTERCARE_PREVIEW_READY=false;
@@ -1443,11 +1397,7 @@ function receiveBootstrap(data){
       ];
     }).filter(function(p){return p[0];});
 
-    SCHEDULE_TYPES=Array.isArray(data.types)
-      ? data.types.filter(function(t){
-          return String(t&&t.code||'').trim()!=='AFTER_DUTY';
-        })
-      : [];
+    SCHEDULE_TYPES=Array.isArray(data.types)?data.types.slice():[];
 
     // v3.32：核心特殊班表保護。
     // 即使雲端班表類型資料暫時少了內建項目，也不能讓已完成的
@@ -1478,6 +1428,19 @@ function receiveBootstrap(data){
         mode:'特殊',
         continueRotation:true,
         supervisorOverride:true
+      },
+      {
+        name:'安親部晚值',
+        code:'AFTER_DUTY',
+        rotationUnit:'老師',
+        department:'安親部',
+        weeklyCount:1,
+        positions:['晚值'],
+        enabled:true,
+        displayOrder:20,
+        mode:'特殊',
+        continueRotation:true,
+        supervisorOverride:true
       }
     ];
 
@@ -1498,7 +1461,7 @@ function receiveBootstrap(data){
     FIXED_SCHEDULE_ROWS=Array.isArray(data.fixedSchedules)
       ? data.fixedSchedules
       : [];
-    PUBLISHED_SCHEDULES=Array.isArray(data.publishedSchedules)
+    PUBLISHED_SCHEDULE_ROWS=Array.isArray(data.publishedSchedules)
       ? data.publishedSchedules
       : [];
     TYPE_DEF={};
@@ -1545,20 +1508,6 @@ function receiveBootstrap(data){
     if(weekSelect.options.length>1 && !weekSelect.value)weekSelect.selectedIndex=1;
     fillAftercareStartSelector();
 
-    // v3.40：重新開啟排班中心時，回到主管上次使用的班表。
-    // 已確認資料已由 fixedSchedules 載入，不需要重新按「產生班表」。
-    if(!PENDING_CUSTOM_TYPE_CODE){
-      const rememberedType=readLastSelectedType();
-      if(
-        rememberedType &&
-        Array.from(typeSelect.options).some(function(op){
-          return op.value===rememberedType;
-        })
-      ){
-        typeSelect.value=rememberedType;
-      }
-    }
-
     cloudStatus.className='cloudStatus ok';
     cloudStatus.textContent=
       '排班中心連線成功｜'+
@@ -1571,7 +1520,6 @@ function receiveBootstrap(data){
       PENDING_CUSTOM_TYPE_CODE='';
 
       typeSelect.value=pending;
-      saveLastSelectedType(typeSelect.value);
 
       if(typeSelect.value===pending){
         toggleAutoPreviewPanels();
@@ -1611,8 +1559,6 @@ function receiveBootstrap(data){
 
     toggleAutoPreviewPanels();
     renderBuilder();
-    refreshScheduleStatus();
-    refreshPublishControls();
     setTimeout(loadCustomRosterForCurrentType,0);
   }catch(err){
     setBootstrapError('接收資料時發生錯誤：'+(err&&err.message?err.message:String(err)));
@@ -1641,7 +1587,6 @@ function startIndex(){
 
 
 const LAST_SEMESTER_STORAGE_KEY='heremay_schedule_admin_last_semester';
-const LAST_TYPE_STORAGE_KEY='heremay_schedule_admin_last_type';
 
 function readLastSelectedSemester(){
   try{
@@ -1655,21 +1600,6 @@ function saveLastSelectedSemester(value){
   try{
     const v=String(value||'').trim();
     if(v)localStorage.setItem(LAST_SEMESTER_STORAGE_KEY,v);
-  }catch(_){}
-}
-
-function readLastSelectedType(){
-  try{
-    return String(localStorage.getItem(LAST_TYPE_STORAGE_KEY)||'').trim();
-  }catch(_){
-    return '';
-  }
-}
-
-function saveLastSelectedType(value){
-  try{
-    const v=String(value||'').trim();
-    if(v)localStorage.setItem(LAST_TYPE_STORAGE_KEY,v);
   }catch(_){}
 }
 
@@ -1789,14 +1719,11 @@ function loadConfirmedAssignmentsIntoMemory(){
 
     const weekValue=weekStart+'|'+weekEnd;
 
-    const fixedName=String(row.name||'').trim();
-    const fixedClass=String(row.className||'').trim();
-
     SEMESTER_ASSIGNMENTS[
       assignmentKey(code,weekValue,slot)
     ]={
-      name:fixedName,
-      className:(fixedClass && fixedClass!==fixedName) ? fixedClass : '',
+      name:String(row.name||''),
+      className:String(row.className||''),
       title:String(row.title||''),
       autoPreview:false,
       confirmed:true
@@ -1837,236 +1764,89 @@ function manualCustomScheduleIsComplete(item){
 }
 
 
-function publicationGroupForCode(code){
-  const c=String(code||'').trim();
-  return (c==='KINDER_EARLY' || c==='KINDER_LATE')
-    ? 'KINDER_EARLY_LATE'
-    : c;
-}
-
-function currentPublicationSummary(){
-  const code=typeSelect ? String(typeSelect.value||'').trim() : '';
+function getActivePublication(code){
   const semester=getSelectedSemester();
-  const groupCode=publicationGroupForCode(code);
-
-  if(!code || !semester || !groupCode)return null;
-
-  return (PUBLISHED_SCHEDULES||[]).find(function(x){
-    return String(x.semester||'').trim()===semester &&
-      String(x.groupCode||'').trim()===groupCode;
-  }) || null;
+  return (PUBLISHED_SCHEDULE_ROWS||[])
+    .filter(function(x){
+      return String(x.semester||'')===semester &&
+        String(x.code||'')===String(code||'') &&
+        String(x.status||'已發布')==='已發布';
+    })
+    .sort(function(a,b){
+      return Number(b.version||0)-Number(a.version||0);
+    })[0] || null;
 }
 
-function currentScheduleIsConfirmed(){
-  const code=typeSelect ? String(typeSelect.value||'').trim() : '';
-
+function selectedScheduleHasConfirmed(){
+  const code=typeSelect ? String(typeSelect.value||'') : '';
   if(!code)return false;
-
-  if(code==='KINDER_EARLY' || code==='KINDER_LATE'){
+  if(code==='KINDER_EARLY'){
     return hasConfirmedRowsForCode('KINDER_EARLY') &&
       hasConfirmedRowsForCode('KINDER_LATE');
   }
-
   return hasConfirmedRowsForCode(code);
 }
 
-function publishDateOnly(text){
-  const s=String(text||'').trim();
-  if(!s)return '';
-  return s.split(' ')[0] || s;
-}
+function refreshPublishButton(){
+  if(!publishTopBtn)return;
+  const code=typeSelect ? String(typeSelect.value||'') : '';
+  const pub=getActivePublication(code);
+  const confirmed=selectedScheduleHasConfirmed();
 
-function refreshPublishControls(){
-  if(!topPublishBtn)return;
+  publishTopBtn.disabled=!code || (!pub && !confirmed);
+  publishTopBtn.textContent=pub ? '撤回發布' : '發布班表';
 
-  const code=typeSelect ? String(typeSelect.value||'').trim() : '';
-  const confirmed=currentScheduleIsConfirmed();
-  const summary=currentPublicationSummary();
-  const active=!!(summary && String(summary.status||'')==='已發布');
-
-  if(!code){
-    topPublishBtn.disabled=true;
-    topPublishBtn.textContent='發布班表';
-    topPublishBtn.classList.remove('retract');
-
-    if(publicationMeta){
-      publicationMeta.style.display='none';
-      publicationMeta.innerHTML='';
-    }
-    return;
-  }
-
-  if(active){
-    topPublishBtn.disabled=false;
-    topPublishBtn.textContent='撤回發布';
-    topPublishBtn.classList.add('retract');
-  }else{
-    topPublishBtn.classList.remove('retract');
-    topPublishBtn.disabled=!confirmed;
-    topPublishBtn.textContent=
-      summary && Number(summary.version||0)>0
-        ? '重新發布'
-        : '發布班表';
-  }
-
-  if(publicationMeta){
-    if(summary){
-      const dateText=publishDateOnly(summary.publishedAt || summary.retractedAt);
-      const versionNo=Number(summary.version||1);
-
-      if(active){
-        publicationMeta.style.display='block';
-        publicationMeta.innerHTML=
-          '<span class="publishDate">發布日期：'+dateText+'</span>'+
-          '<span class="publishVersion">v'+versionNo+'</span>';
-      }else{
-        publicationMeta.style.display='block';
-        publicationMeta.innerHTML=
-          '目前已撤回'+
-          (dateText?'｜'+dateText:'')+
-          '<span class="publishVersion">v'+versionNo+'</span>';
-      }
+  if(publishStatusLine){
+    if(pub){
+      publishStatusLine.innerHTML=
+        '<strong>發布日期：'+escapeHtml(pub.publishedAt||'')+'</strong> '+
+        '<span style="font-size:12px;color:#9aa3aa">v'+
+        escapeHtml(String(pub.version||1))+'</span>';
+    }else if(confirmed){
+      publishStatusLine.textContent='已確認｜尚未發布';
     }else{
-      publicationMeta.style.display='none';
-      publicationMeta.innerHTML='';
+      publishStatusLine.textContent='';
     }
   }
-}
-
-function upsertPublicationSummary(summary){
-  if(!summary)return;
-
-  const semester=String(summary.semester||'').trim();
-  const groupCode=String(summary.groupCode||'').trim();
-
-  PUBLISHED_SCHEDULES=(PUBLISHED_SCHEDULES||[]).filter(function(x){
-    return !(
-      String(x.semester||'').trim()===semester &&
-      String(x.groupCode||'').trim()===groupCode
-    );
-  });
-
-  PUBLISHED_SCHEDULES.push(summary);
-}
-
-function publishOrRetractCurrentSchedule(){
-  const code=typeSelect ? String(typeSelect.value||'').trim() : '';
-  const semester=getSelectedSemester();
-
-  if(!code){
-    alert('請先選擇班表類型。');
-    return;
-  }
-
-  const summary=currentPublicationSummary();
-  const active=!!(summary && String(summary.status||'')==='已發布');
-
-  if(active){
-    if(!confirm(
-      '確定要撤回目前已發布班表嗎？\n\n'+
-      '撤回後，老師端將不再顯示這個版本。'
-    )){
-      return;
-    }
-  }else{
-    if(!currentScheduleIsConfirmed()){
-      alert('請先完成「確認班表」，再進行發布。');
-      return;
-    }
-
-    const verb=summary&&Number(summary.version||0)>0
-      ? '重新發布'
-      : '發布';
-
-    if(!confirm(
-      '確定要'+verb+'目前班表嗎？\n\n'+
-      '發布日期會自動記錄；版本由系統自動管理。'
-    )){
-      return;
-    }
-  }
-
-  topPublishBtn.disabled=true;
-  cloudStatus.className='cloudStatus';
-  cloudStatus.textContent=
-    active ? '正在撤回班表…' : '正在發布班表…';
-
-  const old=document.getElementById('schedulePublishActionJsonp');
-  if(old)old.remove();
-
-  const script=document.createElement('script');
-  script.id='schedulePublishActionJsonp';
-  script.src=SCHEDULE_API+
-    '?action='+(active?'scheduleRetract':'schedulePublish')+
-    '&semester='+encodeURIComponent(semester)+
-    '&code='+encodeURIComponent(code)+
-    '&callback=receiveSchedulePublishAction'+
-    '&t='+Date.now();
-
-  script.onerror=function(){
-    cloudStatus.className='cloudStatus err';
-    cloudStatus.textContent=
-      active ? '撤回班表連線失敗' : '發布班表連線失敗';
-    refreshPublishControls();
-  };
-
-  document.head.appendChild(script);
-}
-
-function receiveSchedulePublishAction(data){
-  if(!data || data.ok!==true){
-    cloudStatus.className='cloudStatus err';
-    cloudStatus.textContent=
-      data&&data.message ? data.message : '發布狀態更新失敗';
-    refreshPublishControls();
-    return;
-  }
-
-  if(data.summary){
-    upsertPublicationSummary(data.summary);
-  }
-
-  cloudStatus.className='cloudStatus ok';
-  cloudStatus.textContent=data.message || '發布狀態已更新';
-
-  refreshScheduleStatus();
-  refreshPublishControls();
 }
 
 function refreshScheduleStatus(){
   if(!scheduleStatusSelect)return;
-
   const code=typeSelect ? String(typeSelect.value||'') : '';
   let status='草稿';
 
-  const summary=currentPublicationSummary();
-
-  if(summary && String(summary.status||'')==='已發布'){
-    status='已發布';
-  }else if(currentScheduleIsConfirmed()){
+  if(code==='KINDER_EARLY'){
+    if(hasConfirmedRowsForCode('KINDER_EARLY') && hasConfirmedRowsForCode('KINDER_LATE')){
+      status='已確認';
+    }
+  }else if(code && hasConfirmedRowsForCode(code)){
     status='已確認';
   }
 
+  const pub=code ? getActivePublication(code) : null;
+  if(pub)status='已發布';
+
   scheduleStatusSelect.innerHTML='<option>'+status+'</option>';
-  refreshPublishControls();
+  refreshPublishButton();
 }
 
 function refreshCustomFixAvailability(){
   if(!customTopFixBtn)return;
   const item=currentScheduleTypeObject();
-
   if(!item || !item.custom){
     customTopFixBtn.disabled=true;
-    customTopFixBtn.textContent='確認班表';
     return;
   }
 
-  // v3.35：確認按鈕永遠可操作。
-  // 是否能確認改由點擊後的完整性檢查決定，
-  // 避免前端預判條件稍有差異就讓按鈕永久變灰。
-  customTopFixBtn.disabled=false;
-
   const confirmed=hasConfirmedRowsForCode(item.code);
+  const isAuto=String(item.assignmentMode||'')==='自動輪替';
+
+  if(isAuto){
+    customTopFixBtn.disabled=!CUSTOM_ROTATION_PREVIEW_READY;
+  }else{
+    customTopFixBtn.disabled=!manualCustomScheduleIsComplete(item);
+  }
+
   customTopFixBtn.textContent=confirmed?'重新確認班表':'確認班表';
 }
 
@@ -2169,29 +1949,11 @@ function toggleAutoPreviewPanels(){
     if(customTopFixBtn){
       customTopFixBtn.style.display=(item&&item.custom)?'inline-flex':'none';
       if(item&&item.custom){
-        customTopFixBtn.disabled=false;
         refreshCustomFixAvailability();
       }else{
         customTopFixBtn.disabled=true;
         customTopFixBtn.textContent='確認班表';
       }
-    }
-  }
-
-  if(code==='KINDER_EARLY' && hasConfirmedRowsForCode('KINDER_EARLY')){
-    if(earlyPreviewBtn){
-      earlyPreviewBtn.disabled=false;
-      earlyPreviewBtn.textContent='重新產生班表';
-    }
-    if(earlyPreviewStatus && !EARLY_PREVIEW_READY){
-      setEarlyPreviewStatus('已載入上次確認班表｜如需修改，可直接重新產生','ok');
-    }
-  }
-
-  if(code==='AFTER_DUTY' && hasConfirmedRowsForCode('AFTER_DUTY')){
-    if(aftercarePreviewBtn)aftercarePreviewBtn.disabled=false;
-    if(aftercarePreviewStatus && !AFTERCARE_PREVIEW_READY){
-      setAftercarePreviewStatus('已載入上次確認班表｜如需修改，可更換起點後重新產生','ok');
     }
   }
 
@@ -2209,15 +1971,12 @@ function loadEarlySemesterPreview(){
 
   if(earlyFixBtn){
     earlyFixBtn.disabled=true;
-    earlyFixBtn.textContent='確認班表';
+    earlyFixBtn.textContent='固定早晚值';
   }
 
-  if(earlyPreviewBtn){
-    earlyPreviewBtn.disabled=true;
-    earlyPreviewBtn.textContent='正在重新產生…';
-  }
+  if(earlyPreviewBtn)earlyPreviewBtn.disabled=true;
 
-  setEarlyPreviewStatus('APP 正在搜尋另一組合格起點並產生整學期早晚值…','');
+  setEarlyPreviewStatus('APP 正在自動搜尋合格起點並產生整學期早晚值…','');
 
   const old=document.getElementById('earlyLateAutoPreviewJsonp');
   if(old)old.remove();
@@ -2227,15 +1986,11 @@ function loadEarlySemesterPreview(){
   script.src=SCHEDULE_API+
     '?action=earlyLateAutoPreview'+
     '&semester='+encodeURIComponent(getSelectedSemester())+
-    '&searchOffset='+encodeURIComponent(EARLY_AUTO_SEARCH_OFFSET)+
     '&callback=receiveEarlyLateSemesterPreview'+
     '&t='+Date.now();
 
   script.onerror=function(){
-    if(earlyPreviewBtn){
-      earlyPreviewBtn.disabled=false;
-      earlyPreviewBtn.textContent='重新產生班表';
-    }
+    if(earlyPreviewBtn)earlyPreviewBtn.disabled=false;
     setEarlyPreviewStatus('早晚值全自動排班連線失敗','err');
   };
 
@@ -2262,12 +2017,6 @@ function receiveEarlyLateSemesterPreview(data){
 
     EARLY_SEMESTER_PREVIEW=data.early;
     LATE_SEMESTER_PREVIEW=data.late;
-    EARLY_LATE_CHOSEN_STARTS=data.chosenStarts||null;
-    if(data.search && Number.isFinite(Number(data.search.candidateIndex))){
-      EARLY_AUTO_SEARCH_OFFSET=Number(data.search.candidateIndex)+1;
-    }else{
-      EARLY_AUTO_SEARCH_OFFSET+=1;
-    }
     EARLY_PREVIEW_READY=true;
     LATE_PREVIEW_READY=true;
 
@@ -2314,10 +2063,7 @@ function receiveEarlyLateSemesterPreview(data){
     });
 
     if(earlyFixBtn)earlyFixBtn.disabled=false;
-    if(earlyPreviewBtn){
-      earlyPreviewBtn.disabled=false;
-      earlyPreviewBtn.textContent='重新產生班表';
-    }
+    if(earlyPreviewBtn)earlyPreviewBtn.disabled=false;
 
     const attempts=data.search&&data.search.attempts?data.search.attempts:'';
     const elapsed=data.search&&data.search.elapsedMs?data.search.elapsedMs:'';
@@ -2350,19 +2096,18 @@ function fixEarlySemester(){
     !EARLY_PREVIEW_READY ||
     !LATE_PREVIEW_READY ||
     !EARLY_SEMESTER_PREVIEW ||
-    !LATE_SEMESTER_PREVIEW ||
-    !EARLY_LATE_CHOSEN_STARTS
+    !LATE_SEMESTER_PREVIEW
   ){
-    setEarlyPreviewStatus('請先產生完整早晚值班表，再進行確認','err');
+    setEarlyPreviewStatus('請先產生完整早晚值班表，再進行固定','err');
     return;
   }
 
-  if(!confirm('確定要確認目前整學期早值＋晚值嗎？\n\n將寫入早值78筆＋晚值78筆，共156筆；尚未正式發布。')){
+  if(!confirm('確定要一次固定目前整學期早值＋晚值嗎？\n\n將寫入早值78筆＋晚值78筆，共156筆；尚未正式發布。')){
     return;
   }
 
   if(earlyFixBtn)earlyFixBtn.disabled=true;
-  setEarlyPreviewStatus('正在確認目前這一版整學期早晚值…','');
+  setEarlyPreviewStatus('正在一次固定整學期早晚值…','');
 
   const old=document.getElementById('earlyLateAutoFixJsonp');
   if(old)old.remove();
@@ -2370,17 +2115,14 @@ function fixEarlySemester(){
   const script=document.createElement('script');
   script.id='earlyLateAutoFixJsonp';
   script.src=SCHEDULE_API+
-    '?action=earlyLateSemesterFix'+
+    '?action=earlyLateAutoFix'+
     '&semester='+encodeURIComponent(getSelectedSemester())+
-    '&startA='+encodeURIComponent(EARLY_LATE_CHOSEN_STARTS.A||'')+
-    '&startB='+encodeURIComponent(EARLY_LATE_CHOSEN_STARTS.B||'')+
-    '&startAB='+encodeURIComponent(EARLY_LATE_CHOSEN_STARTS.AB||'')+
     '&callback=receiveEarlyLateSemesterFix'+
     '&t='+Date.now();
 
   script.onerror=function(){
     if(earlyFixBtn)earlyFixBtn.disabled=false;
-    setEarlyPreviewStatus('確認早晚值連線失敗','err');
+    setEarlyPreviewStatus('固定早晚值連線失敗','err');
   };
 
   document.head.appendChild(script);
@@ -2401,7 +2143,7 @@ function receiveEarlyLateSemesterFix(data){
 
     if(earlyFixBtn){
       earlyFixBtn.disabled=false;
-      earlyFixBtn.textContent='重新確認班表';
+      earlyFixBtn.textContent='重新固定早晚值';
     }
 
     if(earlyPreviewBtn){
@@ -2409,14 +2151,11 @@ function receiveEarlyLateSemesterFix(data){
     }
 
     setEarlyPreviewStatus(
-      '已確認｜早值 '+data.earlyRowCount+' 筆＋晚值 '+data.lateRowCount+
+      '已固定｜早值 '+data.earlyRowCount+' 筆＋晚值 '+data.lateRowCount+
       ' 筆＝共 '+data.totalRowCount+
-      ' 筆｜尚未發布｜如需修改，可按「重新產生班表」後再確認',
+      ' 筆｜尚未發布｜如需修改，可重新產生後再按「重新固定早晚值」',
       'ok'
     );
-
-    BOOTSTRAP_READY=false;
-    loadBootstrap();
   }catch(err){
     if(earlyFixBtn)earlyFixBtn.disabled=false;
     setEarlyPreviewStatus(
@@ -2657,7 +2396,7 @@ function renderBuilder(){
               const a=SEMESTER_ASSIGNMENTS[assignmentKey(code,w,s)];
               return `<div class="assignCell" data-code="${code}" data-week="${w}" data-slot="${s}">
                 <div class="slotName">${s}</div>
-                ${a?`<div class="personName">${(a.className&&a.className!==a.name)? a.className+'｜':''}${a.name}${a.autoPreview?'<span class="autoTag">自動草稿</span>':''}</div>${skipSummary(a)}`:`<div class="emptyText">點此安排</div>`}
+                ${a?`<div class="personName">${a.className? a.className+'｜':''}${a.name}${a.autoPreview?'<span class="autoTag">自動草稿</span>':''}</div>${skipSummary(a)}`:`<div class="emptyText">點此安排</div>`}
               </div>`;
             }).join('')}
           </div>`;
@@ -3022,7 +2761,7 @@ function commitAftercareRotation(){
   }
 
   if(aftercareCommitBtn)aftercareCommitBtn.disabled=true;
-  setAftercarePreviewStatus('正在確認安親晚值班表…','');
+  setAftercarePreviewStatus('正在保存下一位…','');
 
   const start=aftercareStart?aftercareStart.value:'';
 
@@ -3045,7 +2784,7 @@ function commitAftercareRotation(){
 
   script.onerror=function(){
     if(aftercareCommitBtn)aftercareCommitBtn.disabled=false;
-    setAftercarePreviewStatus('確認安親晚值連線失敗','err');
+    setAftercarePreviewStatus('保存下一位連線失敗','err');
   };
 
   document.head.appendChild(script);
@@ -3053,10 +2792,10 @@ function commitAftercareRotation(){
 
 function receiveAftercareCommit(data){
   try{
-    if(!data || data.ok!==true || data.stateUpdated!==true || data.fixed!==true){
+    if(!data || data.ok!==true || data.stateUpdated!==true){
       if(aftercareCommitBtn)aftercareCommitBtn.disabled=false;
       setAftercarePreviewStatus(
-        data&&data.message?data.message:'確認安親晚值失敗',
+        data&&data.message?data.message:'保存下一位失敗',
         'err'
       );
       return;
@@ -3064,7 +2803,7 @@ function receiveAftercareCommit(data){
 
     if(aftercareCommitBtn){
       aftercareCommitBtn.disabled=false;
-      aftercareCommitBtn.textContent='重新確認班表';
+      aftercareCommitBtn.textContent='重新保存下一位';
     }
 
     if(aftercarePreviewBtn){
@@ -3072,13 +2811,10 @@ function receiveAftercareCommit(data){
     }
 
     setAftercarePreviewStatus(
-      '已確認｜'+data.fixedRowCount+' 週｜下學期下一位：'+data.nextTarget+
-      '｜如需修改，可更換起點後重新產生，再重新確認',
+      '已確認｜下學期下一位：'+data.nextTarget+
+      '｜如需修改，可更換起點後重新產生，再重新保存',
       'ok'
     );
-
-    BOOTSTRAP_READY=false;
-    loadBootstrap();
   }catch(err){
     if(aftercareCommitBtn)aftercareCommitBtn.disabled=false;
     setAftercarePreviewStatus(
@@ -3139,7 +2875,6 @@ function printSchedulePdf(){
 }
 
 if(typeSelect)typeSelect.onchange=function(){
-  saveLastSelectedType(typeSelect.value);
   toggleAutoPreviewPanels();
   renderBuilder();
   refreshScheduleStatus();
@@ -3208,22 +2943,9 @@ function updateSimplePrintHeader(){
 
   const semesterEl=document.getElementById('printSemesterTitle');
   const scheduleEl=document.getElementById('printScheduleTitle');
-  const publishEl=document.getElementById('printPublishMeta');
 
   if(semesterEl) semesterEl.textContent=semesterText;
   if(scheduleEl) scheduleEl.textContent=scheduleText;
-
-  if(publishEl){
-    const summary=currentPublicationSummary();
-
-    if(summary && String(summary.status||'')==='已發布'){
-      publishEl.innerHTML=
-        '發布日期：'+publishDateOnly(summary.publishedAt)+
-        '<span class="v">v'+Number(summary.version||1)+'</span>';
-    }else{
-      publishEl.innerHTML='';
-    }
-  }
 
   buildCustomPrintGrid();
 }
@@ -3495,7 +3217,7 @@ if(aftercareStart){
         aftercareCommitBtn.textContent='確認並保存下一位';
       }
       setAftercarePreviewStatus(
-        '起點已變更，請重新按「產生班表」後再確認班表',
+        '起點已變更，請重新按「產生班表」後再確認保存',
         ''
       );
     }
@@ -3517,8 +3239,8 @@ const customTopFixBtn=document.getElementById('customTopFixBtn');
 const customFixStatus=document.getElementById('customFixStatus');
 const customFixTitle=document.getElementById('customFixTitle');
 const scheduleStatusSelect=document.getElementById('scheduleStatusSelect');
-const topPublishBtn=document.getElementById('topPublishBtn');
-const publicationMeta=document.getElementById('publicationMeta');
+const publishTopBtn=document.getElementById('publishTopBtn');
+const publishStatusLine=document.getElementById('publishStatusLine');
 
 let CUSTOM_ROSTER_CODE='';
 let CUSTOM_ROSTER_ITEMS=[];
@@ -3704,7 +3426,6 @@ if(saveCustomRosterBtn){
 /* 在班表類型切換後，跟著讀取自訂輪值名單 */
 if(typeSelect){
   typeSelect.addEventListener('change',function(){
-    saveLastSelectedType(typeSelect.value);
     setTimeout(loadCustomRosterForCurrentType,0);
   });
 }
@@ -3836,6 +3557,87 @@ function setCustomFixStatus(msg,state){
     (state==='ok'?' ok':state==='err'?' err':'');
 }
 
+
+function publishOrRetractCurrentSchedule(){
+  const code=typeSelect ? String(typeSelect.value||'') : '';
+  const semester=getSelectedSemester();
+
+  if(!code){
+    alert('請先選擇班表類型');
+    return;
+  }
+
+  const pub=getActivePublication(code);
+  const action=pub ? 'retractSchedule' : 'publishSchedule';
+
+  if(!pub && !selectedScheduleHasConfirmed()){
+    alert('請先確認班表，再進行發布。');
+    return;
+  }
+
+  const item=currentScheduleTypeObject();
+  const name=(item&&item.name) || code;
+
+  const message=pub
+    ? '確定撤回「'+name+'」嗎？\n\n撤回後老師端會立即停止顯示這張班表。'
+    : '確定發布「'+name+'」嗎？\n\n發布後老師端會立即看到自己的輪值。';
+
+  if(!confirm(message))return;
+
+  publishTopBtn.disabled=true;
+  if(publishStatusLine){
+    publishStatusLine.textContent=pub ? '正在撤回…' : '正在發布…';
+  }
+
+  const old=document.getElementById('publishScheduleJsonp');
+  if(old)old.remove();
+
+  const script=document.createElement('script');
+  script.id='publishScheduleJsonp';
+  script.src=SCHEDULE_API+
+    '?action='+encodeURIComponent(action)+
+    '&semester='+encodeURIComponent(semester)+
+    '&scheduleCode='+encodeURIComponent(code)+
+    '&callback=receivePublishAction'+
+    '&t='+Date.now();
+
+  script.onerror=function(){
+    publishTopBtn.disabled=false;
+    if(publishStatusLine)publishStatusLine.textContent='發布服務連線失敗';
+  };
+
+  document.head.appendChild(script);
+}
+
+function receivePublishAction(data){
+  const old=document.getElementById('publishScheduleJsonp');
+  if(old)old.remove();
+
+  if(!data || data.ok!==true){
+    if(publishStatusLine){
+      publishStatusLine.textContent=(data&&data.message)?data.message:'發布操作失敗';
+    }
+    refreshPublishButton();
+    return;
+  }
+
+  if(publishStatusLine){
+    if(data.published){
+      publishStatusLine.innerHTML=
+        '<strong>發布日期：'+escapeHtml(data.publishedAt||'')+'</strong> '+
+        '<span style="font-size:12px;color:#9aa3aa">v'+
+        escapeHtml(String(data.publishVersion||1))+'</span>';
+    }else{
+      publishStatusLine.textContent='已撤回｜老師端已停止顯示';
+    }
+  }
+
+  BOOTSTRAP_READY=false;
+  loadBootstrap();
+}
+
+window.receivePublishAction=receivePublishAction;
+
 function fixCurrentCustomRotation(){
   const item=currentScheduleTypeObject();
 
@@ -3954,8 +3756,8 @@ if(customTopFixBtn){
   customTopFixBtn.addEventListener('click',fixCurrentCustomRotation);
 }
 
-if(topPublishBtn){
-  topPublishBtn.addEventListener('click',publishOrRetractCurrentSchedule);
+if(publishTopBtn){
+  publishTopBtn.addEventListener('click',publishOrRetractCurrentSchedule);
 }
 
 /* v3.20：上方「產生班表」若選到自訂輪值，直接呼叫真正自動排班 */
