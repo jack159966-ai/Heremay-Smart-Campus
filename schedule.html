@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>和美智慧校園｜班表查看 v1.2</title>
+  <style>
+    :root{
+      --green:#5f9f7d;
+      --green-deep:#245b43;
+      --green-mid:#d8ebdf;
+      --green-line:#b8d9c5;
+      --green-soft:#f1f8f4;
+      --green-soft2:#e8f4ec;
+      --text:#294238;
+      --muted:#668176;
+      --white:#fff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Microsoft JhengHei",sans-serif;
+      background:linear-gradient(#f8fcf9,#eaf5ee);
+      color:var(--text);
+    }
+    .app{width:min(920px,100%);margin:auto;padding:18px 16px 48px}
+    .head{
+      background:var(--white);
+      border:2px solid var(--green-line);
+      border-radius:26px;
+      padding:20px;
+      display:flex;
+      align-items:center;
+      gap:14px;
+      box-shadow:0 10px 28px rgba(60,110,80,.10);
+    }
+    .head .icon{font-size:42px}
+    .head h1{margin:0;color:var(--green-deep);font-size:27px}
+    .head p{margin:5px 0 0;color:var(--muted);font-weight:700}
+    .back{
+      margin-left:auto;
+      border:0;
+      border-radius:999px;
+      background:var(--green);
+      color:#fff;
+      padding:10px 16px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .termBar{
+      margin:14px 0 0;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .termBar label{font-size:13px;color:var(--muted);font-weight:900}
+    .termBar select{
+      border:1px solid var(--green-line);
+      background:#fff;
+      color:var(--green-deep);
+      border-radius:12px;
+      padding:9px 12px;
+      font-weight:900;
+    }
+    .tabs{display:flex;gap:8px;overflow:auto;padding:18px 2px 8px}
+    .tab{
+      white-space:nowrap;
+      border:1px solid var(--green-line);
+      background:#fff;
+      color:var(--green-deep);
+      border-radius:999px;
+      padding:10px 14px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .tab.active{
+      background:var(--green);
+      color:#fff;
+      border-color:var(--green);
+    }
+    .notice{
+      margin:12px 0;
+      background:#fff;
+      border:1px solid var(--green-line);
+      border-radius:18px;
+      padding:13px 16px;
+      color:var(--muted);
+      font-weight:700;
+    }
+    .publishMeta{
+      margin-top:6px;
+      color:var(--green-deep);
+      font-weight:900;
+    }
+    .publishMeta .version{
+      margin-left:6px;
+      font-size:13px;
+      color:#91a89d;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .weeks{display:grid;gap:14px}
+    .week{
+      background:#fff;
+      border:2px solid var(--green-line);
+      border-radius:24px;
+      padding:18px;
+    }
+    .week.current{
+      border-color:var(--green);
+      box-shadow:0 10px 28px rgba(70,130,95,.12);
+    }
+    .week h2{
+      margin:0 0 14px;
+      color:var(--green-deep);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:21px;
+    }
+    .badge{
+      font-size:13px;
+      background:var(--green-soft2);
+      color:var(--green);
+      border-radius:999px;
+      padding:6px 10px;
+    }
+    .rows{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .duty{
+      background:var(--green-soft);
+      border:1px solid var(--green-mid);
+      border-radius:16px;
+      padding:14px;
+      text-align:center;
+    }
+    .duty small{
+      display:block;
+      color:var(--muted);
+      font-weight:800;
+      margin-bottom:5px;
+    }
+    .duty strong{font-size:19px;color:var(--green-deep)}
+    .empty{padding:28px;text-align:center;color:#789185;font-weight:800}
+    .footer{text-align:center;color:#7a9789;font-size:13px;font-weight:700;margin-top:18px}
+    @media(max-width:560px){
+      .app{padding:12px 10px 38px}
+      .head{padding:16px;border-radius:22px}
+      .head h1{font-size:22px}
+      .head p{font-size:13px}
+      .head .icon{font-size:34px}
+      .back{padding:9px 12px}
+      .week{padding:15px}
+      .rows{grid-template-columns:1fr}
+      .duty{display:flex;justify-content:space-between;align-items:center;text-align:left}
+      .duty small{margin:0}
+      .duty strong{font-size:18px}
+    }
+  </style>
+</head>
+<body>
+<main class="app">
+  <header class="head">
+    <div class="icon">🗓️</div>
+    <div>
+      <h1>班表查看 <span style="font-size:14px;color:#91a89d;font-weight:800">v1.2</span></h1>
+      <p>老師與主管共用｜本週與未來兩週</p>
+    </div>
+    <button class="back" onclick="history.back()">返回</button>
+  </header>
+
+  <div class="termBar">
+    <label for="termSelect">學期</label>
+    <select id="termSelect"></select>
+  </div>
+
+  <nav class="tabs" id="tabs"></nav>
+
+  <div class="notice">
+    班表以園方最新發布內容為準。
+    <div class="publishMeta" id="publishMeta"></div>
+    <small id="syncState">正在讀取最新發布班表…</small>
+  </div>
+
+  <section class="weeks" id="weeks"></section>
+
+  <div class="footer" id="footerText">和美智慧校園｜班表中心｜v1.2</div>
+</main>
+
+<script>
+const SCHEDULE_SERVICE_URL='https://script.google.com/macros/s/AKfycbw-vNSfGNciRGnEC3rNTHk0qnZzZSD0m17WrhISxN2HD_YvO3JscLPdQPLcgr2fFYrz/exec';
+
+let activeKey='';
+let currentTerm='';
+let publishedItems=[];
+let groups=[];
+
+const tabs=document.getElementById('tabs');
+const weeks=document.getElementById('weeks');
+const syncState=document.getElementById('syncState');
+const publishMeta=document.getElementById('publishMeta');
+const termSelect=document.getElementById('termSelect');
+const footerText=document.getElementById('footerText');
+
+function localDate(s){
+  return new Date(String(s||'')+'T00:00:00');
+}
+
+function fmt(s){
+  const d=localDate(s);
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+
+function jsonp(action,params={}){
+  return new Promise((resolve,reject)=>{
+    const callback='scheduleCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    const timer=setTimeout(()=>finish(new Error('同步逾時')),12000);
+
+    function finish(error,data){
+      clearTimeout(timer);
+      try{delete window[callback]}catch(_){}
+      script.remove();
+      error?reject(error):resolve(data);
+    }
+
+    window[callback]=data=>finish(null,data);
+    script.onerror=()=>finish(new Error('無法連線排班資料庫'));
+
+    const query=new URLSearchParams({...params,action,callback});
+    script.src=SCHEDULE_SERVICE_URL+'?'+query.toString();
+    document.head.appendChild(script);
+  });
+}
+
+function groupKey(item){
+  return String(item.groupCode||item.type||item.code||'').trim();
+}
+
+function buildGroups(items){
+  const map=new Map();
+
+  items.forEach(item=>{
+    const key=groupKey(item);
+    if(!key)return;
+
+    if(!map.has(key)){
+      map.set(key,{
+        key,
+        label:item.type||item.code||key,
+        publishedAt:item.publishedAt||'',
+        version:Number(item.version||1)
+      });
+    }else{
+      const g=map.get(key);
+      if(Number(item.version||1)>=g.version){
+        g.publishedAt=item.publishedAt||g.publishedAt;
+        g.version=Number(item.version||g.version||1);
+      }
+    }
+  });
+
+  return [...map.values()];
+}
+
+function renderTabs(){
+  if(!groups.length){
+    tabs.innerHTML='';
+    return;
+  }
+
+  if(!activeKey || !groups.some(g=>g.key===activeKey)){
+    activeKey=groups[0].key;
+  }
+
+  tabs.innerHTML=groups.map(g=>
+    `<button class="tab ${g.key===activeKey?'active':''}" data-key="${g.key}">${g.label}</button>`
+  ).join('');
+
+  tabs.querySelectorAll('.tab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      activeKey=btn.dataset.key;
+      renderTabs();
+      renderWeeks();
+    });
+  });
+}
+
+function activeItems(){
+  return publishedItems.filter(item=>groupKey(item)===activeKey);
+}
+
+function visibleWeekKeys(items){
+  const map=new Map();
+
+  items.forEach(item=>{
+    const key=item.weekStart+'|'+item.weekEnd;
+    if(!map.has(key)){
+      map.set(key,{
+        weekStart:item.weekStart,
+        weekEnd:item.weekEnd
+      });
+    }
+  });
+
+  const all=[...map.values()].sort((a,b)=>a.weekStart.localeCompare(b.weekStart));
+
+  if(!all.length)return [];
+
+  const now=new Date();
+  now.setHours(0,0,0,0);
+
+  let i=all.findIndex(w=>localDate(w.weekStart)<=now && now<=localDate(w.weekEnd));
+  if(i<0)i=all.findIndex(w=>localDate(w.weekStart)>now);
+  if(i<0)i=Math.max(0,all.length-3);
+
+  return all.slice(i,i+3);
+}
+
+function displayAssignee(item){
+  const name=String(item.assignee||'').trim();
+  const cls=String(item.className||'').trim();
+
+  if(cls && cls!==name){
+    return cls+'｜'+name;
+  }
+
+  return name || cls || '尚未安排';
+}
+
+function renderWeeks(){
+  const items=activeItems();
+  const visible=visibleWeekKeys(items);
+
+  const group=groups.find(g=>g.key===activeKey);
+  if(group){
+    const date=(group.publishedAt||'').split(' ')[0]||'';
+    publishMeta.innerHTML=
+      date
+        ? `發布日期：${date}<span class="version">V.${group.version||1}</span>`
+        : '';
+  }else{
+    publishMeta.innerHTML='';
+  }
+
+  if(!visible.length){
+    weeks.innerHTML='<article class="week"><div class="empty">目前沒有已發布的班表。</div></article>';
+    return;
+  }
+
+  weeks.innerHTML=visible.map((w,i)=>{
+    const weekItems=items.filter(item=>
+      item.weekStart===w.weekStart && item.weekEnd===w.weekEnd
+    );
+
+    const rows=weekItems.length
+      ? weekItems.map(item=>`
+          <div class="duty">
+            <small>${item.slot||'輪值'}</small>
+            <strong>${displayAssignee(item)}</strong>
+          </div>
+        `).join('')
+      : '<div class="empty">本週尚無排班內容。</div>';
+
+    return `
+      <article class="week ${i===0?'current':''}">
+        <h2>
+          ${fmt(w.weekStart)}－${fmt(w.weekEnd)}
+          <span class="badge">${i===0?'本週':`未來第 ${i} 週`}</span>
+        </h2>
+        <div class="rows">${rows}</div>
+      </article>
+    `;
+  }).join('');
+}
+
+function fillTermOptions(semesters,currentSemester){
+  const list=Array.isArray(semesters)?semesters:[];
+  termSelect.innerHTML=list.map(s=>{
+    const label=String(s.label||'');
+    return `<option value="${label}">${label}</option>`;
+  }).join('');
+
+  if(!termSelect.options.length && currentSemester){
+    termSelect.innerHTML=`<option value="${currentSemester}">${currentSemester}</option>`;
+  }
+
+  currentTerm=currentSemester || (termSelect.options[0]?termSelect.options[0].value:'');
+  if(currentTerm)termSelect.value=currentTerm;
+
+  footerText.textContent=
+    currentTerm
+      ? `和美智慧校園｜${currentTerm}班表中心｜v1.2`
+      : '和美智慧校園｜班表中心｜v1.2';
+}
+
+async function loadBootstrapAndSchedules(){
+  try{
+    syncState.textContent='正在讀取排班中心資料…';
+
+    const bootstrap=await jsonp('bootstrap');
+
+    if(!bootstrap || bootstrap.ok!==true){
+      throw new Error(bootstrap?.message||'排班中心資料讀取失敗');
+    }
+
+    fillTermOptions(bootstrap.semesters,bootstrap.currentSemester);
+
+    await syncCloud();
+  }catch(error){
+    console.warn(error);
+    syncState.textContent='班表讀取失敗，請稍後重新開啟。';
+    weeks.innerHTML='<article class="week"><div class="empty">目前無法讀取已發布班表。</div></article>';
+  }
+}
+
+async function syncCloud(){
+  currentTerm=termSelect.value||currentTerm;
+
+  syncState.textContent='正在同步園方最新發布班表…';
+
+  const result=await jsonp('getPublishedSchedules',{term:currentTerm});
+
+  if(!result || result.ok!==true){
+    throw new Error(result?.message||'同步失敗');
+  }
+
+  publishedItems=Array.isArray(result.schedules)?result.schedules:[];
+  groups=buildGroups(publishedItems);
+
+  if(!groups.some(g=>g.key===activeKey)){
+    activeKey=groups[0]?.key||'';
+  }
+
+  renderTabs();
+  renderWeeks();
+
+  footerText.textContent=
+    currentTerm
+      ? `和美智慧校園｜${currentTerm}班表中心｜v1.2`
+      : '和美智慧校園｜班表中心｜v1.2';
+
+  syncState.textContent=
+    publishedItems.length
+      ? '✓ 已同步園方最新發布班表'
+      : '目前這個學期尚無有效的已發布班表';
+}
+
+termSelect.addEventListener('change',()=>{
+  currentTerm=termSelect.value;
+  activeKey='';
+  syncCloud().catch(error=>{
+    console.warn(error);
+    syncState.textContent='班表同步失敗，請稍後重新開啟。';
+  });
+});
+
+loadBootstrapAndSchedules();
+</script>
+</body>
+</html>

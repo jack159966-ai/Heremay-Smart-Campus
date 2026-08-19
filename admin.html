@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.14</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.15</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -595,6 +595,12 @@
       <button class="bottomSquareBtn" type="button" onclick="location.href='secretary.html'">
         <span class="sqIcon">🤖</span><strong>智慧秘書</strong><span>行事曆、公告與專案</span>
       </button>
+      <button class="bottomSquareBtn" type="button" onclick="location.href='schedule.html'">
+        <span class="sqIcon">🗓️</span><strong>班表查看</strong><span>查看已發布的各項班表</span>
+      </button>
+      <button class="bottomSquareBtn" type="button" onclick="location.href='schedule_admin.html'">
+        <span class="sqIcon">🗂️</span><strong>排班管理</strong><span>建立、確認與發布班表</span>
+      </button>
     </section>
 
     <section class="dashCard desktopToolCard">
@@ -615,9 +621,6 @@
         <button class="desktopToolBtn" type="button" data-desktop-tool="patrol_admin.html" data-tool-name="巡堂報表列印">
           <span class="deskIcon">🖨️</span><strong>巡堂報表</strong><span>查詢、整理與列印</span>
         </button>
-        <button class="desktopToolBtn" type="button" data-desktop-tool="schedule_admin.html" data-tool-name="排班管理">
-          <span class="deskIcon">🗓️</span><strong>排班管理</strong><span>建立、比對與發布各類班表</span>
-        </button>
         <button class="desktopToolBtn" type="button" data-desktop-tool="" data-tool-name="PDF／Excel 匯出">
           <span class="deskIcon">📤</span><strong>資料匯出</strong><span>PDF、Excel 與月報表</span>
         </button>
@@ -627,7 +630,7 @@
       </div>
     </section>
 
-    <div class="versionStamp">主管工作台 v24.14｜2026-08-10｜大量參數設定入口啟用</div>
+    <div class="versionStamp">主管工作台 v24.15｜2026-08-19｜班表查看與管理入口整理</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
@@ -1490,31 +1493,11 @@ function isDesktopDevice(){
 function setupDesktopTools(){
   const desktop = isDesktopDevice();
   const employee = currentAdminEmployee || readCurrentEmployee() || {};
-  const canEditSchedule = employee.scheduleAdmin === true;
 
   document.querySelectorAll('[data-desktop-tool]').forEach(button=>{
     const href = button.dataset.desktopTool || '';
     const name = button.dataset.toolName || '此功能';
 
-    // 排班功能特例：手機一律唯讀；電腦僅指定人員可進管理頁。
-    if(name === '排班管理'){
-      button.disabled = false;
-
-      if(!desktop){
-        button.title = '查看班表（手機唯讀）';
-        button.onclick = ()=>{ location.href = 'schedule.html'; };
-        return;
-      }
-
-      if(canEditSchedule){
-        button.title = '開啟排班管理';
-        button.onclick = ()=>{ location.href = 'schedule_admin.html'; };
-      }else{
-        button.title = '查看班表（唯讀）';
-        button.onclick = ()=>{ location.href = 'schedule.html'; };
-      }
-      return;
-    }
 
     button.disabled = !desktop;
 

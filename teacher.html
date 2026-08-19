@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v14.0 權限版</title>
+  <title>和美智慧校園｜教保人員首頁 v14.3 單一排班入口版</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -646,7 +646,7 @@
           <span>便當、旅遊、活動與用品需求登記</span>
         </button>
 
-        <button class="btn" onclick="window.location.href='schedule_v2.html'">
+        <button class="btn" onclick="window.location.href='schedule.html'">
           <div class="icon">🗓️</div>
           <strong>排班表</strong>
           <span>查看本週及未來兩週的各項輪值</span>
@@ -658,11 +658,7 @@
           <span>發布、修改與管理園方正式公告</span>
         </button>
 
-        <button class="btn" id="scheduleAdminBtn" style="display:none" onclick="openScheduleManagement()">
-          <div class="icon">🗂️</div>
-          <strong>排班管理</strong>
-          <span>電腦可管理排班；手機僅查看班表</span>
-        </button>
+        
 
         <button class="btn" onclick="openMediaSubmission()">
           <div class="icon">📸</div>
@@ -679,7 +675,7 @@
       </div>
     </section>
 
-    <div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v14.0｜新增公告與排班權限入口</div>
+    <div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v14.3｜單一排班表入口</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -905,11 +901,7 @@
         return;
       }
 
-      if(isDesktopDevice()){
-        window.location.href = 'schedule_admin.html';
-      }else{
-        window.location.href = 'schedule_v2.html';
-      }
+      window.location.href = 'schedule_admin.html';
     }
 
     const notices = {
