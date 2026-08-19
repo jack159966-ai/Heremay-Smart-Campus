@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>和美智慧校園｜我的班表 v2.1</title>
+<title>和美智慧校園｜我的班表</title>
 <style>
 :root{
   --pink:#df5b89;--deep:#6d2944;--line:#efbfd0;--soft:#fff3f8;
@@ -79,7 +79,7 @@ body{
 <main class="app">
 <header class="head">
   <div class="icon">🗓️</div>
-  <div><h1>我的班表</h1><p>只顯示園方目前有效的正式發布班表</p></div>
+  <div><h1>我的班表</h1><p>顯示本部門目前有效的正式發布班表，方便同仁協調換班</p></div>
   <button class="back" onclick="history.back()">返回</button>
 </header>
 
@@ -192,9 +192,20 @@ function receivePublished(data){
   }
 
   publishedRows=Array.isArray(data.rows)?data.rows:[];
+
+  if(data.user){
+    const name=String(data.user.name||currentEmployee.name||'').trim();
+    const dept=String(data.user.department||'').trim();
+    const cls=normalizeClass(data.user.className||'');
+    const job=String((currentEmployee&&currentEmployee.jobTitle)||'').trim();
+
+    userName.textContent=name;
+    userMeta.textContent=[dept,cls,job].filter(Boolean).join('｜');
+  }
+
   cloudStatus.textContent=publishedRows.length
     ? '已同步最新正式班表'
-    : '目前沒有發布給你的班表。';
+    : '目前沒有園方正式發布的班表。';
 
   render();
 }
@@ -226,7 +237,7 @@ function render(){
 
   if(!groups.length){
     tabs.innerHTML='';
-    content.innerHTML='<div class="empty">目前沒有園方正式發布給你的班表。<br>若主管剛撤回更新，重新發布後會自動出現。</div>';
+    content.innerHTML='<div class="empty">目前沒有園方正式發布的班表。<br>若主管剛撤回更新，重新發布後會自動出現。</div>';
     return;
   }
 
