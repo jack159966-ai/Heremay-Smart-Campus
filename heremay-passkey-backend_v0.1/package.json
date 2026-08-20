@@ -1,0 +1,20 @@
+{
+  "name": "heremay-passkey-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "^7.11.0",
+    "@simplewebauthn/server": "^13.2.2",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "googleapis": "^148.0.0",
+    "helmet": "^8.1.0"
+  }
+}
