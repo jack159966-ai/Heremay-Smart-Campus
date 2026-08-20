@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜Heremay Smart Campus v1.4.4</title>
+  <title>和美智慧校園｜Heremay Smart Campus v1.4.5</title>
 
   <!-- 手機桌面圖示與 PWA 設定 -->
   <meta name="theme-color" content="#eef9ff" />
@@ -289,6 +289,10 @@
         <button type="button" class="text-btn" onclick="showToast('正式版會交由管理者協助重設密碼')">忘記密碼？</button>
       </div>
 
+      <div class="divider">或使用快速登入</div>
+      <button class="face-btn" type="button" onclick="faceLogin()">🔐 Face ID／指紋／Windows Hello 快速登入</button>
+      <button class="text-btn face-setup" type="button" onclick="registerFaceLogin()">首次使用？設定快速登入</button>
+
       <p class="access-note">此裝置保持登入後，下次可直接進入系統</p>
       </form>
     </section>
@@ -309,7 +313,7 @@
 
     <footer>
       資料安全・隱私保護・安心使用<br />
-      <span id="versionText">Heremay Smart Campus v1.4.4</span>
+      <span id="versionText">Heremay Smart Campus v1.4.5</span>
     </footer>
   </main>
 
@@ -330,7 +334,7 @@
 
 
   <script>
-    const APP_VERSION = '1.4.4';
+    const APP_VERSION = '1.4.5';
 
     /*
       正式登入架構說明
@@ -339,7 +343,8 @@
       3. 新 NAS 到位後，只要把 API_BASE 改成正式網址即可。
     */
     const CONFIG = {
-      API_BASE: 'https://script.google.com/macros/s/AKfycbzbZ6r6c8XjHuKad0U5TIJXr8i141fCBwNJcVsKnoGa1-NXG_JOzapeRF5cVlnGI4F7/exec',
+      LOGIN_API_BASE: 'https://script.google.com/macros/s/AKfycbzbZ6r6c8XjHuKad0U5TIJXr8i141fCBwNJcVsKnoGa1-NXG_JOzapeRF5cVlnGI4F7/exec',
+      PASSKEY_API_BASE: 'https://heremay-passkey-backend-943533867342.asia-east1.run.app',
       TEMP_DEMO_MODE: false
     };
 
@@ -538,6 +543,10 @@
           bytesToBase64url(new Uint8Array(response.attestationObject));
       }
 
+      if(typeof response.getTransports === 'function'){
+        json.response.transports = response.getTransports();
+      }
+
       if(response.authenticatorData){
         json.response.authenticatorData =
           bytesToBase64url(new Uint8Array(response.authenticatorData));
@@ -556,45 +565,59 @@
       return json;
     }
 
+    async function fetchWithTimeout(url, options={}, timeoutMs=15000){
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+      try{
+        return await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+      }catch(err){
+        if(err?.name === 'AbortError'){
+          throw new Error('連線逾時，請稍後再試');
+        }
+        throw err;
+      }finally{
+        clearTimeout(timer);
+      }
+    }
+
     async function apiPost(path, body){
-  if(!CONFIG.API_BASE){
-    throw new Error('登入伺服器尚未設定');
-  }
+      if(!CONFIG.PASSKEY_API_BASE){
+        throw new Error('快速登入伺服器尚未設定');
+      }
 
-  const formData = new URLSearchParams();
+      const response = await fetchWithTimeout(
+        `${CONFIG.PASSKEY_API_BASE}${path}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify(body || {})
+        },
+        15000
+      );
 
-  Object.entries(body || {}).forEach(([key, value]) => {
-    formData.set(key, String(value ?? ''));
-  });
+      let data = {};
 
-  const response = await fetchWithTimeout(
-    CONFIG.API_BASE,
-    {
-      method: 'POST',
-      body: formData
-    },
-    15000
-  );
+      try{
+        data = await response.json();
+      }catch(_){
+        throw new Error('快速登入服務回傳格式不正確');
+      }
 
-  let data = {};
+      if(!response.ok){
+        throw new Error(data.message || `伺服器錯誤 HTTP ${response.status}`);
+      }
 
-  try{
-    data = await response.json();
-  }catch(_){
-    throw new Error('登入服務回傳格式不正確');
-  }
-
-  if(!response.ok){
-    throw new Error(data.message || `伺服器錯誤 HTTP ${response.status}`);
-  }
-
-  return data;
-}
+      return data;
+    }
 
 
     function iframeLogin(account, password){
       return new Promise((resolve, reject) => {
-        if(!CONFIG.API_BASE){
+        if(!CONFIG.LOGIN_API_BASE){
           reject(new Error('登入伺服器尚未設定'));
           return;
         }
@@ -610,7 +633,7 @@
         iframe.setAttribute('aria-hidden', 'true');
 
         form.method = 'POST';
-        form.action = CONFIG.API_BASE;
+        form.action = CONFIG.LOGIN_API_BASE;
         form.target = frameName;
         form.style.display = 'none';
 
@@ -674,14 +697,11 @@
         return;
       }
 
-      if(CONFIG.TEMP_DEMO_MODE && !CONFIG.API_BASE){
+      if(CONFIG.TEMP_DEMO_MODE && !CONFIG.PASSKEY_API_BASE){
         localStorage.setItem('heremay.lastFaceAccount', account);
         showToast('入口頁已準備完成；新 NAS 登入伺服器完成後即可正式綁定 Face ID。');
         return;
       }
-
-      showToast('刷臉登入將在新 NAS 完成後啟用；目前請先使用帳號密碼登入。');
-      return;
 
       try{
         const optionsData = await apiPost('/auth/passkey/register/options', {
@@ -728,7 +748,7 @@
         return;
       }
 
-      if(CONFIG.TEMP_DEMO_MODE && !CONFIG.API_BASE){
+      if(CONFIG.TEMP_DEMO_MODE && !CONFIG.PASSKEY_API_BASE){
         const role = demoAccountRoleMap[account];
         if(role){
           localStorage.setItem('heremay.lastFaceAccount', account);
@@ -738,9 +758,6 @@
         }
         return;
       }
-
-      showToast('刷臉登入將在新 NAS 完成後啟用；目前請先使用帳號密碼登入。');
-      return;
 
       try{
         const optionsData = await apiPost('/auth/passkey/login/options', {
@@ -761,6 +778,17 @@
         }
 
         localStorage.setItem('heremay.lastFaceAccount', account);
+        localStorage.setItem('heremay.currentRole', String(result.role || ''));
+
+        if(result.employee){
+          localStorage.setItem(
+            'heremay.currentEmployee',
+            JSON.stringify(result.employee)
+          );
+        }else{
+          localStorage.removeItem('heremay.currentEmployee');
+        }
+
         goRole(result.role);
       }catch(err){
         console.error(err);
@@ -810,7 +838,7 @@
         return;
       }
 
-      if(CONFIG.TEMP_DEMO_MODE && !CONFIG.API_BASE){
+      if(CONFIG.TEMP_DEMO_MODE && !CONFIG.LOGIN_API_BASE){
         const role = demoAccountRoleMap[account];
         if(role){
           localStorage.setItem('heremay.lastFaceAccount', account);
