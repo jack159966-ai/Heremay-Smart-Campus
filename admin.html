@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.15</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.16</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -401,14 +401,14 @@
     .futureItem:first-of-type{border-top:0}
     .futureItem time{font-size:20px;color:#183f73}
     .patrolButton{
-      width:100%;border:1px solid #c9dcff;border-radius:20px;background:linear-gradient(135deg,#edf4ff,#fff);
+      width:100%;border:1px solid #8fb7ff;border-radius:20px;background:linear-gradient(135deg,#dbe8ff,#eef4ff 55%,#ffffff);
       padding:17px 18px;display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;
-      box-shadow:0 7px 18px rgba(47,104,216,.10);
+      box-shadow:0 8px 22px rgba(47,104,216,.18);
     }
     .patrolButton .pIcon{font-size:36px}
-    .patrolButton strong{font-size:24px;color:#174eaa}
-    .patrolButton span{display:block;color:#6a7e95;font-weight:800;margin-top:3px}
-    .patrolButton .arrow{margin-left:auto;font-size:30px;color:#2f68d8}
+    .patrolButton strong{font-size:24px;color:#0f3f98}
+    .patrolButton span{display:block;color:#506b8b;font-weight:800;margin-top:3px}
+    .patrolButton .arrow{margin-left:auto;font-size:30px;color:#1f57bd}
     .secretaryGrid,.lowGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .toolCard{
       border:1px solid #dfe8f6;border-radius:20px;background:#fff;padding:16px;
@@ -598,17 +598,17 @@
       <button class="bottomSquareBtn" type="button" onclick="location.href='schedule.html'">
         <span class="sqIcon">🗓️</span><strong>班表查看</strong><span>查看已發布的各項班表</span>
       </button>
-      <button class="bottomSquareBtn" type="button" onclick="location.href='schedule_admin.html'">
-        <span class="sqIcon">🗂️</span><strong>排班管理</strong><span>建立、確認與發布班表</span>
-      </button>
     </section>
 
-    <section class="dashCard desktopToolCard">
+    <section class="dashCard desktopToolCard" id="desktopToolCard">
       <div class="desktopToolHead">
         <h2>🖥️ 電腦專用功能</h2>
-        <span class="desktopOnlyTag">手機顯示但停用</span>
+        <span class="desktopOnlyTag">僅限電腦操作</span>
       </div>
       <div class="desktopToolGrid">
+        <button class="desktopToolBtn" type="button" data-desktop-tool="schedule_admin.html" data-tool-name="排班管理">
+          <span class="deskIcon">🗂️</span><strong>排班管理</strong><span>建立、確認與發布班表</span>
+        </button>
         <button class="desktopToolBtn" type="button" data-desktop-tool="attendance_admin.html" data-tool-name="出缺勤統計">
           <span class="deskIcon">📊</span><strong>出缺勤統計</strong><span>月出勤、缺勤與工時彙整</span>
         </button>
@@ -630,7 +630,7 @@
       </div>
     </section>
 
-    <div class="versionStamp">主管工作台 v24.15｜2026-08-19｜班表查看與管理入口整理</div>
+    <div class="versionStamp">主管工作台 v24.16｜2026-08-21｜巡堂醒目化與排班管理移至電腦專用</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
@@ -1492,20 +1492,17 @@ function isDesktopDevice(){
 
 function setupDesktopTools(){
   const desktop = isDesktopDevice();
-  const employee = currentAdminEmployee || readCurrentEmployee() || {};
+  const card = document.getElementById('desktopToolCard');
+
+  if(card){
+    card.style.display = desktop ? '' : 'none';
+  }
 
   document.querySelectorAll('[data-desktop-tool]').forEach(button=>{
     const href = button.dataset.desktopTool || '';
     const name = button.dataset.toolName || '此功能';
 
-
-    button.disabled = !desktop;
-
-    if(!desktop){
-      button.title = '此功能僅限電腦操作';
-      return;
-    }
-
+    button.disabled = false;
     button.title = href ? `開啟${name}` : `${name}建置中`;
     button.onclick = ()=>{
       if(href){
