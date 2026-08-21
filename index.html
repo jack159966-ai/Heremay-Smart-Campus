@@ -127,6 +127,7 @@
     .login-btn{margin-top:18px;color:white;background:linear-gradient(135deg,var(--pink),#85cbed);box-shadow:0 12px 24px rgba(72,157,205,.24)}
     .login-btn:disabled{opacity:.7;cursor:wait}
     .face-btn{margin-top:12px;color:#3d7796;background:var(--blue-soft);border:1.5px solid #bfe5f8;box-shadow:none}
+    .face-btn:disabled{opacity:.68;cursor:wait;filter:none!important;box-shadow:none!important;transform:none!important}
     .login-options{display:flex;justify-content:space-between;align-items:center;margin-top:14px;color:#58798b;font-size:14px;font-weight:800}
     .login-options label{display:flex;align-items:center;gap:7px}.login-options input{width:17px;height:17px;accent-color:var(--pink)}
     .divider{display:flex;align-items:center;gap:12px;margin:22px 0 6px;color:#6f92a4;font-size:13px;font-weight:900}
@@ -290,7 +291,7 @@
       </div>
 
       <div class="divider">或使用快速登入</div>
-      <button class="face-btn" type="button" onclick="faceLogin()">🔐 Face ID／指紋／Windows Hello 快速登入</button>
+      <button class="face-btn" id="faceLoginBtn" type="button" onclick="faceLogin()">🔐 Face ID／指紋／Windows Hello 快速登入</button>
       <button class="text-btn face-setup" type="button" onclick="registerFaceLogin()">首次使用？設定快速登入</button>
 
       <p class="access-note">此裝置保持登入後，下次可直接進入系統</p>
@@ -350,6 +351,7 @@
 
     let waitingWorker = null;
     let refreshing = false;
+    let faceLoginBusy = false;
 
     const routes = {
       admin: 'admin.html',
@@ -734,6 +736,11 @@
     }
 
     async function faceLogin(){
+      if(faceLoginBusy) return;
+
+      const faceBtn = document.getElementById('faceLoginBtn');
+      const originalText = faceBtn?.textContent || '🔐 Face ID／指紋／Windows Hello 快速登入';
+
       const typedAccount = document.getElementById('account').value.trim();
       const account = typedAccount ||
         localStorage.getItem('heremay.lastFaceAccount') || '';
@@ -748,18 +755,26 @@
         return;
       }
 
-      if(CONFIG.TEMP_DEMO_MODE && !CONFIG.PASSKEY_API_BASE){
-        const role = demoAccountRoleMap[account];
-        if(role){
-          localStorage.setItem('heremay.lastFaceAccount', account);
-          goRole(role);
-        }else{
-          showToast('目前為測試模式，請使用 jack、teacher 或 support。');
-        }
-        return;
+      faceLoginBusy = true;
+      if(faceBtn){
+        faceBtn.disabled = true;
+        faceBtn.setAttribute('aria-busy', 'true');
+        faceBtn.textContent = '⏳ 正在啟動快速登入……';
       }
+      showToast('正在啟動快速登入，請稍候……');
 
       try{
+        if(CONFIG.TEMP_DEMO_MODE && !CONFIG.PASSKEY_API_BASE){
+          const role = demoAccountRoleMap[account];
+          if(role){
+            localStorage.setItem('heremay.lastFaceAccount', account);
+            goRole(role);
+          }else{
+            showToast('目前為測試模式，請使用 jack、teacher 或 support。');
+          }
+          return;
+        }
+
         const optionsData = await apiPost('/auth/passkey/login/options', {
           account
         });
@@ -796,6 +811,13 @@
           showToast('生物辨識已取消或驗證未通過。');
         }else{
           showToast(`刷臉登入失敗：${err.message || err.name}`);
+        }
+      }finally{
+        faceLoginBusy = false;
+        if(faceBtn){
+          faceBtn.disabled = false;
+          faceBtn.removeAttribute('aria-busy');
+          faceBtn.textContent = originalText;
         }
       }
     }
