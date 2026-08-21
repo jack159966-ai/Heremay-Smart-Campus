@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>和美智慧校園｜請假管理 v1.5.1</title>
+<title>和美智慧校園｜請假管理 v1.5.2</title>
 <style>
 :root{--blue:#2f68d8;--deep:#173f75;--line:#dfe8f6;--bg:#f4f8ff}
 *{box-sizing:border-box}
@@ -71,13 +71,13 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
   </section>
 
   <div id="loadStatus" class="hint" style="margin-bottom:12px;text-align:center">準備讀取請假資料…</div>
-  <div class="version">請假管理 v1.5.1｜2026-08-12｜簡化主管覆核</div>
+  <div class="version">請假管理 v1.5.2｜2026-08-21｜雲端服務網址修正</div>
 </main>
 
 <div class="mask" id="mask" onclick="if(event.target.id==='mask')closeModal()"><section class="modal" id="modal"></section></div>
 
 <script>
-const SERVICE_URL='https://script.google.com/macros/s/AKfycbzQIkRS3hLLiDMQj6WV6SyeEmFHO80f_Sl9qHciPkWpXZfuzggmfdTRLjtbvhhMZ624Zw/exec';
+const SERVICE_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
 let leaves=[],view=new Date();
 const pad=n=>String(n).padStart(2,'0');
 const esc=v=>String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
