@@ -98,6 +98,7 @@ body{
 const SCHEDULE_API='https://script.google.com/macros/s/AKfycbw-vNSfGNciRGnEC3rNTHk0qnZzZSD0m17WrhISxN2HD_YvO3JscLPdQPLcgr2fFYrz/exec';
 
 let currentEmployee=null;
+let currentRole='';
 let publishedRows=[];
 let activeCode='';
 
@@ -119,8 +120,10 @@ function loadCurrentEmployee(){
   try{
     const raw=localStorage.getItem('heremay.currentEmployee');
     currentEmployee=raw?JSON.parse(raw):null;
+    currentRole=String(localStorage.getItem('heremay.currentRole')||'').trim().toLowerCase();
   }catch(_){
     currentEmployee=null;
+    currentRole='';
   }
 
   if(!currentEmployee || !currentEmployee.name){
@@ -128,6 +131,13 @@ function loadCurrentEmployee(){
     userMeta.textContent='';
     cloudStatus.textContent='請先從和美智慧校園首頁登入後，再開啟班表。';
     return false;
+  }
+
+  if(currentRole==='admin'){
+    const title=document.querySelector('.head h1');
+    const desc=document.querySelector('.head p');
+    if(title)title.textContent='全校班表';
+    if(desc)desc.textContent='顯示園方目前有效的全部正式發布班表';
   }
 
   const name=String(currentEmployee.name||'').trim();
@@ -146,7 +156,9 @@ function loadCurrentEmployee(){
   const job=String(currentEmployee.jobTitle||'').trim();
 
   userName.textContent=name;
-  userMeta.textContent=[dept,cls,job].filter(Boolean).join('｜');
+  userMeta.textContent=currentRole==='admin'
+    ? ['主管','全校檢視',job].filter(Boolean).join('｜')
+    : [dept,cls,job].filter(Boolean).join('｜');
   return true;
 }
 
@@ -173,6 +185,7 @@ function requestPublished(){
     '&name='+encodeURIComponent(name)+
     '&className='+encodeURIComponent(cls)+
     '&department='+encodeURIComponent(dept)+
+    '&role='+encodeURIComponent(currentRole)+
     '&callback=receivePublished'+
     '&t='+Date.now();
 
@@ -200,7 +213,9 @@ function receivePublished(data){
     const job=String((currentEmployee&&currentEmployee.jobTitle)||'').trim();
 
     userName.textContent=name;
-    userMeta.textContent=[dept,cls,job].filter(Boolean).join('｜');
+    userMeta.textContent=currentRole==='admin'
+      ? ['主管','全校檢視',job].filter(Boolean).join('｜')
+      : [dept,cls,job].filter(Boolean).join('｜');
   }
 
   cloudStatus.textContent=publishedRows.length
