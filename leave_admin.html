@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>和美智慧校園｜請假管理 v1.5.2</title>
+<title>和美智慧校園｜請假管理 v1.5.3</title>
 <style>
 :root{--blue:#2f68d8;--deep:#173f75;--line:#dfe8f6;--bg:#f4f8ff}
 *{box-sizing:border-box}
@@ -71,13 +71,13 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
   </section>
 
   <div id="loadStatus" class="hint" style="margin-bottom:12px;text-align:center">準備讀取請假資料…</div>
-  <div class="version">請假管理 v1.5.2｜2026-08-21｜雲端服務網址修正</div>
+  <div class="version">請假管理 v1.5.3｜2026-08-21｜改用考勤主管資料 API</div>
 </main>
 
 <div class="mask" id="mask" onclick="if(event.target.id==='mask')closeModal()"><section class="modal" id="modal"></section></div>
 
 <script>
-const SERVICE_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
+const SERVICE_URL='https://script.google.com/macros/s/AKfycbzQIkRS3hLLiDMQj6WV6SyeEmFHO80f_Sl9qHciPkWpXZfuzggmfdTRLjtbvhhMZ624Zw/exec';
 let leaves=[],view=new Date();
 const pad=n=>String(n).padStart(2,'0');
 const esc=v=>String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
@@ -90,7 +90,11 @@ async function loadData(){
   if(btn){btn.disabled=true;btn.textContent='⏳ 讀取中…'}
   if(status)status.textContent='正在連接雲端並讀取請假紀錄…';
   try{
-    const r=await jsonp('getDashboardBundle',{target:'主管'});
+    const now=new Date();
+    const r=await jsonp('getAttendanceAdminBundle',{
+      year:String(now.getFullYear()),
+      month:String(now.getMonth()+1)
+    });
     if(!r||!r.ok)throw new Error((r&&r.message)||'讀取失敗');
     leaves=Array.isArray(r.leaves)?r.leaves:[];
     localStorage.setItem('heremay.sharedLeaveRecords',JSON.stringify(leaves));
