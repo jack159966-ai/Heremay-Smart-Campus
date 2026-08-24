@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.6.2</title>
+  <title>和美智慧校園｜打卡與出勤 v2.7.2</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -61,6 +61,14 @@
     .offline-note{margin-top:9px;border-radius:14px;padding:9px 11px;background:#fff9ec;border:1px solid #ffd49a;color:#8a5a00;font-size:12px;font-weight:850;line-height:1.45}
     .cleaner-note{margin-top:10px;border-radius:15px;padding:11px 12px;background:#eef8f3;border:1px solid #bfe0cf;color:#2d7352;font-size:13px;font-weight:900;line-height:1.5}
 
+
+    .report-card{margin-top:10px;border:1px solid #ffd4a8;background:#fff8ef;border-radius:16px;padding:11px 12px}
+    .report-card strong{color:#995319}
+    .report-btn{width:100%;margin-top:8px;border:0;border-radius:14px;padding:10px 12px;background:#fff0df;color:#9a5519;font-weight:950;cursor:pointer}
+    .abnormal-box{margin-top:10px;border:1px solid #f3b8c0;background:#fff7f8;border-radius:16px;padding:11px}
+    .abnormal-box label{display:block;font-size:12px;font-weight:900;color:#8b4050;margin-bottom:6px}
+    .abnormal-box select,.abnormal-box input{width:100%;border:1px solid #e5bdc4;border-radius:12px;padding:10px;background:#fff}
+
   </style>
 </head>
 <body>
@@ -68,7 +76,7 @@
   <header class="top">
     <button class="back" onclick="goBack()">← 返回</button>
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
-    <span class="version">v2.6.2 人力燈號</span>
+    <span class="version">v2.7.2 加班候選</span>
   </header>
 
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
@@ -95,6 +103,12 @@
       <button class="duty-btn duty-out" id="dutyOutBtn" onclick="confirmPunch('dutyOut')">🟠 下值班</button>
     </div>
     <div class="shift-info" id="shiftInfo">正在判斷今日出勤規則…</div>
+    <div class="report-card">
+      <strong>⚠️ 今天出勤有狀況？</strong>
+      <div class="hint">可先回報會遲到、臨時請假、忘記打卡或臨時換班；回報不等於完成請假或打卡。</div>
+      <button class="report-btn" type="button" onclick="openAttendanceReport()">回報主管</button>
+    </div>
+
     <div class="work-status" id="workStatus">今日工時尚未完成</div>
     <div class="shift-info" id="dutyHint">班別選定後，只需使用上方兩個打卡按鈕。</div>
     <div class="mini-grid"><div class="mini"><b id="inTime">--:--</b><span>上班時間</span></div><div class="mini"><b id="outTime">--:--</b><span>下班時間</span></div><div class="mini"><b id="lateMinutes">0</b><span>遲到分鐘</span></div></div>
@@ -156,6 +170,25 @@
 <div class="toast" id="toast"></div>
 <script>
   const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzQIkRS3hLLiDMQj6WV6SyeEmFHO80f_Sl9qHciPkWpXZfuzggmfdTRLjtbvhhMZ624Zw/exec';
+  const ATTENDANCE_RULES = {
+    earlyToleranceMinutes: 30,
+    lateToleranceMinutes: 30,
+    reminderGraceMinutes: 10,
+    overtimeThresholdMinutes: 30,
+    reasons: ['生病','塞車','交通事故','家庭臨時狀況','忘記打卡','臨時公務','處理學生','班別臨時更換','其他'],
+    kindergarten: {
+      normal: {label:'正常班', in:'08:00', out:'17:00', requiredMinutes:540},
+      earlyA: {label:'A/B組早值', in:'07:00', out:'16:00', requiredMinutes:540},
+      earlyAB: {label:'AB組輪值', in:'07:30', out:'16:30', requiredMinutes:540}
+    },
+    afterSchool: {
+      termNormal: {label:'學期中正常班', in:'09:00', out:'18:00', requiredMinutes:540},
+      termLate: {label:'學期中晚值', in:'09:00', out:'19:00', requiredMinutes:540, flexibleOut:true},
+      vacationNormal: {label:'寒暑假正常班', in:'08:00', out:'17:00', requiredMinutes:540},
+      vacationLate: {label:'寒暑假晚值', in:'09:00', out:'19:00', requiredMinutes:540, flexibleOut:true}
+    }
+  };
+
   const ATTENDANCE_ACCESS = {
     schoolLat: 25.017399,
     schoolLng: 121.127605,
@@ -178,22 +211,11 @@
   let selectedDates = new Map();
   let pendingDate = '';
 
-  function employeeClassificationText(){
-    return [employee.jobTitle,employee.title,employee['職稱'],employee.identityCategory,employee.identity,employee.role,employee['身分類別'],employee.group,employee.department,employee.homeType,employee['編組']].filter(Boolean).join('｜');
-  }
-  function employeeNumber(){return String(employee.employeeId||employee.id||employee['員工編號']||'').trim().toUpperCase()}
   function isFlexibleCleaner(){
-    // 正式欄位優先；SC 與舊 C 代號僅作歷史資料的最後備援。
-    const text=employeeClassificationText(),id=employeeNumber();
-    return /戶外清潔|戶外維護|清潔人員|責任制清潔/.test(text)||/^SC\d+$/i.test(id)||/^C\d+$/i.test(id);
-  }
-  function isNursingStaff(){
-    // N 開頭只供辨識，不單獨觸發護理規則。
-    return /護理人員|護理師|護士|校護/.test(employeeClassificationText());
-  }
-  function isGeneralAffairsStaff(){
-    if(isFlexibleCleaner()||isNursingStaff())return false;
-    return /庶務組|庶務人員|庶務|廚房|廚工/.test(employeeClassificationText())||/^(SF|SP)\d+$/i.test(employeeNumber());
+    // C 類員工為戶外清潔責任制人員；同時保留職稱文字判斷，兼容舊資料。
+    const id=String(employeeKey()||'').trim().toUpperCase();
+    const text=[employee.jobTitle,employee.title,employee['職稱'],employee.group,employee.department,employee.homeType,employee.identityCategory,employee['身分類別'],employee['編組']].filter(Boolean).join('｜');
+    return id.startsWith('C')||/戶外清潔|清潔人員|責任制清潔/.test(text);
   }
   function offlineQueueKey(){return `heremay.offlinePunchQueue.${employeeKey()}`}
   function readOfflineQueue(){try{const rows=JSON.parse(localStorage.getItem(offlineQueueKey())||'[]');return Array.isArray(rows)?rows:[]}catch(e){return[]}}
@@ -304,7 +326,7 @@
   function punchKey(date=todayKey()){return `heremay.attendance.${employeeKey()}.${date}`}
   function leaveKey(){return `heremay.leaveRecords.${employeeKey()}`}
   function sharedLeaveKey(){return 'heremay.sharedLeaveRecords'}
-  function leavePool(){const text=employeeClassificationText();if(isNursingStaff())return '健康照護';if(text.includes('安親'))return '安親部';if(text.includes('幼兒')||text.includes('教保'))return '幼兒部';if(isGeneralAffairsStaff()||isFlexibleCleaner())return '庶務組';return '其他人員'}
+  function leavePool(){const text=String(employee.group||employee.department||employee.jobTitle||'').trim();if(text.includes('安親'))return '安親部';if(text.includes('幼兒')||text.includes('教保'))return '幼兒部';if(text.includes('庶務')||text.includes('廚')||text.includes('清潔'))return '庶務組';return '其他人員'}
   function pad(n){return String(n).padStart(2,'0')}
   function updateClock(){const d=new Date(),w='日一二三四五六';dateText.textContent=`${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}（${w[d.getDay()]}）`;timeText.textContent=`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`}
   function initUser(){
@@ -314,7 +336,7 @@
     const group=employee.group||employee.department||employee['編組']||'';
     employeeName.textContent=name;
     employeeInfo.textContent=[`登入帳號：${id}`,title,group].filter(Boolean).join('｜')||'測試模式';
-    avatar.textContent=isNursingStaff()?'🩺':(isGeneralAffairsStaff()||isFlexibleCleaner()?'🏡':'👩‍🏫');
+    avatar.textContent=String(employee.homeType||'').includes('庶務')?'🏡':'👩‍🏫';
     renderAttendanceMode();
     renderShiftInfo();
     applyEmployeePunchLayout();
@@ -353,32 +375,38 @@
     // 所有人都只顯示兩個動態按鈕，避免一般班與值班四個按鈕造成混淆。
     if(duty)duty.style.display='none';
     if(hint)hint.style.display='none';
-    clockInBtn.textContent='☀️ 上班打卡';clockOutBtn.textContent='🌙 下班打卡';
     if(cleaner){
-      if(modeBox)modeBox.innerHTML='<div class="cleaner-note">🍂 戶外清潔責任制｜週一至週六任一打卡即到班，不以工作分鐘計算薪資。</div>';
-      clockInBtn.textContent='🌿 開始工作';clockOutBtn.textContent='✅ 完成工作';
+      if(modeBox)modeBox.innerHTML='<div class="cleaner-note">🍂 戶外清潔責任制｜只記錄今天是否到班，不以工作分鐘計算薪資。</div>';
+      clockInBtn.textContent='🌿 今日到班打卡';clockOutBtn.textContent='✅ 補充打卡';
     }
   }
   function usesDutyPunch(){
     if(isFlexibleCleaner())return false;
     const duty=selectedDutyType();
-    return duty==='早值'||duty==='晚值';
+    return duty==='07:00早值'||duty==='07:30輪值'||duty==='晚值';
   }
   function activeShiftLabel(){
     if(isFlexibleCleaner())return '工作';
     const duty=selectedDutyType();
-    return duty==='早值'?'早值':duty==='晚值'?'晚值':'正常班';
+    return duty==='07:00早值'?'07:00早值':duty==='07:30輪值'?'07:30輪值':duty==='晚值'?'晚值':'正常班';
   }
-  function attendanceDepartment(){if(isNursingStaff())return '健康照護';if(isGeneralAffairsStaff()||isFlexibleCleaner())return '庶務組';return leavePool()==='安親部'?'安親部':'幼兒部'}
+  function attendanceDepartment(){
+    const p=leavePool();
+    if(p==='安親部')return '安親部';
+    if(p==='庶務組')return '庶務組';
+    return '幼兒部';
+  }
   function selectedAttendanceMode(){
-    return attendanceDepartment()==='幼兒部'
-      ? (document.getElementById('kindergartenShift')?.value||localStorage.getItem('heremay.kindergartenShift')||'正常班')
-      : (document.getElementById('afterSchoolMode')?.value||localStorage.getItem('heremay.afterSchoolMode')||'學期中')
+    const dep=attendanceDepartment();
+    if(dep==='庶務組')return isFlexibleCleaner()?'責任制':'固定班';
+    if(dep==='幼兒部')return document.getElementById('kindergartenShift')?.value||localStorage.getItem('heremay.kindergartenShift')||'正常班';
+    return document.getElementById('afterSchoolMode')?.value||localStorage.getItem('heremay.afterSchoolMode')||'學期中';
   }
   function selectedDutyType(){
-    return attendanceDepartment()==='幼兒部'
-      ? (document.getElementById('kindergartenShift')?.value||'正常班')
-      : (document.getElementById('afterSchoolDuty')?.value||'一般班')
+    const dep=attendanceDepartment();
+    if(dep==='庶務組')return isFlexibleCleaner()?'戶外清潔':'固定班';
+    if(dep==='幼兒部')return document.getElementById('kindergartenShift')?.value||'正常班';
+    return document.getElementById('afterSchoolDuty')?.value||'一般班';
   }
   function todayPunchRecord(){
     return cloudPunches.find(p=>String(p.date||'')===todayKey())||JSON.parse(localStorage.getItem(punchKey())||'{}');
@@ -413,20 +441,16 @@
   function renderAttendanceMode(){
     const box=document.getElementById('attendanceModeBox');if(!box)return;
     if(isFlexibleCleaner()){
-      box.innerHTML='<div class="cleaner-note">🍂 清潔人員責任制｜週一至週六任一打卡即到班，不設定固定班別，也不以工作分鐘計薪。</div>';
+      box.innerHTML='<div class="cleaner-note">🍂 戶外清潔人員｜週一～週六出勤，不設定固定上下班時間；當日有打卡即可認定有到班。</div>';
       return;
     }
-    if(isNursingStaff()){
-      box.innerHTML='<div class="shift-info">🩺 護理人員固定班｜08:00 ～ 17:00｜不參與早值、晚值</div>';
-      return;
-    }
-    if(isGeneralAffairsStaff()){
-      box.innerHTML='<div class="shift-info">🏡 庶務組固定班｜08:00 ～ 17:00｜不參與早值、晚值</div>';
+    if(attendanceDepartment()==='庶務組'){
+      box.innerHTML='<div class="shift-info"><strong>庶務組固定班</strong><br>08:00 ～ 17:00｜無早值、晚值或輪值。</div>';
       return;
     }
     if(attendanceDepartment()==='幼兒部'){
       const saved=localStorage.getItem('heremay.kindergartenShift')||'正常班';
-      box.innerHTML=`<div class="mode-row"><label><strong>幼兒部今日班別</strong><select class="input" id="kindergartenShift" onchange="saveAttendanceMode()"><option>正常班</option><option>早值</option><option>晚值</option></select></label><div class="shift-info">幼兒部不分寒暑假</div></div>`;
+      box.innerHTML=`<div class="mode-row"><label><strong>幼兒部今日班別</strong><select class="input" id="kindergartenShift" onchange="saveAttendanceMode()"><option>正常班</option><option>07:00早值</option><option>07:30輪值</option></select></label><div class="shift-info">幼兒部不分寒暑假｜第一次打卡前可依實際換班調整</div></div>`;
       document.getElementById('kindergartenShift').value=saved
     }else{
       const mode=localStorage.getItem('heremay.afterSchoolMode')||'學期中',duty=localStorage.getItem('heremay.afterSchoolDuty')||'一般班';
@@ -434,27 +458,108 @@
       document.getElementById('afterSchoolMode').value=mode;document.getElementById('afterSchoolDuty').value=duty
     }
   }
+  function timeToMinutesLocal(v){
+    if(!v)return null;
+    const m=String(v).match(/^(\d{1,2}):(\d{2})/);
+    return m ? Number(m[1])*60+Number(m[2]) : null;
+  }
+  function currentMinutesLocal(){
+    const d=new Date(); return d.getHours()*60+d.getMinutes();
+  }
+  function selectedHalfDayLeave(){
+    const today=todayKey(), id=String(employeeKey());
+    return sharedLeaves().find(x=>
+      String(x.date||'')===today &&
+      String(x.employeeId||'')===id &&
+      !['已取消','駁回','已駁回'].includes(String(x.status||'')) &&
+      ['上午','下午'].includes(String(x.period||''))
+    )||null;
+  }
+  function punchStatusInfo(kind){
+    const s=workSchedule(), now=currentMinutesLocal();
+    if(s.flexibleCleaner)return {abnormal:false,overtime:false};
+
+    const leave=selectedHalfDayLeave();
+    const early=Number(ATTENDANCE_RULES.earlyToleranceMinutes||0);
+    const late=Number(ATTENDANCE_RULES.lateToleranceMinutes||0);
+    const overtimeThreshold=Number(ATTENDANCE_RULES.overtimeThresholdMinutes||30);
+    const si=timeToMinutesLocal(s.scheduledIn);
+    const so=timeToMinutesLocal(String(s.scheduledOut||'').slice(0,5));
+
+    if(kind==='in'||kind==='dutyIn'){
+      if(leave&&leave.period==='上午')return{abnormal:false,overtime:false};
+      if(si!==null&&now<si-early)return{abnormal:true,overtime:false,type:'過早上班打卡',scheduled:s.scheduledIn};
+      if(si!==null&&now>si+late)return{abnormal:true,overtime:false,type:'延後上班打卡',scheduled:s.scheduledIn};
+    }
+
+    if(kind==='out'||kind==='dutyOut'){
+      if(leave&&leave.period==='下午')return{abnormal:false,overtime:false};
+      if(s.flexibleOut)return{abnormal:false,overtime:false};
+
+      if(so!==null){
+        if(now<so-early)return{abnormal:true,overtime:false,type:'提前下班打卡',scheduled:s.scheduledOut};
+        if(now>so+overtimeThreshold){
+          return{
+            abnormal:false,
+            overtime:true,
+            type:'加班候選',
+            scheduled:s.scheduledOut,
+            overtimeMinutes:Math.max(0,now-so)
+          };
+        }
+      }
+    }
+    return{abnormal:false,overtime:false};
+  }
+  function abnormalPunchInfo(kind){
+    return punchStatusInfo(kind);
+  }
+  function abnormalReasonOptions(){
+    return ATTENDANCE_RULES.reasons.map(x=>`<option value="${x}">${x}</option>`).join('');
+  }
+
   function workSchedule(){
     const department=attendanceDepartment(),mode=selectedAttendanceMode(),duty=selectedDutyType();
-    if(isFlexibleCleaner())return{department:'清潔組',mode:'責任制',dutyType:'清潔人員',name:'清潔人員責任制',scheduledIn:'',scheduledOut:'',requiredMinutes:0,flexibleCleaner:true};
-    if(isNursingStaff())return{department:'健康照護',mode:'固定班',dutyType:'固定班',name:'護理人員固定班',scheduledIn:'08:00',scheduledOut:'17:00',requiredMinutes:540,nursingStaff:true};
-    if(isGeneralAffairsStaff())return{department:'庶務組',mode:'固定班',dutyType:'固定班',name:'庶務組固定班',scheduledIn:'08:00',scheduledOut:'17:00',requiredMinutes:540,generalAffairs:true};
+    if(isFlexibleCleaner())return{department:'庶務組',mode:'責任制',dutyType:'戶外清潔',name:'戶外清潔責任制',scheduledIn:'',scheduledOut:'',requiredMinutes:0,flexibleCleaner:true};
+
+    if(department==='庶務組'){
+      return{department:'庶務組',mode:'固定班',dutyType:'固定班',name:'庶務組固定班',scheduledIn:'08:00',scheduledOut:'17:00',requiredMinutes:540};
+    }
+
     if(department==='幼兒部'){
-      if(mode==='早值')return{department,mode,dutyType:'早值',name:'幼兒部早值',scheduledIn:'07:00',scheduledOut:'16:00',requiredMinutes:540};
-      if(mode==='晚值')return{department,mode,dutyType:'晚值',name:'幼兒部晚值',scheduledIn:'08:00',scheduledOut:'18:00',requiredMinutes:600};
-      return{department,mode,dutyType:'正常班',name:'幼兒部正常班',scheduledIn:'08:00',scheduledOut:'17:00',requiredMinutes:540}
+      if(mode==='07:00早值'){
+        const r=ATTENDANCE_RULES.kindergarten.earlyA;
+        return{department,mode,dutyType:'07:00早值',name:'幼兒部'+r.label,scheduledIn:r.in,scheduledOut:r.out,requiredMinutes:r.requiredMinutes};
+      }
+      if(mode==='07:30輪值'){
+        const r=ATTENDANCE_RULES.kindergarten.earlyAB;
+        return{department,mode,dutyType:'07:30輪值',name:'幼兒部'+r.label,scheduledIn:r.in,scheduledOut:r.out,requiredMinutes:r.requiredMinutes};
+      }
+      const r=ATTENDANCE_RULES.kindergarten.normal;
+      return{department,mode:'正常班',dutyType:'正常班',name:'幼兒部'+r.label,scheduledIn:r.in,scheduledOut:r.out,requiredMinutes:r.requiredMinutes};
     }
+
     if(mode==='考試週星期六')return{department,mode,dutyType:'考試週留園',name:'安親部考試週留園',scheduledIn:'',scheduledOut:'',requiredMinutes:0,supplemental:true};
+
     if(mode==='寒暑假'){
-      if(duty==='晚值')return{department,mode,dutyType:'晚值',name:'安親部寒暑假晚值',scheduledIn:'09:00',scheduledOut:'18:00～19:00依學生離園',requiredMinutes:540,flexibleOut:true};
-      return{department,mode,dutyType:'一般班',name:'安親部寒暑假一般班',scheduledIn:'08:00',scheduledOut:'17:00',requiredMinutes:540}
+      if(duty==='晚值'){
+        const r=ATTENDANCE_RULES.afterSchool.vacationLate;
+        return{department,mode,dutyType:'晚值',name:'安親部'+r.label,scheduledIn:r.in,scheduledOut:'18:00～19:00依學生離園',requiredMinutes:r.requiredMinutes,flexibleOut:true};
+      }
+      const r=ATTENDANCE_RULES.afterSchool.vacationNormal;
+      return{department,mode,dutyType:'一般班',name:'安親部'+r.label,scheduledIn:r.in,scheduledOut:r.out,requiredMinutes:r.requiredMinutes};
     }
-    if(duty==='晚值')return{department,mode,dutyType:'晚值',name:'安親部學期中晚值',scheduledIn:'09:00',scheduledOut:'18:00～19:00依學生離園',requiredMinutes:540,flexibleOut:true};
-    return{department,mode,dutyType:'一般班',name:'安親部學期中一般班',scheduledIn:'09:00',scheduledOut:'18:00',requiredMinutes:540}
+
+    if(duty==='晚值'){
+      const r=ATTENDANCE_RULES.afterSchool.termLate;
+      return{department,mode,dutyType:'晚值',name:'安親部'+r.label,scheduledIn:r.in,scheduledOut:'18:00～19:00依學生離園',requiredMinutes:r.requiredMinutes,flexibleOut:true};
+    }
+    const r=ATTENDANCE_RULES.afterSchool.termNormal;
+    return{department,mode,dutyType:'一般班',name:'安親部'+r.label,scheduledIn:r.in,scheduledOut:r.out,requiredMinutes:r.requiredMinutes};
   }
   function renderShiftInfo(){
     const s=workSchedule(),box=document.getElementById('shiftInfo');if(!box)return;
-    box.textContent=s.flexibleCleaner?'今日規則：戶外清潔週一至週六｜任一打卡即到班，不以工時長短計薪':s.supplemental?'今日規則：安親部考試週星期六｜實際上下班均記為補課工時':`今日規則：${s.name}｜上班 ${s.scheduledIn}｜下班 ${s.scheduledOut}`
+    box.textContent=s.flexibleCleaner?'今日規則：清潔人員責任制｜只確認有到班，不以工時長短計薪':s.supplemental?'今日規則：安親部考試週星期六｜實際上下班均記為補課工時':`今日規則：${s.name}｜上班 ${s.scheduledIn}｜下班 ${s.scheduledOut}`
   }
   function minutesBetween(a,b){
     if(!a||!b)return 0;const [ah,am]=String(a).split(':').map(Number),[bh,bm]=String(b).split(':').map(Number);
@@ -558,6 +663,8 @@
     const access=await checkPunchAccess(false);
     if(!access.allowed){toastMsg('⚠️ 尚未通過 100 公尺圍欄或校內 Wi-Fi 驗證');return}
     pendingPunchType=type;
+    const abnormal=abnormalPunchInfo(type);
+    const oldBox=document.getElementById('abnormalPunchBox'); if(oldBox)oldBox.remove();
 
     const s=workSchedule();
     const now=new Date();
@@ -572,6 +679,23 @@
       type==='in'?`上班 ${s.scheduledIn||'依實際時間'}`:type==='out'?`下班 ${s.scheduledOut||'依實際時間'}`:type==='dutyIn'?`${shiftLabel}上班 ${s.scheduledIn||'依實際時間'}`:`${shiftLabel}下班 ${s.scheduledOut||'依實際時間'}`;
     document.getElementById('confirmCurrentTime').textContent=nowText;
 
+    if(abnormal.abnormal || abnormal.overtime){
+      const box=document.createElement('div');
+      box.id='abnormalPunchBox';
+      box.className='abnormal-box';
+      const title=abnormal.overtime
+        ? `🕒 加班候選｜預定下班 ${abnormal.scheduled||'—'}｜目前約多 ${Math.floor((abnormal.overtimeMinutes||0)/60)}時${String((abnormal.overtimeMinutes||0)%60).padStart(2,'0')}分`
+        : `⚠️ ${abnormal.type}｜預定 ${abnormal.scheduled||'—'}`;
+      const prompt=abnormal.overtime
+        ? '請選擇加班原因；此紀錄僅送主管確認，不代表自動核准加班。'
+        : '請選擇異常原因';
+      box.innerHTML=`<label>${title}<br>${prompt}</label>
+        <select id="abnormalReasonSelect" onchange="toggleAbnormalOther()">${abnormalReasonOptions()}</select>
+        <input id="abnormalReasonOther" maxlength="15" placeholder="其他原因，15字內" style="display:none;margin-top:8px">`;
+      const submitBtn=document.getElementById('confirmPunchSubmitBtn');
+      submitBtn.parentElement.insertBefore(box,submitBtn);
+    }
+
     const submit=document.getElementById('confirmPunchSubmitBtn');
     submit.textContent=isFlexibleCleaner()?(type==='in'?'確定開始工作':'確定完成工作'):(type==='in'?'確定送出上班打卡':type==='out'?'確定送出下班打卡':type==='dutyIn'?`確定${shiftLabel}上班`:`確定${shiftLabel}下班`);
     document.getElementById('punchConfirmModal').classList.add('show');
@@ -582,8 +706,35 @@
     document.getElementById('punchConfirmModal').classList.remove('show');
   }
 
+  let pendingAbnormalReason={reason:'',note:'',abnormalType:'',scheduledTime:''};
+  function toggleAbnormalOther(){
+    const s=document.getElementById('abnormalReasonSelect'),i=document.getElementById('abnormalReasonOther');
+    if(i)i.style.display=s&&s.value==='其他'?'block':'none';
+  }
+  function collectAbnormalReason(){
+    const s=document.getElementById('abnormalReasonSelect');
+    if(!s)return{reason:'',note:''};
+    if(s.value==='其他'){
+      const note=String(document.getElementById('abnormalReasonOther')?.value||'').trim();
+      if(!note)return null;
+      return{reason:'其他',note:note.slice(0,15)};
+    }
+    return{reason:s.value,note:''};
+  }
   function submitConfirmedPunch(){
-    const type=pendingPunchType;
+    const type=pendingPunchType, abnormal=abnormalPunchInfo(type);
+    if(abnormal.abnormal || abnormal.overtime){
+      const r=collectAbnormalReason();
+      if(!r){toastMsg(abnormal.overtime?'⚠️ 請填寫加班原因':'⚠️ 請填寫異常打卡原因');return}
+      pendingAbnormalReason={
+        ...r,
+        abnormalType:abnormal.overtime?'加班候選':abnormal.type,
+        scheduledTime:abnormal.scheduled||'',
+        overtimeMinutes:Number(abnormal.overtimeMinutes||0)
+      };
+    }else{
+      pendingAbnormalReason={reason:'',note:'',abnormalType:'',scheduledTime:'',overtimeMinutes:0};
+    }
     closePunchConfirm();
     if(type==='in') clockIn();
     if(type==='out') clockOut();
@@ -591,7 +742,26 @@
     if(type==='dutyOut') dutyOut();
   }
 
-  function punchMeta(){const a=lastAccessResult||{};return{clientPunchAt:new Date().toISOString(),clientRecordId:uuid(),verificationMethod:a.method||'',geoDistance:a.distance??'',geoAccuracy:a.accuracy??'',geoLatitude:a.latitude??'',geoLongitude:a.longitude??'',syncStatus:'即時上傳',employeeType:isFlexibleCleaner()?'戶外清潔責任制':isNursingStaff()?'護理人員':isGeneralAffairsStaff()?'庶務人員':'一般員工'}}
+  function punchMeta(){
+    const a=lastAccessResult||{},s=workSchedule();
+    const isOvertime=pendingAbnormalReason.abnormalType==='加班候選';
+    const overtimeMinutes=Number(pendingAbnormalReason.overtimeMinutes||0);
+    const abnormalText=pendingAbnormalReason.abnormalType
+      ? (isOvertime
+          ? `[加班候選:${overtimeMinutes}分鐘] ${pendingAbnormalReason.reason}${pendingAbnormalReason.note?'｜'+pendingAbnormalReason.note:''}`
+          : `[${pendingAbnormalReason.abnormalType}] ${pendingAbnormalReason.reason}${pendingAbnormalReason.note?'｜'+pendingAbnormalReason.note:''}`)
+      : '';
+    return{
+      clientPunchAt:new Date().toISOString(),clientRecordId:uuid(),verificationMethod:a.method||'',
+      geoDistance:a.distance??'',geoAccuracy:a.accuracy??'',geoLatitude:a.latitude??'',geoLongitude:a.longitude??'',
+      syncStatus:'即時上傳',employeeType:isFlexibleCleaner()?'C類清潔責任制':'一般員工',
+      actualShift:s.name||'',actualDutyType:s.dutyType||'',
+      abnormalType:pendingAbnormalReason.abnormalType||'',abnormalReason:pendingAbnormalReason.reason||'',
+      abnormalNote:pendingAbnormalReason.note||'',scheduledTime:pendingAbnormalReason.scheduledTime||'',
+      overtimeCandidate:isOvertime?'是':'否',overtimeMinutes:overtimeMinutes,
+      note:abnormalText
+    };
+  }
   function clockIn(){const s=workSchedule();postAttendance('attendanceClockIn',{employeeId:employeeKey(),employeeName:employeeNameText(),identity:employee.identityCategory||employee.role||'',pool:s.department,date:todayKey(),shift:s.name,attendanceMode:s.mode,dutyType:s.dutyType,scheduledIn:s.scheduledIn,scheduledOut:s.scheduledOut,requiredMinutes:s.requiredMinutes,isSupplemental:s.supplemental?'是':'否',isTest:employee.isTest||'否',...punchMeta()},'clockIn')}
   function clockOut(){const s=workSchedule();postAttendance('attendanceClockOut',{employeeId:employeeKey(),employeeName:employeeNameText(),pool:s.department,date:todayKey(),attendanceMode:s.mode,dutyType:s.dutyType,requiredMinutes:s.requiredMinutes,isSupplemental:s.supplemental?'是':'否',...punchMeta()},'clockOut')}
   function dutyIn(){const s=workSchedule();postAttendance('attendanceDutyIn',{employeeId:employeeKey(),employeeName:employeeNameText(),pool:s.department,date:todayKey(),attendanceMode:s.mode,dutyType:s.dutyType,...punchMeta()},'dutyIn')}
@@ -932,6 +1102,35 @@
     }
   }
 
+  function openAttendanceReport(){
+    const sel=document.getElementById('reportReason');
+    if(sel)sel.innerHTML=abnormalReasonOptions();
+    document.getElementById('reportNote').value='';
+    document.getElementById('attendanceReportModal').classList.add('show');
+  }
+  function closeAttendanceReport(){document.getElementById('attendanceReportModal').classList.remove('show')}
+  async function submitAttendanceReport(){
+    const type=String(document.getElementById('reportType').value||'其他');
+    const reason=String(document.getElementById('reportReason').value||'其他');
+    const note=String(document.getElementById('reportNote').value||'').trim().slice(0,15);
+    const s=workSchedule();
+    const payload={
+      type:'出勤狀況',
+      title:`${employeeNameText()}｜${type}`,
+      content:[type,reason,note,s.name].filter(Boolean).join('｜'),
+      department:attendanceDepartment(),
+      reporter:employeeNameText(),
+      employeeId:employeeKey(),
+      note:`${todayKey()}｜${s.name}`
+    };
+    try{
+      const r=await jsonp(`${SERVICE_URL}?action=saveReport&payload=${encodeURIComponent(JSON.stringify(payload))}`);
+      if(!r||!r.ok)throw new Error(r&&r.message?r.message:'回報失敗');
+      closeAttendanceReport();
+      toastMsg('✅ 已回報主管');
+    }catch(e){toastMsg('⚠️ 回報失敗：'+e.message)}
+  }
+
   function toastMsg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2800)}
   function goBack(){const role=localStorage.getItem('heremay.currentRole');location.href=role==='support'?'support.html':'teacher.html'}
   initUser();updateClock();setInterval(updateClock,1000);loadPunch();renderOfflineQueue();renderCalendar();renderMyLeaves();renderRecords();renderAttendance();loadCloudData(false);setTimeout(()=>checkPunchAccess(false),600);setTimeout(()=>syncOfflinePunches(false),1500);
@@ -944,6 +1143,21 @@
     if(document.visibilityState==='visible')refreshLoggedInEmployee(false);
   });
 </script>
+
+
+  <div class="modal" id="attendanceReportModal" onclick="if(event.target===this)closeAttendanceReport()">
+    <div class="sheet" onclick="event.stopPropagation()">
+      <h2>⚠️ 出勤狀況回報</h2>
+      <div class="form-row">
+        <select class="input wide" id="reportType"><option>會遲到</option><option>臨時請假</option><option>忘記打卡</option><option>班別臨時更換</option><option>其他</option></select>
+        <select class="input wide" id="reportReason"></select>
+        <input class="input wide" id="reportNote" maxlength="15" placeholder="補充說明，15字內">
+      </div>
+      <div class="hint">這只是先通知主管，不會自動完成請假、補卡或修改考勤。</div>
+      <button class="close" style="background:linear-gradient(135deg,#e9558a,#ff8db5);margin-top:14px" onclick="submitAttendanceReport()">送出回報</button>
+      <button class="close" onclick="closeAttendanceReport()">取消</button>
+    </div>
+  </div>
 
   <div class="modal" id="punchConfirmModal" onclick="if(event.target===this)closePunchConfirm()">
     <div class="sheet" onclick="event.stopPropagation()">
