@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>和美智慧校園｜出缺勤統計 v1.4</title>
+<title>和美智慧校園｜出缺勤統計 v1.5</title>
 <style>
 :root{--blue:#1768ac;--navy:#17324d;--line:#d7e0e9;--soft:#f3f7fb;--red:#b42318;--amber:#a15c00;--green:#16734a}
 *{box-sizing:border-box}body{margin:0;background:#edf3f8;color:#1e2936;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif}
@@ -76,7 +76,7 @@ th{background:#f5f8fb;color:#40556b;position:sticky;top:0;z-index:1}.name{text-a
 <body>
 <header>
  <div class="wrap">
-  <div><h1>出缺勤統計</h1><p>分年分月統計、個人單月明細／年度月統計、園長補正與 PDF</p></div>
+  <div><h1>出缺勤統計</h1><p>分年分月統計、整天未打卡、半天假、異常原因、班別差異、園長補正與 PDF</p></div>
   <button class="light no-print" onclick="location.href='admin.html'">返回主管首頁</button>
  </div>
 </header>
@@ -97,7 +97,7 @@ th{background:#f5f8fb;color:#40556b;position:sticky;top:0;z-index:1}.name{text-a
  <section class="panel">
   <div class="panel-head"><h2 id="tableTitle">單月考勤統計</h2><span class="small">點選姓名可查閱個人單月或全年度資料</span></div>
   <div class="table-wrap"><table><thead><tr>
-   <th>姓名</th><th>部門</th><th>扣薪假</th><th>遲到</th><th>早退</th><th>其他不足</th><th>未補正缺卡</th><th>本月應扣合計</th>
+   <th>姓名</th><th>部門</th><th>扣薪假</th><th>遲到</th><th>早退</th><th>其他不足</th><th>整天未打卡</th><th>未補正缺卡</th><th>本月應扣合計</th>
   </tr></thead><tbody id="summaryBody"></tbody></table></div>
  </section>
 </main>
@@ -118,7 +118,7 @@ th{background:#f5f8fb;color:#40556b;position:sticky;top:0;z-index:1}.name{text-a
   </div>
   <div id="personSummary" class="summary-strip"></div>
   <div class="table-wrap"><table class="detail-table"><thead><tr id="detailHeadRow">
-   <th>日期</th><th>預定</th><th>實際</th><th>請假</th><th>遲到</th><th>早退</th><th>其他不足</th><th>狀態</th><th>調整</th>
+   <th>日期</th><th>原班別</th><th>實際班別</th><th>預定</th><th>實際</th><th>請假</th><th>異常原因</th><th>遲到</th><th>早退</th><th>其他不足</th><th>狀態</th><th>調整</th>
   </tr></thead><tbody id="detailBody"></tbody></table></div>
  </div>
 </div>
@@ -145,6 +145,20 @@ th{background:#f5f8fb;color:#40556b;position:sticky;top:0;z-index:1}.name{text-a
 <script>
 const SERVICE_URL='https://script.google.com/macros/s/AKfycbzQIkRS3hLLiDMQj6WV6SyeEmFHO80f_Sl9qHciPkWpXZfuzggmfdTRLjtbvhhMZ624Zw/exec';
 const UNPAID_TYPES=['事假','病假','生理假','家庭照顧假','扣薪假'];
+const ATTENDANCE_RULES={
+  kindergarten:{
+    normal:{label:'正常班',in:'08:00',out:'17:00',requiredMinutes:540},
+    earlyA:{label:'07:00早值',in:'07:00',out:'16:00',requiredMinutes:540},
+    earlyAB:{label:'07:30輪值',in:'07:30',out:'16:30',requiredMinutes:540}
+  },
+  afterSchool:{
+    termNormal:{label:'學期中正常班',in:'09:00',out:'18:00',requiredMinutes:540},
+    termLate:{label:'學期中晚值',in:'09:00',out:'19:00',requiredMinutes:540,flexibleOut:true},
+    vacationNormal:{label:'寒暑假正常班',in:'08:00',out:'17:00',requiredMinutes:540},
+    vacationLate:{label:'寒暑假晚值',in:'09:00',out:'19:00',requiredMinutes:540,flexibleOut:true}
+  }
+};
+
 let data={employees:[],punches:[],leaves:[]}, selected=null, detailMode='month';
 
 function pad(n){return String(n).padStart(2,'0')}
@@ -212,7 +226,7 @@ async function loadData(){
   data={employees:r.employees||[],punches:r.punches||[],leaves:r.leaves||[]};
   localStorage.setItem(`attendance.admin.cache.${y}`,JSON.stringify({savedAt:Date.now(),data}));
   renderSummary();
-  document.getElementById('status').textContent=`已讀取 ${y} 年資料：${data.punches.length} 筆出勤、${data.leaves.length} 筆請假。`;
+  document.getElementById('status').textContent=`已讀取 ${y} 年資料：${data.punches.length} 筆出勤、${data.leaves.length} 筆請假。整天未打卡會依平日逐日檢查，全天請假不列入。`;
  }catch(e){
   console.error(e);
   try{
@@ -227,6 +241,41 @@ async function loadData(){
   document.getElementById('status').textContent='暫時無法與雲端同步。系統已自動重試，請稍後再按「更新資料」。';
  }
 }
+
+function activeHalfDayLeaveFor(employeeId,date,leaves=data.leaves){
+ const rows=leaves.filter(x=>x.employeeId===employeeId&&x.date===date&&activeLeave(x));
+ return rows.find(x=>['上午','下午'].includes(String(x.period||'')))||null;
+}
+function hasFullDayLeave(employeeId,date,leaves=data.leaves){
+ return leaves.some(x=>x.employeeId===employeeId&&x.date===date&&activeLeave(x)&&String(x.period||'')==='全天');
+}
+function weekdaysOfMonth(year,month){
+ const y=Number(year),m=Number(month),last=new Date(y,m,0).getDate(),arr=[];
+ for(let d=1;d<=last;d++){
+  const dt=new Date(y,m-1,d);
+  if(dt.getDay()!==0&&dt.getDay()!==6)arr.push(`${y}-${pad(m)}-${pad(d)}`);
+ }
+ return arr;
+}
+function normalizedOriginalShift(p){
+ return String(p.originalShift||p.scheduledShift||p.shift||p.dutyType||'').trim();
+}
+function normalizedActualShift(p){
+ return String(p.actualShift||p.actualDutyType||p.shift||p.dutyType||'').trim();
+}
+function abnormalReasonText(p){
+ const type=String(p.abnormalType||'').trim();
+ const reason=String(p.abnormalReason||'').trim();
+ const note=String(p.abnormalNote||p.note||'').trim();
+ if(type||reason||note)return [type,reason,note].filter(Boolean).join('｜');
+ return '—';
+}
+function isMissingWholeDay(e,date,punches=data.punches,leaves=data.leaves){
+ const hasPunch=punches.some(x=>x.employeeId===e.employeeId&&x.date===date&&(x.in||x.out||x.dutyIn||x.dutyOut));
+ if(hasPunch)return false;
+ if(hasFullDayLeave(e.employeeId,date,leaves))return false;
+ return true;
+}
 function employeeStats(e, punches=data.punches, leaves=data.leaves){
  const ps=punches.filter(x=>x.employeeId===e.employeeId),ls=leaves.filter(x=>x.employeeId===e.employeeId);
  const leave=ls.reduce((a,x)=>a+unpaidLeaveMinutes(x),0);
@@ -234,7 +283,16 @@ function employeeStats(e, punches=data.punches, leaves=data.leaves){
  const early=ps.reduce((a,x)=>a+Number(x.early||0),0);
  const other=ps.reduce((a,x)=>a+Number(x.otherShortage||0),0);
  const missing=ps.reduce((a,x)=>a+missingCard(x),0);
- return {leave,late,early,other,missing,total:leave+late+early+other};
+
+ let wholeDayMissing=0;
+ const prefix=ps.length||ls.length ? String((ps[0]&&ps[0].date)||(ls[0]&&ls[0].date)||'').slice(0,7) : '';
+ if(prefix){
+   const [yy,mm]=prefix.split('-');
+   weekdaysOfMonth(yy,mm).forEach(date=>{
+     if(isMissingWholeDay(e,date,punches,leaves))wholeDayMissing++;
+   });
+ }
+ return {leave,late,early,other,missing,wholeDayMissing,total:leave+late+early+other};
 }
 function visibleEmployees(){
  const pool=document.getElementById('pool').value,q=document.getElementById('keyword').value.trim().toLowerCase();
@@ -248,8 +306,8 @@ function renderSummary(){
 
  body.innerHTML=list.length?list.map(e=>{
   const s=employeeStats(e,monthPunches,monthLeaves);
-  return `<tr class="click-row" onclick="openPerson('${esc(e.employeeId)}')"><td class="name">${esc(e.employeeName)}</td><td>${esc(e.pool||'')}</td><td>${fmtMin(s.leave)}</td><td>${fmtMin(s.late)}</td><td>${fmtMin(s.early)}</td><td>${fmtMin(s.other)}</td><td class="${s.missing?'warn':'muted'}">${s.missing}</td><td class="${s.total?'bad':'ok'}">${fmtMin(s.total)}</td></tr>`;
- }).join(''):'<tr><td colspan="8" class="muted">沒有符合條件的人員資料</td></tr>';
+  return `<tr class="click-row" onclick="openPerson('${esc(e.employeeId)}')"><td class="name">${esc(e.employeeName)}</td><td>${esc(e.pool||'')}</td><td>${fmtMin(s.leave)}</td><td>${fmtMin(s.late)}</td><td>${fmtMin(s.early)}</td><td>${fmtMin(s.other)}</td><td class="${s.wholeDayMissing?'warn':'muted'}">${s.wholeDayMissing}</td><td class="${s.missing?'warn':'muted'}">${s.missing}</td><td class="${s.total?'bad':'ok'}">${fmtMin(s.total)}</td></tr>`;
+ }).join(''):'<tr><td colspan="9" class="muted">沒有符合條件的人員資料</td></tr>';
 
  const totals=list.reduce((a,e)=>{
   const s=employeeStats(e,monthPunches,monthLeaves);
@@ -288,14 +346,14 @@ function renderPersonDetail(){
 
   document.getElementById('personInfo').textContent=`${selected.pool||''}｜${yearValue()}年度月統計`;
   document.getElementById('personSummary').innerHTML=`<div><span>扣薪假</span><b>${fmtMin(stat.leave)}</b></div><div><span>遲到</span><b>${fmtMin(stat.late)}</b></div><div><span>早退</span><b>${fmtMin(stat.early)}</b></div><div><span>其他不足</span><b>${fmtMin(stat.other)}</b></div><div><span>應扣合計</span><b>${fmtMin(stat.total)}</b></div>`;
-  head.innerHTML='<th>月份</th><th>扣薪假</th><th>遲到</th><th>早退</th><th>其他不足</th><th>未補正缺卡</th><th>應扣合計</th>';
+  head.innerHTML='<th>月份</th><th>扣薪假</th><th>遲到</th><th>早退</th><th>其他不足</th><th>整天未打卡</th><th>未補正缺卡</th><th>應扣合計</th>';
 
   body.innerHTML=Array.from({length:12},(_,i)=>{
    const m=pad(i+1),prefix=`${yearValue()}-${m}`;
    const ps=allPs.filter(x=>String(x.date||'').startsWith(prefix));
    const ls=allLs.filter(x=>String(x.date||'').startsWith(prefix));
    const s=employeeStats(selected,ps,ls);
-   return `<tr><td>${i+1}月</td><td>${fmtMin(s.leave)}</td><td>${fmtMin(s.late)}</td><td>${fmtMin(s.early)}</td><td>${fmtMin(s.other)}</td><td class="${s.missing?'warn':'muted'}">${s.missing}</td><td class="${s.total?'bad':'ok'}">${fmtMin(s.total)}</td></tr>`;
+   return `<tr><td>${i+1}月</td><td>${fmtMin(s.leave)}</td><td>${fmtMin(s.late)}</td><td>${fmtMin(s.early)}</td><td>${fmtMin(s.other)}</td><td class="${s.wholeDayMissing?'warn':'muted'}">${s.wholeDayMissing}</td><td class="${s.missing?'warn':'muted'}">${s.missing}</td><td class="${s.total?'bad':'ok'}">${fmtMin(s.total)}</td></tr>`;
   }).join('');
   return;
  }
@@ -305,16 +363,41 @@ function renderPersonDetail(){
  const ls=data.leaves.filter(x=>x.employeeId===selected.employeeId&&String(x.date||'').startsWith(prefix)&&activeLeave(x));
  const stat=employeeStats(selected,ps,ls);
 
- document.getElementById('personInfo').textContent=`${selected.pool||''}｜${yearValue()}年${Number(document.getElementById('detailMonth').value)}月`;
+ document.getElementById('personInfo').textContent=`${selected.pool||''}｜${yearValue()}年${Number(document.getElementById('detailMonth').value)}月｜整天未打卡 ${stat.wholeDayMissing||0} 天`;
  document.getElementById('personSummary').innerHTML=`<div><span>扣薪假</span><b>${fmtMin(stat.leave)}</b></div><div><span>遲到</span><b>${fmtMin(stat.late)}</b></div><div><span>早退</span><b>${fmtMin(stat.early)}</b></div><div><span>其他不足</span><b>${fmtMin(stat.other)}</b></div><div><span>應扣合計</span><b>${fmtMin(stat.total)}</b></div>`;
- head.innerHTML='<th>日期</th><th>預定</th><th>實際</th><th>請假</th><th>遲到</th><th>早退</th><th>其他不足</th><th>狀態</th><th>調整</th>';
+ head.innerHTML='<th>日期</th><th>原班別</th><th>實際班別</th><th>預定</th><th>實際</th><th>請假</th><th>異常原因</th><th>遲到</th><th>早退</th><th>其他不足</th><th>狀態</th><th>調整</th>';
 
- const recordDates=[...new Set([...ps.map(x=>x.date),...ls.map(x=>x.date)])].sort();
+ const recordDates=weekdaysOfMonth(yearValue(),document.getElementById('detailMonth').value);
  body.innerHTML=recordDates.length?recordDates.map(date=>{
   const p=ps.find(x=>x.date===date)||{},dayLeaves=ls.filter(x=>x.date===date),leaveText=dayLeaves.map(x=>`${x.type} ${fmtMin(Number(x.hours||0)*60)}`).join('、')||'—';
-  const status=!p.in||!p.out?(Object.keys(p).length?'缺卡待確認':'—'):(p.workStatus||p.status||'正常');
-  return `<tr><td>${date}</td><td>${esc(p.scheduledIn||'—')}～${esc(p.scheduledOut||'—')}</td><td>${esc(p.in||'—')}～${esc(p.out||'—')}</td><td>${esc(leaveText)}</td><td>${fmtMin(p.late)}</td><td>${fmtMin(p.early)}</td><td>${fmtMin(p.otherShortage)}</td><td class="${(!p.in||!p.out)&&Object.keys(p).length?'warn':''}">${esc(status)}</td><td><button class="edit" onclick="openEdit('${date}')">主管調整</button></td></tr>`;
- }).join(''):'<tr><td colspan="9" class="muted">此月份沒有出勤或請假紀錄</td></tr>';
+  const fullDay=hasFullDayLeave(selected.employeeId,date,ls);
+  const wholeMissing=isMissingWholeDay(selected,date,ps,ls);
+  let status='正常';
+  if(fullDay)status='全天請假';
+  else if(wholeMissing)status='整天未打卡';
+  else if((p.in||p.out)&&(!p.in||!p.out))status='缺卡待確認';
+  else if(Object.keys(p).length)status=p.workStatus||p.status||'正常';
+  else status='—';
+
+  const originalShift=normalizedOriginalShift(p)||'—';
+  const actualShift=normalizedActualShift(p)||'—';
+  const shiftChanged=originalShift!=='—'&&actualShift!=='—'&&originalShift!==actualShift;
+  const reason=abnormalReasonText(p);
+  return `<tr>
+    <td>${date}</td>
+    <td>${esc(originalShift)}</td>
+    <td class="${shiftChanged?'warn':''}">${esc(actualShift)}${shiftChanged?'（換班）':''}</td>
+    <td>${esc(p.scheduledIn||'—')}～${esc(p.scheduledOut||'—')}</td>
+    <td>${esc(p.in||'—')}～${esc(p.out||'—')}</td>
+    <td>${esc(leaveText)}</td>
+    <td>${esc(reason)}</td>
+    <td>${fmtMin(p.late)}</td>
+    <td>${fmtMin(p.early)}</td>
+    <td>${fmtMin(p.otherShortage)}</td>
+    <td class="${wholeMissing||((p.in||p.out)&&(!p.in||!p.out))?'warn':''}">${esc(status)}</td>
+    <td><button class="edit" onclick="openEdit('${date}')">主管調整</button></td>
+  </tr>`;
+ }).join(''):'<tr><td colspan="12" class="muted">此月份沒有出勤或請假紀錄</td></tr>';
 }
 function openEdit(date){
  const p=data.punches.find(x=>x.employeeId===selected.employeeId&&x.date===date)||{};
