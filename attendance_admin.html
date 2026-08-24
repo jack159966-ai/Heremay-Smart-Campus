@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>和美智慧校園｜出缺勤統計 v1.5</title>
+<title>和美智慧校園｜出缺勤統計 v1.5.1</title>
 <style>
 :root{--blue:#1768ac;--navy:#17324d;--line:#d7e0e9;--soft:#f3f7fb;--red:#b42318;--amber:#a15c00;--green:#16734a}
 *{box-sizing:border-box}body{margin:0;background:#edf3f8;color:#1e2936;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif}
@@ -226,7 +226,7 @@ async function loadData(){
   data={employees:r.employees||[],punches:r.punches||[],leaves:r.leaves||[]};
   localStorage.setItem(`attendance.admin.cache.${y}`,JSON.stringify({savedAt:Date.now(),data}));
   renderSummary();
-  document.getElementById('status').textContent=`已讀取 ${y} 年資料：${data.punches.length} 筆出勤、${data.leaves.length} 筆請假。整天未打卡會依平日逐日檢查，全天請假不列入。`;
+  document.getElementById('status').textContent=`已讀取 ${y} 年資料：${data.punches.length} 筆出勤、${data.leaves.length} 筆請假。整天未打卡依各類人員工作日檢查；一般人員週一～週五，戶外清潔週一～週六，全天請假不列入。`;
  }catch(e){
   console.error(e);
   try{
@@ -242,6 +242,20 @@ async function loadData(){
  }
 }
 
+function isFlexibleCleanerEmployee(e){
+ const id=String(e&&e.employeeId||'').trim().toUpperCase();
+ const txt=[e&&e.employeeName,e&&e.pool,e&&e.jobTitle,e&&e.title,e&&e.identity].filter(Boolean).join('｜');
+ return id.startsWith('C')||/戶外清潔|清潔人員|責任制清潔/.test(txt);
+}
+function expectedWorkDatesFor(e,year,month){
+ const y=Number(year),m=Number(month),last=new Date(y,m,0).getDate(),arr=[];
+ for(let d=1;d<=last;d++){
+  const dt=new Date(y,m-1,d),w=dt.getDay();
+  const expected=isFlexibleCleanerEmployee(e) ? (w>=1&&w<=6) : (w>=1&&w<=5);
+  if(expected)arr.push(`${y}-${pad(m)}-${pad(d)}`);
+ }
+ return arr;
+}
 function activeHalfDayLeaveFor(employeeId,date,leaves=data.leaves){
  const rows=leaves.filter(x=>x.employeeId===employeeId&&x.date===date&&activeLeave(x));
  return rows.find(x=>['上午','下午'].includes(String(x.period||'')))||null;
@@ -276,19 +290,25 @@ function isMissingWholeDay(e,date,punches=data.punches,leaves=data.leaves){
  if(hasFullDayLeave(e.employeeId,date,leaves))return false;
  return true;
 }
+function missingCardForEmployee(e,p){
+ if(isFlexibleCleanerEmployee(e)){
+   return (p.in||p.out||p.dutyIn||p.dutyOut)?0:0;
+ }
+ return missingCard(p);
+}
 function employeeStats(e, punches=data.punches, leaves=data.leaves){
  const ps=punches.filter(x=>x.employeeId===e.employeeId),ls=leaves.filter(x=>x.employeeId===e.employeeId);
  const leave=ls.reduce((a,x)=>a+unpaidLeaveMinutes(x),0);
  const late=ps.reduce((a,x)=>a+Number(x.late||0),0);
  const early=ps.reduce((a,x)=>a+Number(x.early||0),0);
  const other=ps.reduce((a,x)=>a+Number(x.otherShortage||0),0);
- const missing=ps.reduce((a,x)=>a+missingCard(x),0);
+ const missing=ps.reduce((a,x)=>a+missingCardForEmployee(e,x),0);
 
  let wholeDayMissing=0;
  const prefix=ps.length||ls.length ? String((ps[0]&&ps[0].date)||(ls[0]&&ls[0].date)||'').slice(0,7) : '';
  if(prefix){
    const [yy,mm]=prefix.split('-');
-   weekdaysOfMonth(yy,mm).forEach(date=>{
+   expectedWorkDatesFor(e,yy,mm).forEach(date=>{
      if(isMissingWholeDay(e,date,punches,leaves))wholeDayMissing++;
    });
  }
@@ -367,7 +387,7 @@ function renderPersonDetail(){
  document.getElementById('personSummary').innerHTML=`<div><span>扣薪假</span><b>${fmtMin(stat.leave)}</b></div><div><span>遲到</span><b>${fmtMin(stat.late)}</b></div><div><span>早退</span><b>${fmtMin(stat.early)}</b></div><div><span>其他不足</span><b>${fmtMin(stat.other)}</b></div><div><span>應扣合計</span><b>${fmtMin(stat.total)}</b></div>`;
  head.innerHTML='<th>日期</th><th>原班別</th><th>實際班別</th><th>預定</th><th>實際</th><th>請假</th><th>異常原因</th><th>遲到</th><th>早退</th><th>其他不足</th><th>狀態</th><th>調整</th>';
 
- const recordDates=weekdaysOfMonth(yearValue(),document.getElementById('detailMonth').value);
+ const recordDates=expectedWorkDatesFor(selected,yearValue(),document.getElementById('detailMonth').value);
  body.innerHTML=recordDates.length?recordDates.map(date=>{
   const p=ps.find(x=>x.date===date)||{},dayLeaves=ls.filter(x=>x.date===date),leaveText=dayLeaves.map(x=>`${x.type} ${fmtMin(Number(x.hours||0)*60)}`).join('、')||'—';
   const fullDay=hasFullDayLeave(selected.employeeId,date,ls);
@@ -375,6 +395,7 @@ function renderPersonDetail(){
   let status='正常';
   if(fullDay)status='全天請假';
   else if(wholeMissing)status='整天未打卡';
+  else if(isFlexibleCleanerEmployee(selected) && (p.in||p.out||p.dutyIn||p.dutyOut))status='已到班';
   else if((p.in||p.out)&&(!p.in||!p.out))status='缺卡待確認';
   else if(Object.keys(p).length)status=p.workStatus||p.status||'正常';
   else status='—';
