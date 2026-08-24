@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>和美智慧校園｜人員基本資料 v2.3</title>
+<title>和美智慧校園｜人員基本資料 v2.4 測試版</title>
 <style>
 :root{
   --bg:#f3f8ff; --card:#fff; --line:#dce7f7; --deep:#173f75;
@@ -237,6 +237,7 @@ textarea{min-height:84px;resize:vertical}
         <option>管理層</option>
         <option>教保人員</option>
         <option>庶務人員</option>
+        <option>護理人員</option>
       </select>
     </div>
     <div class="field">
@@ -247,6 +248,7 @@ textarea{min-height:84px;resize:vertical}
         <option>幼兒部</option>
         <option>安親部</option>
         <option>庶務組</option>
+        <option>健康照護</option>
       </select>
     </div>
 
@@ -458,7 +460,7 @@ textarea{min-height:84px;resize:vertical}
   <button class="btn" type="button" onclick="previewSave()">儲存人員資料</button>
 </div>
 
-<div class="version">人員基本資料 v2.3｜2026-08-10｜修正搜尋輸入被改寫問題</div>
+<div class="version">人員基本資料 v2.4 測試版｜2026-08-24｜新增護理人員與健康照護分類</div>
 </main>
 
 <script>
@@ -583,6 +585,17 @@ function clearForm(){
   document.getElementById('leaveRule').value='正職人員休假規則';
   document.getElementById('standardHours').value='8';
   toggleSeniorityFields();
+}
+
+function applyNursingDefaults(){
+  const identity = document.getElementById('identity');
+  if(!identity || identity.value !== '護理人員') return;
+  document.getElementById('group').value = '健康照護';
+  document.getElementById('attendanceRule').value = '出勤規則(每週固定時間上下班)';
+  document.getElementById('standardHours').value = '8';
+  document.getElementById('defaultStart').value = '08:00';
+  document.getElementById('defaultEnd').value = '17:00';
+  document.getElementById('classGroup').value = '';
 }
 
 function loadAllEmployees(){
@@ -1169,6 +1182,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       }
     });
   }
+  document.getElementById('identity')?.addEventListener('change', applyNursingDefaults);
   loadAllEmployees();
 });
 </script>
