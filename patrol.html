@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.2.8</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.2.9</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -135,7 +135,7 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.2.8｜2026-08-25｜改用JSONP跨網域讀取雲端紀錄</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.2.9｜2026-08-25｜週報雲端讀取錯誤診斷版</p></div></header>
 
 <section id="screenHome" class="screen active">
   <button class="light full no-print" type="button" onclick="returnToPreviousPage()" style="margin:0 0 10px">← 返回主管首頁</button>
@@ -419,14 +419,18 @@ async function loadCloudRecords(showAlert=false){
   }
 
   cloudLoading=true;
+  lastCloudDiagnostic='開始 JSONP 讀取';
   setCloudStatus('☁️ 正在讀取雲端巡堂紀錄……','syncing');
 
   cloudLoadPromise=(async()=>{
     try{
       const result=await jsonpRequest(`${SCRIPT_URL}?action=records`);
-      if(!result || !result.success)throw new Error(result?.message||'雲端讀取失敗');
+      lastCloudDiagnostic='JSONP 已回傳';
+      if(!result || !result.success)throw new Error('JSONP_RESPONSE_ERROR：'+(result?.message||'success=false 或回傳格式異常'));
 
+      lastCloudDiagnostic=`JSONP 回傳成功，共 ${Array.isArray(result.records)?result.records.length:0} 筆，準備合併`;
       const merged=mergeCloudRecords(result.records||[]);
+      lastCloudDiagnostic='雲端資料合併完成';
       const count=result.count||((result.records||[]).length);
       if(merged && merged.cacheSaved===false){
         setCloudStatus(`✅ 已讀取雲端 ${count} 筆巡堂紀錄；本機快取未完整保存，但不影響本次查看。`,'success');
@@ -438,8 +442,15 @@ async function loadCloudRecords(showAlert=false){
       return true;
     }catch(err){
       console.error(err);
-      setCloudStatus('⚠️ 無法取得雲端回應，先顯示本機紀錄。','error');
-      if(showAlert)alert('目前無法取得雲端回應，先顯示本機紀錄。');
+      const detail=String(err && err.message ? err.message : err);
+      const stage=lastCloudDiagnostic||'未知階段';
+      setCloudStatus(`⚠️ 雲端讀取處理失敗｜階段：${stage}｜錯誤：${detail}`,'error');
+      const reportStatus=document.getElementById('reportCloudStatus');
+      if(reportStatus){
+        reportStatus.className='cloud-box no-print error';
+        reportStatus.textContent=`⚠️ 雲端讀取處理失敗｜階段：${stage}｜錯誤：${detail}`;
+      }
+      if(showAlert)alert(`雲端讀取處理失敗\n階段：${stage}\n錯誤：${detail}`);
       return false;
     }finally{
       cloudLoading=false;
@@ -522,7 +533,7 @@ function jsonpRequest(url,timeoutMs=15000){
     const script=document.createElement('script');
     const timer=setTimeout(()=>{
       cleanup();
-      reject(new Error('雲端讀取逾時'));
+      reject(new Error('JSONP_TIMEOUT：等待 Apps Script 回傳超過 '+timeoutMs+'ms'));
     },timeoutMs);
 
     function cleanup(){
@@ -538,7 +549,7 @@ function jsonpRequest(url,timeoutMs=15000){
 
     script.onerror=()=>{
       cleanup();
-      reject(new Error('雲端讀取失敗'));
+      reject(new Error('JSONP_SCRIPT_ERROR：瀏覽器無法載入 Apps Script 回傳程式'));
     };
 
     const joiner=url.includes('?')?'&':'?';
@@ -1213,11 +1224,12 @@ async function openReport(){
 
   try{
     const ok=await loadCloudRecords(false);
-    if(status){
-      status.className='cloud-box no-print '+(ok?'success':'error');
-      status.textContent=ok
-        ? '✅ 已載入最新雲端巡堂紀錄，週報已更新。'
-        : '⚠️ 雲端讀取失敗，週報先顯示本機紀錄。';
+    if(status && ok){
+      status.className='cloud-box no-print success';
+      status.textContent='✅ 已載入最新雲端巡堂紀錄，週報已更新。';
+    }else if(status && !ok && !status.textContent.includes('階段：')){
+      status.className='cloud-box no-print error';
+      status.textContent='⚠️ 雲端讀取失敗，週報先顯示本機紀錄。';
     }
   }catch(err){
     console.error(err);
