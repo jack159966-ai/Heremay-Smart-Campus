@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.2.2</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.2.3</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -106,7 +106,7 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.2.2｜2026-08-25｜雲端確認同步＋歷史巡堂補登</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.2.3｜2026-08-25｜週報自動讀取雲端紀錄</p></div></header>
 
 <section id="screenHome" class="screen active">
   <button class="light full no-print" type="button" onclick="returnToPreviousPage()" style="margin:0 0 10px">← 返回主管首頁</button>
@@ -159,7 +159,7 @@ button{display:none!important}
 </div>
 </section>
 
-<section id="screenRecords" class="screen"><div class="card"><h2>巡堂紀錄</h2><p class="muted" id="recordTip"></p><div id="recordsList"></div><button class="primary full no-print" style="margin-top:12px" onclick="openBackfill()">＋ 補登歷史巡堂</button><button class="light full no-print" style="margin-top:10px" onclick="show('Home')">← 返回巡堂首頁</button><button class="light full no-print" style="margin-top:10px" onclick="loadCloudRecords(true)">🔄 重新讀取雲端紀錄</button><button class="light full no-print" style="margin-top:10px" onclick="syncCurrentSession()">☁️ 重新確認同步目前時段</button><div class="grid2 no-print" style="margin-top:10px"><button class="gray" onclick="show('Report')">查看週報</button><button class="danger" onclick="resetSession()">重新開始本時段</button></div></div></section>
+<section id="screenRecords" class="screen"><div class="card"><h2>巡堂紀錄</h2><p class="muted" id="recordTip"></p><div id="recordsList"></div><button class="primary full no-print" style="margin-top:12px" onclick="openBackfill()">＋ 補登歷史巡堂</button><button class="light full no-print" style="margin-top:10px" onclick="show('Home')">← 返回巡堂首頁</button><button class="light full no-print" style="margin-top:10px" onclick="loadCloudRecords(true)">🔄 重新讀取雲端紀錄</button><button class="light full no-print" style="margin-top:10px" onclick="syncCurrentSession()">☁️ 重新確認同步目前時段</button><div class="grid2 no-print" style="margin-top:10px"><button class="gray" onclick="openReport()">查看週報</button><button class="danger" onclick="resetSession()">重新開始本時段</button></div></div></section>
 
 
 <section id="screenBackfill" class="screen">
@@ -183,13 +183,13 @@ button{display:none!important}
   </div>
 </section>
 
-<section id="screenReport" class="screen"><div class="card"><h2>巡堂統計表</h2><p class="muted no-print">請先選擇週別，再列印或另存 PDF。PDF 版會使用正式統計表格式，只顯示合格 V 與改善提醒代碼。列印方向請選「直向／Portrait」。</p><div class="no-print pdf-control-grid"><div class="control-card"><label class="small">統計週別</label><select id="reportWeekSelect" onchange="setReportWeek(this.value)"></select></div><div class="control-card"><label class="small">畫面預覽字體大小（直式滿版雙週10天，列印時會自動壓成 A4 一頁）</label><div class="range-row"><input type="range" id="reportFontSize" min="6.5" max="8.5" step="0.1" onchange="setReportFontSize(this.value)" oninput="previewReportFontSize(this.value)"><span class="range-value" id="reportFontSizeLabel">8.0</span></div></div></div><div class="print-page report-form" id="reportPage"></div><button class="primary full no-print" style="margin-top:14px" onclick="window.print()">列印／另存 PDF</button></div></section>
+<section id="screenReport" class="screen"><div class="card"><h2>巡堂統計表</h2><p class="muted no-print">請先選擇週別，再列印或另存 PDF。PDF 版會使用正式統計表格式，只顯示合格 V 與改善提醒代碼。列印方向請選「直向／Portrait」。</p><div id="reportCloudStatus" class="cloud-box no-print">☁️ 開啟週報時會自動讀取最新雲端巡堂紀錄。</div><div class="no-print pdf-control-grid"><div class="control-card"><label class="small">統計週別</label><select id="reportWeekSelect" onchange="setReportWeek(this.value)"></select></div><div class="control-card"><label class="small">畫面預覽字體大小（直式滿版雙週10天，列印時會自動壓成 A4 一頁）</label><div class="range-row"><input type="range" id="reportFontSize" min="6.5" max="8.5" step="0.1" onchange="setReportFontSize(this.value)" oninput="previewReportFontSize(this.value)"><span class="range-value" id="reportFontSizeLabel">8.0</span></div></div></div><div class="print-page report-form" id="reportPage"></div><button class="primary full no-print" style="margin-top:14px" onclick="window.print()">列印／另存 PDF</button></div></section>
 
 <section id="screenSettings" class="screen"><div class="card"><h2>簡易設定</h2><p class="muted">雙擊上方標題可進入本設定頁。班級名稱、啟用狀態與增減都可在這裡調整。</p><h3>班級編輯</h3><div class="class-editor-note">勾選＝啟用巡堂；取消勾選＝暫停，不會出現在巡堂清單、未完成提醒與列印報表。巡堂順序請回到「順序」頁用上下箭頭調整；報表會自動依 A、B、C、Y 與數字排列。</div><div id="classEditor"></div><button class="light full" type="button" onclick="addClassEditorRow()">＋ 新增班級</button><h3 style="margin-top:16px">改善提醒項目文字</h3><div id="categorySettings"></div><button class="primary full" onclick="saveSettings()">儲存設定</button></div></section>
 </main>
 <div id="toast" class="toast"></div>
 
-<nav class="nav no-print"><div class="nav-inner"><button id="navHome" class="active" onclick="show('Home')">🏠<span>首頁</span></button><button id="navOrder" onclick="show('Order')">🧭<span>順序</span></button><button id="navRecords" onclick="show('Records')">📋<span>紀錄</span></button><button id="navReport" onclick="show('Report')">🖨️<span>週報</span></button></div></nav>
+<nav class="nav no-print"><div class="nav-inner"><button id="navHome" class="active" onclick="show('Home')">🏠<span>首頁</span></button><button id="navOrder" onclick="show('Order')">🧭<span>順序</span></button><button id="navRecords" onclick="show('Records')">📋<span>紀錄</span></button><button id="navReport" onclick="openReport()">🖨️<span>週報</span></button></div></nav>
 
 <script>
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbyhDespyR460cvcddLMXE2zTIE3uOb_T6bZqLs5LEvZO-FEVmZcPQ8JULjY4-jfzgZP/exec';
@@ -881,6 +881,44 @@ function show(name){
   updateAll();
   return true;
 }
+
+async function openReport(){
+  show('Report');
+  const status=document.getElementById('reportCloudStatus');
+
+  if(!navigator.onLine){
+    if(status){
+      status.className='cloud-box no-print error';
+      status.textContent='⚠️ 目前離線，週報先顯示本機已保存的巡堂紀錄。';
+    }
+    renderReport();
+    return;
+  }
+
+  if(status){
+    status.className='cloud-box no-print syncing';
+    status.textContent='☁️ 正在讀取最新雲端巡堂紀錄……';
+  }
+
+  try{
+    const ok=await loadCloudRecords(false);
+    if(status){
+      status.className='cloud-box no-print '+(ok?'success':'error');
+      status.textContent=ok
+        ? '✅ 已載入最新雲端巡堂紀錄，週報已更新。'
+        : '⚠️ 雲端讀取失敗，週報先顯示本機紀錄。';
+    }
+  }catch(err){
+    console.error(err);
+    if(status){
+      status.className='cloud-box no-print error';
+      status.textContent='⚠️ 雲端讀取失敗，週報先顯示本機紀錄。';
+    }
+  }
+
+  renderReport();
+}
+
 async function setSession(s){
   saveCurrent(false);
   const previous=currentSession;
