@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.2.1</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.2.2</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -85,11 +85,28 @@ html,body{margin:0!important;width:auto!important;height:auto!important;min-heig
 .sign-box span{margin-top:12mm;font-size:7pt}
 .sign-box.memo-box{height:23mm}
 button{display:none!important}
-}</style>
+}
+.backfill-items{display:grid;gap:10px;margin-top:10px}
+.backfill-cat{border:1px solid var(--line);border-radius:16px;padding:11px;background:#fff}
+.backfill-cat-title{font-weight:900;margin-bottom:8px;color:#111827}
+.backfill-item{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px 0;border-top:1px dashed #e5e7eb}
+.backfill-item:first-child{border-top:0}
+.backfill-item-label{font-size:14px;font-weight:750;line-height:1.4}
+.backfill-actions{display:flex;gap:6px}
+.backfill-actions button{min-height:38px;padding:7px 9px;border-radius:12px;font-size:13px;border:1px solid var(--line);background:#fff;color:#4b5563}
+.backfill-actions button.active.highlight{background:#fff8db;border-color:#f6d96a;color:#8a5a00}
+.backfill-actions button.active.improvement{background:#fff1f1;border-color:#fca5a5;color:#b91c1c}
+.verify-line{margin-top:10px;padding:10px 12px;border-radius:14px;background:#eff6ff;color:#1d4ed8;font-size:13px;font-weight:800;line-height:1.55}
+@media(max-width:430px){
+  .backfill-item{grid-template-columns:1fr}
+  .backfill-actions{display:grid;grid-template-columns:1fr 1fr}
+}
+
+</style>
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.2.1｜2026-08-25｜巡堂主按鍵上移優化</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.2.2｜2026-08-25｜雲端確認同步＋歷史巡堂補登</p></div></header>
 
 <section id="screenHome" class="screen active">
   <button class="light full no-print" type="button" onclick="returnToPreviousPage()" style="margin:0 0 10px">← 返回主管首頁</button>
@@ -104,8 +121,8 @@ button{display:none!important}
     <div id="unfinishedList" class="unfinished-box no-print"></div>
     <div id="cloudStatus" class="cloud-box no-print">☁️ 巡堂時先儲存在本機；同步時同一天、同時段、同班級會更新原紀錄，不會重複新增。</div>
     <div class="grid2 no-print" style="margin-top:12px">
-      <button class="gray" style="grid-column:1 / -1" onclick="finishAndSave()">☁️ 結束／同步本時段</button>
-      <button class="light" style="grid-column:1 / -1" onclick="syncTodayToCloud(true)">☁️ 同步今天上午＋下午</button>
+      <button class="gray" style="grid-column:1 / -1" onclick="finishAndSave()">☁️ 結束／確認同步目前時段</button>
+      <button class="light" style="grid-column:1 / -1" onclick="syncTodayToCloud(true)">🔄 重新確認同步今天全部紀錄</button>
     </div>
   </div>
   <div class="card">
@@ -137,12 +154,34 @@ button{display:none!important}
   <div class="card no-print">
 <button class="light full" onclick="shareCurrent()">📤 分享這筆巡堂紀錄</button>
 <button class="primary full" style="margin-top:10px" onclick="savePatrolRecordAndNext()">💾 儲存本班巡堂紀錄並前往下一班</button>
-<button class="gray full" style="margin-top:10px" onclick="finishAndSave()">☁️ 結束／同步本時段</button>
+<button class="gray full" style="margin-top:10px" onclick="finishAndSave()">☁️ 結束／確認同步目前時段</button>
 <button class="light full" style="margin-top:10px" onclick="show('Home')">← 返回巡堂首頁</button>
 </div>
 </section>
 
-<section id="screenRecords" class="screen"><div class="card"><h2>巡堂紀錄</h2><p class="muted" id="recordTip"></p><div id="recordsList"></div><button class="light full no-print" style="margin-top:12px" onclick="show('Home')">← 返回巡堂首頁</button><button class="light full no-print" style="margin-top:10px" onclick="loadCloudRecords(true)">🔄 重新讀取雲端紀錄</button><button class="light full no-print" style="margin-top:10px" onclick="syncCurrentSession()">☁️ 再次同步本時段全部紀錄</button><div class="grid2 no-print" style="margin-top:10px"><button class="gray" onclick="show('Report')">查看週報</button><button class="danger" onclick="resetSession()">重新開始本時段</button></div></div></section>
+<section id="screenRecords" class="screen"><div class="card"><h2>巡堂紀錄</h2><p class="muted" id="recordTip"></p><div id="recordsList"></div><button class="primary full no-print" style="margin-top:12px" onclick="openBackfill()">＋ 補登歷史巡堂</button><button class="light full no-print" style="margin-top:10px" onclick="show('Home')">← 返回巡堂首頁</button><button class="light full no-print" style="margin-top:10px" onclick="loadCloudRecords(true)">🔄 重新讀取雲端紀錄</button><button class="light full no-print" style="margin-top:10px" onclick="syncCurrentSession()">☁️ 重新確認同步目前時段</button><div class="grid2 no-print" style="margin-top:10px"><button class="gray" onclick="show('Report')">查看週報</button><button class="danger" onclick="resetSession()">重新開始本時段</button></div></div></section>
+
+
+<section id="screenBackfill" class="screen">
+  <div class="card">
+    <h2>補登歷史巡堂</h2>
+    <p class="muted">主管可補登實際已完成但未留存到雲端的巡堂紀錄。一般報表仍依巡堂日期呈現；系統保留原有建立／修改時間供內部技術追查。</p>
+    <div class="grid2">
+      <div><label class="small">巡堂日期</label><input id="backfillDate" type="date"></div>
+      <div><label class="small">時段</label><select id="backfillSession"><option value="morning">上午</option><option value="afternoon">下午</option></select></div>
+    </div>
+    <div style="margin-top:10px"><label class="small">班級</label><select id="backfillClass"></select></div>
+    <div class="row no-print" style="margin-top:12px">
+      <button class="success" type="button" onclick="setBackfillAllPass()">✅ 本班全部合格</button>
+      <button class="gray" type="button" onclick="clearBackfillMarks()">清除標記</button>
+    </div>
+    <div id="backfillItems" class="backfill-items"></div>
+    <div style="margin-top:12px"><label class="small">巡堂內容／備註</label><textarea id="backfillNote" placeholder="可填寫當時的巡堂觀察內容；無特殊事項可留空。"></textarea></div>
+    <div id="backfillStatus" class="verify-line">尚未儲存。</div>
+    <button class="primary full no-print" style="margin-top:12px" onclick="saveBackfillAndVerify()">💾 儲存並確認雲端</button>
+    <button class="light full no-print" style="margin-top:10px" onclick="show('Records')">← 返回巡堂紀錄</button>
+  </div>
+</section>
 
 <section id="screenReport" class="screen"><div class="card"><h2>巡堂統計表</h2><p class="muted no-print">請先選擇週別，再列印或另存 PDF。PDF 版會使用正式統計表格式，只顯示合格 V 與改善提醒代碼。列印方向請選「直向／Portrait」。</p><div class="no-print pdf-control-grid"><div class="control-card"><label class="small">統計週別</label><select id="reportWeekSelect" onchange="setReportWeek(this.value)"></select></div><div class="control-card"><label class="small">畫面預覽字體大小（直式滿版雙週10天，列印時會自動壓成 A4 一頁）</label><div class="range-row"><input type="range" id="reportFontSize" min="6.5" max="8.5" step="0.1" onchange="setReportFontSize(this.value)" oninput="previewReportFontSize(this.value)"><span class="range-value" id="reportFontSizeLabel">8.0</span></div></div></div><div class="print-page report-form" id="reportPage"></div><button class="primary full no-print" style="margin-top:14px" onclick="window.print()">列印／另存 PDF</button></div></section>
 
@@ -380,6 +419,49 @@ async function syncRecordsBatchToCloud(records,sessionKey){
   });
 }
 
+
+function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
+
+async function fetchCloudRecordsSnapshot(){
+  const url=`${SCRIPT_URL}?action=records&_=${Date.now()}`;
+  const response=await fetch(url,{method:'GET',cache:'no-store'});
+  if(!response.ok)throw new Error(`HTTP ${response.status}`);
+  const result=await response.json();
+  if(!result.success)throw new Error(result.message||'雲端讀取失敗');
+  return Array.isArray(result.records)?result.records:[];
+}
+
+function cloudHasRecord(items,rec,sessionKey){
+  const wantedDate=String(rec.isoDate||isoDate()).slice(0,10);
+  const wantedSession=cloudSessionKey(sessionKey);
+  const wantedClass=String(rec.className||'').trim();
+  return items.some(item=>{
+    const itemDate=String(item.patrolDate||'').slice(0,10);
+    return itemDate===wantedDate &&
+      cloudSessionKey(item.session)===wantedSession &&
+      String(item.className||'').trim()===wantedClass;
+  });
+}
+
+async function verifyRecordsOnCloud(records,sessionKey,{attempts=3,delay=1100}={}){
+  let items=[];
+  let lastError=null;
+  for(let i=0;i<attempts;i++){
+    if(i>0)await sleep(delay);
+    try{
+      items=await fetchCloudRecordsSnapshot();
+      const missing=records.filter(rec=>!cloudHasRecord(items,rec,sessionKey));
+      if(!missing.length)return {ok:true,missing:[],items};
+      if(i===attempts-1)return {ok:false,missing,items};
+    }catch(err){
+      lastError=err;
+      if(i===attempts-1)throw err;
+    }
+  }
+  if(lastError)throw lastError;
+  return {ok:false,missing:records,items};
+}
+
 async function syncSessionToCloud(sessionKey=currentSession,showAlert=true){
   if(cloudUploading){
     if(showAlert)alert('資料正在同步，請稍候。');
@@ -389,45 +471,69 @@ async function syncSessionToCloud(sessionKey=currentSession,showAlert=true){
   const sessionRecords=data.records?.[sessionKey]||{};
   const completed=data.classes
     .map(cls=>sessionRecords[cls])
-    .filter(rec=>rec && (rec.status==='pass' || rec.status==='needs_improvement'));
+    .filter(rec=>rec && isCompletedRecord(rec));
 
-  const records=completed.filter(rec=>
-    rec.cloudSyncSignature!==recordSyncSignature(rec,sessionKey)
-  );
-
-  if(!records.length){
-    setCloudStatus(`✅ ${sessionName(sessionKey)}目前沒有待同步紀錄。`,'success');
-    if(showAlert)alert(`${sessionName(sessionKey)}目前沒有新的或修改過的紀錄需要同步。`);
+  if(!completed.length){
+    setCloudStatus(`${sessionName(sessionKey)}目前沒有已完成的巡堂紀錄可同步。`);
+    if(showAlert)alert(`${sessionName(sessionKey)}目前沒有已完成的巡堂紀錄。`);
     return true;
   }
 
+  const pending=completed.filter(rec=>
+    rec.cloudSyncSignature!==recordSyncSignature(rec,sessionKey)
+  );
+
   if(!navigator.onLine){
-    setCloudStatus(`⚠️ ${sessionName(sessionKey)}有 ${records.length} 班等待同步；本機資料仍保留。`,'error');
-    if(showAlert)alert('目前沒有網路，資料仍保存在本機；恢復網路後系統會再補同步。');
+    setCloudStatus(`⚠️ ${sessionName(sessionKey)}有 ${pending.length||completed.length} 班尚未取得雲端確認；本機資料仍保留。`,'error');
+    if(showAlert)alert('目前沒有網路。巡堂資料仍保存在本機，恢復網路後請重新確認同步。');
     return false;
   }
 
   cloudUploading=true;
-  setCloudStatus(`☁️ 正在同步${sessionName(sessionKey)} ${records.length} 班……`,'syncing');
 
   try{
-    setCloudStatus(`☁️ 正在一次同步${sessionName(sessionKey)} ${records.length} 班……`,'syncing');
-    await syncRecordsBatchToCloud(records,sessionKey);
+    if(pending.length){
+      setCloudStatus(`☁️ 正在送出${sessionName(sessionKey)} ${pending.length} 班，送出後會再向雲端逐班確認……`,'syncing');
+      await syncRecordsBatchToCloud(pending,sessionKey);
+    }else{
+      setCloudStatus(`🔎 正在重新確認${sessionName(sessionKey)} ${completed.length} 班是否真的存在雲端……`,'syncing');
+    }
 
-    records.forEach(rec=>{
-      rec.cloudSyncSignature=recordSyncSignature(rec,sessionKey);
-      rec.cloudSyncedAt=nowTime();
-      rec.cloudPhotoCount=displayPhotoCount(rec);
+    const verified=await verifyRecordsOnCloud(completed,sessionKey,{attempts:3,delay:1200});
+    const missingSet=new Set(verified.missing.map(rec=>rec.className));
+
+    completed.forEach(rec=>{
+      if(missingSet.has(rec.className)){
+        // 雲端尚未確認，故意清除同步簽章；下次按同步時會重新送出。
+        rec.cloudSyncSignature='';
+      }else{
+        rec.cloudSyncSignature=recordSyncSignature(rec,sessionKey);
+        rec.cloudSyncedAt=nowTime();
+        rec.cloudPhotoCount=displayPhotoCount(rec);
+      }
     });
     persist(false);
 
-    setCloudStatus(`✅ ${sessionName(sessionKey)}已送出 ${records.length} 班批次同步。`,'success');
-    if(showAlert)alert(`${sessionName(sessionKey)}已同步 ${records.length} 班。`);
-    return true;
+    if(verified.ok){
+      setCloudStatus(`✅ 雲端已確認：${sessionName(sessionKey)} ${completed.length}/${completed.length} 班同步完成。`,'success');
+      if(showAlert)alert(`✅ 雲端已確認：${sessionName(sessionKey)} ${completed.length}/${completed.length} 班同步完成。`);
+      return true;
+    }
+
+    const names=verified.missing.map(rec=>rec.className);
+    setCloudStatus(`⚠️ 雲端僅確認 ${completed.length-names.length}/${completed.length} 班；尚缺 ${names.join('、')}。本機資料仍保留，請再按一次同步。`,'error');
+    if(showAlert)alert(`⚠️ 雲端尚未完整確認。
+已確認 ${completed.length-names.length}/${completed.length} 班。
+尚缺：${names.join('、')}
+
+本機資料仍保留，請重新同步。`);
+    return false;
   }catch(err){
     console.error(err);
-    setCloudStatus(`⚠️ 同步失敗，本機資料仍保留。`,'error');
-    if(showAlert)alert('同步失敗，但本機資料仍保留。請確認網路後再試。');
+    completed.forEach(rec=>{rec.cloudSyncSignature='';});
+    persist(false);
+    setCloudStatus(`⚠️ 無法取得雲端確認，本機資料仍保留。請稍後重新同步。`,'error');
+    if(showAlert)alert('⚠️ 無法取得雲端確認。\n本機巡堂資料仍保留，請稍後重新同步。');
     return false;
   }finally{
     cloudUploading=false;
@@ -450,6 +556,157 @@ async function syncTodayToCloud(showAlert=true){
       : '仍有資料尚未同步；本機紀錄已保留，請確認網路後重試。');
   }
   return ok;
+}
+
+
+let backfillMarks={};
+
+function openBackfill(){
+  const dateInput=document.getElementById('backfillDate');
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  if(dateInput){
+    dateInput.max=isoDate();
+    if(!dateInput.value)dateInput.value=isoDate(yesterday);
+  }
+  const cls=document.getElementById('backfillClass');
+  if(cls){
+    const all=allConfiguredClasses().sort(naturalClassCompare);
+    cls.innerHTML=all.map(x=>`<option value="${x}">${x}</option>`).join('');
+  }
+  clearBackfillMarks();
+  document.getElementById('backfillNote').value='';
+  document.getElementById('backfillStatus').textContent='尚未儲存。';
+  show('Backfill');
+}
+
+function renderBackfillItems(){
+  const box=document.getElementById('backfillItems');
+  if(!box)return;
+  box.innerHTML='';
+  data.categories.forEach((cat,ci)=>{
+    const wrap=document.createElement('div');
+    wrap.className='backfill-cat';
+    wrap.innerHTML=`<div class="backfill-cat-title">${cat.name}</div>`;
+    cat.items.forEach((txt,ii)=>{
+      const code=`${ci+1}-${ii+1}`;
+      const row=document.createElement('div');
+      row.className='backfill-item';
+      row.innerHTML=`<div class="backfill-item-label"><b style="color:#2563eb">${code}</b>　${txt}</div>
+        <div class="backfill-actions">
+          <button type="button" class="${backfillMarks[code]==='highlight'?'active highlight':''}" onclick="setBackfillMark('${code}','highlight')">⭐ 亮點</button>
+          <button type="button" class="${backfillMarks[code]==='improvement'?'active improvement':''}" onclick="setBackfillMark('${code}','improvement')">💡 改善</button>
+        </div>`;
+      wrap.appendChild(row);
+    });
+    box.appendChild(wrap);
+  });
+}
+
+function setBackfillMark(code,type){
+  backfillMarks[code]=backfillMarks[code]===type?'':type;
+  if(!backfillMarks[code])delete backfillMarks[code];
+  renderBackfillItems();
+}
+
+function clearBackfillMarks(){
+  backfillMarks={};
+  renderBackfillItems();
+}
+
+function setBackfillAllPass(){
+  backfillMarks={};
+  renderBackfillItems();
+  const box=document.getElementById('backfillStatus');
+  if(box)box.textContent='✅ 已選擇「本班全部合格」；按下方按鈕才會正式儲存。';
+}
+
+function buildBackfillRecord(){
+  const date=document.getElementById('backfillDate').value;
+  const session=document.getElementById('backfillSession').value;
+  const cls=document.getElementById('backfillClass').value;
+  const note=document.getElementById('backfillNote').value.trim();
+
+  if(!date)throw new Error('請選擇巡堂日期');
+  if(date>isoDate())throw new Error('補登日期不可晚於今天');
+  if(!cls)throw new Error('請選擇班級');
+
+  const highlights=Object.entries(backfillMarks).filter(([,v])=>v==='highlight').map(([k])=>k);
+  const defects=Object.entries(backfillMarks).filter(([,v])=>v==='improvement').map(([k])=>k);
+
+  return {
+    className:cls,
+    session:sessionName(session),
+    date,
+    isoDate:date,
+    time:nowTime(),
+    status:defects.length?'needs_improvement':highlights.length?'highlight':'pass',
+    recordType:defects.length&&highlights.length?'mixed':defects.length?'improvement':highlights.length?'highlight':'pass',
+    defects,
+    highlights,
+    itemMarks:{...backfillMarks},
+    note,
+    notifyTargets:[],
+    photos:[],
+    createdAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString()
+  };
+}
+
+async function saveBackfillAndVerify(){
+  if(cloudUploading){alert('資料正在同步，請稍候。');return}
+  let rec,sessionKey;
+  try{
+    rec=buildBackfillRecord();
+    sessionKey=document.getElementById('backfillSession').value;
+  }catch(err){
+    alert(err.message);return;
+  }
+
+  const existing=getReportRecord(rec.isoDate,sessionKey,rec.className);
+  if(existing){
+    const ok=confirm(`${rec.isoDate} ${sessionName(sessionKey)} ${rec.className} 已有紀錄。\n\n確定要以目前內容更新這筆紀錄嗎？`);
+    if(!ok)return;
+  }
+
+  data.history=data.history||{};
+  data.history[rec.isoDate]=data.history[rec.isoDate]||{morning:{},afternoon:{}};
+  data.history[rec.isoDate][sessionKey]=data.history[rec.isoDate][sessionKey]||{};
+  data.history[rec.isoDate][sessionKey][rec.className]=rec;
+  persist(false);
+
+  if(!navigator.onLine){
+    document.getElementById('backfillStatus').textContent='⚠️ 目前離線；補登內容已保存在本機，尚未取得雲端確認。';
+    alert('目前離線。補登內容已先保存在本機，請恢復網路後再按「儲存並確認雲端」。');
+    return;
+  }
+
+  cloudUploading=true;
+  const status=document.getElementById('backfillStatus');
+  try{
+    status.textContent='☁️ 正在送出補登紀錄，並等待雲端確認……';
+    await syncRecordsBatchToCloud([rec],sessionKey);
+    const verified=await verifyRecordsOnCloud([rec],sessionKey,{attempts:3,delay:1200});
+    if(!verified.ok)throw new Error('雲端尚未確認');
+
+    rec.cloudSyncSignature=recordSyncSignature(rec,sessionKey);
+    rec.cloudSyncedAt=nowTime();
+    rec.cloudPhotoCount=displayPhotoCount(rec);
+    data.history[rec.isoDate][sessionKey][rec.className]=rec;
+    persist(false);
+
+    status.textContent=`✅ 雲端已確認：${rec.isoDate} ${sessionName(sessionKey)} ${rec.className} 已儲存。`;
+    alert('✅ 補登巡堂已取得雲端確認。');
+    updateAll();
+  }catch(err){
+    console.error(err);
+    rec.cloudSyncSignature='';
+    data.history[rec.isoDate][sessionKey][rec.className]=rec;
+    persist(false);
+    status.textContent='⚠️ 尚未取得雲端確認；本機內容仍保留，請再次儲存同步。';
+    alert('⚠️ 尚未取得雲端確認。\n本機內容仍保留，請稍後再次按「儲存並確認雲端」。');
+  }finally{
+    cloudUploading=false;
+  }
 }
 
 const defaultClasses=['A1','A2','A3','B1','B2','B3','C1','C2','C3','Y1','Y2','Y3'];
