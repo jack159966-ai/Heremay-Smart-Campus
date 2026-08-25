@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>和美智慧校園｜人員基本資料 v2.8 測試版</title>
+<title>和美智慧校園｜人員基本資料 v2.9 測試版</title>
 <style>
 :root{
   --bg:#f3f8ff; --card:#fff; --line:#dce7f7; --deep:#173f75;
@@ -300,7 +300,7 @@ textarea{min-height:84px;resize:vertical}
         <option>管理首頁</option>
         <option>庶務首頁</option>
       </select>
-      <small>一般人員跨部門時會自動同步首頁；中階／高階主管仍以管理級別為優先。</small>
+      <small>一般人員跨部門時會自動同步首頁；儲存時會再強制校正一次，中階／高階主管仍以管理級別為優先。</small>
     </div>
 
     <div class="field">
@@ -485,7 +485,7 @@ textarea{min-height:84px;resize:vertical}
   <button class="btn" type="button" onclick="previewSave()">儲存人員資料</button>
 </div>
 
-<div class="version">人員基本資料 v2.8 測試版｜2026-08-25｜部門／身分與首頁自動同步</div>
+<div class="version">人員基本資料 v2.9 測試版｜2026-08-25｜儲存時強制校正首頁類型</div>
 </main>
 
 <script>
@@ -644,34 +644,30 @@ function clearForm(){
   toggleSeniorityFields();
 }
 
-function syncHomeTypeByRole(){
+function deriveHomeTypeForSave(){
   const identity=String(document.getElementById('identity')?.value||'').trim();
   const group=String(document.getElementById('group')?.value||'').trim();
   const level=String(document.getElementById('managementLevel')?.value||'').trim();
+  const current=String(document.getElementById('homeType')?.value||'').trim();
+
+  // 管理級別優先。
+  if(level==='高階主管') return '管理首頁';
+  if(level==='中階主管') return '中階主管首頁';
+
+  // 一般人員依部門／身分類別強制決定首頁。
+  if(identity==='庶務人員' || group==='庶務組') return '庶務首頁';
+  if(identity==='教保人員' || group==='幼兒部' || group==='安親部') return '教保首頁';
+
+  // 護理／健康照護目前保留人工設定。
+  return current || '教保首頁';
+}
+
+function syncHomeTypeByRole(){
   const home=document.getElementById('homeType');
-  if(!home) return;
-
-  // 管理級別優先，避免跨部門時把主管首頁誤改掉。
-  if(level==='高階主管'){
-    home.value='管理首頁';
-    return;
-  }
-  if(level==='中階主管'){
-    home.value='中階主管首頁';
-    return;
-  }
-
-  // 一般人員依目前身分／部門同步首頁。
-  if(identity==='庶務人員' || group==='庶務組'){
-    home.value='庶務首頁';
-    return;
-  }
-  if(identity==='教保人員' || group==='幼兒部' || group==='安親部'){
-    home.value='教保首頁';
-    return;
-  }
-
-  // 護理／健康照護目前保留手動選擇，不強制改首頁。
+  if(!home) return '';
+  const resolved=deriveHomeTypeForSave();
+  home.value=resolved;
+  return resolved;
 }
 
 function applyNursingDefaults(){
@@ -864,6 +860,10 @@ function loadEmployeeRecord(emp){
     setSelectValue('managementLevel','一般人員');
   }
 
+  // v2.9：舊資料若「部門／身分」與「首頁類型」不一致，
+  // 載入時先在畫面校正；按儲存後才會正式寫回雲端。
+  syncHomeTypeByRole();
+
   // 不改寫搜尋欄內容，避免使用者輸入途中被系統插入姓名。
   // 載入登入主表後，接著讀取員工出勤主檔與年資異動紀錄。
   clearFullProfileFields();
@@ -1030,8 +1030,8 @@ function escapeHtml(value){
 }
 
 function previewSave(){
-  // 儲存前再同步一次，避免跨部門後首頁類型仍停留在舊值。
-  syncHomeTypeByRole();
+  // v2.9：儲存前直接計算正式首頁值，payload 不再依賴畫面殘留的舊選項。
+  const resolvedHomeType=syncHomeTypeByRole();
 
   const id=document.getElementById('employeeId').value.trim();
   const name=document.getElementById('name').value.trim();
@@ -1053,7 +1053,7 @@ function previewSave(){
       jobTitle:jobTitle,
       identity:identity,
       group:group,
-      homeType:document.getElementById('homeType').value,
+      homeType:resolvedHomeType,
       canLogin:document.getElementById('canLogin').checked?'是':'否',
       tempPassword:document.getElementById('tempPassword').value.trim(),
       announcementAdmin:document.getElementById('announcementAdmin').checked?'是':'否',
@@ -1128,7 +1128,8 @@ function handleEmployeeSaveResult(payload){
     return;
   }
 
-  alert(payload.message||'人員資料已儲存');
+  const homeNow=document.getElementById('homeType')?.value||'';
+  alert((payload.message||'人員資料已儲存')+(homeNow?'\n首頁類型：'+homeNow:''));
   loadAllEmployees();
   if(document.getElementById('hasSeniorityChange').checked){
     document.getElementById('hasSeniorityChange').checked=false;
