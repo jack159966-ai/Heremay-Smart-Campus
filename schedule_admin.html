@@ -896,8 +896,8 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 </style>
 </head>
 <body><main class="app">
-<div class="mobileBlock"><h2>排班管理限電腦操作</h2><p>請改用電腦開啟主管工作台。</p><button class="btn" onclick="history.back()">返回</button></div>
-<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v3.48</h1><p id="headerSemesterText">排班學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="location.href='admin.html'">返回主管頁</button></div></header>
+<div class="mobileBlock"><h2>排班管理限電腦操作</h2><p>請改用電腦開啟主管工作台。</p><button class="btn" onclick="goBackHome()">返回</button></div>
+<header class="head"><div style="font-size:42px">🗓️</div><div><h1>排班管理 v3.49</h1><p id="headerSemesterText">排班學期｜雲端人員讀取</p></div><div class="actions"><button class="btn secondary" onclick="goBackHome()">返回原首頁</button></div></header>
 
 <section class="card">
 <h2>建立／調整班表</h2><p class="sub">人員名單與班表類型由排班中心 Apps Script 讀取；早晚值會一次產生整學期草稿，主管確認後一次固定。</p>
@@ -1118,7 +1118,7 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 
 </section>
 
-<div class="footer">和美智慧校園｜主管排班管理 v3.48</div>
+<div class="footer">和美智慧校園｜主管排班管理 v3.49</div>
 </main>
 
 <script src="schedule_data.js"></script>
@@ -1126,6 +1126,34 @@ select{padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-we
 let TYPE_DEF={};
 
 const SCHEDULE_API='https://script.google.com/macros/s/AKfycbw-vNSfGNciRGnEC3rNTHk0qnZzZSD0m17WrhISxN2HD_YvO3JscLPdQPLcgr2fFYrz/exec';
+
+function resolveHomePage(){
+  let employee=null;
+  try{
+    employee=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'null');
+  }catch(_){}
+
+  const role=String(localStorage.getItem('heremay.currentRole')||'').trim().toLowerCase();
+  const homeType=String(
+    (employee && (
+      employee.homeType ||
+      employee.home ||
+      employee.homePageType
+    )) || ''
+  ).trim();
+
+  if(homeType==='管理首頁' || role==='admin')return 'admin.html';
+  if(homeType==='中階主管首頁' || role==='leader')return 'leader.html';
+  if(homeType==='庶務首頁' || role==='support')return 'support.html';
+  if(homeType==='教保首頁' || role==='teacher')return 'teacher.html';
+
+  return 'index.html';
+}
+
+function goBackHome(){
+  location.href=resolveHomePage();
+}
+
 
 const typeSelect=document.getElementById('typeSelect');
 const weekSelect=document.getElementById('weekSelect');

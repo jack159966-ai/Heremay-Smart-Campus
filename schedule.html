@@ -80,7 +80,7 @@ body{
 <header class="head">
   <div class="icon">🗓️</div>
   <div><h1>我的班表</h1><p>顯示本部門目前有效的正式發布班表，方便同仁協調換班</p></div>
-  <button class="back" onclick="history.back()">返回</button>
+  <button class="back" onclick="goBackHome()">返回</button>
 </header>
 
 <div class="userCard">
@@ -324,6 +324,37 @@ function render(){
       '</div>'+
       bodyHtml+
     '</article>';
+}
+
+
+function resolveHomePage(){
+  const role=String(localStorage.getItem('heremay.currentRole')||currentRole||'').trim().toLowerCase();
+
+  let employee=currentEmployee;
+  if(!employee){
+    try{
+      employee=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'null');
+    }catch(_){}
+  }
+
+  const homeType=String(
+    (employee && (
+      employee.homeType ||
+      employee.home ||
+      employee.homePageType
+    )) || ''
+  ).trim();
+
+  if(homeType==='管理首頁' || role==='admin')return 'admin.html';
+  if(homeType==='中階主管首頁' || role==='leader')return 'leader.html';
+  if(homeType==='庶務首頁' || role==='support')return 'support.html';
+  if(homeType==='教保首頁' || role==='teacher')return 'teacher.html';
+
+  return 'index.html';
+}
+
+function goBackHome(){
+  location.href=resolveHomePage();
 }
 
 requestPublished();

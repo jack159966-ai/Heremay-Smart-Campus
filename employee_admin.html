@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>和美智慧校園｜人員基本資料 v2.4 測試版</title>
+<title>和美智慧校園｜人員基本資料 v2.7 測試版</title>
 <style>
 :root{
   --bg:#f3f8ff; --card:#fff; --line:#dce7f7; --deep:#173f75;
@@ -134,7 +134,7 @@ textarea{min-height:84px;resize:vertical}
 </header>
 
 <div class="note">
-  目前已接上「完整人員清單＋搜尋篩選＋CSV 下載／上傳比對」。上傳只做預覽，不會修改正式資料；儲存功能仍尚未啟用。
+  目前已接上「完整人員清單＋搜尋篩選＋CSV 下載／上傳比對＋單筆人員雲端儲存」。
 </div>
 
 <section class="toolbar">
@@ -144,16 +144,20 @@ textarea{min-height:84px;resize:vertical}
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
     <button class="btn secondary" type="button" onclick="downloadEmployeeCsv()">⬇ 下載完整表單</button>
-    <button class="btn secondary" type="button" onclick="document.getElementById('employeeImportFile').click()">⬆ 上傳比對</button>
+    <button class="btn secondary" type="button" onclick="document.getElementById('employeeImportFile').click()">⬆ 匯入 CSV 比對</button>
     <input id="employeeImportFile" type="file" accept=".csv,text/csv" style="display:none" onchange="handleEmployeeImportFile(event)">
-    <button class="btn" type="button" onclick="clearForm()">＋ 新增人員</button>
+    <button class="btn" type="button" onclick="startNewEmployee()">＋ 新增人員</button>
   </div>
 </section>
 
+<div id="employeeModeBanner" class="fileHelp" style="display:none;background:#eef8ff;border-color:#cfe5ff;color:#315d88">
+  <strong id="employeeModeText">正在新增新人</strong>
+</div>
+
 <div class="fileHelp">
   <strong>大量修改說明：</strong>
-  「下載完整表單」會產生 <strong>CSV</strong> 檔，可用 Excel 開啟與修改；
-  修改後請另存為 CSV，再用「上傳比對」檢查差異。上傳後不會立刻覆蓋正式資料。
+  「下載完整表單」會產生 <strong>CSV</strong> 檔，可用 Excel 開啟與大量修改；
+  修改後請另存為 CSV，再用「匯入 CSV 比對」檢查差異。系統會依員工編號標示新增、不同、相同或缺漏，上傳後不會立刻覆蓋正式資料。
 </div>
 
 <section class="employeeListWrap">
@@ -379,6 +383,26 @@ textarea{min-height:84px;resize:vertical}
       <input id="defaultEnd" type="time">
     </div>
   </div>
+  <div class="grid3" style="margin-top:12px">
+    <div class="field">
+      <label>加班判定</label>
+      <select id="overtimeRule">
+        <option value="主管確認">超過下班時間後列為加班候選，由主管確認</option>
+        <option value="不啟用">不啟用</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>加班候選門檻（分鐘）</label>
+      <input id="overtimeThreshold" type="number" min="0" step="5" value="30">
+    </div>
+    <div class="field">
+      <label>加班原因</label>
+      <select id="overtimeReasonMode">
+        <option value="必填">超過門檻時必填</option>
+        <option value="選填">選填</option>
+      </select>
+    </div>
+  </div>
 
   <div class="inlineChecks" style="margin-top:12px">
     <label class="checkCard"><input type="checkbox" id="testAccount"> 是否測試帳號</label>
@@ -451,7 +475,7 @@ textarea{min-height:84px;resize:vertical}
     <textarea id="remarks" placeholder="其他特殊職務、人事說明或資料來源；沒有可留白"></textarea>
   </div>
   <div class="preview" style="margin-top:12px">
-    目前搜尋先讀取「員工登入資料」。下一階段再接「員工出勤主檔」與儲存同步，避免兩邊資料不一致。
+    儲存時會同步更新「員工登入資料」與「員工出勤主檔」；若有新增年資異動，也會一起寫入。
   </div>
 </section>
 
@@ -460,7 +484,7 @@ textarea{min-height:84px;resize:vertical}
   <button class="btn" type="button" onclick="previewSave()">儲存人員資料</button>
 </div>
 
-<div class="version">人員基本資料 v2.4 測試版｜2026-08-24｜新增護理人員與健康照護分類</div>
+<div class="version">人員基本資料 v2.7 測試版｜2026-08-24｜正式儲存＋護理固定班＋加班參數</div>
 </main>
 
 <script>
@@ -505,12 +529,18 @@ window.addEventListener('message', event=>{
   const acceptedTypes = [
     'HEREMAY_EMPLOYEE_ADMIN_LIST_RESULT',
     'HEREMAY_EMPLOYEE_FULL_PROFILE_RESULT',
+    'HEREMAY_EMPLOYEE_SAVE_RESULT',
     'HEREMAY_SERVICE_RESULT',
     'HEREMAY_LOGIN_RESULT'
   ];
   if(!acceptedTypes.includes(data.type)) return;
 
   const payload = data.payload || {};
+
+  if(data.type === 'HEREMAY_EMPLOYEE_SAVE_RESULT'){
+    handleEmployeeSaveResult(payload);
+    return;
+  }
 
   if(data.type === 'HEREMAY_EMPLOYEE_FULL_PROFILE_RESULT'){
     handleFullProfileResult(payload);
@@ -568,6 +598,32 @@ function toggleSeniorityFields(){
   }
 }
 
+function startNewEmployee(){
+  clearForm();
+
+  const banner=document.getElementById('employeeModeBanner');
+  const text=document.getElementById('employeeModeText');
+  if(banner){
+    banner.style.display='block';
+  }
+  if(text){
+    text.textContent='＋ 正在新增新人｜請從「員工編號」開始填寫';
+  }
+
+  const firstSection=document.querySelector('.section');
+  if(firstSection){
+    firstSection.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  setTimeout(()=>{
+    const id=document.getElementById('employeeId');
+    if(id){
+      id.focus();
+      id.select?.();
+    }
+  },350);
+}
+
 function clearForm(){
   document.querySelectorAll('input').forEach(el=>{
     if(el.type==='checkbox') el.checked = ['canLogin','includeStats'].includes(el.id);
@@ -595,6 +651,9 @@ function applyNursingDefaults(){
   document.getElementById('standardHours').value = '8';
   document.getElementById('defaultStart').value = '08:00';
   document.getElementById('defaultEnd').value = '17:00';
+  if(document.getElementById('overtimeRule')) document.getElementById('overtimeRule').value = '主管確認';
+  if(document.getElementById('overtimeThreshold')) document.getElementById('overtimeThreshold').value = '30';
+  if(document.getElementById('overtimeReasonMode')) document.getElementById('overtimeReasonMode').value = '必填';
   document.getElementById('classGroup').value = '';
 }
 
@@ -745,6 +804,9 @@ function chooseEmployeeMatch(index){
 }
 
 function loadEmployeeRecord(emp){
+  const banner=document.getElementById('employeeModeBanner');
+  if(banner) banner.style.display='none';
+
   document.getElementById('employeeId').value = emp['員工編號'] || '';
   document.getElementById('name').value = emp['姓名'] || '';
   document.getElementById('login').value = emp['登入帳號'] || '';
@@ -847,6 +909,9 @@ function handleFullProfileResult(payload){
   setInputValue('standardHours', attendance['每日標準工時'] || '');
   setInputValue('defaultStart', normalizeTimeInput(attendance['預設上班時間']));
   setInputValue('defaultEnd', normalizeTimeInput(attendance['預設下班時間']));
+  setSelectValue('overtimeRule', attendance['加班判定'] || '主管確認');
+  setInputValue('overtimeThreshold', attendance['加班候選門檻分鐘'] || '30');
+  setSelectValue('overtimeReasonMode', attendance['加班原因規則'] || '必填');
   setInputValue('remarks', attendance['備註'] || '');
 
   const test = document.getElementById('testAccount');
@@ -936,11 +1001,104 @@ function previewSave(){
   const id=document.getElementById('employeeId').value.trim();
   const name=document.getElementById('name').value.trim();
   const login=document.getElementById('login').value.trim();
-  if(!id || !name || !login){
-    alert('請先填寫員工編號、姓名與登入帳號。');
+  const jobTitle=document.getElementById('jobTitle').value.trim();
+  const identity=document.getElementById('identity').value.trim();
+  const group=document.getElementById('group').value.trim();
+
+  if(!id || !name || !login || !jobTitle || !identity || !group){
+    alert('請先填寫員工編號、姓名、登入帳號、職稱、身分類別與編組／部門。');
     return;
   }
-  alert('畫面確認版：尚未寫入正式資料。\\n\\n下一階段會把這些欄位接上 Google Apps Script。');
+
+  const payload={
+    login:{
+      employeeId:id,
+      name:name,
+      account:login,
+      jobTitle:jobTitle,
+      identity:identity,
+      group:group,
+      homeType:document.getElementById('homeType').value,
+      canLogin:document.getElementById('canLogin').checked?'是':'否',
+      tempPassword:document.getElementById('tempPassword').value.trim(),
+      announcementAdmin:document.getElementById('announcementAdmin').checked?'是':'否',
+      scheduleAdmin:document.getElementById('scheduleAdmin').checked?'是':'否',
+      classGroup:document.getElementById('classGroup').value,
+      grade:document.getElementById('grade').value,
+      managementLevel:document.getElementById('managementLevel').value
+    },
+    attendance:{
+      employeeId:id,
+      name:name,
+      group:group,
+      employeeType:document.getElementById('employeeType').value,
+      employmentStatus:document.getElementById('employmentStatus').value,
+      hireDate:document.getElementById('hireDate').value,
+      seniorityDate:document.getElementById('seniorityDate').value,
+      attendanceRule:document.getElementById('attendanceRule').value,
+      leaveRule:document.getElementById('leaveRule').value,
+      standardHours:document.getElementById('standardHours').value,
+      defaultStart:document.getElementById('defaultStart').value,
+      defaultEnd:document.getElementById('defaultEnd').value,
+      overtimeRule:document.getElementById('overtimeRule')?.value||'主管確認',
+      overtimeThreshold:document.getElementById('overtimeThreshold')?.value||'30',
+      overtimeReasonMode:document.getElementById('overtimeReasonMode')?.value||'必填',
+      testAccount:document.getElementById('testAccount').checked?'是':'否',
+      includeStats:document.getElementById('includeStats').checked?'是':'否',
+      remarks:document.getElementById('remarks').value.trim()
+    },
+    seniority:null
+  };
+
+  if(document.getElementById('hasSeniorityChange').checked){
+    payload.seniority={
+      employeeId:id,
+      name:name,
+      type:document.getElementById('seniorityType').value,
+      start:document.getElementById('seniorityStart').value,
+      end:document.getElementById('seniorityEnd').value,
+      countSeniority:document.getElementById('countSeniority').value,
+      note:document.getElementById('seniorityNote').value.trim()
+    };
+    if(!payload.seniority.start){
+      alert('已勾選新增年資異動，請至少填寫開始日。');
+      return;
+    }
+  }
+
+  const btn=document.querySelector('.footerActions .btn:last-child');
+  if(btn){btn.disabled=true;btn.textContent='儲存中…';}
+
+  postEmployeeService({
+    action:'saveEmployeeFullProfile',
+    payload:JSON.stringify(payload)
+  });
+
+  window.__employeeSaveTimer=setTimeout(()=>{
+    if(btn){btn.disabled=false;btn.textContent='儲存人員資料';}
+    alert('雲端儲存超過 15 秒沒有回應，請確認 Apps Script 已部署含 saveEmployeeFullProfile 的新版本。');
+  },15000);
+}
+
+function handleEmployeeSaveResult(payload){
+  if(window.__employeeSaveTimer){
+    clearTimeout(window.__employeeSaveTimer);
+    window.__employeeSaveTimer=null;
+  }
+  const btn=document.querySelector('.footerActions .btn:last-child');
+  if(btn){btn.disabled=false;btn.textContent='儲存人員資料';}
+
+  if(!payload || !payload.ok){
+    alert((payload&&payload.message)||'儲存失敗');
+    return;
+  }
+
+  alert(payload.message||'人員資料已儲存');
+  loadAllEmployees();
+  if(document.getElementById('hasSeniorityChange').checked){
+    document.getElementById('hasSeniorityChange').checked=false;
+    toggleSeniorityFields();
+  }
 }
 
 function csvEscape(value){
