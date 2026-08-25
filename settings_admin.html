@@ -10,6 +10,12 @@
 .check{display:flex!important;align-items:center;gap:8px;margin:0!important;min-height:30px;font-size:14px!important;color:#294d73!important;font-weight:800!important;line-height:1.2}
 .check input{width:18px;height:18px;min-width:18px;margin:0;padding:0;accent-color:#2f68d8}
 .inlineHelp{margin-top:5px;color:#6d8095;font-size:12px;line-height:1.45}
+.targetBox{border:1px solid #cfdef0;border-radius:12px;background:#fbfdff;overflow:hidden}
+.targetToggle{width:100%;border:0;background:#fbfdff;color:#294d73;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;font-weight:900;cursor:pointer;text-align:left}
+.targetSummary{font-size:12px;color:#6d8095;font-weight:800}
+.targetOptions{display:none;padding:10px 12px 12px;border-top:1px solid #e4edf7}
+.targetOptions.show{display:block}
+.targetOptions .checks{margin:0}
 @media(max-width:720px){.menu,.grid{grid-template-columns:1fr}.top{align-items:flex-start}.panelHead{align-items:flex-start;flex-direction:column}}
 </style>
 </head><body><main class="app">
@@ -20,13 +26,14 @@
 <button class="tool" onclick="location.href='employee_admin.html'"><span class="icon">👩‍💼</span><strong>人員基本資料</strong><span>沿用既有正式人員管理頁。</span></button>
 <button class="tool" onclick="openPanel('seniorityPanel')"><span class="icon">🧑‍🍼</span><strong>年資異動管理</strong><span>留職停薪、育嬰留停與其他年資異動紀錄。</span></button>
 <button class="tool" onclick="openPanel('leavePanel')"><span class="icon">🏖️</span><strong>假別設定</strong><span>建立假別名稱、計算單位、審核與備註。</span></button>
-<button class="tool" onclick="openPanel('salaryPanel')"><span class="icon">💰</span><strong>薪資參數</strong><span>建立薪資計算會使用的參數名稱與數值。</span></button>
+<button class="tool" onclick="openPanel('salaryPanel')"><span class="icon">💰</span><strong>薪資科目設定</strong><span>建立薪資計算會使用的科目名稱與加減項類型。</span></button>
 </div></section>
 <section class="card panel" id="classPanel"><div class="panelHead"><div><h2>🏫 班級管理</h2><div class="status" id="classStatus">尚未儲存</div></div><button class="btn" onclick="closePanel('classPanel')">收起</button></div><div class="grid"><div class="field"><label>班級代碼 *</label><input id="cCode" placeholder="例如 K-A01"></div><div class="field"><label>班級名稱 *</label><input id="cName" placeholder="例如 大A班"></div><div class="field"><label>年級 *</label><select id="cGrade"><option value="">請選擇</option><option>幼幼班</option><option>小班</option><option>中班</option><option>大班</option><option>安親班</option></select></div><div class="field"><label>部門 *</label><select id="cDept"><option value="">請選擇</option><option>幼兒部</option><option>安親部</option></select></div><div class="field"><label>固定老師 1</label><input id="cTeacher1" placeholder="姓名或員工編號"></div><div class="field"><label>固定老師 2</label><input id="cTeacher2" placeholder="姓名或員工編號"></div></div><div class="actions"><button class="btn primary" id="classSaveBtn" onclick="saveClass()">＋ 新增班級</button><button class="btn" id="classCancelBtn" style="display:none" onclick="cancelClassEdit()">取消編輯</button><button class="btn" onclick="clearClassForm()">清除</button></div><div class="tableWrap"><table><thead><tr><th>班級代碼</th><th>班級名稱</th><th>年級</th><th>部門</th><th>老師1</th><th>老師2</th><th>操作</th></tr></thead><tbody id="classBody"></tbody></table></div></section>
 <section class="card panel" id="seniorityPanel"><div class="panelHead"><div><h2>🧑‍🍼 年資異動管理</h2><div class="status" id="seniorityStatus">尚未儲存</div></div><button class="btn" onclick="closePanel('seniorityPanel')">收起</button></div><div class="grid"><div class="field"><label>員工編號 *</label><input id="sId" placeholder="例如 E21"></div><div class="field"><label>姓名 *</label><input id="sName"></div><div class="field"><label>異動類型 *</label><select id="sType"><option value="">請選擇</option><option>育嬰留職停薪</option><option>一般留職停薪</option><option>復職</option><option>年資基準調整</option><option>其他</option></select></div><div class="field"><label>開始日期 *</label><input id="sStart" type="date"></div><div class="field"><label>結束日期</label><input id="sEnd" type="date"></div><div class="field"><label>是否影響年資</label><select id="sAffect"><option>是</option><option>否</option></select></div></div><div class="field" style="margin-top:10px"><label>備註</label><textarea id="sNote"></textarea></div><div class="actions"><button class="btn primary" id="senioritySaveBtn" onclick="saveSeniority()">＋ 新增異動</button><button class="btn" id="seniorityCancelBtn" style="display:none" onclick="cancelSeniorityEdit()">取消編輯</button><button class="btn" onclick="clearSeniorityForm()">清除</button></div><div class="tableWrap"><table><thead><tr><th>員工編號</th><th>姓名</th><th>異動類型</th><th>開始</th><th>結束</th><th>影響年資</th><th>備註</th><th>操作</th></tr></thead><tbody id="seniorityBody"></tbody></table></div></section>
 <section class="card panel" id="leavePanel"><div class="panelHead"><div><h2>🏖️ 假別設定</h2><div class="status" id="leaveStatus">尚未儲存</div></div><button class="btn" onclick="closePanel('leavePanel')">收起</button></div><div class="grid"><div class="field"><label>假別名稱 *</label><input id="lName" placeholder="例如 病假"></div><div class="field"><label>計算單位</label><select id="lUnit"><option>日</option><option>半日</option><option>小時</option><option>分鐘</option></select></div><div class="field"><label>是否需主管審核</label><select id="lApproval"><option>是</option><option>否</option></select><div class="inlineHelp">選「是」＝送出後需主管核准；選「否」＝依系統規則直接成立。</div></div><div class="field"><label>薪資處理</label><select id="lPay"><option>依規則</option><option>給薪</option><option>不給薪</option><option>部分給薪</option></select></div><div class="field"><label>年度上限</label><input id="lLimit" placeholder="可留空"></div><div class="field"><label>適用對象 *</label><div class="checks" id="lTargetChecks" class="checks"><label class="check"><input type="checkbox" value="全體人員">全體人員</label><label class="check"><input type="checkbox" value="教保人員">教保人員</label><label class="check"><input type="checkbox" value="庶務人員">庶務人員</label><label class="check"><input type="checkbox" value="護理人員">護理人員</label><label class="check"><input type="checkbox" value="主管">主管</label></div><div class="hint">正式上線時改由員工登入資料中的身分類別載入，避免文字不一致。</div></div></div><div class="field" style="margin-top:10px"><label>規則備註</label><textarea id="lNote"></textarea></div><div class="actions"><button class="btn primary" id="leaveSaveBtn" onclick="saveLeave()">＋ 新增假別</button><button class="btn" id="leaveCancelBtn" style="display:none" onclick="cancelLeaveEdit()">取消編輯</button><button class="btn" onclick="clearLeaveForm()">清除</button></div><div class="tableWrap"><table><thead><tr><th>假別</th><th>單位</th><th>審核</th><th>薪資處理</th><th>上限</th><th>適用對象</th><th>備註</th><th>操作</th></tr></thead><tbody id="leaveBody"></tbody></table></div></section>
-<section class="card panel" id="salaryPanel"><div class="panelHead"><div><h2>💰 薪資參數</h2><div class="status" id="salaryStatus">尚未儲存</div></div><button class="btn" onclick="closePanel('salaryPanel')">收起</button></div><div class="grid"><div class="field"><label>參數名稱 *</label><input id="pName" placeholder="例如 某項津貼"></div><div class="field"><label>參數數值 *</label><input id="pValue" type="number" step="any" placeholder="依右側單位填寫"><div class="inlineHelp" id="pValueHelp">例如：單位為「元」就填 2000；單位為「%」就填 5。</div></div><div class="field"><label>單位</label><select id="pUnit"><option>元</option><option>%</option><option>分鐘</option><option>小時</option><option>日</option><option>其他</option></select></div><div class="field"><label>適用對象 *</label><div class="checks" id="pTargetChecks" class="checks"><label class="check"><input type="checkbox" value="全體人員">全體人員</label><label class="check"><input type="checkbox" value="教保人員">教保人員</label><label class="check"><input type="checkbox" value="庶務人員">庶務人員</label><label class="check"><input type="checkbox" value="護理人員">護理人員</label><label class="check"><input type="checkbox" value="主管">主管</label></div><div class="hint">正式上線時改由員工登入資料中的身分類別載入，必要時再加「編組／部門」條件。</div></div><div class="field"><label>狀態</label><select id="pActive"><option>啟用</option><option>停用</option></select></div><div class="field"><label>分類</label><select id="pType"><option>基本薪資</option><option>加項</option><option>扣項</option><option>工時計算</option><option>其他</option></select></div></div><div class="field" style="margin-top:10px"><label>備註</label><textarea id="pNote"></textarea></div><div class="actions"><button class="btn primary" id="salarySaveBtn" onclick="saveSalary()">＋ 新增參數</button><button class="btn" id="salaryCancelBtn" style="display:none" onclick="cancelSalaryEdit()">取消編輯</button><button class="btn" onclick="clearSalaryForm()">清除</button></div><div class="tableWrap"><table><thead><tr><th>參數名稱</th><th>數值</th><th>單位</th><th>分類</th><th>適用對象</th><th>狀態</th><th>備註</th><th>操作</th></tr></thead><tbody id="salaryBody"></tbody></table></div></section>
-<div class="version">大量參數設定 v1.5.1｜2026-08-25｜四區可編輯＋適用對象排版修正＋欄位說明</div></main>
+<section class="card panel" id="salaryPanel"><div class="panelHead"><div><h2>💰 薪資科目設定</h2><div class="status" id="salaryStatus">尚未儲存</div></div><button class="btn" onclick="closePanel('salaryPanel')">收起</button></div><div class="grid"><div class="field"><label>科目名稱 *</label><input id="pName" placeholder="例如 員工子女就讀補助"></div>
+    <div class="field"><label>加減項 *</label><select id="pType"><option>加項</option><option>減項</option></select></div><div class="field"><label>適用對象 *</label><div class="checks" id="pTargetChecks" class="checks"><label class="check"><input type="checkbox" value="全體人員">全體人員</label><label class="check"><input type="checkbox" value="教保人員">教保人員</label><label class="check"><input type="checkbox" value="庶務人員">庶務人員</label><label class="check"><input type="checkbox" value="護理人員">護理人員</label><label class="check"><input type="checkbox" value="主管">主管</label></div><div class="hint">正式上線時改由員工登入資料中的身分類別載入，必要時再加「編組／部門」條件。</div></div><div class="field"><label>狀態</label><select id="pActive"><option>啟用</option><option>停用</option></select></div></div><div class="field" style="margin-top:10px"><label>備註</label><textarea id="pNote"></textarea></div><div class="actions"><button class="btn primary" id="salarySaveBtn" onclick="saveSalary()">＋ 新增科目</button><button class="btn" id="salaryCancelBtn" style="display:none" onclick="cancelSalaryEdit()">取消編輯</button><button class="btn" onclick="clearSalaryForm()">清除</button></div><div class="tableWrap"><table><thead><tr><th>科目名稱</th><th>加減項</th><th>適用對象</th><th>狀態</th><th>備註</th><th>操作</th></tr></thead><tbody id="salaryBody"></tbody></table></div></section>
+<div class="version">大量參數設定 v1.6｜2026-08-25｜薪資科目化＋適用對象改為點開式選單</div></main>
 <script>
 
 const KEYS={
@@ -190,6 +197,20 @@ function setChecks(containerId,values){
   document.querySelectorAll('#'+containerId+' input[type=checkbox]').forEach(x=>x.checked=set.has(x.value));
 }
 
+function toggleTargetBox(id){
+  const el=document.getElementById(id);
+  if(el) el.classList.toggle('show');
+}
+function updateTargetSummary(containerId,summaryId){
+  const vals=checkedValues(containerId);
+  const el=document.getElementById(summaryId);
+  if(el) el.textContent=vals.length ? vals.join('、') : '尚未選擇';
+}
+document.addEventListener('change',e=>{
+  if(e.target.closest('#lTargetChecks')) updateTargetSummary('lTargetChecks','lTargetSummary');
+  if(e.target.closest('#pTargetChecks')) updateTargetSummary('pTargetChecks','pTargetSummary');
+});
+
 /* 假別設定 */
 let leaveEditIndex=-1;
 function saveLeave(){
@@ -218,7 +239,7 @@ function editLeave(i){
   document.getElementById('lPay').value=x.pay||'依規則';
   document.getElementById('lLimit').value=x.limit||'';
   document.getElementById('lNote').value=x.note||'';
-  setChecks('lTargetChecks',x.target);
+  setChecks('lTargetChecks',x.target);updateTargetSummary('lTargetChecks','lTargetSummary');
   document.getElementById('leaveSaveBtn').textContent='💾 儲存修改';
   document.getElementById('leaveCancelBtn').style.display='inline-block';
   document.getElementById('leaveStatus').textContent='✏️ 正在編輯 '+x.name;
@@ -231,7 +252,7 @@ function cancelLeaveEdit(){
 }
 function clearLeaveForm(){
   ['lName','lLimit','lNote'].forEach(id=>document.getElementById(id).value='');
-  clearChecks('lTargetChecks');
+  clearChecks('lTargetChecks');updateTargetSummary('lTargetChecks','lTargetSummary');
   document.getElementById('lUnit').value='日';
   document.getElementById('lApproval').value='是';
   document.getElementById('lPay').value='依規則';
@@ -252,77 +273,57 @@ function delLeave(i){
   }
 }
 
-/* 薪資參數 */
+/* 薪資科目設定 */
 let salaryEditIndex=-1;
 function saveSalary(){
   const targets=checkedValues('pTargetChecks');
   const row={
     name:document.getElementById('pName').value.trim(),
-    value:document.getElementById('pValue').value,
-    unit:document.getElementById('pUnit').value,
     target:targets.join('、'),
     active:document.getElementById('pActive').value,
     type:document.getElementById('pType').value,
     note:document.getElementById('pNote').value.trim()
   };
-  if(!row.name||row.value==='')return alert('請輸入參數名稱與參數數值');
+  if(!row.name)return alert('請輸入科目名稱');
   if(!targets.length)return alert('請至少選擇一個適用對象');
   const dup=salary.findIndex((x,i)=>x.name===row.name&&i!==salaryEditIndex);
-  if(dup>=0)return alert('參數名稱不可重複');
+  if(dup>=0)return alert('科目名稱不可重複');
   if(salaryEditIndex>=0)salary[salaryEditIndex]=row;else salary.push(row);
   save(KEYS.salary,salary,'salaryStatus');renderSalary();cancelSalaryEdit();
 }
 function editSalary(i){
   const x=salary[i];salaryEditIndex=i;
   document.getElementById('pName').value=x.name||'';
-  document.getElementById('pValue').value=x.value??'';
-  document.getElementById('pUnit').value=x.unit||'元';
   document.getElementById('pActive').value=x.active||'啟用';
-  document.getElementById('pType').value=x.type||'基本薪資';
+  document.getElementById('pType').value=(x.type==='減項'?'減項':'加項');
   document.getElementById('pNote').value=x.note||'';
-  setChecks('pTargetChecks',x.target);
+  setChecks('pTargetChecks',x.target);updateTargetSummary('pTargetChecks','pTargetSummary');
   document.getElementById('salarySaveBtn').textContent='💾 儲存修改';
   document.getElementById('salaryCancelBtn').style.display='inline-block';
   document.getElementById('salaryStatus').textContent='✏️ 正在編輯 '+x.name;
-  updateSalaryValueHelp();
 }
 function cancelSalaryEdit(){
   salaryEditIndex=-1;clearSalaryForm();
-  document.getElementById('salarySaveBtn').textContent='＋ 新增參數';
+  document.getElementById('salarySaveBtn').textContent='＋ 新增科目';
   document.getElementById('salaryCancelBtn').style.display='none';
   document.getElementById('salaryStatus').textContent=salary.length?'✅ 已儲存在此瀏覽器':'尚未儲存';
 }
 function clearSalaryForm(){
-  ['pName','pValue','pNote'].forEach(id=>document.getElementById(id).value='');
-  clearChecks('pTargetChecks');
-  document.getElementById('pUnit').value='元';
+  ['pName','pNote'].forEach(id=>document.getElementById(id).value='');
+  clearChecks('pTargetChecks');updateTargetSummary('pTargetChecks','pTargetSummary');
   document.getElementById('pActive').value='啟用';
-  document.getElementById('pType').value='基本薪資';
-  updateSalaryValueHelp();
-}
-function updateSalaryValueHelp(){
-  const u=document.getElementById('pUnit').value;
-  const msg={
-    '元':'例如：津貼 2000 元，就填 2000。',
-    '%':'例如：5%，就填 5，不要填 0.05。',
-    '分鐘':'例如：30 分鐘，就填 30。',
-    '小時':'例如：2 小時，就填 2。',
-    '日':'例如：3 日，就填 3。',
-    '其他':'請在備註中說明數值代表的意義。'
-  };
-  const el=document.getElementById('pValueHelp');
-  if(el)el.textContent=msg[u]||'依右側單位填寫。';
+  document.getElementById('pType').value='加項';
 }
 function renderSalary(){
   const body=document.getElementById('salaryBody');
   body.innerHTML=salary.length?salary.map((x,i)=>`<tr>
-    <td>${esc(x.name)}</td><td>${esc(x.value)}</td><td>${esc(x.unit)}</td><td>${esc(x.type)}</td>
-    <td>${esc(x.target)}</td><td>${esc(x.active)}</td><td>${esc(x.note)}</td>
+    <td>${esc(x.name)}</td><td>${esc(x.type)}</td><td>${esc(x.target)}</td>
+    <td>${esc(x.active)}</td><td>${esc(x.note)}</td>
     <td><button class="smallBtn" onclick="editSalary(${i})">編輯</button> <button class="smallBtn danger" onclick="delSalary(${i})">刪除</button></td>
-  </tr>`).join(''):'<tr><td colspan="8" class="empty">尚無薪資參數</td></tr>';
+  </tr>`).join(''):'<tr><td colspan="6" class="empty">尚無薪資科目</td></tr>';
 }
 function delSalary(i){
-  if(confirm('確定刪除此參數？')){
+  if(confirm('確定刪除此科目？')){
     salary.splice(i,1);
     if(salaryEditIndex===i)cancelSalaryEdit();else if(salaryEditIndex>i)salaryEditIndex--;
     save(KEYS.salary,salary,'salaryStatus');renderSalary();
@@ -335,9 +336,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(seniority.length)document.getElementById('seniorityStatus').textContent='已讀取本機資料';
   if(leaves.length)document.getElementById('leaveStatus').textContent='已讀取本機資料';
   if(salary.length)document.getElementById('salaryStatus').textContent='已讀取本機資料';
-  const unit=document.getElementById('pUnit');
-  if(unit)unit.addEventListener('change',updateSalaryValueHelp);
-  updateSalaryValueHelp();
+  updateTargetSummary('lTargetChecks','lTargetSummary');
+  updateTargetSummary('pTargetChecks','pTargetSummary');
 });
 
 </script></body></html>
