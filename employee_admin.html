@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>和美智慧校園｜人員基本資料 v2.7 測試版</title>
+<title>和美智慧校園｜人員基本資料 v2.8 測試版</title>
 <style>
 :root{
   --bg:#f3f8ff; --card:#fff; --line:#dce7f7; --deep:#173f75;
@@ -300,6 +300,7 @@ textarea{min-height:84px;resize:vertical}
         <option>管理首頁</option>
         <option>庶務首頁</option>
       </select>
+      <small>一般人員跨部門時會自動同步首頁；中階／高階主管仍以管理級別為優先。</small>
     </div>
 
     <div class="field">
@@ -484,7 +485,7 @@ textarea{min-height:84px;resize:vertical}
   <button class="btn" type="button" onclick="previewSave()">儲存人員資料</button>
 </div>
 
-<div class="version">人員基本資料 v2.7 測試版｜2026-08-24｜正式儲存＋護理固定班＋加班參數</div>
+<div class="version">人員基本資料 v2.8 測試版｜2026-08-25｜部門／身分與首頁自動同步</div>
 </main>
 
 <script>
@@ -643,6 +644,36 @@ function clearForm(){
   toggleSeniorityFields();
 }
 
+function syncHomeTypeByRole(){
+  const identity=String(document.getElementById('identity')?.value||'').trim();
+  const group=String(document.getElementById('group')?.value||'').trim();
+  const level=String(document.getElementById('managementLevel')?.value||'').trim();
+  const home=document.getElementById('homeType');
+  if(!home) return;
+
+  // 管理級別優先，避免跨部門時把主管首頁誤改掉。
+  if(level==='高階主管'){
+    home.value='管理首頁';
+    return;
+  }
+  if(level==='中階主管'){
+    home.value='中階主管首頁';
+    return;
+  }
+
+  // 一般人員依目前身分／部門同步首頁。
+  if(identity==='庶務人員' || group==='庶務組'){
+    home.value='庶務首頁';
+    return;
+  }
+  if(identity==='教保人員' || group==='幼兒部' || group==='安親部'){
+    home.value='教保首頁';
+    return;
+  }
+
+  // 護理／健康照護目前保留手動選擇，不強制改首頁。
+}
+
 function applyNursingDefaults(){
   const identity = document.getElementById('identity');
   if(!identity || identity.value !== '護理人員') return;
@@ -655,6 +686,7 @@ function applyNursingDefaults(){
   if(document.getElementById('overtimeThreshold')) document.getElementById('overtimeThreshold').value = '30';
   if(document.getElementById('overtimeReasonMode')) document.getElementById('overtimeReasonMode').value = '必填';
   document.getElementById('classGroup').value = '';
+  syncHomeTypeByRole();
 }
 
 function loadAllEmployees(){
@@ -998,6 +1030,9 @@ function escapeHtml(value){
 }
 
 function previewSave(){
+  // 儲存前再同步一次，避免跨部門後首頁類型仍停留在舊值。
+  syncHomeTypeByRole();
+
   const id=document.getElementById('employeeId').value.trim();
   const name=document.getElementById('name').value.trim();
   const login=document.getElementById('login').value.trim();
@@ -1340,7 +1375,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
       }
     });
   }
-  document.getElementById('identity')?.addEventListener('change', applyNursingDefaults);
+  document.getElementById('identity')?.addEventListener('change', ()=>{
+    applyNursingDefaults();
+    syncHomeTypeByRole();
+  });
+  document.getElementById('group')?.addEventListener('change', syncHomeTypeByRole);
+  document.getElementById('managementLevel')?.addEventListener('change', syncHomeTypeByRole);
   loadAllEmployees();
 });
 </script>
