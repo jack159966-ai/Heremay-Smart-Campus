@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.2.0</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.2.1</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -89,7 +89,7 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.2.0｜2026-07-27｜每項獨立標記亮點或改善</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.2.1｜2026-08-25｜巡堂主按鍵上移優化</p></div></header>
 
 <section id="screenHome" class="screen active">
   <button class="light full no-print" type="button" onclick="returnToPreviousPage()" style="margin:0 0 10px">← 返回主管首頁</button>
@@ -98,13 +98,13 @@ button{display:none!important}
     <h2 style="margin-top:12px">今日巡堂</h2>
     <p class="muted">請先選擇「上午」或「下午」。兩個時段會分開保存，不會互相覆蓋。</p>
     <div class="grid2 no-print"><button id="sessionMorning" class="tab" onclick="setSession('morning')">🌞 上午巡堂</button><button id="sessionAfternoon" class="tab" onclick="setSession('afternoon')">🌤️ 下午巡堂</button></div>
+    <button class="primary full no-print" style="margin-top:12px" onclick="goPatrol()">開始／繼續本時段巡堂</button>
     <div class="big" id="homeProgressText">0 / 0 班完成</div>
     <div class="progress"><div class="bar" id="homeBar"></div></div>
     <div id="unfinishedList" class="unfinished-box no-print"></div>
     <div id="cloudStatus" class="cloud-box no-print">☁️ 巡堂時先儲存在本機；同步時同一天、同時段、同班級會更新原紀錄，不會重複新增。</div>
     <div class="grid2 no-print" style="margin-top:12px">
-      <button class="primary" onclick="goPatrol()">開始／繼續本時段巡堂</button>
-      <button class="gray" onclick="finishAndSave()">☁️ 結束／同步本時段</button>
+      <button class="gray" style="grid-column:1 / -1" onclick="finishAndSave()">☁️ 結束／同步本時段</button>
       <button class="light" style="grid-column:1 / -1" onclick="syncTodayToCloud(true)">☁️ 同步今天上午＋下午</button>
     </div>
   </div>
