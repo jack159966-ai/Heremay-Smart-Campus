@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.7.3</title>
+  <title>和美智慧校園｜打卡與出勤 v2.7.4</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -76,7 +76,7 @@
   <header class="top">
     <button class="back" onclick="goBack()">← 返回</button>
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
-    <span class="version">v2.7.3 同組請假名單</span>
+    <span class="version">v2.7.4 已請假仍可查看名單</span>
   </header>
 
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
@@ -884,13 +884,8 @@
       return;
     }
 
-    const mine=myActiveLeaveOn(key);
-    if(mine){
-      toastMsg(`${key} 已有您送出的${mine.type}（${mine.period}），請先取消原申請後再重新申請`);
-      return;
-    }
-
-    // 點日期先顯示同組當日請假名單，再選全天／上午／下午。
+    // 不論本人是否已請假，都先開啟同組請假名單。
+    // 若本人當天已有有效請假，仍可查看名單，但不能重複送出申請。
     pendingDate=key;
     renderDayLeaveInfo(key);
     periodModal.classList.add('show');
@@ -922,10 +917,20 @@
       pmQuota.className='quota-ok';
     }
 
-    // 不因達到一般安全線而停用按鈕；第 4 人仍可申請，由後端轉主管覆核。
-    fullDayChoice.disabled=false;
-    amChoice.disabled=false;
-    pmChoice.disabled=false;
+    // 本人若當天已經有有效請假，仍可查看同組名單，但不能重複申請。
+    const mine=myActiveLeaveOn(key);
+    if(mine){
+      modalDate.textContent=`${key}｜${pool}請假狀況`;
+      leavePoolTitle.textContent=`${pool}｜當日已有 ${q.rows.length} 人申請（您已申請 ${mine.type}・${mine.period}）`;
+      fullDayChoice.disabled=true;
+      amChoice.disabled=true;
+      pmChoice.disabled=true;
+    }else{
+      // 不因達到一般安全線而停用按鈕；第 4 人仍可申請，由後端轉主管覆核。
+      fullDayChoice.disabled=false;
+      amChoice.disabled=false;
+      pmChoice.disabled=false;
+    }
   }
   function isPeriodAtOrOverSafe(q,p){
     if(p==='全天')return (!q.amUnlimited&&q.amUsed>=q.amLimit)||q.pmUsed>=q.pmLimit;
