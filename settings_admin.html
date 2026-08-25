@@ -9,7 +9,6 @@
 *{box-sizing:border-box}body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;background:linear-gradient(180deg,#f6f9ff,#eef7ff);color:#20323d;min-height:100vh}.app{width:min(980px,100%);margin:0 auto;padding:18px 14px 38px}.top,.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}.top{display:flex;align-items:center;gap:12px}.back,.btn{border:1px solid #cfe2ff;background:var(--soft);color:#245fc2;border-radius:14px;padding:10px 13px;font-weight:900;cursor:pointer}.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}.btn.danger{background:#fff1f1;color:var(--danger);border-color:#efcccc}h1,h2,h3{margin:0;color:var(--deep)}.sub{margin:5px 0 0;color:var(--muted);font-size:13px;font-weight:700}.note{background:var(--warn);border:1px solid var(--warnline);border-radius:18px;padding:12px;color:#755d2d;font-size:13px;line-height:1.6;margin-bottom:14px}.menu{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.tool{min-height:122px;border:1px solid var(--line);border-radius:20px;background:#fff;padding:16px;text-align:left;cursor:pointer}.tool:hover{background:#f8fbff}.tool .icon{font-size:32px;display:block;margin-bottom:7px}.tool strong{display:block;color:var(--deep);font-size:18px}.tool span{display:block;color:var(--muted);font-size:13px;line-height:1.5;margin-top:5px}.panel{display:none}.panel.show{display:block}.panelHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.field label{display:block;font-size:12px;font-weight:900;color:#45627d;margin-bottom:5px}input,select,textarea{width:100%;border:1px solid #cfdef0;border-radius:12px;padding:10px 11px;font-size:14px;background:#fbfdff;color:#24384b}textarea{min-height:72px;resize:vertical}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.tableWrap{overflow:auto;border:1px solid #e3ebf6;border-radius:14px;margin-top:14px}table{width:100%;border-collapse:collapse;min-width:780px}th,td{padding:9px 10px;border-bottom:1px solid #edf1f7;text-align:left;font-size:12px;white-space:nowrap}th{background:#f5f9ff;color:#355d88;font-weight:900}.empty{text-align:center;color:#8295a9;padding:20px}.smallBtn{border:1px solid #d5e3f4;background:#f8fbff;color:#365d88;border-radius:10px;padding:6px 8px;font-weight:800;cursor:pointer}.smallBtn.danger{color:#a54747;background:#fff5f5;border-color:#efdddd}.status{font-size:12px;font-weight:900;color:#65809b}.version{text-align:center;color:#7890a6;font-size:12px;font-weight:800;margin-top:18px}.checks{display:grid;grid-template-columns:1fr;gap:8px;padding-top:2px}
 .check{display:flex!important;align-items:center;gap:8px;margin:0!important;min-height:30px;font-size:14px!important;color:#294d73!important;font-weight:800!important;line-height:1.2}
 .check input{width:18px;height:18px;min-width:18px;margin:0;padding:0;accent-color:#2f68d8}
-.hint{margin-top:7px;color:#6d8095;font-size:12px;line-height:1.5}
 .inlineHelp{margin-top:5px;color:#6d8095;font-size:12px;line-height:1.45}
 @media(max-width:720px){.menu,.grid{grid-template-columns:1fr}.top{align-items:flex-start}.panelHead{align-items:flex-start;flex-direction:column}}
 </style>
@@ -25,94 +24,284 @@
 </div></section>
 <section class="card panel" id="classPanel"><div class="panelHead"><div><h2>🏫 班級管理</h2><div class="status" id="classStatus">尚未儲存</div></div><button class="btn" onclick="closePanel('classPanel')">收起</button></div><div class="grid"><div class="field"><label>班級代碼 *</label><input id="cCode" placeholder="例如 K-A01"></div><div class="field"><label>班級名稱 *</label><input id="cName" placeholder="例如 大A班"></div><div class="field"><label>年級 *</label><select id="cGrade"><option value="">請選擇</option><option>幼幼班</option><option>小班</option><option>中班</option><option>大班</option><option>安親班</option></select></div><div class="field"><label>部門 *</label><select id="cDept"><option value="">請選擇</option><option>幼兒部</option><option>安親部</option></select></div><div class="field"><label>固定老師 1</label><input id="cTeacher1" placeholder="姓名或員工編號"></div><div class="field"><label>固定老師 2</label><input id="cTeacher2" placeholder="姓名或員工編號"></div></div><div class="actions"><button class="btn primary" id="classSaveBtn" onclick="saveClass()">＋ 新增班級</button><button class="btn" id="classCancelBtn" style="display:none" onclick="cancelClassEdit()">取消編輯</button><button class="btn" onclick="clearClassForm()">清除</button></div><div class="tableWrap"><table><thead><tr><th>班級代碼</th><th>班級名稱</th><th>年級</th><th>部門</th><th>老師1</th><th>老師2</th><th>操作</th></tr></thead><tbody id="classBody"></tbody></table></div></section>
 <section class="card panel" id="seniorityPanel"><div class="panelHead"><div><h2>🧑‍🍼 年資異動管理</h2><div class="status" id="seniorityStatus">尚未儲存</div></div><button class="btn" onclick="closePanel('seniorityPanel')">收起</button></div><div class="grid"><div class="field"><label>員工編號 *</label><input id="sId" placeholder="例如 E21"></div><div class="field"><label>姓名 *</label><input id="sName"></div><div class="field"><label>異動類型 *</label><select id="sType"><option value="">請選擇</option><option>育嬰留職停薪</option><option>一般留職停薪</option><option>復職</option><option>年資基準調整</option><option>其他</option></select></div><div class="field"><label>開始日期 *</label><input id="sStart" type="date"></div><div class="field"><label>結束日期</label><input id="sEnd" type="date"></div><div class="field"><label>是否影響年資</label><select id="sAffect"><option>是</option><option>否</option></select></div></div><div class="field" style="margin-top:10px"><label>備註</label><textarea id="sNote"></textarea></div><div class="actions"><button class="btn primary" id="senioritySaveBtn" onclick="saveSeniority()">＋ 新增異動</button><button class="btn" id="seniorityCancelBtn" style="display:none" onclick="cancelSeniorityEdit()">取消編輯</button><button class="btn" onclick="clearSeniorityForm()">清除</button></div><div class="tableWrap"><table><thead><tr><th>員工編號</th><th>姓名</th><th>異動類型</th><th>開始</th><th>結束</th><th>影響年資</th><th>備註</th><th>操作</th></tr></thead><tbody id="seniorityBody"></tbody></table></div></section>
-<section class="card panel" id="leavePanel"><div class="panelHead"><div><h2>🏖️ 假別設定</h2><div class="status" id="leaveStatus">尚未儲存</div></div><button class="btn" onclick="closePanel('leavePanel')">收起</button></div><div class="grid"><div class="field"><label>假別名稱 *</label><input id="lName" placeholder="例如 病假"></div><div class="field"><label>計算單位</label><select id="lUnit"><option>日</option><option>半日</option><option>小時</option><option>分鐘</option></select></div><div class="field"><label>是否需主管審核</label><select id="lApproval"><option>是</option><option>否</option></select><div class="inlineHelp">選「是」＝送出後需主管核准；選「否」＝依系統規則直接成立。</div></div><div class="field"><label>薪資處理</label><select id="lPay"><option>依規則</option><option>給薪</option><option>不給薪</option><option>部分給薪</option></select></div><div class="field"><label>年度上限</label><input id="lLimit" placeholder="可留空"></div><div class="field"><label>適用對象 *</label><div class="checks" id="lTargetChecks"><label class="check"><input type="checkbox" value="全體人員">全體人員</label><label class="check"><input type="checkbox" value="教保人員">教保人員</label><label class="check"><input type="checkbox" value="庶務人員">庶務人員</label><label class="check"><input type="checkbox" value="護理人員">護理人員</label><label class="check"><input type="checkbox" value="主管">主管</label></div><div class="hint">正式上線時改由員工登入資料中的身分類別載入，避免文字不一致。</div></div></div><div class="field" style="margin-top:10px"><label>規則備註</label><textarea id="lNote"></textarea></div><div class="actions"><button class="btn primary" id="leaveSaveBtn" onclick="saveLeave()">＋ 新增假別</button><button class="btn" id="leaveCancelBtn" style="display:none" onclick="cancelLeaveEdit()">取消編輯</button><button class="btn" onclick="clearLeaveForm()">清除</button></div><div class="tableWrap"><table><thead><tr><th>假別</th><th>單位</th><th>審核</th><th>薪資處理</th><th>上限</th><th>適用對象</th><th>備註</th><th>操作</th></tr></thead><tbody id="leaveBody"></tbody></table></div></section>
-<section class="card panel" id="salaryPanel"><div class="panelHead"><div><h2>💰 薪資參數</h2><div class="status" id="salaryStatus">尚未儲存</div></div><button class="btn" onclick="closePanel('salaryPanel')">收起</button></div><div class="grid"><div class="field"><label>參數名稱 *</label><input id="pName" placeholder="例如 某項津貼"></div><div class="field"><label>參數數值 *</label><input id="pValue" type="number" step="any" placeholder="依右側單位填寫"><div class="inlineHelp" id="pValueHelp">例如：單位為「元」就填 2000；單位為「%」就填 5。</div></div><div class="field"><label>單位</label><select id="pUnit"><option>元</option><option>%</option><option>分鐘</option><option>小時</option><option>日</option><option>其他</option></select></div><div class="field"><label>適用對象 *</label><div class="checks" id="pTargetChecks"><label class="check"><input type="checkbox" value="全體人員">全體人員</label><label class="check"><input type="checkbox" value="教保人員">教保人員</label><label class="check"><input type="checkbox" value="庶務人員">庶務人員</label><label class="check"><input type="checkbox" value="護理人員">護理人員</label><label class="check"><input type="checkbox" value="主管">主管</label></div><div class="hint">正式上線時改由員工登入資料中的身分類別載入，必要時再加「編組／部門」條件。</div></div><div class="field"><label>狀態</label><select id="pActive"><option>啟用</option><option>停用</option></select></div><div class="field"><label>分類</label><select id="pType"><option>基本薪資</option><option>加項</option><option>扣項</option><option>工時計算</option><option>其他</option></select></div></div><div class="field" style="margin-top:10px"><label>備註</label><textarea id="pNote"></textarea></div><div class="actions"><button class="btn primary" id="salarySaveBtn" onclick="saveSalary()">＋ 新增參數</button><button class="btn" id="salaryCancelBtn" style="display:none" onclick="cancelSalaryEdit()">取消編輯</button><button class="btn" onclick="clearSalaryForm()">清除</button></div><div class="tableWrap"><table><thead><tr><th>參數名稱</th><th>數值</th><th>單位</th><th>分類</th><th>適用對象</th><th>狀態</th><th>備註</th><th>操作</th></tr></thead><tbody id="salaryBody"></tbody></table></div></section>
-<div class="version">大量參數設定 v1.5｜2026-08-25｜四區皆可編輯＋適用對象排版修正＋欄位說明</div></main>
+<section class="card panel" id="leavePanel"><div class="panelHead"><div><h2>🏖️ 假別設定</h2><div class="status" id="leaveStatus">尚未儲存</div></div><button class="btn" onclick="closePanel('leavePanel')">收起</button></div><div class="grid"><div class="field"><label>假別名稱 *</label><input id="lName" placeholder="例如 病假"></div><div class="field"><label>計算單位</label><select id="lUnit"><option>日</option><option>半日</option><option>小時</option><option>分鐘</option></select></div><div class="field"><label>是否需主管審核</label><select id="lApproval"><option>是</option><option>否</option></select><div class="inlineHelp">選「是」＝送出後需主管核准；選「否」＝依系統規則直接成立。</div></div><div class="field"><label>薪資處理</label><select id="lPay"><option>依規則</option><option>給薪</option><option>不給薪</option><option>部分給薪</option></select></div><div class="field"><label>年度上限</label><input id="lLimit" placeholder="可留空"></div><div class="field"><label>適用對象 *</label><div class="checks" id="lTargetChecks" class="checks"><label class="check"><input type="checkbox" value="全體人員">全體人員</label><label class="check"><input type="checkbox" value="教保人員">教保人員</label><label class="check"><input type="checkbox" value="庶務人員">庶務人員</label><label class="check"><input type="checkbox" value="護理人員">護理人員</label><label class="check"><input type="checkbox" value="主管">主管</label></div><div class="hint">正式上線時改由員工登入資料中的身分類別載入，避免文字不一致。</div></div></div><div class="field" style="margin-top:10px"><label>規則備註</label><textarea id="lNote"></textarea></div><div class="actions"><button class="btn primary" id="leaveSaveBtn" onclick="saveLeave()">＋ 新增假別</button><button class="btn" id="leaveCancelBtn" style="display:none" onclick="cancelLeaveEdit()">取消編輯</button><button class="btn" onclick="clearLeaveForm()">清除</button></div><div class="tableWrap"><table><thead><tr><th>假別</th><th>單位</th><th>審核</th><th>薪資處理</th><th>上限</th><th>適用對象</th><th>備註</th><th>操作</th></tr></thead><tbody id="leaveBody"></tbody></table></div></section>
+<section class="card panel" id="salaryPanel"><div class="panelHead"><div><h2>💰 薪資參數</h2><div class="status" id="salaryStatus">尚未儲存</div></div><button class="btn" onclick="closePanel('salaryPanel')">收起</button></div><div class="grid"><div class="field"><label>參數名稱 *</label><input id="pName" placeholder="例如 某項津貼"></div><div class="field"><label>參數數值 *</label><input id="pValue" type="number" step="any" placeholder="依右側單位填寫"><div class="inlineHelp" id="pValueHelp">例如：單位為「元」就填 2000；單位為「%」就填 5。</div></div><div class="field"><label>單位</label><select id="pUnit"><option>元</option><option>%</option><option>分鐘</option><option>小時</option><option>日</option><option>其他</option></select></div><div class="field"><label>適用對象 *</label><div class="checks" id="pTargetChecks" class="checks"><label class="check"><input type="checkbox" value="全體人員">全體人員</label><label class="check"><input type="checkbox" value="教保人員">教保人員</label><label class="check"><input type="checkbox" value="庶務人員">庶務人員</label><label class="check"><input type="checkbox" value="護理人員">護理人員</label><label class="check"><input type="checkbox" value="主管">主管</label></div><div class="hint">正式上線時改由員工登入資料中的身分類別載入，必要時再加「編組／部門」條件。</div></div><div class="field"><label>狀態</label><select id="pActive"><option>啟用</option><option>停用</option></select></div><div class="field"><label>分類</label><select id="pType"><option>基本薪資</option><option>加項</option><option>扣項</option><option>工時計算</option><option>其他</option></select></div></div><div class="field" style="margin-top:10px"><label>備註</label><textarea id="pNote"></textarea></div><div class="actions"><button class="btn primary" id="salarySaveBtn" onclick="saveSalary()">＋ 新增參數</button><button class="btn" id="salaryCancelBtn" style="display:none" onclick="cancelSalaryEdit()">取消編輯</button><button class="btn" onclick="clearSalaryForm()">清除</button></div><div class="tableWrap"><table><thead><tr><th>參數名稱</th><th>數值</th><th>單位</th><th>分類</th><th>適用對象</th><th>狀態</th><th>備註</th><th>操作</th></tr></thead><tbody id="salaryBody"></tbody></table></div></section>
+<div class="version">大量參數設定 v1.5.1｜2026-08-25｜四區可編輯＋適用對象排版修正＋欄位說明</div></main>
 <script>
-const KEYS={classes:'heremay.settings.classes',seniority:'heremay.settings.seniorityChanges',leaves:'heremay.settings.leaveTypes',salary:'heremay.settings.salaryParams'};const read=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return[]}};const save=(k,v,statusId)=>{localStorage.setItem(k,JSON.stringify(v));const el=document.getElementById(statusId);if(el){el.textContent='✅ 已儲存在此瀏覽器';el.style.color='#27885f'}};const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let classes=read(KEYS.classes),seniority=read(KEYS.seniority),leaves=read(KEYS.leaves),salary=read(KEYS.salary);
-function openPanel(id){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('show'));const p=document.getElementById(id);p.classList.add('show');p.scrollIntoView({behavior:'smooth',block:'start'})}function closePanel(id){document.getElementById(id).classList.remove('show')}
-let classEditIndex=-1;function saveClass(){const row={code:cCode.value.trim(),name:cName.value.trim(),grade:cGrade.value,dept:cDept.value,t1:cTeacher1.value.trim(),t2:cTeacher2.value.trim()};if(!row.code||!row.name||!row.grade||!row.dept)return alert('請先填完班級代碼、班級名稱、年級與部門');const dup=classes.findIndex((x,i)=>x.code===row.code&&i!==classEditIndex);if(dup>=0)return alert('班級代碼不可重複');if(classEditIndex>=0)classes[classEditIndex]=row;else classes.push(row);save(KEYS.classes,classes,'classStatus');renderClasses();cancelClassEdit()}function editClass(i){const x=classes[i];classEditIndex=i;cCode.value=x.code||'';cName.value=x.name||'';cGrade.value=x.grade||'';cDept.value=x.dept||'';cTeacher1.value=x.t1||'';cTeacher2.value=x.t2||'';classSaveBtn.textContent='💾 儲存修改';classCancelBtn.style.display='inline-block';classStatus.textContent='✏️ 正在編輯 '+(x.name||x.code);document.getElementById('classPanel').scrollIntoView({behavior:'smooth',block:'start'})}function cancelClassEdit(){classEditIndex=-1;clearClassForm();classSaveBtn.textContent='＋ 新增班級';classCancelBtn.style.display='none';classStatus.textContent=classes.length?'✅ 已儲存在此瀏覽器':'尚未儲存'}function clearClassForm(){['cCode','cName','cTeacher1','cTeacher2'].forEach(id=>document.getElementById(id).value='');cGrade.value='';cDept.value=''}function renderClasses(){classBody.innerHTML=classes.length?classes.map((x,i)=>`<tr><td>${esc(x.code)}</td><td>${esc(x.name)}</td><td>${esc(x.grade)}</td><td>${esc(x.dept)}</td><td>${esc(x.t1)}</td><td>${esc(x.t2)}</td><td><button class="smallBtn" onclick="editClass(${i})">編輯</button> <button class="smallBtn danger" onclick="delClass(${i})">刪除</button></td></tr>`).join(''):'<tr><td colspan="7" class="empty">尚無班級資料</td></tr>'}function delClass(i){if(confirm('確定刪除此班級？')){classes.splice(i,1);if(classEditIndex===i)cancelClassEdit();else if(classEditIndex>i)classEditIndex--;save(KEYS.classes,classes,'classStatus');renderClasses()}}
+
+const KEYS={
+  classes:'heremay.settings.classes',
+  seniority:'heremay.settings.seniorityChanges',
+  leaves:'heremay.settings.leaveTypes',
+  salary:'heremay.settings.salaryParams'
+};
+const read=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return[]}};
+const save=(k,v,statusId)=>{
+  localStorage.setItem(k,JSON.stringify(v));
+  const el=document.getElementById(statusId);
+  if(el){el.textContent='✅ 已儲存在此瀏覽器';el.style.color='#27885f'}
+};
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+let classes=read(KEYS.classes);
+let seniority=read(KEYS.seniority);
+let leaves=read(KEYS.leaves);
+let salary=read(KEYS.salary);
+
+function openPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('show'));
+  const p=document.getElementById(id);
+  if(!p) return;
+  p.classList.add('show');
+  p.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closePanel(id){
+  const p=document.getElementById(id);
+  if(p) p.classList.remove('show');
+}
+
+/* 班級管理 */
+let classEditIndex=-1;
+function saveClass(){
+  const row={
+    code:document.getElementById('cCode').value.trim(),
+    name:document.getElementById('cName').value.trim(),
+    grade:document.getElementById('cGrade').value,
+    dept:document.getElementById('cDept').value,
+    t1:document.getElementById('cTeacher1').value.trim(),
+    t2:document.getElementById('cTeacher2').value.trim()
+  };
+  if(!row.code||!row.name||!row.grade||!row.dept)return alert('請先填完班級代碼、班級名稱、年級與部門');
+  const dup=classes.findIndex((x,i)=>x.code===row.code&&i!==classEditIndex);
+  if(dup>=0)return alert('班級代碼不可重複');
+  if(classEditIndex>=0) classes[classEditIndex]=row; else classes.push(row);
+  save(KEYS.classes,classes,'classStatus');
+  renderClasses();
+  cancelClassEdit();
+}
+function editClass(i){
+  const x=classes[i]; classEditIndex=i;
+  document.getElementById('cCode').value=x.code||'';
+  document.getElementById('cName').value=x.name||'';
+  document.getElementById('cGrade').value=x.grade||'';
+  document.getElementById('cDept').value=x.dept||'';
+  document.getElementById('cTeacher1').value=x.t1||'';
+  document.getElementById('cTeacher2').value=x.t2||'';
+  document.getElementById('classSaveBtn').textContent='💾 儲存修改';
+  document.getElementById('classCancelBtn').style.display='inline-block';
+  document.getElementById('classStatus').textContent='✏️ 正在編輯 '+(x.name||x.code);
+}
+function cancelClassEdit(){
+  classEditIndex=-1;
+  clearClassForm();
+  const s=document.getElementById('classSaveBtn'),c=document.getElementById('classCancelBtn');
+  if(s)s.textContent='＋ 新增班級';
+  if(c)c.style.display='none';
+  document.getElementById('classStatus').textContent=classes.length?'✅ 已儲存在此瀏覽器':'尚未儲存';
+}
+function clearClassForm(){
+  ['cCode','cName','cTeacher1','cTeacher2'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cGrade').value='';
+  document.getElementById('cDept').value='';
+}
+function renderClasses(){
+  const body=document.getElementById('classBody');
+  body.innerHTML=classes.length?classes.map((x,i)=>`<tr>
+    <td>${esc(x.code)}</td><td>${esc(x.name)}</td><td>${esc(x.grade)}</td><td>${esc(x.dept)}</td>
+    <td>${esc(x.t1)}</td><td>${esc(x.t2)}</td>
+    <td><button class="smallBtn" onclick="editClass(${i})">編輯</button> <button class="smallBtn danger" onclick="delClass(${i})">刪除</button></td>
+  </tr>`).join(''):'<tr><td colspan="7" class="empty">尚無班級資料</td></tr>';
+}
+function delClass(i){
+  if(confirm('確定刪除此班級？')){
+    classes.splice(i,1);
+    if(classEditIndex===i)cancelClassEdit(); else if(classEditIndex>i)classEditIndex--;
+    save(KEYS.classes,classes,'classStatus');renderClasses();
+  }
+}
+
+/* 年資異動 */
 let seniorityEditIndex=-1;
 function saveSeniority(){
-  const row={id:sId.value.trim(),name:sName.value.trim(),type:sType.value,start:sStart.value,end:sEnd.value,affect:sAffect.value,note:sNote.value.trim()};
+  const row={
+    id:document.getElementById('sId').value.trim(),
+    name:document.getElementById('sName').value.trim(),
+    type:document.getElementById('sType').value,
+    start:document.getElementById('sStart').value,
+    end:document.getElementById('sEnd').value,
+    affect:document.getElementById('sAffect').value,
+    note:document.getElementById('sNote').value.trim()
+  };
   if(!row.id||!row.name||!row.type||!row.start)return alert('請先填完員工編號、姓名、異動類型與開始日期');
-  if(row.end && row.end < row.start)return alert('結束日期不可早於開始日期');
-  if(seniorityEditIndex>=0) seniority[seniorityEditIndex]=row; else seniority.push(row);
-  save(KEYS.seniority,seniority,'seniorityStatus');renderSeniority();cancelSeniorityEdit()
+  if(row.end&&row.end<row.start)return alert('結束日期不可早於開始日期');
+  if(seniorityEditIndex>=0)seniority[seniorityEditIndex]=row;else seniority.push(row);
+  save(KEYS.seniority,seniority,'seniorityStatus');renderSeniority();cancelSeniorityEdit();
 }
 function editSeniority(i){
   const x=seniority[i];seniorityEditIndex=i;
-  sId.value=x.id||'';sName.value=x.name||'';sType.value=x.type||'';sStart.value=x.start||'';sEnd.value=x.end||'';sAffect.value=x.affect||'是';sNote.value=x.note||'';
-  senioritySaveBtn.textContent='💾 儲存修改';seniorityCancelBtn.style.display='inline-block';
-  seniorityStatus.textContent='✏️ 正在編輯 '+(x.name||x.id);
-  document.getElementById('seniorityPanel').scrollIntoView({behavior:'smooth',block:'start'})
+  ['Id','Name','Start','End','Note'].forEach(()=>{});
+  document.getElementById('sId').value=x.id||'';
+  document.getElementById('sName').value=x.name||'';
+  document.getElementById('sType').value=x.type||'';
+  document.getElementById('sStart').value=x.start||'';
+  document.getElementById('sEnd').value=x.end||'';
+  document.getElementById('sAffect').value=x.affect||'是';
+  document.getElementById('sNote').value=x.note||'';
+  document.getElementById('senioritySaveBtn').textContent='💾 儲存修改';
+  document.getElementById('seniorityCancelBtn').style.display='inline-block';
+  document.getElementById('seniorityStatus').textContent='✏️ 正在編輯 '+(x.name||x.id);
 }
 function cancelSeniorityEdit(){
-  seniorityEditIndex=-1;clearSeniorityForm();senioritySaveBtn.textContent='＋ 新增異動';seniorityCancelBtn.style.display='none';
-  seniorityStatus.textContent=seniority.length?'✅ 已儲存在此瀏覽器':'尚未儲存'
+  seniorityEditIndex=-1;clearSeniorityForm();
+  document.getElementById('senioritySaveBtn').textContent='＋ 新增異動';
+  document.getElementById('seniorityCancelBtn').style.display='none';
+  document.getElementById('seniorityStatus').textContent=seniority.length?'✅ 已儲存在此瀏覽器':'尚未儲存';
 }
-function clearSeniorityForm(){['sId','sName','sStart','sEnd','sNote'].forEach(id=>document.getElementById(id).value='');sType.value='';sAffect.value='是'}
-function renderSeniority(){seniorityBody.innerHTML=seniority.length?seniority.map((x,i)=>`<tr><td>${esc(x.id)}</td><td>${esc(x.name)}</td><td>${esc(x.type)}</td><td>${esc(x.start)}</td><td>${esc(x.end)}</td><td>${esc(x.affect)}</td><td>${esc(x.note)}</td><td><button class="smallBtn" onclick="editSeniority(${i})">編輯</button> <button class="smallBtn danger" onclick="delSeniority(${i})">刪除</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">尚無年資異動紀錄</td></tr>'}
-function delSeniority(i){if(confirm('確定刪除此筆異動？')){seniority.splice(i,1);if(seniorityEditIndex===i)cancelSeniorityEdit();else if(seniorityEditIndex>i)seniorityEditIndex--;save(KEYS.seniority,seniority,'seniorityStatus');renderSeniority()}}
+function clearSeniorityForm(){
+  ['sId','sName','sStart','sEnd','sNote'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('sType').value='';
+  document.getElementById('sAffect').value='是';
+}
+function renderSeniority(){
+  const body=document.getElementById('seniorityBody');
+  body.innerHTML=seniority.length?seniority.map((x,i)=>`<tr>
+    <td>${esc(x.id)}</td><td>${esc(x.name)}</td><td>${esc(x.type)}</td><td>${esc(x.start)}</td>
+    <td>${esc(x.end)}</td><td>${esc(x.affect)}</td><td>${esc(x.note)}</td>
+    <td><button class="smallBtn" onclick="editSeniority(${i})">編輯</button> <button class="smallBtn danger" onclick="delSeniority(${i})">刪除</button></td>
+  </tr>`).join(''):'<tr><td colspan="8" class="empty">尚無年資異動紀錄</td></tr>';
+}
+function delSeniority(i){
+  if(confirm('確定刪除此筆異動？')){
+    seniority.splice(i,1);
+    if(seniorityEditIndex===i)cancelSeniorityEdit();else if(seniorityEditIndex>i)seniorityEditIndex--;
+    save(KEYS.seniority,seniority,'seniorityStatus');renderSeniority();
+  }
+}
 
-function checkedValues(containerId){return [...document.querySelectorAll('#'+containerId+' input[type=checkbox]:checked')].map(x=>x.value)}
-function clearChecks(containerId){document.querySelectorAll('#'+containerId+' input[type=checkbox]').forEach(x=>x.checked=false)}
+/* 適用對象共用 */
+function checkedValues(containerId){
+  return [...document.querySelectorAll('#'+containerId+' input[type=checkbox]:checked')].map(x=>x.value);
+}
+function clearChecks(containerId){
+  document.querySelectorAll('#'+containerId+' input[type=checkbox]').forEach(x=>x.checked=false);
+}
 function setChecks(containerId,values){
   const set=new Set(String(values||'').split('、').filter(Boolean));
-  document.querySelectorAll('#'+containerId+' input[type=checkbox]').forEach(x=>x.checked=set.has(x.value))
+  document.querySelectorAll('#'+containerId+' input[type=checkbox]').forEach(x=>x.checked=set.has(x.value));
 }
 
+/* 假別設定 */
 let leaveEditIndex=-1;
 function saveLeave(){
   const targets=checkedValues('lTargetChecks');
-  const row={name:lName.value.trim(),unit:lUnit.value,approval:lApproval.value,pay:lPay.value,limit:lLimit.value.trim(),target:targets.join('、'),note:lNote.value.trim()};
+  const row={
+    name:document.getElementById('lName').value.trim(),
+    unit:document.getElementById('lUnit').value,
+    approval:document.getElementById('lApproval').value,
+    pay:document.getElementById('lPay').value,
+    limit:document.getElementById('lLimit').value.trim(),
+    target:targets.join('、'),
+    note:document.getElementById('lNote').value.trim()
+  };
   if(!row.name)return alert('請輸入假別名稱');
   if(!targets.length)return alert('請至少選擇一個適用對象');
   const dup=leaves.findIndex((x,i)=>x.name===row.name&&i!==leaveEditIndex);
   if(dup>=0)return alert('假別名稱不可重複');
   if(leaveEditIndex>=0)leaves[leaveEditIndex]=row;else leaves.push(row);
-  save(KEYS.leaves,leaves,'leaveStatus');renderLeaves();cancelLeaveEdit()
+  save(KEYS.leaves,leaves,'leaveStatus');renderLeaves();cancelLeaveEdit();
 }
 function editLeave(i){
   const x=leaves[i];leaveEditIndex=i;
-  lName.value=x.name||'';lUnit.value=x.unit||'日';lApproval.value=x.approval==='否'?'否':'是';lPay.value=x.pay||'依規則';lLimit.value=x.limit||'';lNote.value=x.note||'';
+  document.getElementById('lName').value=x.name||'';
+  document.getElementById('lUnit').value=x.unit||'日';
+  document.getElementById('lApproval').value=x.approval==='否'?'否':'是';
+  document.getElementById('lPay').value=x.pay||'依規則';
+  document.getElementById('lLimit').value=x.limit||'';
+  document.getElementById('lNote').value=x.note||'';
   setChecks('lTargetChecks',x.target);
-  leaveSaveBtn.textContent='💾 儲存修改';leaveCancelBtn.style.display='inline-block';leaveStatus.textContent='✏️ 正在編輯 '+x.name;
-  document.getElementById('leavePanel').scrollIntoView({behavior:'smooth',block:'start'})
+  document.getElementById('leaveSaveBtn').textContent='💾 儲存修改';
+  document.getElementById('leaveCancelBtn').style.display='inline-block';
+  document.getElementById('leaveStatus').textContent='✏️ 正在編輯 '+x.name;
 }
 function cancelLeaveEdit(){
-  leaveEditIndex=-1;clearLeaveForm();leaveSaveBtn.textContent='＋ 新增假別';leaveCancelBtn.style.display='none';
-  leaveStatus.textContent=leaves.length?'✅ 已儲存在此瀏覽器':'尚未儲存'
+  leaveEditIndex=-1;clearLeaveForm();
+  document.getElementById('leaveSaveBtn').textContent='＋ 新增假別';
+  document.getElementById('leaveCancelBtn').style.display='none';
+  document.getElementById('leaveStatus').textContent=leaves.length?'✅ 已儲存在此瀏覽器':'尚未儲存';
 }
-function clearLeaveForm(){['lName','lLimit','lNote'].forEach(id=>document.getElementById(id).value='');clearChecks('lTargetChecks');lUnit.value='日';lApproval.value='是';lPay.value='依規則'}
-function renderLeaves(){leaveBody.innerHTML=leaves.length?leaves.map((x,i)=>`<tr><td>${esc(x.name)}</td><td>${esc(x.unit)}</td><td>${esc(x.approval)}</td><td>${esc(x.pay)}</td><td>${esc(x.limit)}</td><td>${esc(x.target)}</td><td>${esc(x.note)}</td><td><button class="smallBtn" onclick="editLeave(${i})">編輯</button> <button class="smallBtn danger" onclick="delLeave(${i})">刪除</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">尚無假別設定</td></tr>'}
-function delLeave(i){if(confirm('確定刪除此假別？')){leaves.splice(i,1);if(leaveEditIndex===i)cancelLeaveEdit();else if(leaveEditIndex>i)leaveEditIndex--;save(KEYS.leaves,leaves,'leaveStatus');renderLeaves()}}
+function clearLeaveForm(){
+  ['lName','lLimit','lNote'].forEach(id=>document.getElementById(id).value='');
+  clearChecks('lTargetChecks');
+  document.getElementById('lUnit').value='日';
+  document.getElementById('lApproval').value='是';
+  document.getElementById('lPay').value='依規則';
+}
+function renderLeaves(){
+  const body=document.getElementById('leaveBody');
+  body.innerHTML=leaves.length?leaves.map((x,i)=>`<tr>
+    <td>${esc(x.name)}</td><td>${esc(x.unit)}</td><td>${esc(x.approval)}</td><td>${esc(x.pay)}</td>
+    <td>${esc(x.limit)}</td><td>${esc(x.target)}</td><td>${esc(x.note)}</td>
+    <td><button class="smallBtn" onclick="editLeave(${i})">編輯</button> <button class="smallBtn danger" onclick="delLeave(${i})">刪除</button></td>
+  </tr>`).join(''):'<tr><td colspan="8" class="empty">尚無假別設定</td></tr>';
+}
+function delLeave(i){
+  if(confirm('確定刪除此假別？')){
+    leaves.splice(i,1);
+    if(leaveEditIndex===i)cancelLeaveEdit();else if(leaveEditIndex>i)leaveEditIndex--;
+    save(KEYS.leaves,leaves,'leaveStatus');renderLeaves();
+  }
+}
 
+/* 薪資參數 */
 let salaryEditIndex=-1;
 function saveSalary(){
   const targets=checkedValues('pTargetChecks');
-  const row={name:pName.value.trim(),value:pValue.value,unit:pUnit.value,target:targets.join('、'),active:pActive.value,type:pType.value,note:pNote.value.trim()};
+  const row={
+    name:document.getElementById('pName').value.trim(),
+    value:document.getElementById('pValue').value,
+    unit:document.getElementById('pUnit').value,
+    target:targets.join('、'),
+    active:document.getElementById('pActive').value,
+    type:document.getElementById('pType').value,
+    note:document.getElementById('pNote').value.trim()
+  };
   if(!row.name||row.value==='')return alert('請輸入參數名稱與參數數值');
   if(!targets.length)return alert('請至少選擇一個適用對象');
   const dup=salary.findIndex((x,i)=>x.name===row.name&&i!==salaryEditIndex);
   if(dup>=0)return alert('參數名稱不可重複');
   if(salaryEditIndex>=0)salary[salaryEditIndex]=row;else salary.push(row);
-  save(KEYS.salary,salary,'salaryStatus');renderSalary();cancelSalaryEdit()
+  save(KEYS.salary,salary,'salaryStatus');renderSalary();cancelSalaryEdit();
 }
 function editSalary(i){
   const x=salary[i];salaryEditIndex=i;
-  pName.value=x.name||'';pValue.value=x.value??'';pUnit.value=x.unit||'元';pActive.value=x.active||'啟用';pType.value=x.type||'基本薪資';pNote.value=x.note||'';
+  document.getElementById('pName').value=x.name||'';
+  document.getElementById('pValue').value=x.value??'';
+  document.getElementById('pUnit').value=x.unit||'元';
+  document.getElementById('pActive').value=x.active||'啟用';
+  document.getElementById('pType').value=x.type||'基本薪資';
+  document.getElementById('pNote').value=x.note||'';
   setChecks('pTargetChecks',x.target);
-  salarySaveBtn.textContent='💾 儲存修改';salaryCancelBtn.style.display='inline-block';salaryStatus.textContent='✏️ 正在編輯 '+x.name;
-  updateSalaryValueHelp();document.getElementById('salaryPanel').scrollIntoView({behavior:'smooth',block:'start'})
+  document.getElementById('salarySaveBtn').textContent='💾 儲存修改';
+  document.getElementById('salaryCancelBtn').style.display='inline-block';
+  document.getElementById('salaryStatus').textContent='✏️ 正在編輯 '+x.name;
+  updateSalaryValueHelp();
 }
 function cancelSalaryEdit(){
-  salaryEditIndex=-1;clearSalaryForm();salarySaveBtn.textContent='＋ 新增參數';salaryCancelBtn.style.display='none';
-  salaryStatus.textContent=salary.length?'✅ 已儲存在此瀏覽器':'尚未儲存'
+  salaryEditIndex=-1;clearSalaryForm();
+  document.getElementById('salarySaveBtn').textContent='＋ 新增參數';
+  document.getElementById('salaryCancelBtn').style.display='none';
+  document.getElementById('salaryStatus').textContent=salary.length?'✅ 已儲存在此瀏覽器':'尚未儲存';
 }
-function clearSalaryForm(){['pName','pValue','pNote'].forEach(id=>document.getElementById(id).value='');clearChecks('pTargetChecks');pUnit.value='元';pActive.value='啟用';pType.value='基本薪資';updateSalaryValueHelp()}
+function clearSalaryForm(){
+  ['pName','pValue','pNote'].forEach(id=>document.getElementById(id).value='');
+  clearChecks('pTargetChecks');
+  document.getElementById('pUnit').value='元';
+  document.getElementById('pActive').value='啟用';
+  document.getElementById('pType').value='基本薪資';
+  updateSalaryValueHelp();
+}
 function updateSalaryValueHelp(){
-  const u=pUnit.value;
+  const u=document.getElementById('pUnit').value;
   const msg={
     '元':'例如：津貼 2000 元，就填 2000。',
     '%':'例如：5%，就填 5，不要填 0.05。',
@@ -121,38 +310,34 @@ function updateSalaryValueHelp(){
     '日':'例如：3 日，就填 3。',
     '其他':'請在備註中說明數值代表的意義。'
   };
-  pValueHelp.textContent=msg[u]||'依右側單位填寫。'
+  const el=document.getElementById('pValueHelp');
+  if(el)el.textContent=msg[u]||'依右側單位填寫。';
 }
-function renderSalary(){salaryBody.innerHTML=salary.length?salary.map((x,i)=>`<tr><td>${esc(x.name)}</td><td>${esc(x.value)}</td><td>${esc(x.unit)}</td><td>${esc(x.type)}</td><td>${esc(x.target)}</td><td>${esc(x.active)}</td><td>${esc(x.note)}</td><td><button class="smallBtn" onclick="editSalary(${i})">編輯</button> <button class="smallBtn danger" onclick="delSalary(${i})">刪除</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">尚無薪資參數</td></tr>'}
-function delSalary(i){if(confirm('確定刪除此參數？')){salary.splice(i,1);if(salaryEditIndex===i)cancelSalaryEdit();else if(salaryEditIndex>i)salaryEditIndex--;save(KEYS.salary,salary,'salaryStatus');renderSalary()}}
-pUnit.addEventListener('change',updateSalaryValueHelp);
-updateSalaryValueHelp();
+function renderSalary(){
+  const body=document.getElementById('salaryBody');
+  body.innerHTML=salary.length?salary.map((x,i)=>`<tr>
+    <td>${esc(x.name)}</td><td>${esc(x.value)}</td><td>${esc(x.unit)}</td><td>${esc(x.type)}</td>
+    <td>${esc(x.target)}</td><td>${esc(x.active)}</td><td>${esc(x.note)}</td>
+    <td><button class="smallBtn" onclick="editSalary(${i})">編輯</button> <button class="smallBtn danger" onclick="delSalary(${i})">刪除</button></td>
+  </tr>`).join(''):'<tr><td colspan="8" class="empty">尚無薪資參數</td></tr>';
+}
+function delSalary(i){
+  if(confirm('確定刪除此參數？')){
+    salary.splice(i,1);
+    if(salaryEditIndex===i)cancelSalaryEdit();else if(salaryEditIndex>i)salaryEditIndex--;
+    save(KEYS.salary,salary,'salaryStatus');renderSalary();
+  }
+}
 
-renderClasses();cancelClassEdit()}function editClass(i){const x=classes[i];classEditIndex=i;cCode.value=x.code||'';cName.value=x.name||'';cGrade.value=x.grade||'';cDept.value=x.dept||'';cTeacher1.value=x.t1||'';cTeacher2.value=x.t2||'';classSaveBtn.textContent='💾 儲存修改';classCancelBtn.style.display='inline-block';classStatus.textContent='✏️ 正在編輯 '+(x.name||x.code);document.getElementById('classPanel').scrollIntoView({behavior:'smooth',block:'start'})}function cancelClassEdit(){classEditIndex=-1;clearClassForm();classSaveBtn.textContent='＋ 新增班級';classCancelBtn.style.display='none';classStatus.textContent=classes.length?'✅ 已儲存在此瀏覽器':'尚未儲存'}function clearClassForm(){['cCode','cName','cTeacher1','cTeacher2'].forEach(id=>document.getElementById(id).value='');cGrade.value='';cDept.value=''}function renderClasses(){classBody.innerHTML=classes.length?classes.map((x,i)=>`<tr><td>${esc(x.code)}</td><td>${esc(x.name)}</td><td>${esc(x.grade)}</td><td>${esc(x.dept)}</td><td>${esc(x.t1)}</td><td>${esc(x.t2)}</td><td><button class="smallBtn" onclick="editClass(${i})">編輯</button> <button class="smallBtn danger" onclick="delClass(${i})">刪除</button></td></tr>`).join(''):'<tr><td colspan="7" class="empty">尚無班級資料</td></tr>'}function delClass(i){if(confirm('確定刪除此班級？')){classes.splice(i,1);if(classEditIndex===i)cancelClassEdit();else if(classEditIndex>i)classEditIndex--;save(KEYS.classes,classes,'classStatus');renderClasses()}}
-let seniorityEditIndex=-1;
-function saveSeniority(){
-  const row={id:sId.value.trim(),name:sName.value.trim(),type:sType.value,start:sStart.value,end:sEnd.value,affect:sAffect.value,note:sNote.value.trim()};
-  if(!row.id||!row.name||!row.type||!row.start)return alert('請先填完員工編號、姓名、異動類型與開始日期');
-  if(row.end && row.end < row.start)return alert('結束日期不可早於開始日期');
-  if(seniorityEditIndex>=0) seniority[seniorityEditIndex]=row; else seniority.push(row);
-  save(KEYS.seniority,seniority,'seniorityStatus');renderSeniority();cancelSeniorityEdit()
-}
-function editSeniority(i){
-  const x=seniority[i];seniorityEditIndex=i;
-  sId.value=x.id||'';sName.value=x.name||'';sType.value=x.type||'';sStart.value=x.start||'';sEnd.value=x.end||'';sAffect.value=x.affect||'是';sNote.value=x.note||'';
-  senioritySaveBtn.textContent='💾 儲存修改';seniorityCancelBtn.style.display='inline-block';
-  seniorityStatus.textContent='✏️ 正在編輯 '+(x.name||x.id);
-  document.getElementById('seniorityPanel').scrollIntoView({behavior:'smooth',block:'start'})
-}
-function cancelSeniorityEdit(){
-  seniorityEditIndex=-1;clearSeniorityForm();senioritySaveBtn.textContent='＋ 新增異動';seniorityCancelBtn.style.display='none';
-  seniorityStatus.textContent=seniority.length?'✅ 已儲存在此瀏覽器':'尚未儲存'
-}
-function clearSeniorityForm(){['sId','sName','sStart','sEnd','sNote'].forEach(id=>document.getElementById(id).value='');sType.value='';sAffect.value='是'}
-function renderSeniority(){seniorityBody.innerHTML=seniority.length?seniority.map((x,i)=>`<tr><td>${esc(x.id)}</td><td>${esc(x.name)}</td><td>${esc(x.type)}</td><td>${esc(x.start)}</td><td>${esc(x.end)}</td><td>${esc(x.affect)}</td><td>${esc(x.note)}</td><td><button class="smallBtn" onclick="editSeniority(${i})">編輯</button> <button class="smallBtn danger" onclick="delSeniority(${i})">刪除</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">尚無年資異動紀錄</td></tr>'}
-function delSeniority(i){if(confirm('確定刪除此筆異動？')){seniority.splice(i,1);if(seniorityEditIndex===i)cancelSeniorityEdit();else if(seniorityEditIndex>i)seniorityEditIndex--;save(KEYS.seniority,seniority,'seniorityStatus');renderSeniority()}}
+document.addEventListener('DOMContentLoaded',()=>{
+  renderClasses();renderSeniority();renderLeaves();renderSalary();
+  if(classes.length)document.getElementById('classStatus').textContent='已讀取本機資料';
+  if(seniority.length)document.getElementById('seniorityStatus').textContent='已讀取本機資料';
+  if(leaves.length)document.getElementById('leaveStatus').textContent='已讀取本機資料';
+  if(salary.length)document.getElementById('salaryStatus').textContent='已讀取本機資料';
+  const unit=document.getElementById('pUnit');
+  if(unit)unit.addEventListener('change',updateSalaryValueHelp);
+  updateSalaryValueHelp();
+});
 
-function checkedValues(containerId){return [...document.querySelectorAll('#'+containerId+' input[type=checkbox]:checked')].map(x=>x.value)}function clearChecks(containerId){document.querySelectorAll('#'+containerId+' input[type=checkbox]').forEach(x=>x.checked=false)}function addLeave(){const targets=checkedValues('lTargetChecks');const row={name:lName.value.trim(),unit:lUnit.value,approval:lApproval.value,pay:lPay.value,limit:lLimit.value.trim(),target:targets.join('、'),note:lNote.value.trim()};if(!row.name)return alert('請輸入假別名稱');if(!targets.length)return alert('請至少選擇一個適用對象');const i=leaves.findIndex(x=>x.name===row.name);if(i>=0)leaves[i]=row;else leaves.push(row);save(KEYS.leaves,leaves,'leaveStatus');renderLeaves();clearLeaveForm()}function clearLeaveForm(){['lName','lLimit','lNote'].forEach(id=>document.getElementById(id).value='');clearChecks('lTargetChecks');lUnit.value='日';lApproval.value='是';lPay.value='依規則'}function renderLeaves(){leaveBody.innerHTML=leaves.length?leaves.map((x,i)=>`<tr><td>${esc(x.name)}</td><td>${esc(x.unit)}</td><td>${esc(x.approval)}</td><td>${esc(x.pay)}</td><td>${esc(x.limit)}</td><td>${esc(x.target)}</td><td>${esc(x.note)}</td><td><button class="smallBtn danger" onclick="delLeave(${i})">刪除</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">尚無假別設定</td></tr>'}function delLeave(i){if(confirm('確定刪除此假別？')){leaves.splice(i,1);save(KEYS.leaves,leaves,'leaveStatus');renderLeaves()}}
-function addSalary(){const targets=checkedValues('pTargetChecks');const row={name:pName.value.trim(),value:pValue.value,unit:pUnit.value,target:targets.join('、'),active:pActive.value,type:pType.value,note:pNote.value.trim()};if(!row.name||row.value==='')return alert('請輸入參數名稱與數值');if(!targets.length)return alert('請至少選擇一個適用對象');const i=salary.findIndex(x=>x.name===row.name);if(i>=0)salary[i]=row;else salary.push(row);save(KEYS.salary,salary,'salaryStatus');renderSalary();clearSalaryForm()}function clearSalaryForm(){['pName','pValue','pNote'].forEach(id=>document.getElementById(id).value='');clearChecks('pTargetChecks');pUnit.value='元';pActive.value='啟用';pType.value='基本薪資'}function renderSalary(){salaryBody.innerHTML=salary.length?salary.map((x,i)=>`<tr><td>${esc(x.name)}</td><td>${esc(x.value)}</td><td>${esc(x.unit)}</td><td>${esc(x.type)}</td><td>${esc(x.target)}</td><td>${esc(x.active)}</td><td>${esc(x.note)}</td><td><button class="smallBtn danger" onclick="delSalary(${i})">刪除</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">尚無薪資參數</td></tr>'}function delSalary(i){if(confirm('確定刪除此參數？')){salary.splice(i,1);save(KEYS.salary,salary,'salaryStatus');renderSalary()}}
-renderClasses();renderSeniority();renderLeaves();renderSalary();if(classes.length)classStatus.textContent='已讀取本機資料';if(seniority.length)seniorityStatus.textContent='已讀取本機資料';if(leaves.length)leaveStatus.textContent='已讀取本機資料';if(salary.length)salaryStatus.textContent='已讀取本機資料';
 </script></body></html>
