@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.3.0</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.3.1</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -113,13 +113,16 @@ button{display:none!important}
 
 
 .batch-backfill-list{display:grid;gap:8px;margin-top:12px}
-.batch-backfill-row{display:grid;grid-template-columns:72px 1fr auto;gap:8px;align-items:center;border:1px solid #dbe4f0;border-radius:14px;padding:10px;background:#fff}
+.batch-backfill-row{display:grid;grid-template-columns:72px 1.3fr 1fr auto;gap:8px;align-items:center;border:1px solid #dbe4f0;border-radius:14px;padding:10px;background:#fff}
 .batch-backfill-row .cls{font-weight:900;color:#1e40af;font-size:16px}
 .batch-backfill-row select{margin:0}
 .batch-backfill-row button{min-height:40px;padding:8px 10px;font-size:13px;border-radius:12px}
 .batch-backfill-row.ready{background:#f8fbff;border-color:#bfdbfe}
 .batch-backfill-row.done{background:#f0fdf4;border-color:#bbf7d0}
 .batch-backfill-row.warn{background:#fff7ed;border-color:#fed7aa}
+.batch-backfill-row.na{background:#f5f3ff;border-color:#c4b5fd}
+.na-mark{font-weight:900;color:#6d28d9;font-size:9px;line-height:1.1;display:inline-block}
+.na-select{border-color:#c4b5fd;background:#faf5ff;color:#5b21b6;font-weight:800}
 .batch-editor{margin-top:14px;border:1px solid #bfdbfe;border-radius:18px;padding:12px;background:#f8fbff}
 .batch-editor.hidden{display:none}
 .batch-summary{margin-top:10px;padding:10px 12px;border-radius:14px;background:#eff6ff;color:#1e40af;font-size:13px;font-weight:900;line-height:1.55}
@@ -135,7 +138,7 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.3.0｜2026-08-25｜週報獨立JSONP直讀雲端</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.3.1｜2026-08-25｜10天按需讀取＋不適用狀態</p></div></header>
 
 <section id="screenHome" class="screen active">
   <button class="light full no-print" type="button" onclick="returnToPreviousPage()" style="margin:0 0 10px">← 返回主管首頁</button>
@@ -170,6 +173,15 @@ button{display:none!important}
     <p class="muted">沒有特別事項可按「本班全部合格」；有亮點或需要改善時，請直接在各巡堂項目旁標記。同一班可同時有亮點與改善。</p>
     <div id="currentStatusBox" class="cloud-box">目前狀態：尚未填寫</div>
     <div class="row no-print"><button class="success" id="allPassBtn" onclick="markAllPass()">✅ 本班全部合格</button><button class="gray" onclick="clearCurrent()">清除本班</button></div>
+    <div class="row no-print" style="margin-top:10px">
+      <select id="naReasonSelect" class="na-select" aria-label="不適用原因">
+        <option value="停課">停課</option>
+        <option value="合併班">合併班</option>
+        <option value="校外教學">校外教學</option>
+        <option value="其他">其他</option>
+      </select>
+      <button class="light" type="button" onclick="markNotApplicable()">⏸ 本班不適用</button>
+    </div>
     <div class="row no-print" style="margin-top:10px"><button id="prevClassBtn" class="light" onclick="stepClass(-1)">← 上一班</button><button id="nextClassBtn" class="light" onclick="stepClass(1)">下一班 →</button></div>
   </div>
   <div class="card"><h3>巡堂觀察項目：3 類 × 5 項</h3><p class="small">每個項目可分別標記「亮點」或「改善」，再次點同一按鈕可取消；同一班可以同時存在兩種紀錄。</p><div id="defectList" class="defects"></div></div>
@@ -239,7 +251,7 @@ button{display:none!important}
 
     <div id="backfillEditor" class="batch-editor hidden">
       <h3 id="backfillEditorTitle">編輯班級</h3>
-      <p class="small">若本班有亮點或改善，可在下方逐項標記；全部合格則不需設定項目。</p>
+      <p class="small">若本班有亮點或改善，可在下方逐項標記；若選「其他」不適用原因，請在備註簡短說明。</p>
       <div id="backfillItems" class="backfill-items"></div>
       <div style="margin-top:12px"><label class="small">巡堂內容／備註</label><textarea id="backfillNote" placeholder="可填寫當時的巡堂觀察內容；無特殊事項可留空。"></textarea></div>
       <button class="primary full no-print" style="margin-top:10px" onclick="saveBackfillClassDetail()">💾 儲存本班設定</button>
@@ -252,7 +264,7 @@ button{display:none!important}
   </div>
 </section>
 
-<section id="screenReport" class="screen"><div class="card"><h2>巡堂統計表</h2><p class="muted no-print">請先選擇週別，再列印或另存 PDF。PDF 版會使用正式統計表格式，只顯示合格 V 與改善提醒代碼。列印方向請選「直向／Portrait」。</p><div id="reportCloudStatus" class="cloud-box no-print">☁️ 開啟週報時會自動讀取最新雲端巡堂紀錄。</div><div class="no-print pdf-control-grid"><div class="control-card"><label class="small">統計週別</label><select id="reportWeekSelect" onchange="setReportWeek(this.value)"></select></div><div class="control-card"><label class="small">畫面預覽字體大小（直式滿版雙週10天，列印時會自動壓成 A4 一頁）</label><div class="range-row"><input type="range" id="reportFontSize" min="6.5" max="8.5" step="0.1" onchange="setReportFontSize(this.value)" oninput="previewReportFontSize(this.value)"><span class="range-value" id="reportFontSizeLabel">8.0</span></div></div></div><div class="print-page report-form" id="reportPage"></div><button class="primary full no-print" style="margin-top:14px" onclick="window.print()">列印／另存 PDF</button></div></section>
+<section id="screenReport" class="screen"><div class="card"><h2>巡堂統計表</h2><p class="muted no-print">請先選擇週別，再列印或另存 PDF。PDF 版會使用正式統計表格式，只顯示合格 V 與改善提醒代碼。列印方向請選「直向／Portrait」。</p><div id="reportCloudStatus" class="cloud-box no-print">☁️ 開啟週報時只讀取目前選取的雙週10天資料，不再下載全部歷史紀錄。</div><div class="no-print pdf-control-grid"><div class="control-card"><label class="small">統計週別</label><select id="reportWeekSelect" onchange="setReportWeek(this.value)"></select></div><div class="control-card"><label class="small">畫面預覽字體大小（直式滿版雙週10天，列印時會自動壓成 A4 一頁）</label><div class="range-row"><input type="range" id="reportFontSize" min="6.5" max="8.5" step="0.1" onchange="setReportFontSize(this.value)" oninput="previewReportFontSize(this.value)"><span class="range-value" id="reportFontSizeLabel">8.0</span></div></div></div><div class="print-page report-form" id="reportPage"></div><button class="primary full no-print" style="margin-top:14px" onclick="window.print()">列印／另存 PDF</button></div></section>
 
 <section id="screenSettings" class="screen"><div class="card"><h2>簡易設定</h2><p class="muted">雙擊上方標題可進入本設定頁。班級名稱、啟用狀態與增減都可在這裡調整。</p><h3>班級編輯</h3><div class="class-editor-note">勾選＝啟用巡堂；取消勾選＝暫停，不會出現在巡堂清單、未完成提醒與列印報表。巡堂順序請回到「順序」頁用上下箭頭調整；報表會自動依 A、B、C、Y 與數字排列。</div><div id="classEditor"></div><button class="light full" type="button" onclick="addClassEditorRow()">＋ 新增班級</button><h3 style="margin-top:16px">改善提醒項目文字</h3><div id="categorySettings"></div><button class="primary full" onclick="saveSettings()">儲存設定</button></div></section>
 </main>
@@ -320,17 +332,46 @@ function splitCloudDefectCodes(value){
   return [...new Set(matches.map(code=>code.replace(/\s+/g,'')))];
 }
 
+
+const notApplicableReasons=['停課','合併班','校外教學','其他'];
+
+function cloudRecordsUrl(fromDate='',toDate=''){
+  const params=new URLSearchParams({action:'records'});
+  if(fromDate)params.set('from',fromDate);
+  if(toDate)params.set('to',toDate);
+  return `${SCRIPT_URL}?${params.toString()}`;
+}
+
+function extractNotApplicable(item){
+  const result=String(item?.result||item?.recordType||'');
+  const notes=String(item?.notes||'');
+  const m=notes.match(/^【不適用：([^】]+)】\s*/);
+  const reason=m?.[1]||'';
+  return {
+    isNA: result==='不適用' || !!m,
+    reason: notApplicableReasons.includes(reason)?reason:(reason||'其他'),
+    cleanNote: m ? notes.replace(/^【不適用：[^】]+】\s*/,'') : notes
+  };
+}
+
+function recordNotApplicableReason(rec){
+  return rec?.notApplicableReason||'';
+}
+
 function cloudToLocalRecord(item,sessionKey){
+  const na=extractNotApplicable(item);
   const rec={
     className:item.className||'',
     session:sessionName(sessionKey),
     date:item.patrolDate||'',
     isoDate:item.patrolDate||'',
     time:item.updatedAt||item.createdAt||'',
-    status:item.result==='合格'?'pass':
+    status:na.isNA?'not_applicable':
+           item.result==='合格'?'pass':
            item.result==='亮點分享'?'highlight':
            item.result==='一般觀察'?'pass':'needs_improvement',
-    recordType:item.recordType==='亮點分享'?'highlight':
+    recordType:na.isNA?'not_applicable':
+               item.recordType==='亮點分享'?'highlight':
                item.recordType==='一般觀察'?'pass':
                item.recordType==='改善提醒'?'improvement':
                item.result==='亮點分享'?'highlight':
@@ -339,7 +380,8 @@ function cloudToLocalRecord(item,sessionKey){
     defects:splitCloudDefectCodes(item.defectCodes),
     highlights:splitCloudDefectCodes(item.highlightCodes),
     itemMarks:{},
-    note:item.notes||'',
+    note:na.cleanNote||'',
+    notApplicableReason:na.isNA?na.reason:'',
     notifyTargets:splitCloudList(item.notifyTargets),
     photos:[],
     cloudPhotoLinks:Array.isArray(item.photoLinks)?item.photoLinks:[],
@@ -462,17 +504,19 @@ async function loadCloudRecords(showAlert=false){
 }
 
 function cloudPayload(rec,sessionKey=currentSession){
+  const isNA=normalizeRecordType(rec)==='not_applicable';
+  const naReason=recordNotApplicableReason(rec)||'其他';
   return {
     recordId:`${rec.isoDate||isoDate()}_${sessionKey}_${rec.className}`,
     patrolDate:rec.isoDate||isoDate(),
     session:rec.session||sessionName(sessionKey),
     className:rec.className,
     patrolPerson:getCurrentPatrolPerson(),
-    result:recordTypeLabel(rec),
-    recordType:recordTypeLabel(rec),
+    result:isNA?'不適用':recordTypeLabel(rec),
+    recordType:isNA?'不適用':recordTypeLabel(rec),
     defectCodes:(rec.defects||[]).join('、'),
     highlightCodes:(rec.highlights||[]).join('、'),
-    notes:rec.note||'',
+    notes:isNA?`【不適用：${naReason}】${rec.note||''}`:(rec.note||''),
     notifyTargets:targetText(rec),
     photoCount:displayPhotoCount(rec),
     photos:[...(rec.photos||[])]
@@ -501,6 +545,7 @@ function recordSyncSignature(rec,sessionKey){
     highlights:[...(rec.highlights||[])].sort(),
     itemMarks:Object.entries(rec.itemMarks||{}).sort(),
     note:rec.note||'',
+    notApplicableReason:rec.notApplicableReason||'',
     notifyTargets:[...(rec.notifyTargets||[])].sort(),
     photoKeys:(rec.photos||[]).map(photoFingerprint)
   });
@@ -558,8 +603,8 @@ function jsonpRequest(url,timeoutMs=15000){
   });
 }
 
-async function fetchCloudRecordsSnapshot(){
-  const result=await jsonpRequest(`${SCRIPT_URL}?action=records`);
+async function fetchCloudRecordsSnapshot(fromDate='',toDate=''){
+  const result=await jsonpRequest(cloudRecordsUrl(fromDate,toDate));
   if(!result || !result.success)throw new Error(result?.message||'雲端讀取失敗');
   return Array.isArray(result.records)?result.records:[];
 }
@@ -582,7 +627,10 @@ async function verifyRecordsOnCloud(records,sessionKey,{attempts=3,delay=1100}={
   for(let i=0;i<attempts;i++){
     if(i>0)await sleep(delay);
     try{
-      items=await fetchCloudRecordsSnapshot();
+      const dates=records.map(r=>String(r.isoDate||isoDate()).slice(0,10)).filter(Boolean).sort();
+      const fromDate=dates[0]||'';
+      const toDate=dates[dates.length-1]||fromDate;
+      items=await fetchCloudRecordsSnapshot(fromDate,toDate);
       const missing=records.filter(rec=>!cloudHasRecord(items,rec,sessionKey));
       if(!missing.length)return {ok:true,missing:[],items};
       if(i===attempts-1)return {ok:false,missing,items};
@@ -703,7 +751,8 @@ function blankBackfillClass(cls){
     itemMarks:{},
     defects:[],
     highlights:[],
-    note:''
+    note:'',
+    notApplicableReason:'停課'
   };
 }
 
@@ -729,7 +778,7 @@ async function prepareBatchBackfill(){
   // 若雲端已有同日同時段紀錄，先帶入，避免重複補登時看不到既有資料。
   if(navigator.onLine){
     try{
-      const items=await fetchCloudRecordsSnapshot();
+      const items=await fetchCloudRecordsSnapshot(date,date);
       items
         .filter(item=>String(item.patrolDate||'').slice(0,10)===date &&
           cloudSessionKey(item.session)===sessionKey)
@@ -744,7 +793,8 @@ async function prepareBatchBackfill(){
             itemMarks:{...(rec.itemMarks||{})},
             defects:[...(rec.defects||[])],
             highlights:[...(rec.highlights||[])],
-            note:rec.note||''
+            note:rec.note||'',
+            notApplicableReason:rec.notApplicableReason||'停課'
           };
         });
     }catch(err){
@@ -766,7 +816,8 @@ function renderBatchBackfill(){
   const classes=data.classes||[];
   box.innerHTML=classes.map(cls=>{
     const x=backfillBatch[cls]||blankBackfillClass(cls);
-    const stateClass=x.status==='unset'?'warn':(x.status==='pass'?'done':'ready');
+    const stateClass=x.status==='unset'?'warn':(x.status==='pass'?'done':(x.status==='not_applicable'?'na':'ready'));
+    const reason=x.notApplicableReason||'停課';
     return `<div class="batch-backfill-row ${stateClass}">
       <div class="cls">${cls}</div>
       <select onchange="setBackfillClassStatus('${cls}',this.value)">
@@ -775,7 +826,13 @@ function renderBatchBackfill(){
         <option value="highlight" ${x.status==='highlight'?'selected':''}>亮點分享</option>
         <option value="improvement" ${x.status==='improvement'?'selected':''}>改善提醒</option>
         <option value="mixed" ${x.status==='mixed'?'selected':''}>亮點＋改善</option>
+        <option value="not_applicable" ${x.status==='not_applicable'?'selected':''}>不適用</option>
       </select>
+      ${x.status==='not_applicable'
+        ? `<select class="na-select" onchange="setBackfillNAReason('${cls}',this.value)">
+             ${notApplicableReasons.map(r=>`<option value="${r}" ${reason===r?'selected':''}>${r}</option>`).join('')}
+           </select>`
+        : '<div></div>'}
       <button class="light" type="button" onclick="editBackfillClass('${cls}')">編輯內容</button>
     </div>`;
   }).join('');
@@ -798,9 +855,19 @@ function updateBatchBackfillSummary(){
 function setBackfillClassStatus(cls,status){
   const x=backfillBatch[cls]||blankBackfillClass(cls);
   x.status=status;
-  if(status==='pass'){
-    x.itemMarks={};x.defects=[];x.highlights=[];x.note=x.note||'';
+  if(status==='pass' || status==='not_applicable'){
+    x.itemMarks={};x.defects=[];x.highlights=[];
   }
+  if(status==='not_applicable' && !x.notApplicableReason)x.notApplicableReason='停課';
+  backfillBatch[cls]=x;
+  renderBatchBackfill();
+}
+
+function setBackfillNAReason(cls,reason){
+  const x=backfillBatch[cls]||blankBackfillClass(cls);
+  x.status='not_applicable';
+  x.notApplicableReason=notApplicableReasons.includes(reason)?reason:'其他';
+  x.itemMarks={};x.defects=[];x.highlights=[];
   backfillBatch[cls]=x;
   renderBatchBackfill();
 }
@@ -918,20 +985,25 @@ function batchBackfillRecords(){
     const x=backfillBatch[cls];
     const defects=[...(x.defects||[])];
     const highlights=[...(x.highlights||[])];
+    if(x.status==='not_applicable' && x.notApplicableReason==='其他' && !(x.note||'').trim()){
+      throw new Error(`${cls} 選了「其他」，請在編輯內容的備註補充原因。`);
+    }
+    const isNA=x.status==='not_applicable';
     return {
       className:cls,
       session:sessionName(sessionKey),
       date,
       isoDate:date,
       time:nowTime(),
-      status:defects.length?'needs_improvement':highlights.length?'highlight':'pass',
-      recordType:defects.length&&highlights.length?'mixed':
+      status:isNA?'not_applicable':(defects.length?'needs_improvement':highlights.length?'highlight':'pass'),
+      recordType:isNA?'not_applicable':(defects.length&&highlights.length?'mixed':
                  defects.length?'improvement':
-                 highlights.length?'highlight':'pass',
-      defects,
-      highlights,
-      itemMarks:{...(x.itemMarks||{})},
+                 highlights.length?'highlight':'pass'),
+      defects:isNA?[]:defects,
+      highlights:isNA?[]:highlights,
+      itemMarks:isNA?{}:{...(x.itemMarks||{})},
       note:x.note||'',
+      notApplicableReason:isNA?(x.notApplicableReason||'停課'):'',
       notifyTargets:[],
       photos:[],
       createdAt:new Date().toISOString(),
@@ -994,7 +1066,8 @@ async function saveBatchBackfillAndVerify(){
     persist(false);
 
     if(!missing.length){
-      await loadCloudRecords(false);
+      const refreshed=await fetchCloudRecordsSnapshot(date,date);
+      mergeCloudRecords(refreshed);
       recordDateFilter=date;
       const dateFilter=document.getElementById('recordDateFilter');
       if(dateFilter)dateFilter.value=date;
@@ -1155,7 +1228,7 @@ function returnToPreviousPage(){
   location.href='admin.html';
 }
 function isCompletedRecord(rec){
-  return !!rec && ['pass','highlight','observation','needs_improvement'].includes(rec.status);
+  return !!rec && ['pass','highlight','observation','needs_improvement','not_applicable'].includes(rec.status);
 }
 function activeScreenName(){
   const active=document.querySelector('.screen.active');
@@ -1204,23 +1277,22 @@ function show(name){
   return true;
 }
 
-async function openReport(){
-  show('Report');
+async function loadSelectedReportRange(){
   const status=document.getElementById('reportCloudStatus');
+  const weekStart=parseISODate(data.selectedWeekStart||isoDate(startOfWeek(new Date())));
+  const from=isoDate(weekStart);
+  const to=isoDate(addDays(weekStart,11));
 
   if(status){
     status.className='cloud-box no-print syncing';
-    status.textContent='☁️ 正在直接讀取最新雲端巡堂紀錄……';
+    status.textContent=`☁️ 正在讀取本雙週10天所需資料（${from}～${to}）……`;
   }
 
   try{
-    // 週報獨立走 JSONP，不共用其他畫面的 cloudLoadPromise，
-    // 避免補登／紀錄頁同時讀取時互相干擾。
-    const records=await fetchCloudRecordsSnapshot();
-
+    const records=await fetchCloudRecordsSnapshot(from,to);
     if(status){
       status.className='cloud-box no-print syncing';
-      status.textContent=`☁️ 已取得雲端 ${records.length} 筆，正在整理週報……`;
+      status.textContent=`☁️ 已取得此雙週 ${records.length} 筆，正在整理週報……`;
     }
 
     const merged=mergeCloudRecords(records);
@@ -1229,20 +1301,25 @@ async function openReport(){
     if(status){
       status.className='cloud-box no-print success';
       status.textContent=merged && merged.cacheSaved===false
-        ? `✅ 已直接讀取雲端 ${records.length} 筆；本機快取未完整保存，但不影響週報。`
-        : `✅ 已直接讀取雲端 ${records.length} 筆巡堂紀錄，週報已更新。`;
+        ? `✅ 已按需讀取此雙週 ${records.length} 筆；本機快取未完整保存，但不影響週報。`
+        : `✅ 已按需讀取此雙週 ${records.length} 筆巡堂紀錄，週報已更新。`;
     }
     return true;
   }catch(err){
-    console.error('週報 JSONP 直讀失敗：',err);
+    console.error('週報按需讀取失敗：',err);
     const detail=String(err && err.message ? err.message : err);
     if(status){
       status.className='cloud-box no-print error';
-      status.textContent=`⚠️ 週報雲端直讀失敗｜${detail}`;
+      status.textContent=`⚠️ 週報雲端讀取失敗｜${detail}`;
     }
     renderReport();
     return false;
   }
+}
+
+async function openReport(){
+  show('Report');
+  return await loadSelectedReportRange();
 }
 
 async function setSession(s){
@@ -1292,6 +1369,7 @@ function loadCurrentDraft(){const cls=data.classes[currentIndex];const rec=recs(
 
 function normalizeRecordType(rec){
   if(!rec)return 'draft';
+  if(rec.status==='not_applicable' || rec.recordType==='not_applicable')return 'not_applicable';
   if(rec.status==='pass')return 'pass';
   if((rec.defects||[]).length && (rec.highlights||[]).length)return 'mixed';
   if((rec.defects||[]).length)return 'improvement';
@@ -1300,7 +1378,7 @@ function normalizeRecordType(rec){
 }
 function recordTypeLabel(rec){
   const type=normalizeRecordType(rec);
-  return type==='pass'?'合格':type==='highlight'?'亮點分享':type==='improvement'?'改善提醒':type==='mixed'?'亮點＋改善':'尚未完成';
+  return type==='pass'?'合格':type==='highlight'?'亮點分享':type==='improvement'?'改善提醒':type==='mixed'?'亮點＋改善':type==='not_applicable'?'不適用':'尚未完成';
 }
 function renderRecordType(rec){}
 function updateCurrentStatus(){
@@ -1315,7 +1393,11 @@ function updateCurrentStatus(){
   const photos=currentPhotos?.length||0;
   const note=(document.getElementById('note')?.value||rec?.note||'').trim();
 
-  if(defects.length&&highlights.length){
+  if(rec?.status==='not_applicable'){
+    box.className='cloud-box syncing';
+    box.textContent=`目前狀態：不適用｜${rec.notApplicableReason||'其他'}`;
+    if(passBtn)passBtn.disabled=false;
+  }else if(defects.length&&highlights.length){
     box.className='cloud-box error';
     box.textContent=`目前狀態：亮點 ${highlights.join('、')}｜改善 ${defects.join('、')}｜照片 ${photos} 張`;
     if(passBtn)passBtn.disabled=true;
@@ -1412,6 +1494,43 @@ function getReportRecord(dateISO,session,cls){
   return null;
 }
 function ensureRec(cls){const r=recs();if(!r[cls])r[cls]={className:cls,session:sessionName(),date:today(),isoDate:isoDate(),time:'',status:'draft',recordType:'draft',defects:[],highlights:[],itemMarks:{},note:'',notifyTargets:['本班教保人員'],photos:[]};return r[cls]}
+function markNotApplicable(){
+  const cls=data.classes[currentIndex];
+  const reason=document.getElementById('naReasonSelect')?.value||'停課';
+  const note=(document.getElementById('note')?.value||'').trim();
+  if(reason==='其他' && !note){
+    alert('選擇「其他」時，請先在下方「巡堂內容」簡短填寫原因。');
+    return;
+  }
+
+  const old=recs()[cls];
+  const hasExisting=old && isCompletedRecord(old) && normalizeRecordType(old)!=='not_applicable';
+  if(hasExisting && !confirm(`${cls} 已有巡堂結果。\n確定改成「不適用－${reason}」嗎？`))return;
+
+  recs()[cls]={
+    className:cls,
+    session:sessionName(),
+    date:today(),
+    isoDate:isoDate(),
+    time:nowTime(),
+    status:'not_applicable',
+    recordType:'not_applicable',
+    notApplicableReason:reason,
+    defects:[],
+    highlights:[],
+    itemMarks:{},
+    note,
+    notifyTargets:[],
+    photos:[]
+  };
+  markRecordChanged(recs()[cls]);
+  archiveRecord(recs()[cls]);
+  currentPhotos=[];
+  persist(false);
+  toast(`已記錄：${sessionName()} ${cls} 不適用－${reason}`);
+  goNextClass();
+}
+
 function markAllPass(){
   const cls=data.classes[currentIndex];
   const rec=recs()[cls];
@@ -1690,30 +1809,51 @@ function renderPatrolHeader(){const cls=data.classes[currentIndex]||'尚未設�
 
 let recordDateFilter='';
 
+function recentRecordRange(){
+  const to=isoDate();
+  const from=isoDate(addDays(new Date(),-9));
+  return {from,to};
+}
+
+async function loadRecordRangeFromCloud(){
+  if(!navigator.onLine)return false;
+  try{
+    const range=recordDateFilter
+      ? {from:recordDateFilter,to:recordDateFilter}
+      : recentRecordRange();
+    const items=await fetchCloudRecordsSnapshot(range.from,range.to);
+    mergeCloudRecords(items);
+    return true;
+  }catch(err){
+    console.warn('紀錄頁按需讀取失敗',err);
+    return false;
+  }
+}
+
 async function openRecords(){
   show('Records');
   const input=document.getElementById('recordDateFilter');
   if(input)input.value=recordDateFilter;
-  if(navigator.onLine){
-    await loadCloudRecords(false);
-  }
+  await loadRecordRangeFromCloud();
   renderRecords();
 }
 
 async function refreshRecordsFromCloud(){
-  const ok=await loadCloudRecords(false);
+  const ok=await loadRecordRangeFromCloud();
   renderRecords();
-  alert(ok?'✅ 已重新讀取最新雲端巡堂紀錄。':'⚠️ 雲端讀取失敗，目前先顯示本機紀錄。');
+  alert(ok?'✅ 已重新讀取指定範圍的最新雲端巡堂紀錄。':'⚠️ 雲端讀取失敗，目前先顯示本機紀錄。');
 }
 
-function applyRecordDateFilter(value){
+async function applyRecordDateFilter(value){
   recordDateFilter=value||'';
+  await loadRecordRangeFromCloud();
   renderRecords();
 }
-function clearRecordDateFilter(){
+async function clearRecordDateFilter(){
   recordDateFilter='';
   const input=document.getElementById('recordDateFilter');
   if(input)input.value='';
+  await loadRecordRangeFromCloud();
   renderRecords();
 }
 function setRecordDateToday(){
@@ -1752,11 +1892,14 @@ function renderRecords(){
   if(!box)return;
 
   const allRaw=collectAllRecords();
-  const all=recordDateFilter ? allRaw.filter(x=>x.date===recordDateFilter) : allRaw;
+  const recent=recentRecordRange();
+  const all=recordDateFilter
+    ? allRaw.filter(x=>x.date===recordDateFilter)
+    : allRaw.filter(x=>x.date>=recent.from && x.date<=recent.to);
 
   document.getElementById('recordTip').textContent=recordDateFilter
     ? `目前顯示 ${recordDateFilter} 的巡堂紀錄，共 ${all.length} 筆。`
-    : `依日期由新到舊排列，目前共 ${allRaw.length} 筆紀錄。可用上方日期快速搜尋。`;
+    : `目前只載入最近 10 天（${recent.from}～${recent.to}），共 ${all.length} 筆；查舊資料請直接選日期。`;
 
   box.innerHTML='';
   if(!all.length){
@@ -1776,10 +1919,10 @@ function renderRecords(){
 
     const div=document.createElement('div');
     const type=normalizeRecordType(x);
-    div.className='record '+(type==='improvement'?'bad':type==='highlight'?'good':'neutral');
+    div.className='record '+(type==='improvement'?'bad':type==='highlight'?'good':type==='not_applicable'?'neutral':'neutral');
     const photoCount=displayPhotoCount(x);
     const label=recordTypeLabel(x);
-    div.innerHTML=`<b>${sessionName(session)}｜${cls}</b><div><span class="typechip ${type}">${label}</span></div><div class="small">${x.time||''}</div><div class="codes">${(x.highlights||[]).map(y=>`<span class="codechip" style="background:#fff3bf;color:#8a5a00">${y} 亮點</span>`).join('')}${(x.defects||[]).map(y=>`<span class="codechip">${y} 改善</span>`).join('')}</div><div class="small">巡堂內容：${x.note||'無'}</div><div class="small">照片：${photoCount} 張｜通知：${targetText(x)}</div>`;
+    div.innerHTML=`<b>${sessionName(session)}｜${cls}</b><div><span class="typechip ${type}">${label}</span></div><div class="small">${x.time||''}</div><div class="codes">${(x.highlights||[]).map(y=>`<span class="codechip" style="background:#fff3bf;color:#8a5a00">${y} 亮點</span>`).join('')}${(x.defects||[]).map(y=>`<span class="codechip">${y} 改善</span>`).join('')}</div><div class="small">${type==='not_applicable'?`不適用原因：${x.notApplicableReason||'其他'}<br>`:''}巡堂內容：${x.note||'無'}</div><div class="small">照片：${photoCount} 張｜通知：${targetText(x)}</div>`;
     box.appendChild(div);
   });
 }
@@ -1797,13 +1940,23 @@ function renderWeekSelect(){
   if(fs){fs.value=reportFontSize();}
   if(lab){lab.textContent=reportFontSize().toFixed(1);}
 }
-function setReportWeek(v){data.selectedWeekStart=v;persist();renderReport()}
+async function setReportWeek(v){data.selectedWeekStart=v;persist(false);await loadSelectedReportRange()}
 function reportFontSize(){return Number(data.reportFontSize||6.4)}
 function previewReportFontSize(v){const lab=document.getElementById('reportFontSizeLabel');if(lab)lab.textContent=Number(v).toFixed(1);const page=document.getElementById('reportPage');if(page){page.style.setProperty('--rf',`${v}px`);page.style.setProperty('--rh',`${Math.max(12,Number(v)*2.05)}px`)}}
 function setReportFontSize(v){data.reportFontSize=Number(v);persist();renderReport()}
 function formatDateCell(d){return `${d.getMonth()+1}/${d.getDate()}<br>(${weekdayText(d)})`}
-function cellOk(rec){return rec && rec.status==='pass' && !(rec.defects||[]).length ? '<span class="ok-mark">V</span>' : ''}
-function cellBad(rec){return rec && (rec.defects||[]).length ? `<span class="bad-code">${rec.defects.join('、')}</span>` : ''}
+function cellOk(rec){
+  if(rec && normalizeRecordType(rec)==='not_applicable'){
+    const reason=recordNotApplicableReason(rec)||'其他';
+    const short=reason==='校外教學'?'校外':reason==='合併班'?'合併':reason;
+    return `<span class="na-mark">${short}</span>`;
+  }
+  return rec && rec.status==='pass' && !(rec.defects||[]).length ? '<span class="ok-mark">V</span>' : '';
+}
+function cellBad(rec){
+  if(rec && normalizeRecordType(rec)==='not_applicable')return '';
+  return rec && (rec.defects||[]).length ? `<span class="bad-code">${rec.defects.join('、')}</span>` : '';
+}
 function renderCodeReference(){
   return `<div class="code-reference"><h4>改善提醒項目編號對照表</h4><div class="code-cols">${data.categories.map((cat,ci)=>`<div class="code-col"><b>${cat.name}（${ci+1}-1～${ci+1}-5）</b>${cat.items.map((it,ii)=>`<div>${ci+1}-${ii+1}　${it}</div>`).join('')}</div>`).join('')}</div></div>`;
 }
@@ -1832,7 +1985,7 @@ function renderReport(){
     })
   });
   html+='</tbody></table>';
-  html+='<div class="report-note">備註：V 代表均合格；改善提醒請填編號（如：2-3）；本表為雙週10天彙整</div>';
+  html+='<div class="report-note">備註：V 代表均合格；停課／合併／校外／其他代表該班本時段不適用；改善提醒請填編號（如：2-3）；本表為雙週10天彙整</div>';
   html+=renderCodeReference();
   html+=`<div class="sign-row"><div class="sign-box">巡堂人員<span>（印章）</span></div><div class="sign-box">園長<span>（印章）</span></div><div class="sign-box">負責人<span>（印章）</span></div><div class="sign-box memo-box">備註</div></div>`;
   page.innerHTML=html;
