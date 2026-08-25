@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.2.3</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.2.5</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -102,11 +102,40 @@ button{display:none!important}
   .backfill-actions{display:grid;grid-template-columns:1fr 1fr}
 }
 
+
+.records-toolbar{display:grid;gap:10px;margin:8px 0 14px}
+.records-toolbar .grid2{align-items:end}
+.records-toolbar label{display:block}
+.records-toolbar .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:430px){
+  .records-toolbar .grid2{grid-template-columns:1fr}
+}
+
+
+.batch-backfill-list{display:grid;gap:8px;margin-top:12px}
+.batch-backfill-row{display:grid;grid-template-columns:72px 1fr auto;gap:8px;align-items:center;border:1px solid #dbe4f0;border-radius:14px;padding:10px;background:#fff}
+.batch-backfill-row .cls{font-weight:900;color:#1e40af;font-size:16px}
+.batch-backfill-row select{margin:0}
+.batch-backfill-row button{min-height:40px;padding:8px 10px;font-size:13px;border-radius:12px}
+.batch-backfill-row.ready{background:#f8fbff;border-color:#bfdbfe}
+.batch-backfill-row.done{background:#f0fdf4;border-color:#bbf7d0}
+.batch-backfill-row.warn{background:#fff7ed;border-color:#fed7aa}
+.batch-editor{margin-top:14px;border:1px solid #bfdbfe;border-radius:18px;padding:12px;background:#f8fbff}
+.batch-editor.hidden{display:none}
+.batch-summary{margin-top:10px;padding:10px 12px;border-radius:14px;background:#eff6ff;color:#1e40af;font-size:13px;font-weight:900;line-height:1.55}
+.batch-cloud-result{margin-top:10px;padding:11px 12px;border-radius:14px;font-size:13px;font-weight:900;line-height:1.55}
+.batch-cloud-result.success{background:#ecfdf3;color:#166534}
+.batch-cloud-result.error{background:#fff1f1;color:#b91c1c}
+@media(max-width:430px){
+  .batch-backfill-row{grid-template-columns:58px 1fr}
+  .batch-backfill-row button{grid-column:1 / -1;width:100%}
+}
+
 </style>
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.2.3｜2026-08-25｜週報自動讀取雲端紀錄</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.2.5｜2026-08-25｜整時段批次補登＋逐班雲端確認</p></div></header>
 
 <section id="screenHome" class="screen active">
   <button class="light full no-print" type="button" onclick="returnToPreviousPage()" style="margin:0 0 10px">← 返回主管首頁</button>
@@ -159,27 +188,67 @@ button{display:none!important}
 </div>
 </section>
 
-<section id="screenRecords" class="screen"><div class="card"><h2>巡堂紀錄</h2><p class="muted" id="recordTip"></p><div id="recordsList"></div><button class="primary full no-print" style="margin-top:12px" onclick="openBackfill()">＋ 補登歷史巡堂</button><button class="light full no-print" style="margin-top:10px" onclick="show('Home')">← 返回巡堂首頁</button><button class="light full no-print" style="margin-top:10px" onclick="loadCloudRecords(true)">🔄 重新讀取雲端紀錄</button><button class="light full no-print" style="margin-top:10px" onclick="syncCurrentSession()">☁️ 重新確認同步目前時段</button><div class="grid2 no-print" style="margin-top:10px"><button class="gray" onclick="openReport()">查看週報</button><button class="danger" onclick="resetSession()">重新開始本時段</button></div></div></section>
+<section id="screenRecords" class="screen"><div class="card">
+<h2>巡堂紀錄</h2>
+<p class="muted" id="recordTip"></p>
+
+<div class="records-toolbar no-print">
+  <button class="primary full" onclick="openBackfill()">＋ 補登歷史巡堂</button>
+  <div class="grid2">
+    <div>
+      <label class="small">依日期查詢</label>
+      <input id="recordDateFilter" type="date" onchange="applyRecordDateFilter(this.value)">
+    </div>
+    <div class="actions">
+      <button class="light" onclick="setRecordDateToday()">今天</button>
+      <button class="gray" onclick="clearRecordDateFilter()">顯示全部</button>
+    </div>
+  </div>
+  <button class="light full" onclick="refreshRecordsFromCloud()">🔄 重新讀取雲端紀錄</button>
+</div>
+
+<div id="recordsList"></div>
+
+<button class="light full no-print" style="margin-top:12px" onclick="show('Home')">← 返回巡堂首頁</button>
+<button class="light full no-print" style="margin-top:10px" onclick="syncCurrentSession()">☁️ 重新確認同步目前時段</button>
+<div class="grid2 no-print" style="margin-top:10px">
+  <button class="gray" onclick="openReport()">查看週報</button>
+  <button class="danger" onclick="resetSession()">重新開始本時段</button>
+</div>
+</div></section>
+
 
 
 <section id="screenBackfill" class="screen">
   <div class="card">
     <h2>補登歷史巡堂</h2>
-    <p class="muted">主管可補登實際已完成但未留存到雲端的巡堂紀錄。一般報表仍依巡堂日期呈現；系統保留原有建立／修改時間供內部技術追查。</p>
+    <p class="muted">先把同一日期、同一時段的班級全部設定完成，最後一次整批送出。送出後系統會逐班向雲端確認，沒有全部確認就不會顯示完成。</p>
+
     <div class="grid2">
-      <div><label class="small">巡堂日期</label><input id="backfillDate" type="date"></div>
-      <div><label class="small">時段</label><select id="backfillSession"><option value="morning">上午</option><option value="afternoon">下午</option></select></div>
+      <div><label class="small">巡堂日期</label><input id="backfillDate" type="date" onchange="prepareBatchBackfill()"></div>
+      <div><label class="small">時段</label><select id="backfillSession" onchange="prepareBatchBackfill()"><option value="morning">上午</option><option value="afternoon">下午</option></select></div>
     </div>
-    <div style="margin-top:10px"><label class="small">班級</label><select id="backfillClass"></select></div>
+
     <div class="row no-print" style="margin-top:12px">
-      <button class="success" type="button" onclick="setBackfillAllPass()">✅ 本班全部合格</button>
-      <button class="gray" type="button" onclick="clearBackfillMarks()">清除標記</button>
+      <button class="success" type="button" onclick="setAllBackfillPass()">✅ 全部設為合格</button>
+      <button class="gray" type="button" onclick="resetBatchBackfill()">清除本批設定</button>
     </div>
-    <div id="backfillItems" class="backfill-items"></div>
-    <div style="margin-top:12px"><label class="small">巡堂內容／備註</label><textarea id="backfillNote" placeholder="可填寫當時的巡堂觀察內容；無特殊事項可留空。"></textarea></div>
-    <div id="backfillStatus" class="verify-line">尚未儲存。</div>
-    <button class="primary full no-print" style="margin-top:12px" onclick="saveBackfillAndVerify()">💾 儲存並確認雲端</button>
-    <button class="light full no-print" style="margin-top:10px" onclick="show('Records')">← 返回巡堂紀錄</button>
+
+    <div id="backfillBatchSummary" class="batch-summary">請設定每一班巡堂結果。</div>
+    <div id="backfillBatchList" class="batch-backfill-list"></div>
+
+    <div id="backfillEditor" class="batch-editor hidden">
+      <h3 id="backfillEditorTitle">編輯班級</h3>
+      <p class="small">若本班有亮點或改善，可在下方逐項標記；全部合格則不需設定項目。</p>
+      <div id="backfillItems" class="backfill-items"></div>
+      <div style="margin-top:12px"><label class="small">巡堂內容／備註</label><textarea id="backfillNote" placeholder="可填寫當時的巡堂觀察內容；無特殊事項可留空。"></textarea></div>
+      <button class="primary full no-print" style="margin-top:10px" onclick="saveBackfillClassDetail()">💾 儲存本班設定</button>
+      <button class="light full no-print" style="margin-top:8px" onclick="closeBackfillEditor()">收起</button>
+    </div>
+
+    <div id="backfillStatus" class="verify-line">尚未送出。</div>
+    <button class="primary full no-print" style="margin-top:12px" onclick="saveBatchBackfillAndVerify()">☁️ 整批補登並逐班確認</button>
+    <button class="light full no-print" style="margin-top:10px" onclick="openRecords()">← 返回巡堂紀錄</button>
   </div>
 </section>
 
@@ -189,7 +258,7 @@ button{display:none!important}
 </main>
 <div id="toast" class="toast"></div>
 
-<nav class="nav no-print"><div class="nav-inner"><button id="navHome" class="active" onclick="show('Home')">🏠<span>首頁</span></button><button id="navOrder" onclick="show('Order')">🧭<span>順序</span></button><button id="navRecords" onclick="show('Records')">📋<span>紀錄</span></button><button id="navReport" onclick="openReport()">🖨️<span>週報</span></button></div></nav>
+<nav class="nav no-print"><div class="nav-inner"><button id="navHome" class="active" onclick="show('Home')">🏠<span>首頁</span></button><button id="navOrder" onclick="show('Order')">🧭<span>順序</span></button><button id="navRecords" onclick="openRecords()">📋<span>紀錄</span></button><button id="navReport" onclick="openReport()">🖨️<span>週報</span></button></div></nav>
 
 <script>
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbyhDespyR460cvcddLMXE2zTIE3uOb_T6bZqLs5LEvZO-FEVmZcPQ8JULjY4-jfzgZP/exec';
@@ -559,29 +628,163 @@ async function syncTodayToCloud(showAlert=true){
 }
 
 
-let backfillMarks={};
 
-function openBackfill(){
+let backfillBatch={};
+let backfillEditingClass='';
+
+function blankBackfillClass(cls){
+  return {
+    className:cls,
+    status:'unset',
+    itemMarks:{},
+    defects:[],
+    highlights:[],
+    note:''
+  };
+}
+
+async function openBackfill(){
   const dateInput=document.getElementById('backfillDate');
   const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
   if(dateInput){
     dateInput.max=isoDate();
     if(!dateInput.value)dateInput.value=isoDate(yesterday);
   }
-  const cls=document.getElementById('backfillClass');
-  if(cls){
-    const all=allConfiguredClasses().sort(naturalClassCompare);
-    cls.innerHTML=all.map(x=>`<option value="${x}">${x}</option>`).join('');
-  }
-  clearBackfillMarks();
-  document.getElementById('backfillNote').value='';
-  document.getElementById('backfillStatus').textContent='尚未儲存。';
+  await prepareBatchBackfill();
   show('Backfill');
+}
+
+async function prepareBatchBackfill(){
+  const date=document.getElementById('backfillDate')?.value||'';
+  const sessionKey=document.getElementById('backfillSession')?.value||'morning';
+  if(!date)return;
+
+  backfillBatch={};
+  (data.classes||[]).forEach(cls=>backfillBatch[cls]=blankBackfillClass(cls));
+
+  // 若雲端已有同日同時段紀錄，先帶入，避免重複補登時看不到既有資料。
+  if(navigator.onLine){
+    try{
+      const items=await fetchCloudRecordsSnapshot();
+      items
+        .filter(item=>String(item.patrolDate||'').slice(0,10)===date &&
+          cloudSessionKey(item.session)===sessionKey)
+        .forEach(item=>{
+          const cls=String(item.className||'').trim();
+          if(!backfillBatch[cls])return;
+          const rec=cloudToLocalRecord(item,sessionKey);
+          backfillBatch[cls]={
+            className:cls,
+            status:rec.status==='needs_improvement'?'improvement':
+                   (rec.highlights||[]).length?'highlight':'pass',
+            itemMarks:{...(rec.itemMarks||{})},
+            defects:[...(rec.defects||[])],
+            highlights:[...(rec.highlights||[])],
+            note:rec.note||''
+          };
+        });
+    }catch(err){
+      console.warn('讀取既有補登資料失敗',err);
+    }
+  }
+
+  backfillEditingClass='';
+  closeBackfillEditor();
+  renderBatchBackfill();
+  const status=document.getElementById('backfillStatus');
+  if(status)status.textContent='尚未送出。';
+}
+
+function renderBatchBackfill(){
+  const box=document.getElementById('backfillBatchList');
+  if(!box)return;
+
+  const classes=data.classes||[];
+  box.innerHTML=classes.map(cls=>{
+    const x=backfillBatch[cls]||blankBackfillClass(cls);
+    const stateClass=x.status==='unset'?'warn':(x.status==='pass'?'done':'ready');
+    return `<div class="batch-backfill-row ${stateClass}">
+      <div class="cls">${cls}</div>
+      <select onchange="setBackfillClassStatus('${cls}',this.value)">
+        <option value="unset" ${x.status==='unset'?'selected':''}>未設定</option>
+        <option value="pass" ${x.status==='pass'?'selected':''}>全部合格</option>
+        <option value="highlight" ${x.status==='highlight'?'selected':''}>亮點分享</option>
+        <option value="improvement" ${x.status==='improvement'?'selected':''}>改善提醒</option>
+        <option value="mixed" ${x.status==='mixed'?'selected':''}>亮點＋改善</option>
+      </select>
+      <button class="light" type="button" onclick="editBackfillClass('${cls}')">編輯內容</button>
+    </div>`;
+  }).join('');
+
+  updateBatchBackfillSummary();
+}
+
+function updateBatchBackfillSummary(){
+  const all=Object.values(backfillBatch);
+  const setCount=all.filter(x=>x.status!=='unset').length;
+  const total=(data.classes||[]).length;
+  const box=document.getElementById('backfillBatchSummary');
+  if(box){
+    box.textContent=setCount===total
+      ? `✅ ${setCount}/${total} 班已設定完成，可整批補登。`
+      : `目前已設定 ${setCount}/${total} 班，尚有 ${total-setCount} 班未設定。`;
+  }
+}
+
+function setBackfillClassStatus(cls,status){
+  const x=backfillBatch[cls]||blankBackfillClass(cls);
+  x.status=status;
+  if(status==='pass'){
+    x.itemMarks={};x.defects=[];x.highlights=[];x.note=x.note||'';
+  }
+  backfillBatch[cls]=x;
+  renderBatchBackfill();
+}
+
+function setAllBackfillPass(){
+  (data.classes||[]).forEach(cls=>{
+    const x=backfillBatch[cls]||blankBackfillClass(cls);
+    x.status='pass';
+    x.itemMarks={};x.defects=[];x.highlights=[];
+    backfillBatch[cls]=x;
+  });
+  renderBatchBackfill();
+  closeBackfillEditor();
+}
+
+function resetBatchBackfill(){
+  if(!confirm('確定清除目前這批尚未送出的補登設定嗎？'))return;
+  (data.classes||[]).forEach(cls=>backfillBatch[cls]=blankBackfillClass(cls));
+  renderBatchBackfill();
+  closeBackfillEditor();
+  const status=document.getElementById('backfillStatus');
+  if(status)status.textContent='尚未送出。';
+}
+
+function editBackfillClass(cls){
+  const x=backfillBatch[cls]||blankBackfillClass(cls);
+  backfillEditingClass=cls;
+  const editor=document.getElementById('backfillEditor');
+  const title=document.getElementById('backfillEditorTitle');
+  const note=document.getElementById('backfillNote');
+  if(title)title.textContent=`編輯 ${cls}`;
+  if(note)note.value=x.note||'';
+  if(editor)editor.classList.remove('hidden');
+  renderBackfillItems();
+  editor?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function closeBackfillEditor(){
+  const editor=document.getElementById('backfillEditor');
+  if(editor)editor.classList.add('hidden');
 }
 
 function renderBackfillItems(){
   const box=document.getElementById('backfillItems');
-  if(!box)return;
+  if(!box||!backfillEditingClass)return;
+  const x=backfillBatch[backfillEditingClass]||blankBackfillClass(backfillEditingClass);
+  const marks=x.itemMarks||{};
+
   box.innerHTML='';
   data.categories.forEach((cat,ci)=>{
     const wrap=document.createElement('div');
@@ -593,8 +796,8 @@ function renderBackfillItems(){
       row.className='backfill-item';
       row.innerHTML=`<div class="backfill-item-label"><b style="color:#2563eb">${code}</b>　${txt}</div>
         <div class="backfill-actions">
-          <button type="button" class="${backfillMarks[code]==='highlight'?'active highlight':''}" onclick="setBackfillMark('${code}','highlight')">⭐ 亮點</button>
-          <button type="button" class="${backfillMarks[code]==='improvement'?'active improvement':''}" onclick="setBackfillMark('${code}','improvement')">💡 改善</button>
+          <button type="button" class="${marks[code]==='highlight'?'active highlight':''}" onclick="setBackfillItemMark('${code}','highlight')">⭐ 亮點</button>
+          <button type="button" class="${marks[code]==='improvement'?'active improvement':''}" onclick="setBackfillItemMark('${code}','improvement')">💡 改善</button>
         </div>`;
       wrap.appendChild(row);
     });
@@ -602,108 +805,163 @@ function renderBackfillItems(){
   });
 }
 
-function setBackfillMark(code,type){
-  backfillMarks[code]=backfillMarks[code]===type?'':type;
-  if(!backfillMarks[code])delete backfillMarks[code];
+function setBackfillItemMark(code,type){
+  if(!backfillEditingClass)return;
+  const x=backfillBatch[backfillEditingClass]||blankBackfillClass(backfillEditingClass);
+  x.itemMarks=x.itemMarks||{};
+  x.itemMarks[code]=x.itemMarks[code]===type?'':type;
+  if(!x.itemMarks[code])delete x.itemMarks[code];
+  x.highlights=Object.entries(x.itemMarks).filter(([,v])=>v==='highlight').map(([k])=>k);
+  x.defects=Object.entries(x.itemMarks).filter(([,v])=>v==='improvement').map(([k])=>k);
+  x.status=x.defects.length&&x.highlights.length?'mixed':
+           x.defects.length?'improvement':
+           x.highlights.length?'highlight':
+           (x.status==='pass'?'pass':'unset');
+  backfillBatch[backfillEditingClass]=x;
   renderBackfillItems();
+  renderBatchBackfill();
 }
 
-function clearBackfillMarks(){
-  backfillMarks={};
-  renderBackfillItems();
+function saveBackfillClassDetail(){
+  if(!backfillEditingClass)return;
+  const x=backfillBatch[backfillEditingClass]||blankBackfillClass(backfillEditingClass);
+  x.note=document.getElementById('backfillNote')?.value.trim()||'';
+  x.highlights=Object.entries(x.itemMarks||{}).filter(([,v])=>v==='highlight').map(([k])=>k);
+  x.defects=Object.entries(x.itemMarks||{}).filter(([,v])=>v==='improvement').map(([k])=>k);
+
+  if(x.defects.length&&x.highlights.length)x.status='mixed';
+  else if(x.defects.length)x.status='improvement';
+  else if(x.highlights.length)x.status='highlight';
+  else if(x.status==='unset')x.status='pass';
+
+  backfillBatch[backfillEditingClass]=x;
+  renderBatchBackfill();
+  closeBackfillEditor();
+  toast(`${backfillEditingClass} 設定已保留`);
 }
 
-function setBackfillAllPass(){
-  backfillMarks={};
-  renderBackfillItems();
-  const box=document.getElementById('backfillStatus');
-  if(box)box.textContent='✅ 已選擇「本班全部合格」；按下方按鈕才會正式儲存。';
-}
-
-function buildBackfillRecord(){
-  const date=document.getElementById('backfillDate').value;
-  const session=document.getElementById('backfillSession').value;
-  const cls=document.getElementById('backfillClass').value;
-  const note=document.getElementById('backfillNote').value.trim();
-
+function batchBackfillRecords(){
+  const date=document.getElementById('backfillDate')?.value||'';
+  const sessionKey=document.getElementById('backfillSession')?.value||'morning';
   if(!date)throw new Error('請選擇巡堂日期');
   if(date>isoDate())throw new Error('補登日期不可晚於今天');
-  if(!cls)throw new Error('請選擇班級');
 
-  const highlights=Object.entries(backfillMarks).filter(([,v])=>v==='highlight').map(([k])=>k);
-  const defects=Object.entries(backfillMarks).filter(([,v])=>v==='improvement').map(([k])=>k);
+  const classes=data.classes||[];
+  const missing=classes.filter(cls=>(backfillBatch[cls]?.status||'unset')==='unset');
+  if(missing.length)throw new Error(`尚有 ${missing.length} 班未設定：${missing.join('、')}`);
 
-  return {
-    className:cls,
-    session:sessionName(session),
-    date,
-    isoDate:date,
-    time:nowTime(),
-    status:defects.length?'needs_improvement':highlights.length?'highlight':'pass',
-    recordType:defects.length&&highlights.length?'mixed':defects.length?'improvement':highlights.length?'highlight':'pass',
-    defects,
-    highlights,
-    itemMarks:{...backfillMarks},
-    note,
-    notifyTargets:[],
-    photos:[],
-    createdAt:new Date().toISOString(),
-    updatedAt:new Date().toISOString()
-  };
+  const records=classes.map(cls=>{
+    const x=backfillBatch[cls];
+    const defects=[...(x.defects||[])];
+    const highlights=[...(x.highlights||[])];
+    return {
+      className:cls,
+      session:sessionName(sessionKey),
+      date,
+      isoDate:date,
+      time:nowTime(),
+      status:defects.length?'needs_improvement':highlights.length?'highlight':'pass',
+      recordType:defects.length&&highlights.length?'mixed':
+                 defects.length?'improvement':
+                 highlights.length?'highlight':'pass',
+      defects,
+      highlights,
+      itemMarks:{...(x.itemMarks||{})},
+      note:x.note||'',
+      notifyTargets:[],
+      photos:[],
+      createdAt:new Date().toISOString(),
+      updatedAt:new Date().toISOString()
+    };
+  });
+
+  return {date,sessionKey,records};
 }
 
-async function saveBackfillAndVerify(){
+async function saveBatchBackfillAndVerify(){
   if(cloudUploading){alert('資料正在同步，請稍候。');return}
-  let rec,sessionKey;
+
+  let batch;
   try{
-    rec=buildBackfillRecord();
-    sessionKey=document.getElementById('backfillSession').value;
+    batch=batchBackfillRecords();
   }catch(err){
     alert(err.message);return;
   }
 
-  const existing=getReportRecord(rec.isoDate,sessionKey,rec.className);
-  if(existing){
-    const ok=confirm(`${rec.isoDate} ${sessionName(sessionKey)} ${rec.className} 已有紀錄。\n\n確定要以目前內容更新這筆紀錄嗎？`);
-    if(!ok)return;
-  }
+  const {date,sessionKey,records}=batch;
+  const ok=confirm(`準備補登：${date} ${sessionName(sessionKey)}\n共 ${records.length} 班。\n\n將一次整批送出並逐班確認，確定繼續嗎？`);
+  if(!ok)return;
 
+  // 先保存在本機歷史資料，避免網路中斷造成畫面輸入遺失。
   data.history=data.history||{};
-  data.history[rec.isoDate]=data.history[rec.isoDate]||{morning:{},afternoon:{}};
-  data.history[rec.isoDate][sessionKey]=data.history[rec.isoDate][sessionKey]||{};
-  data.history[rec.isoDate][sessionKey][rec.className]=rec;
+  data.history[date]=data.history[date]||{morning:{},afternoon:{}};
+  data.history[date][sessionKey]=data.history[date][sessionKey]||{};
+  records.forEach(rec=>data.history[date][sessionKey][rec.className]=rec);
   persist(false);
 
+  const status=document.getElementById('backfillStatus');
+
   if(!navigator.onLine){
-    document.getElementById('backfillStatus').textContent='⚠️ 目前離線；補登內容已保存在本機，尚未取得雲端確認。';
-    alert('目前離線。補登內容已先保存在本機，請恢復網路後再按「儲存並確認雲端」。');
+    if(status)status.textContent='⚠️ 目前離線；整批補登內容已保存在本機，尚未送到雲端。';
+    alert('目前離線。補登內容已先保存在本機，恢復網路後再按一次「整批補登並逐班確認」。');
     return;
   }
 
   cloudUploading=true;
-  const status=document.getElementById('backfillStatus');
   try{
-    status.textContent='☁️ 正在送出補登紀錄，並等待雲端確認……';
-    await syncRecordsBatchToCloud([rec],sessionKey);
-    const verified=await verifyRecordsOnCloud([rec],sessionKey,{attempts:3,delay:1200});
-    if(!verified.ok)throw new Error('雲端尚未確認');
+    if(status)status.textContent=`☁️ 正在一次送出 ${records.length} 班補登紀錄……`;
+    await syncRecordsBatchToCloud(records,sessionKey);
 
-    rec.cloudSyncSignature=recordSyncSignature(rec,sessionKey);
-    rec.cloudSyncedAt=nowTime();
-    rec.cloudPhotoCount=displayPhotoCount(rec);
-    data.history[rec.isoDate][sessionKey][rec.className]=rec;
+    if(status)status.textContent='🔎 已送出，正在逐班確認雲端是否真的存在……';
+    const verified=await verifyRecordsOnCloud(records,sessionKey,{attempts:4,delay:1400});
+    const missing=verified.missing||[];
+    const missingSet=new Set(missing.map(x=>x.className));
+
+    records.forEach(rec=>{
+      if(missingSet.has(rec.className)){
+        rec.cloudSyncSignature='';
+      }else{
+        rec.cloudSyncSignature=recordSyncSignature(rec,sessionKey);
+        rec.cloudSyncedAt=nowTime();
+        rec.cloudPhotoCount=displayPhotoCount(rec);
+      }
+      data.history[date][sessionKey][rec.className]=rec;
+    });
     persist(false);
 
-    status.textContent=`✅ 雲端已確認：${rec.isoDate} ${sessionName(sessionKey)} ${rec.className} 已儲存。`;
-    alert('✅ 補登巡堂已取得雲端確認。');
-    updateAll();
+    if(!missing.length){
+      await loadCloudRecords(false);
+      recordDateFilter=date;
+      const dateFilter=document.getElementById('recordDateFilter');
+      if(dateFilter)dateFilter.value=date;
+
+      if(status){
+        status.className='verify-line';
+        status.textContent=`✅ 雲端已確認：${date} ${sessionName(sessionKey)} ${records.length}/${records.length} 班補登完成。`;
+      }
+      alert(`✅ 雲端已確認：${records.length}/${records.length} 班補登完成。`);
+      await openRecords();
+      return;
+    }
+
+    const confirmed=records.length-missing.length;
+    if(status){
+      status.className='batch-cloud-result error';
+      status.textContent=`⚠️ 雲端只確認 ${confirmed}/${records.length} 班；尚缺：${missing.map(x=>x.className).join('、')}。本機資料仍保留。`;
+    }
+    alert(`⚠️ 補登尚未完整。\n已確認 ${confirmed}/${records.length} 班。\n尚缺：${missing.map(x=>x.className).join('、')}\n\n本機資料仍保留，請再按一次整批補登。`);
   }catch(err){
     console.error(err);
-    rec.cloudSyncSignature='';
-    data.history[rec.isoDate][sessionKey][rec.className]=rec;
+    records.forEach(rec=>{
+      rec.cloudSyncSignature='';
+      data.history[date][sessionKey][rec.className]=rec;
+    });
     persist(false);
-    status.textContent='⚠️ 尚未取得雲端確認；本機內容仍保留，請再次儲存同步。';
-    alert('⚠️ 尚未取得雲端確認。\n本機內容仍保留，請稍後再次按「儲存並確認雲端」。');
+    if(status){
+      status.className='batch-cloud-result error';
+      status.textContent='⚠️ 無法取得雲端確認；整批內容仍保存在本機，請稍後再次送出。';
+    }
+    alert('⚠️ 無法取得雲端確認。\n整批補登內容仍保存在本機，請稍後再次送出。');
   }finally{
     cloudUploading=false;
   }
@@ -1361,6 +1619,42 @@ function renderHome(){const r=recs();const total=data.classes.length;const done=
 function renderClasses(){const box=document.getElementById('classList');if(!box)return;document.getElementById('orderTip').textContent=`目前顯示：${sessionName()}巡堂進度。深色＝尚未巡視；淺色＝已巡過。點任何班級都可進入修改。`;box.innerHTML='';const r=recs();data.classes.forEach((c,i)=>{const x=r[c];const state=x?(x.status==='needs_improvement'?' needs':' done'):'';const current=(i===currentIndex?' current':'');const div=document.createElement('div');div.className='class-item'+state+current;div.onclick=()=>openClass(i);div.innerHTML=`<div class="class-main"><div class="class-info"><b>${i+1}. ${c}</b><div class="small">${x?`已巡視 ${x.time}，可點入修改`:'尚未巡視'}</div></div><span class="status">${x?(recordTypeLabel(x)):(i===currentIndex?'目前':'未巡')}</span></div><div class="order-actions"><button type="button" title="上移" ${i===0?'disabled':''} onclick="moveClassOrder(event,${i},-1)">↑</button><button type="button" title="下移" ${i===data.classes.length-1?'disabled':''} onclick="moveClassOrder(event,${i},1)">↓</button></div>`;box.appendChild(div)})}
 function moveClassOrder(event,i,dir){event.stopPropagation();const currentClass=data.classes[currentIndex];const j=i+dir;if(j<0||j>=data.classes.length)return;const arr=data.classes;[arr[i],arr[j]]=[arr[j],arr[i]];currentIndex=Math.max(0,arr.indexOf(currentClass));orderDirty=true;renderClasses();renderPatrolHeader();updateOrderSaveState();toast('順序已調整，請按確認儲存')}
 function renderPatrolHeader(){const cls=data.classes[currentIndex]||'尚未設定班級';const c=document.getElementById('currentClass');if(c)c.textContent=`${sessionName()}｜${cls}`;const s=document.getElementById('currentStep');if(s)s.textContent=`第 ${currentIndex+1} / ${data.classes.length} 班`;const prev=document.getElementById('prevClassBtn');const next=document.getElementById('nextClassBtn');if(prev)prev.disabled=currentIndex<=0;if(next)next.disabled=currentIndex>=data.classes.length-1}
+
+let recordDateFilter='';
+
+async function openRecords(){
+  show('Records');
+  const input=document.getElementById('recordDateFilter');
+  if(input)input.value=recordDateFilter;
+  if(navigator.onLine){
+    await loadCloudRecords(false);
+  }
+  renderRecords();
+}
+
+async function refreshRecordsFromCloud(){
+  const ok=await loadCloudRecords(false);
+  renderRecords();
+  alert(ok?'✅ 已重新讀取最新雲端巡堂紀錄。':'⚠️ 雲端讀取失敗，目前先顯示本機紀錄。');
+}
+
+function applyRecordDateFilter(value){
+  recordDateFilter=value||'';
+  renderRecords();
+}
+function clearRecordDateFilter(){
+  recordDateFilter='';
+  const input=document.getElementById('recordDateFilter');
+  if(input)input.value='';
+  renderRecords();
+}
+function setRecordDateToday(){
+  recordDateFilter=isoDate();
+  const input=document.getElementById('recordDateFilter');
+  if(input)input.value=recordDateFilter;
+  renderRecords();
+}
+
 function collectAllRecords(){
   const map=new Map();
 
@@ -1388,22 +1682,36 @@ function collectAllRecords(){
 function renderRecords(){
   const box=document.getElementById('recordsList');
   if(!box)return;
-  document.getElementById('recordTip').textContent='顯示手機本機與雲端合併後的全部巡堂紀錄，最新日期排在最前面。';
-  box.innerHTML='';
 
-  const all=collectAllRecords();
+  const allRaw=collectAllRecords();
+  const all=recordDateFilter ? allRaw.filter(x=>x.date===recordDateFilter) : allRaw;
+
+  document.getElementById('recordTip').textContent=recordDateFilter
+    ? `目前顯示 ${recordDateFilter} 的巡堂紀錄，共 ${all.length} 筆。`
+    : `依日期由新到舊排列，目前共 ${allRaw.length} 筆紀錄。可用上方日期快速搜尋。`;
+
+  box.innerHTML='';
   if(!all.length){
-    box.innerHTML='<div class="empty">目前尚無巡堂紀錄</div>';
+    box.innerHTML=`<div class="empty">${recordDateFilter?recordDateFilter+' 沒有巡堂紀錄':'目前尚無巡堂紀錄'}</div>`;
     return;
   }
 
+  let lastDate='';
   all.forEach(({date,session,cls,rec:x})=>{
+    if(date!==lastDate){
+      const head=document.createElement('div');
+      head.style.cssText='font-weight:900;color:#1e40af;margin:16px 2px 8px;font-size:16px';
+      head.textContent=date;
+      box.appendChild(head);
+      lastDate=date;
+    }
+
     const div=document.createElement('div');
     const type=normalizeRecordType(x);
     div.className='record '+(type==='improvement'?'bad':type==='highlight'?'good':'neutral');
     const photoCount=displayPhotoCount(x);
     const label=recordTypeLabel(x);
-    div.innerHTML=`<b>${date}｜${sessionName(session)}｜${cls}</b><div><span class="typechip ${type}">${label}</span></div><div class="small">${x.time||''}</div><div class="codes">${(x.highlights||[]).map(y=>`<span class="codechip" style="background:#fff3bf;color:#8a5a00">${y} 亮點</span>`).join('')}${(x.defects||[]).map(y=>`<span class="codechip">${y} 改善</span>`).join('')}</div><div class="small">巡堂內容：${x.note||'無'}</div><div class="small">照片：${photoCount} 張｜通知：${targetText(x)}</div>`;
+    div.innerHTML=`<b>${sessionName(session)}｜${cls}</b><div><span class="typechip ${type}">${label}</span></div><div class="small">${x.time||''}</div><div class="codes">${(x.highlights||[]).map(y=>`<span class="codechip" style="background:#fff3bf;color:#8a5a00">${y} 亮點</span>`).join('')}${(x.defects||[]).map(y=>`<span class="codechip">${y} 改善</span>`).join('')}</div><div class="small">巡堂內容：${x.note||'無'}</div><div class="small">照片：${photoCount} 張｜通知：${targetText(x)}</div>`;
     box.appendChild(div);
   });
 }
