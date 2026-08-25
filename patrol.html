@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.2.9</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.3.0</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -135,7 +135,7 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.2.9｜2026-08-25｜週報雲端讀取錯誤診斷版</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.3.0｜2026-08-25｜週報獨立JSONP直讀雲端</p></div></header>
 
 <section id="screenHome" class="screen active">
   <button class="light full no-print" type="button" onclick="returnToPreviousPage()" style="margin:0 0 10px">← 返回主管首頁</button>
@@ -1208,38 +1208,41 @@ async function openReport(){
   show('Report');
   const status=document.getElementById('reportCloudStatus');
 
-  if(!navigator.onLine){
-    if(status){
-      status.className='cloud-box no-print error';
-      status.textContent='⚠️ 目前離線，週報先顯示本機已保存的巡堂紀錄。';
-    }
-    renderReport();
-    return;
-  }
-
   if(status){
     status.className='cloud-box no-print syncing';
-    status.textContent='☁️ 正在讀取最新雲端巡堂紀錄……';
+    status.textContent='☁️ 正在直接讀取最新雲端巡堂紀錄……';
   }
 
   try{
-    const ok=await loadCloudRecords(false);
-    if(status && ok){
-      status.className='cloud-box no-print success';
-      status.textContent='✅ 已載入最新雲端巡堂紀錄，週報已更新。';
-    }else if(status && !ok && !status.textContent.includes('階段：')){
-      status.className='cloud-box no-print error';
-      status.textContent='⚠️ 雲端讀取失敗，週報先顯示本機紀錄。';
+    // 週報獨立走 JSONP，不共用其他畫面的 cloudLoadPromise，
+    // 避免補登／紀錄頁同時讀取時互相干擾。
+    const records=await fetchCloudRecordsSnapshot();
+
+    if(status){
+      status.className='cloud-box no-print syncing';
+      status.textContent=`☁️ 已取得雲端 ${records.length} 筆，正在整理週報……`;
     }
+
+    const merged=mergeCloudRecords(records);
+    renderReport();
+
+    if(status){
+      status.className='cloud-box no-print success';
+      status.textContent=merged && merged.cacheSaved===false
+        ? `✅ 已直接讀取雲端 ${records.length} 筆；本機快取未完整保存，但不影響週報。`
+        : `✅ 已直接讀取雲端 ${records.length} 筆巡堂紀錄，週報已更新。`;
+    }
+    return true;
   }catch(err){
-    console.error(err);
+    console.error('週報 JSONP 直讀失敗：',err);
+    const detail=String(err && err.message ? err.message : err);
     if(status){
       status.className='cloud-box no-print error';
-      status.textContent='⚠️ 雲端讀取失敗，週報先顯示本機紀錄。';
+      status.textContent=`⚠️ 週報雲端直讀失敗｜${detail}`;
     }
+    renderReport();
+    return false;
   }
-
-  renderReport();
 }
 
 async function setSession(s){
