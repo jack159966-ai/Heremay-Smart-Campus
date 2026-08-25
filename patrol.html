@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.2.7</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.2.8</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -135,7 +135,7 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.2.7｜2026-08-25｜週報雲端讀取與本機快取分離</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.2.8｜2026-08-25｜改用JSONP跨網域讀取雲端紀錄</p></div></header>
 
 <section id="screenHome" class="screen active">
   <button class="light full no-print" type="button" onclick="returnToPreviousPage()" style="margin:0 0 10px">← 返回主管首頁</button>
@@ -423,11 +423,8 @@ async function loadCloudRecords(showAlert=false){
 
   cloudLoadPromise=(async()=>{
     try{
-      const url=`${SCRIPT_URL}?action=records&_=${Date.now()}`;
-      const response=await fetch(url,{method:'GET',cache:'no-store'});
-      if(!response.ok)throw new Error(`HTTP ${response.status}`);
-      const result=await response.json();
-      if(!result.success)throw new Error(result.message||'雲端讀取失敗');
+      const result=await jsonpRequest(`${SCRIPT_URL}?action=records`);
+      if(!result || !result.success)throw new Error(result?.message||'雲端讀取失敗');
 
       const merged=mergeCloudRecords(result.records||[]);
       const count=result.count||((result.records||[]).length);
@@ -519,12 +516,40 @@ async function syncRecordsBatchToCloud(records,sessionKey){
 
 function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
 
+function jsonpRequest(url,timeoutMs=15000){
+  return new Promise((resolve,reject)=>{
+    const callbackName='__heremayPatrolJsonp_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    const timer=setTimeout(()=>{
+      cleanup();
+      reject(new Error('雲端讀取逾時'));
+    },timeoutMs);
+
+    function cleanup(){
+      clearTimeout(timer);
+      try{ delete window[callbackName]; }catch(e){ window[callbackName]=undefined; }
+      if(script.parentNode)script.parentNode.removeChild(script);
+    }
+
+    window[callbackName]=(result)=>{
+      cleanup();
+      resolve(result);
+    };
+
+    script.onerror=()=>{
+      cleanup();
+      reject(new Error('雲端讀取失敗'));
+    };
+
+    const joiner=url.includes('?')?'&':'?';
+    script.src=`${url}${joiner}callback=${encodeURIComponent(callbackName)}&_=${Date.now()}`;
+    document.head.appendChild(script);
+  });
+}
+
 async function fetchCloudRecordsSnapshot(){
-  const url=`${SCRIPT_URL}?action=records&_=${Date.now()}`;
-  const response=await fetch(url,{method:'GET',cache:'no-store'});
-  if(!response.ok)throw new Error(`HTTP ${response.status}`);
-  const result=await response.json();
-  if(!result.success)throw new Error(result.message||'雲端讀取失敗');
+  const result=await jsonpRequest(`${SCRIPT_URL}?action=records`);
+  if(!result || !result.success)throw new Error(result?.message||'雲端讀取失敗');
   return Array.isArray(result.records)?result.records:[];
 }
 
