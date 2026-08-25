@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.7.2</title>
+  <title>和美智慧校園｜打卡與出勤 v2.7.3</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -76,7 +76,7 @@
   <header class="top">
     <button class="back" onclick="goBack()">← 返回</button>
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
-    <span class="version">v2.7.2 加班候選</span>
+    <span class="version">v2.7.3 同組請假名單</span>
   </header>
 
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
@@ -326,7 +326,25 @@
   function punchKey(date=todayKey()){return `heremay.attendance.${employeeKey()}.${date}`}
   function leaveKey(){return `heremay.leaveRecords.${employeeKey()}`}
   function sharedLeaveKey(){return 'heremay.sharedLeaveRecords'}
-  function leavePool(){const text=String(employee.group||employee.department||employee.jobTitle||'').trim();if(text.includes('安親'))return '安親部';if(text.includes('幼兒')||text.includes('教保'))return '幼兒部';if(text.includes('庶務')||text.includes('廚')||text.includes('清潔'))return '庶務組';return '其他人員'}
+  function leavePool(){
+    const text=[
+      employee.group,
+      employee.department,
+      employee.jobTitle,
+      employee.title,
+      employee.identityCategory,
+      employee['編組'],
+      employee['職稱'],
+      employee['身分類別']
+    ].filter(Boolean).join('｜');
+
+    if(text.includes('安親'))return '安親部';
+    if(text.includes('幼兒')||text.includes('教保'))return '幼兒部';
+    if(text.includes('庶務')||text.includes('廚')||text.includes('清潔'))return '庶務組';
+    if(text.includes('護士')||text.includes('護理')||text.includes('健康中心'))return '護士';
+    if(text.includes('行政')||text.includes('會計')||text.includes('出納')||text.includes('人事')||text.includes('總務')||text.includes('櫃台'))return '行政組';
+    return '其他人員';
+  }
   function pad(n){return String(n).padStart(2,'0')}
   function updateClock(){const d=new Date(),w='日一二三四五六';dateText.textContent=`${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}（${w[d.getDay()]}）`;timeText.textContent=`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`}
   function initUser(){
@@ -860,33 +878,29 @@
   }
   function renderCalendar(){publishSharedLeaves();const y=viewDate.getFullYear(),m=viewDate.getMonth();monthTitle.textContent=`${y} 年 ${m+1} 月｜${leavePool()}`;calendar.innerHTML='';const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();for(let i=0;i<first;i++){const e=document.createElement('div');e.className='day empty';calendar.append(e)}for(let n=1;n<=days;n++){const d=new Date(y,m,n),key=`${y}-${pad(m+1)}-${pad(n)}`,q=availability(key),el=document.createElement('button');const count=Number(q.rows?.length||0),level=leaveCountClass(count),redAlert=!q.off&&(q.amUsed>=4||q.pmUsed>=4);el.className='day'+(q.off?' off':'')+(redAlert?' alert-red':'')+(selectedDates.has(key)?' selected':'');const people=count?`<span class="mark ${level}">${count}人</span>`:(selectedDates.has(key)?'<span class="mark blue">✓</span>':'');el.innerHTML=`<span class="num">${n}</span>${people}`;el.disabled=q.off;el.onclick=()=>selectDate(key);calendar.append(el)}renderSelected()}
   function selectDate(key){
-    if(selectedDates.has(key)){selectedDates.delete(key);renderCalendar();return}
+    if(selectedDates.has(key)){
+      selectedDates.delete(key);
+      renderCalendar();
+      return;
+    }
+
     const mine=myActiveLeaveOn(key);
     if(mine){
       toastMsg(`${key} 已有您送出的${mine.type}（${mine.period}），請先取消原申請後再重新申請`);
       return;
     }
 
-    // 直接採用表單中已選好的時段。
-    // 達到 3 人安全線時不再阻擋，第 4 人仍可送出，交由後端轉主管人力覆核。
-    const chosen=String(period.value||'全天').trim();
-    const q=availability(key);
-
-    selectedDates.set(key,chosen);
-    renderCalendar();
-
-    if(isPeriodAtOrOverSafe(q,chosen)){
-      toastMsg(`⚠️ ${key} ${chosen} 已達一般安全線，第 4 人起需主管覆核`);
-    }else{
-      toastMsg(`已選擇 ${key} ${chosen}`);
-    }
+    // 點日期先顯示同組當日請假名單，再選全天／上午／下午。
+    pendingDate=key;
+    renderDayLeaveInfo(key);
+    periodModal.classList.add('show');
   }
   function renderDayLeaveInfo(key){
     const q=availability(key),pool=leavePool();
     modalDate.textContent=`${key}｜${pool}請假選擇`;
-    leavePoolTitle.textContent=`${pool}｜當日已有 ${q.rows.length} 人申請`;
+    leavePoolTitle.textContent=`${pool}｜當日已有 ${q.rows.length} 人申請（僅顯示同組）`;
     dayLeavePeople.innerHTML=q.rows.length
-      ?q.rows.map(x=>`<div class="person-line">${x.employeeName}｜${x.type}・${x.period}</div>`).join('')
+      ?q.rows.map(x=>`<div class="person-line">${x.employeeName||'同仁'}｜${x.type}・${x.period}</div>`).join('')
       :'<div class="person-line">目前尚無同組同仁請假</div>';
 
     if(q.amUnlimited){
