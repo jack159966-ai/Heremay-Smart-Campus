@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v1.0</title>
+<title>和美智慧校園｜討論區 v1.1</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -38,7 +38,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v1.0</span>
+  <span class="version">v1.1</span>
 </header>
 
 <section class="card userline">
@@ -111,7 +111,7 @@ function jsonp(action,params={}){
   return new Promise((resolve,reject)=>{
     const cb='discussionCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
     const script=document.createElement('script');
-    const timer=setTimeout(()=>{cleanup();reject(new Error('連線逾時'))},15000);
+    const timer=setTimeout(()=>{cleanup();reject(new Error('連線逾時'))},20000);
     function cleanup(){clearTimeout(timer);try{delete window[cb]}catch(e){}script.remove()}
     window[cb]=data=>{cleanup();resolve(data)};
     script.onerror=()=>{cleanup();reject(new Error('後端連線失敗'))};
@@ -432,16 +432,38 @@ function goBack(){
 }
 
 async function init(){
-  userName.textContent=currentUser;userRole.textContent=userLabel();
+  userName.textContent=currentUser;
+  userRole.textContent=userLabel();
   if(isGuest())newRoomBtn.style.display='none';
+
+  roomList.innerHTML='<div class="loadingBox">正在讀取討論樓…</div>';
+
   try{
-    await loadEmployeeDirectory();
-    if(currentUser==='同仁'&&employeeDirectory.length) userRole.textContent='未取得登入身分，請由首頁重新登入';
-    await loadCloudRooms();
+    // 討論樓與員工名單同時讀，不再一個等完再讀下一個。
+    const roomPromise = loadCloudRooms();
+    const participantPromise = loadEmployeeDirectory();
+
+    const results = await Promise.allSettled([roomPromise, participantPromise]);
+
+    const roomResult = results[0];
+    const participantResult = results[1];
+
+    if(roomResult.status==='rejected'){
+      roomList.innerHTML=`<div class="empty">⚠️ 討論樓讀取失敗：${esc(roomResult.reason?.message||'未知錯誤')}<br>請重新整理。</div>`;
+    }
+
+    if(participantResult.status==='rejected'){
+      console.warn('員工名單讀取失敗：', participantResult.reason);
+    }
+
+    if(currentUser==='同仁'&&employeeDirectory.length){
+      userRole.textContent='未取得登入身分，請由首頁重新登入';
+    }
   }catch(err){
     roomList.innerHTML=`<div class="empty">⚠️ ${esc(err.message)}<br>請稍後重新整理。</div>`;
   }
 }
+
 init();
 </script>
 </body>
