@@ -3,50 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v0.5</title>
+<title>和美智慧校園｜討論區 v0.6</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
-button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:auto;padding:16px 15px 40px}
-.top{display:flex;gap:10px;align-items:center}.back{border:0;background:#fff;border-radius:14px;padding:10px 12px;font-weight:900;color:#3d7399;box-shadow:var(--shadow)}
+button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:auto;padding:16px 15px 40px}
+.top{display:flex;gap:10px;align-items:center}.back{border:0;background:#fff;border-radius:14px;padding:10px 12px;font-weight:900;color:#3d7399;box-shadow:var(--shadow);cursor:pointer}
 .title{flex:1}.title h1{margin:0;color:#245c84;font-size:24px}.title p{margin:4px 0 0;color:var(--muted);font-size:13px;font-weight:750}.version{font-size:11px;font-weight:900;color:#fff;background:var(--blue);border-radius:999px;padding:5px 8px}
 .card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:15px;margin-top:14px;box-shadow:var(--shadow)}
 .userline{display:flex;justify-content:space-between;gap:10px;align-items:center}.userline strong{font-size:18px;color:#245c84}.userline span{display:block;color:var(--muted);font-size:12px;font-weight:750;margin-top:3px}
 .primary{border:0;border-radius:14px;padding:11px 14px;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;font-weight:950;cursor:pointer}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tab{border:1px solid var(--line);background:#f8fcff;border-radius:14px;padding:10px;color:#567386;font-weight:900}.tab.active{background:var(--blue);color:#fff}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tab{border:1px solid var(--line);background:#f8fcff;border-radius:14px;padding:10px;color:#567386;font-weight:900;cursor:pointer}.tab.active{background:var(--blue);color:#fff}
 .search,.input,textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:11px;background:#fbfdff}.search{margin-top:10px}
 .rooms{display:grid;gap:10px;margin-top:12px}.room{border:1px solid var(--line);border-radius:18px;padding:13px;background:#fbfdff;cursor:pointer}.room h3{margin:0;color:#245c84;font-size:17px}
 .room-top{display:flex;justify-content:space-between;gap:8px}.badge{border-radius:999px;padding:5px 8px;font-size:11px;font-weight:900;background:#e8f8ef;color:#23794f}.badge.arch{background:#eef1f4;color:#667782}
 .meta{margin-top:7px;color:var(--muted);font-size:12px;font-weight:750;line-height:1.5}.preview{margin-top:8px;font-size:14px;font-weight:800}.empty{text-align:center;color:var(--muted);font-weight:800;padding:22px 8px}
 .roomview{display:none}.roomview.show{display:block}.listview.hide{display:none}.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.pill{border-radius:999px;padding:5px 8px;border:1px solid var(--line);background:#f8fcff;color:#567386;font-size:11px;font-weight:900}
-.messages{display:grid;gap:9px;margin-top:14px}.msg{border:1px solid var(--line);border-radius:16px;padding:11px;background:#fff}.msg strong{color:#245c84}.msg .time{float:right;color:var(--muted);font-size:11px}.msg p{margin:6px 0 0;line-height:1.5;font-weight:750}.attach{margin-top:7px;border:1px dashed var(--line);border-radius:12px;padding:8px;background:#f8fcff;font-size:12px;font-weight:800}
-.row{display:flex;gap:8px;margin-top:8px}.row button{flex:1;border:0;border-radius:14px;padding:11px;font-weight:900}.soft{background:#eef5fa;color:#456f8e}.send{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff}
-.modal{position:fixed;inset:0;background:rgba(32,48,58,.42);display:none;align-items:flex-end;justify-content:center;padding:18px;z-index:30}.modal.show{display:flex}.sheet{width:min(100%,520px);max-height:85vh;overflow:auto;background:#fff;border-radius:26px;padding:17px}
-.label{display:block;margin:10px 0 5px;font-size:13px;font-weight:900;color:#526d7e}.hint{margin-top:8px;color:var(--muted);font-size:12px;font-weight:750;line-height:1.5}.close{width:100%;border:0;border-radius:15px;padding:11px;background:#eef3f6;color:#567386;font-weight:900;margin-top:10px}
-.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(120px);width:min(92%,430px);padding:13px 15px;border-radius:18px;background:#304b5d;color:#fff;font-weight:850;transition:.25s}.toast.show{transform:translateX(-50%) translateY(0)}
-
-.participantBox{border:1px solid var(--line);border-radius:16px;background:#fbfdff;padding:10px;margin-top:6px}
-.participantTools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
-.participantTools button{border:1px solid var(--line);background:#f4f9fd;color:#456f8e;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;cursor:pointer}
-.deptGroup{border-top:1px dashed var(--line);padding-top:9px;margin-top:9px}
-.deptGroup:first-child{border-top:0;padding-top:0;margin-top:0}
-.deptTitle{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:950;color:#245c84;margin-bottom:7px}
-.personGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-.personCheck{display:flex;align-items:center;gap:7px;border:1px solid #dbeaf4;border-radius:12px;background:white;padding:8px;font-size:13px;font-weight:850;color:#526d7e}
-.personCheck input{width:auto;margin:0}
-.loadingBox{padding:14px;text-align:center;color:var(--muted);font-weight:850}
-@media(max-width:420px){.personGrid{grid-template-columns:1fr}}
-
-
-.groupTree{display:grid;gap:8px}
-.treeGroup{border:1px solid #dbeaf4;border-radius:14px;background:#fff;overflow:hidden}
-.treeHead{display:flex;align-items:center;gap:8px;padding:10px 11px;background:#f5faff;font-weight:950;color:#245c84;cursor:pointer}
-.treeHead .arrow{margin-left:auto;color:#66839a}.treeBody{display:none;padding:8px}.treeBody.show{display:block}
-.subGroup{border-top:1px dashed var(--line);padding-top:8px;margin-top:8px}.subGroup:first-child{border-top:0;padding-top:0;margin-top:0}
-.subHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-weight:900;color:#526d7e}
-.smallSelect{border:1px solid var(--line);background:#f8fcff;color:#456f8e;border-radius:999px;padding:5px 8px;font-size:11px;font-weight:900}
+.messages{display:grid;gap:9px;margin-top:14px}.msg{border:1px solid var(--line);border-radius:16px;padding:11px;background:#fff}.msg strong{color:#245c84}.msg .time{float:right;color:var(--muted);font-size:11px}.msg p{margin:6px 0 0;line-height:1.5;font-weight:750;white-space:pre-wrap}
+.row{display:flex;gap:8px;margin-top:8px}.row button{flex:1;border:0;border-radius:14px;padding:11px;font-weight:900;cursor:pointer}.soft{background:#eef5fa;color:#456f8e}.send{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff}
+.modal{position:fixed;inset:0;background:rgba(32,48,58,.42);display:none;align-items:flex-end;justify-content:center;padding:18px;z-index:30}.modal.show{display:flex}.sheet{width:min(100%,560px);max-height:88vh;overflow:auto;background:#fff;border-radius:26px;padding:17px}
+.label{display:block;margin:10px 0 5px;font-size:13px;font-weight:900;color:#526d7e}.hint{margin-top:8px;color:var(--muted);font-size:12px;font-weight:750;line-height:1.5}.close{width:100%;border:0;border-radius:15px;padding:11px;background:#eef3f6;color:#567386;font-weight:900;margin-top:10px;cursor:pointer}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(120px);width:min(92%,430px);padding:13px 15px;border-radius:18px;background:#304b5d;color:#fff;font-weight:850;transition:.25s;z-index:50}.toast.show{transform:translateX(-50%) translateY(0)}
 .sourceState{margin-bottom:9px;padding:8px 10px;border-radius:12px;background:#f3f9fd;border:1px solid var(--line);color:#567386;font-size:12px;font-weight:850}
-
+.participantTools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}.participantTools button,.smallSelect{border:1px solid var(--line);background:#f4f9fd;color:#456f8e;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;cursor:pointer}
+.groupTree{display:grid;gap:8px}.treeGroup{border:1px solid #dbeaf4;border-radius:14px;background:#fff;overflow:hidden}.treeHead{display:flex;align-items:center;gap:8px;padding:10px 11px;background:#f5faff;font-weight:950;color:#245c84;cursor:pointer}.treeHead .arrow{margin-left:auto;color:#66839a}
+.treeBody{display:none;padding:8px}.treeBody.show{display:block}.subGroup{border-top:1px dashed var(--line);padding-top:8px;margin-top:8px}.subGroup:first-child{border-top:0;padding-top:0;margin-top:0}
+.subHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-weight:900;color:#526d7e}.personGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.personCheck{display:flex;align-items:center;gap:7px;border:1px solid #dbeaf4;border-radius:12px;background:white;padding:8px;font-size:13px;font-weight:850;color:#526d7e}.personCheck input{width:auto;margin:0}
+.loadingBox{padding:14px;text-align:center;color:var(--muted);font-weight:850}@media(max-width:430px){.personGrid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -54,7 +38,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v0.5</span>
+  <span class="version">v0.6</span>
 </header>
 
 <section class="card userline">
@@ -68,7 +52,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:au
     <button class="tab" id="archivedTab" onclick="setMode('archived')">已封存</button>
   </div>
   <input class="search" id="searchInput" placeholder="搜尋討論主題…" oninput="renderRooms()">
-  <div class="rooms" id="roomList"></div>
+  <div class="rooms" id="roomList"><div class="loadingBox">正在讀取討論樓…</div></div>
 </section>
 
 <section class="card roomview" id="roomView">
@@ -81,7 +65,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:au
   <div id="composerBox" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:12px">
     <textarea id="messageInput" rows="4" placeholder="輸入公務訊息…"></textarea>
     <input id="fileInput" type="file" multiple accept=".pdf,.doc,.docx,image/*" class="input" style="margin-top:8px">
-    <div class="hint">v0.1 先保留附件介面；正式雲端上傳下一階段再接。</div>
+    <div class="hint">附件雲端上傳會在下一階段接上；目前先完成討論樓與留言雲端同步。</div>
     <div class="row"><button class="send" onclick="sendMessage()">送出訊息</button><button class="soft" id="archiveBtn" onclick="archiveRoom()">結案封存</button></div>
   </div>
 </section>
@@ -93,14 +77,8 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:au
     <label class="label">討論主題</label>
     <input class="input" id="newTitle" placeholder="例如：大班畢業典禮">
     <label class="label">參與人員</label>
-    <div class="participantBox">
-      <div class="participantTools">
-        <button type="button" onclick="selectAllParticipants(true)">全選內部同仁</button>
-        <button type="button" onclick="selectAllParticipants(false)">全部取消</button>
-      </div>
-      <div id="participantList" class="loadingBox">正在讀取同仁名單…</div>
-    </div>
-    <div class="hint">依「全體／幼兒部／安親部／庶務組」分層勾選；幼兒部再分大、中、小、幼幼班與專科老師。</div>
+    <div id="participantList" class="loadingBox">正在讀取同仁名單…</div>
+    <div class="hint">名單來自正式員工主檔；外聘協作帳號會顯示在「專科老師」。</div>
     <label class="label">保存期限（自結案封存日起算）</label>
     <select class="input" id="newRetention">
       <option value="30">30 天</option><option value="90">90 天</option><option value="180">180 天</option><option value="360">360 天</option><option value="永久">永久保留直到手動刪除</option>
@@ -113,215 +91,215 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:au
 <div class="toast" id="toast"></div>
 
 <script>
-const ROOM_KEY='heremay.discussionRooms.v05';
 const SERVICE_URL='https://script.google.com/macros/s/AKfycbxK-dOdOuyyTmZSUwULwmzMtS8egIP0P8LswamqsGxXroOO1LRsHvYiGsX32sX1oGQDXQ/exec';
 let employeeDirectory=[];
-
-let employee=readEmployee();
-let currentUser=employee.name||employee['姓名']||'同仁';
+let cloudRooms=[];
 let currentMode='active';
 let currentRoomId='';
+let employee=readEmployee();
+let currentUser=employee.name||employee['姓名']||'同仁';
+let currentUserId=employee.employeeId||employee.id||employee['員工編號']||'';
 
 function readEmployee(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'null')||{}}catch(e){return{}}}
 function isGuest(){const t=[employee.role,employee.identityCategory,employee.jobTitle,employee.group,employee.homeType].filter(Boolean).join('｜');return /外聘|協作|專科/.test(t)||new URLSearchParams(location.search).get('guest')==='1'}
 function userLabel(){return [employee.jobTitle||employee.title||'',employee.group||employee.department||''].filter(Boolean).join('｜')||(isGuest()?'外聘協作人員':'和美同仁')}
-function loadRooms(){try{const a=JSON.parse(localStorage.getItem(ROOM_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
-function saveRooms(rows){localStorage.setItem(ROOM_KEY,JSON.stringify(rows))}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function fmt(ts){return ts?new Date(ts).toLocaleString('zh-TW',{hour12:false}):''}
-function toastMsg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2500)}
-function loadEmployeeDirectory(){
-  return new Promise((resolve)=>{
-    const cb='discussionParticipants_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+function toastMsg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2600)}
+
+function jsonp(action,params={}){
+  return new Promise((resolve,reject)=>{
+    const cb='discussionCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
     const script=document.createElement('script');
-    const timer=setTimeout(()=>{cleanup();resolve([])},15000);
-
-    function cleanup(){
-      clearTimeout(timer);
-      try{delete window[cb]}catch(e){}
-      script.remove();
-    }
-
-    window[cb]=data=>{
-      cleanup();
-      if(!data || !data.ok){
-        toastMsg('⚠️ 員工名單讀取失敗');
-        resolve([]);
-        return;
-      }
-
-      const employees=Array.isArray(data.employees)?data.employees:[];
-      const guests=Array.isArray(data.guests)?data.guests:[];
-
-      employeeDirectory=[...employees,...guests].filter(x=>x&&x.name);
-      resolve(employeeDirectory);
-    };
-
-    script.onerror=()=>{
-      cleanup();
-      toastMsg('⚠️ 無法連線討論區後端');
-      resolve([]);
-    };
-
-    script.src=SERVICE_URL+'?'+new URLSearchParams({
-      action:'getParticipants',
-      callback:cb,
-      _:Date.now()
-    }).toString();
-
+    const timer=setTimeout(()=>{cleanup();reject(new Error('連線逾時'))},15000);
+    function cleanup(){clearTimeout(timer);try{delete window[cb]}catch(e){}script.remove()}
+    window[cb]=data=>{cleanup();resolve(data)};
+    script.onerror=()=>{cleanup();reject(new Error('後端連線失敗'))};
+    script.src=SERVICE_URL+'?'+new URLSearchParams({action,callback:cb,...params,_:Date.now()}).toString();
     document.head.appendChild(script);
   });
 }
-function empText(emp){
-  return [
-    emp.name,emp.group,emp.department,emp.jobTitle,emp.title,emp.className,emp.class,
-    emp.grade,emp.homeType,emp.identity,emp.identityCategory,emp.specialty
-  ].filter(Boolean).join('｜');
-}
-function topDept(emp){
-  if(emp.department) return String(emp.department);
-  const t=empText(emp);
-  if(/庶務|廚|清潔|護士|護理|健康中心/.test(t)) return '庶務組';
-  if(/安親/.test(t)) return '安親部';
-  if(/幼兒|教保|大班|中班|小班|幼幼|A[1-9]|B[1-9]|C[1-9]|Y[1-9]/i.test(t)) return '幼兒部';
-  if(/音樂|美語|英語|體能|專科/.test(t)) return '幼兒部';
-  if(/主管|行政|園長|主任|負責人|會計|人事|總務/.test(t)) return '主管／行政';
-  return '其他';
-}
-function kinderSubgroup(emp){
-  if(emp.subgroup) return String(emp.subgroup);
-  const t=empText(emp);
-  if(/音樂|美語|英語|體能|專科/.test(t)) return '專科老師';
-  if(/大班|A[1-9]/i.test(t)) return '大班';
-  if(/中班|B[1-9]/i.test(t)) return '中班';
-  if(/小班|C[1-9]/i.test(t)) return '小班';
-  if(/幼幼|幼班|Y[1-9]/i.test(t)) return '幼幼班';
-  return '其他幼兒部';
-}
-function participantKey(name){return 'p_'+String(name).replace(/[^\w\u4e00-\u9fff]/g,'_')}
-function personLabel(emp){
-  const bits=[emp.name,emp.jobTitle||emp.title||'',emp.group||emp.department||''].filter(Boolean);
-  return bits.join('｜');
-}
-function personCheckbox(emp, dept, subgroup=''){
-  const checked=emp.name===currentUser?'checked':'';
-  return `<label class="personCheck">
-    <input class="participantCheck" type="checkbox"
-      data-dept="${esc(dept)}" data-subgroup="${esc(subgroup)}"
-      value="${esc(emp.name)}" ${checked}>
-    ${esc(personLabel(emp))}
-  </label>`;
-}
-function toggleTree(id){
-  const body=document.getElementById(id);
-  if(body) body.classList.toggle('show');
-}
-function renderParticipantList(){
-  const box=document.getElementById('participantList');
-  if(!box)return;
 
-  const rows=employeeDirectory.filter(x=>x&&x.name);
-  if(!rows.length){
-    box.className='';
-    box.innerHTML=`<div class="sourceState">⚠️ 尚未讀到員工名單。請確認由正式登入首頁進入，再重新開啟「蓋新樓」。</div>`;
-    return;
+function postHidden(action,payload){
+  const frameName='discussionPost_'+Date.now();
+  const iframe=document.createElement('iframe');iframe.name=frameName;iframe.style.display='none';document.body.appendChild(iframe);
+  const form=document.createElement('form');form.method='POST';form.action=SERVICE_URL;form.target=frameName;form.style.display='none';
+  const a=document.createElement('input');a.type='hidden';a.name='action';a.value=action;form.appendChild(a);
+  const p=document.createElement('input');p.type='hidden';p.name='payload';p.value=JSON.stringify(payload);form.appendChild(p);
+  document.body.appendChild(form);form.submit();
+  setTimeout(()=>{form.remove();iframe.remove()},12000);
+}
+
+async function loadEmployeeDirectory(){
+  const data=await jsonp('getParticipants');
+  if(!data?.ok) throw new Error(data?.message||'名單讀取失敗');
+  employeeDirectory=[...(Array.isArray(data.employees)?data.employees:[]),...(Array.isArray(data.guests)?data.guests:[])].filter(x=>x&&x.name);
+  if(!currentUserId){
+    const me=employeeDirectory.find(x=>x.name===currentUser);
+    if(me) currentUserId=me.employeeId||'';
   }
+  return employeeDirectory;
+}
 
+async function loadCloudRooms(){
+  if(!currentUserId && currentUser==='同仁') return [];
+  const data=await jsonp('getRooms',{userId:currentUserId,userName:currentUser});
+  if(!data?.ok) throw new Error(data?.message||'討論樓讀取失敗');
+  cloudRooms=Array.isArray(data.rooms)?data.rooms:[];
+  renderRooms();
+  return cloudRooms;
+}
+
+function setMode(mode){
+  currentMode=mode;
+  activeTab.classList.toggle('active',mode==='active');
+  archivedTab.classList.toggle('active',mode==='archived');
+  renderRooms();
+}
+
+function renderRooms(){
+  const q=(searchInput.value||'').trim().toLowerCase();
+  const rooms=cloudRooms
+    .filter(r=>currentMode==='active'?r.status!=='已封存':r.status==='已封存')
+    .filter(r=>!q||String(r.title||'').toLowerCase().includes(q))
+    .sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')));
+  roomList.innerHTML=rooms.length?rooms.map(r=>`
+    <div class="room" onclick="openRoom('${esc(r.roomId)}')">
+      <div class="room-top"><h3>${esc(r.title)}</h3><span class="badge ${r.status==='已封存'?'arch':''}">${r.status==='已封存'?'已封存':'進行中'}</span></div>
+      <div class="meta">建立：${esc(r.creatorName)}｜${fmt(r.createdAt)}｜保存 ${esc(r.retention||'30')}${String(r.retention)==='永久'?'':'天'}</div>
+      <div class="preview">最後更新：${fmt(r.updatedAt||r.createdAt)}</div>
+    </div>`).join(''):'<div class="empty">目前沒有討論樓</div>';
+}
+
+function empText(emp){return [emp.name,emp.group,emp.department,emp.jobTitle,emp.className,emp.identity,emp.subgroup].filter(Boolean).join('｜')}
+function topDept(emp){return String(emp.department||'其他')}
+function kinderSubgroup(emp){return String(emp.subgroup||'其他幼兒部')}
+function personLabel(emp){return [emp.name,emp.jobTitle||'',emp.className||''].filter(Boolean).join('｜')}
+function personCheckbox(emp,dept,sub=''){
+  const checked=emp.name===currentUser?'checked':'';
+  return `<label class="personCheck"><input class="participantCheck" type="checkbox"
+    data-id="${esc(emp.employeeId||'')}" data-name="${esc(emp.name)}" data-type="${esc(emp.type||'employee')}"
+    data-dept="${esc(dept)}" data-subgroup="${esc(sub)}" ${checked}>
+    ${esc(personLabel(emp))}</label>`;
+}
+function toggleTree(id){document.getElementById(id)?.classList.toggle('show')}
+function toggleDept(dept,checked){document.querySelectorAll('.participantCheck').forEach(cb=>{if(cb.dataset.dept===dept)cb.checked=checked})}
+function toggleSubgroup(sub,checked){document.querySelectorAll('.participantCheck').forEach(cb=>{if(cb.dataset.subgroup===sub)cb.checked=checked})}
+function selectAllParticipants(checked){document.querySelectorAll('.participantCheck').forEach(cb=>cb.checked=checked)}
+function selectedParticipants(){
+  return [...document.querySelectorAll('.participantCheck:checked')].map(cb=>({
+    employeeId:cb.dataset.id||'',name:cb.dataset.name||'',type:cb.dataset.type||'employee',
+    department:cb.dataset.dept||'',subgroup:cb.dataset.subgroup||''
+  }));
+}
+
+function renderParticipantList(){
+  const rows=employeeDirectory.filter(x=>x&&x.name);
+  if(!rows.length){participantList.innerHTML='<div class="sourceState">⚠️ 尚未讀到人員名單</div>';return}
   const groups={'主管／行政':[],'幼兒部':[],'安親部':[],'庶務組':[],'其他':[]};
   rows.forEach(emp=>(groups[topDept(emp)]||groups['其他']).push(emp));
-
-  box.className='';
-  let html=`<div class="sourceState">✅ 已連上討論區後端，共 ${rows.length} 位可選人員</div>`;
-  html+=`<div class="participantTools">
-    <button type="button" onclick="selectAllParticipants(true)">全體勾選</button>
-    <button type="button" onclick="selectAllParticipants(false)">全部取消</button>
-  </div><div class="groupTree">`;
-
-  const order=['主管／行政','幼兒部','安親部','庶務組','其他'];
-  order.forEach((dept,di)=>{
-    const emps=groups[dept];
-    if(!emps.length && dept==='其他') return;
-    const id='tree_'+di;
-    html+=`<div class="treeGroup">
-      <div class="treeHead" onclick="toggleTree('${id}')">
-        <input type="checkbox" onclick="event.stopPropagation();toggleDept('${esc(dept)}',this.checked)">
-        <span>${dept==='主管／行政'?'主管／行政':dept}</span>
-        <span style="font-size:12px;color:#7890a6">(${emps.length})</span>
-        <span class="arrow">⌄</span>
-      </div>
+  let html=`<div class="sourceState">✅ 已連上員工主檔，共 ${rows.length} 位可選人員</div>
+    <div class="participantTools"><button type="button" onclick="selectAllParticipants(true)">全體勾選</button><button type="button" onclick="selectAllParticipants(false)">全部取消</button></div><div class="groupTree">`;
+  ['主管／行政','幼兒部','安親部','庶務組','其他'].forEach((dept,i)=>{
+    const emps=groups[dept];if(!emps.length&&dept==='其他')return;
+    const id='tree_'+i;
+    html+=`<div class="treeGroup"><div class="treeHead" onclick="toggleTree('${id}')">
+      <input type="checkbox" onclick="event.stopPropagation();toggleDept('${esc(dept)}',this.checked)">
+      <span>${esc(dept)}</span><span style="font-size:12px;color:#7890a6">(${emps.length})</span><span class="arrow">⌄</span></div>
       <div class="treeBody ${dept==='幼兒部'?'show':''}" id="${id}">`;
-
     if(dept==='幼兒部'){
       const subs={'大班':[],'中班':[],'小班':[],'幼幼班':[],'專科老師':[],'其他幼兒部':[]};
-      emps.forEach(emp=>subs[kinderSubgroup(emp)].push(emp));
+      emps.forEach(emp=>(subs[kinderSubgroup(emp)]||subs['其他幼兒部']).push(emp));
       ['大班','中班','小班','幼幼班','專科老師','其他幼兒部'].forEach(sub=>{
-        const list=subs[sub];
-        if(!list.length && sub!=='專科老師') return;
-        html+=`<div class="subGroup">
-          <div class="subHead">
-            <span>${sub} <small style="color:#8aa0b0">(${list.length})</small></span>
-            <button type="button" class="smallSelect" onclick="toggleSubgroup('${esc(sub)}',true)">本組全選</button>
-          </div>`;
-        if(list.length){
-          html+=`<div class="personGrid">${list.map(emp=>personCheckbox(emp,dept,sub)).join('')}</div>`;
-        }else{
-          html+=`<div class="hint">目前尚無${sub}帳號；外聘 QR 協作帳號建立後會顯示在這裡。</div>`;
-        }
-        html+=`</div>`;
+        const list=subs[sub];if(!list.length&&sub!=='專科老師')return;
+        html+=`<div class="subGroup"><div class="subHead"><span>${sub} <small>(${list.length})</small></span><button type="button" class="smallSelect" onclick="toggleSubgroup('${sub}',true)">本組全選</button></div>`;
+        html+=list.length?`<div class="personGrid">${list.map(emp=>personCheckbox(emp,dept,sub)).join('')}</div>`:`<div class="hint">目前尚無專科老師帳號。</div>`;
+        html+='</div>';
       });
     }else{
-      html+=emps.length?`<div class="personGrid">${emps.map(emp=>personCheckbox(emp,dept,'')).join('')}</div>`:`<div class="hint">目前沒有名單。</div>`;
+      html+=emps.length?`<div class="personGrid">${emps.map(emp=>personCheckbox(emp,dept,'')).join('')}</div>`:'<div class="hint">目前沒有名單。</div>';
     }
-    html+=`</div></div>`;
+    html+='</div></div>';
   });
   html+='</div>';
-  box.innerHTML=html;
+  participantList.innerHTML=html;
 }
-function toggleDept(dept,checked){
-  document.querySelectorAll('.participantCheck').forEach(cb=>{
-    if(cb.dataset.dept===dept) cb.checked=checked;
-  });
+
+async function openNewRoom(){
+  if(isGuest()){toastMsg('外聘協作人員不能建立新討論樓');return}
+  newTitle.value='';newRetention.value='30';newRoomModal.classList.add('show');
+  if(!employeeDirectory.length){
+    participantList.innerHTML='<div class="loadingBox">正在讀取員工主檔…</div>';
+    try{await loadEmployeeDirectory()}catch(err){participantList.innerHTML=`<div class="sourceState">⚠️ ${esc(err.message)}</div>`;return}
+  }
+  renderParticipantList();
 }
-function toggleSubgroup(subgroup,checked){
-  document.querySelectorAll('.participantCheck').forEach(cb=>{
-    if(cb.dataset.subgroup===subgroup) cb.checked=checked;
-  });
+function closeNewRoom(){newRoomModal.classList.remove('show')}
+
+async function createRoom(){
+  const title=newTitle.value.trim();if(!title){toastMsg('請輸入討論主題');return}
+  const participants=selectedParticipants();
+  if(!participants.some(p=>p.name===currentUser)){
+    const me=employeeDirectory.find(x=>x.name===currentUser);
+    participants.unshift(me?{employeeId:me.employeeId||'',name:me.name,type:me.type||'employee',department:me.department||'',subgroup:me.subgroup||''}:{employeeId:currentUserId,name:currentUser,type:'employee',department:'',subgroup:''});
+  }
+  if(!participants.length){toastMsg('請至少勾選一位參與人員');return}
+  postHidden('createRoom',{title,creatorId:currentUserId,creatorName:currentUser,participants,retention:newRetention.value});
+  closeNewRoom();toastMsg('✅ 正在建立討論樓…');
+  setTimeout(async()=>{try{await loadCloudRooms();toastMsg('✅ 討論樓已建立')}catch(e){toastMsg('已送出，稍後重新整理即可看到')}},1500);
 }
-function selectAllParticipants(checked){
-  document.querySelectorAll('.participantCheck').forEach(cb=>cb.checked=checked);
+
+async function openRoom(id){
+  const r=cloudRooms.find(x=>x.roomId===id);if(!r)return;
+  currentRoomId=id;listView.classList.add('hide');roomView.classList.add('show');
+  roomTitle.textContent=r.title;roomMeta.textContent=`建立：${r.creatorName}｜${fmt(r.createdAt)}｜保存 ${r.retention||'30'}${String(r.retention)==='永久'?'':'天'}`;
+  roomParticipants.innerHTML='<span class="pill">參與人員依討論樓權限控管</span>';
+  messageList.innerHTML='<div class="loadingBox">正在讀取留言…</div>';
+  composerBox.style.display=r.status==='已封存'?'none':'block';
+  archiveBtn.style.display=(!isGuest()&&r.status!=='已封存')?'block':'none';
+  try{
+    const data=await jsonp('getMessages',{roomId:id});
+    const msgs=data?.ok&&Array.isArray(data.messages)?data.messages:[];
+    messageList.innerHTML=msgs.length?msgs.map(m=>`<div class="msg"><strong>${esc(m.authorName||'同仁')}</strong><span class="time">${fmt(m.createdAt)}</span><p>${esc(m.text)}</p></div>`).join(''):'<div class="empty">這棟樓還沒有留言</div>';
+  }catch(err){messageList.innerHTML=`<div class="empty">留言讀取失敗：${esc(err.message)}</div>`}
 }
-function selectedParticipants(){
-  return [...document.querySelectorAll('.participantCheck:checked')].map(cb=>cb.value);
-}
-function createRoom(){
-  const title=newTitle.value.trim();
-  if(!title){toastMsg('請輸入討論主題');return}
-  const ps=selectedParticipants();
-  if(!ps.includes(currentUser))ps.unshift(currentUser);
-  if(ps.length<1){toastMsg('請至少勾選一位參與人員');return}
-  const rv=newRetention.value;
-  const now=new Date().toISOString();
-  const r={id:'room_'+Date.now(),title,participants:ps,retention:rv,retentionLabel:rv==='永久'?'永久':rv+'天',status:'active',createdBy:currentUser,createdAt:now,updatedAt:now,archivedAt:'',messages:[]};
-  const rows=loadRooms();rows.push(r);saveRooms(rows);closeNewRoom();renderRooms();toastMsg('✅ 討論樓已建立');
-}
-function openRoom(id){const r=loadRooms().find(x=>x.id===id);if(!r)return;currentRoomId=id;listView.classList.add('hide');roomView.classList.add('show');roomTitle.textContent=r.title;roomMeta.textContent=`建立：${r.createdBy}｜${fmt(r.createdAt)}｜保存 ${r.retentionLabel}`;roomParticipants.innerHTML=(r.participants||[]).map(p=>`<span class="pill">${esc(p)}</span>`).join('');messageList.innerHTML=(r.messages||[]).length?(r.messages||[]).map(m=>`<div class="msg"><strong>${esc(m.author)}</strong><span class="time">${fmt(m.time)}</span><p>${esc(m.text)}</p>${m.files?.length?`<div class="attach">附件：${m.files.map(esc).join('、')}</div>`:''}</div>`).join(''):'<div class="empty">這棟樓還沒有留言</div>';composerBox.style.display=r.status==='archived'?'none':'block';archiveBtn.style.display=(!isGuest()&&r.status!=='archived')?'block':'none'}
 function closeRoom(){currentRoomId='';roomView.classList.remove('show');listView.classList.remove('hide');renderRooms()}
-function sendMessage(){const text=messageInput.value.trim();if(!text){toastMsg('請先輸入訊息');return}const rows=loadRooms(),r=rows.find(x=>x.id===currentRoomId);if(!r||r.status==='archived')return;const files=[...fileInput.files].map(f=>f.name);r.messages.push({id:'msg_'+Date.now(),author:currentUser,text,files,time:new Date().toISOString()});r.updatedAt=new Date().toISOString();saveRooms(rows);messageInput.value='';fileInput.value='';openRoom(r.id);toastMsg('✅ 訊息已加入本樓')}
-function archiveRoom(){if(isGuest())return;const rows=loadRooms(),r=rows.find(x=>x.id===currentRoomId);if(!r)return;if(!confirm(`確定將「${r.title}」結案封存嗎？`))return;r.status='archived';r.archivedAt=new Date().toISOString();r.updatedAt=r.archivedAt;saveRooms(rows);closeRoom();setMode('archived');toastMsg('✅ 已結案封存')}
-function goBack(){const role=localStorage.getItem('heremay.currentRole');location.href=role==='support'?'support.html':'teacher.html'}
+
+async function sendMessage(){
+  const text=messageInput.value.trim();if(!text){toastMsg('請先輸入訊息');return}
+  if(fileInput.files.length)toastMsg('附件下一階段才會正式上傳；本次先送出文字');
+  postHidden('addMessage',{roomId:currentRoomId,authorId:currentUserId,authorName:currentUser,text});
+  messageInput.value='';fileInput.value='';toastMsg('✅ 正在送出留言…');
+  setTimeout(()=>openRoom(currentRoomId),1200);
+}
+
+function archiveRoom(){
+  if(isGuest())return;
+  const r=cloudRooms.find(x=>x.roomId===currentRoomId);if(!r)return;
+  if(!confirm(`確定將「${r.title}」結案封存嗎？`))return;
+  postHidden('archiveRoom',{roomId:currentRoomId});
+  toastMsg('✅ 正在封存…');
+  setTimeout(async()=>{closeRoom();await loadCloudRooms();setMode('archived')},1200);
+}
+
+function goBack(){
+  const role=String(localStorage.getItem('heremay.currentRole')||'').toLowerCase();
+  if(role==='admin')location.href='admin.html';
+  else if(role==='support')location.href='support.html';
+  else location.href='teacher.html';
+}
 
 async function init(){
-  userName.textContent=currentUser;
-  userRole.textContent=userLabel();
-  if(isGuest()){
-    newRoomBtn.style.display='none';
-    renderRooms();
-    return;
+  userName.textContent=currentUser;userRole.textContent=userLabel();
+  if(isGuest())newRoomBtn.style.display='none';
+  try{
+    await loadEmployeeDirectory();
+    if(currentUser==='同仁'&&employeeDirectory.length) userRole.textContent='未取得登入身分，請由首頁重新登入';
+    await loadCloudRooms();
+  }catch(err){
+    roomList.innerHTML=`<div class="empty">⚠️ ${esc(err.message)}<br>請稍後重新整理。</div>`;
   }
-  renderRooms();
-  await loadEmployeeDirectory();
 }
-
 init();
 </script>
 </body>
