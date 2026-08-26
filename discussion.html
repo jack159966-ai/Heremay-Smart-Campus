@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v1.1</title>
+<title>和美智慧校園｜討論區 v1.2</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -38,7 +38,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v1.1</span>
+  <span class="version">v1.2</span>
 </header>
 
 <section class="card userline">
@@ -429,6 +429,31 @@ function goBack(){
   if(role==='admin')location.href='admin.html';
   else if(role==='support')location.href='support.html';
   else location.href='teacher.html';
+}
+
+
+function canDeleteMessage(msg){
+  const uid=String(currentEmployee?.employeeId||'').trim();
+  const uname=String(currentUser||'').trim();
+  const authorId=String(msg.userId||msg.messageUserId||msg['留言人ID']||'').trim();
+  const authorName=String(msg.userName||msg.messageUserName||msg['留言人姓名']||'').trim();
+  const own=(uid&&authorId&&uid===authorId)||(uname&&authorName&&uname===authorName);
+  const manager=/管理|主管|園長|主任|負責人/.test(String(currentEmployee?.jobTitle||currentEmployee?.identity||currentEmployee?.homeType||''));
+  return own||manager;
+}
+
+async function deleteMessage(messageId){
+  if(!messageId)return;
+  if(!confirm('確定刪除這則留言？'))return;
+  const payload={
+    action:'deleteMessage',
+    messageId,
+    userId:String(currentEmployee?.employeeId||'').trim(),
+    userName:currentUser
+  };
+  const res=await postJson(payload);
+  if(!res?.ok)throw new Error(res?.error||'刪除失敗');
+  await openRoom(currentRoomId);
 }
 
 async function init(){
