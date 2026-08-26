@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v0.1</title>
+<title>和美智慧校園｜討論區 v0.2</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -24,6 +24,19 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:au
 .modal{position:fixed;inset:0;background:rgba(32,48,58,.42);display:none;align-items:flex-end;justify-content:center;padding:18px;z-index:30}.modal.show{display:flex}.sheet{width:min(100%,520px);max-height:85vh;overflow:auto;background:#fff;border-radius:26px;padding:17px}
 .label{display:block;margin:10px 0 5px;font-size:13px;font-weight:900;color:#526d7e}.hint{margin-top:8px;color:var(--muted);font-size:12px;font-weight:750;line-height:1.5}.close{width:100%;border:0;border-radius:15px;padding:11px;background:#eef3f6;color:#567386;font-weight:900;margin-top:10px}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(120px);width:min(92%,430px);padding:13px 15px;border-radius:18px;background:#304b5d;color:#fff;font-weight:850;transition:.25s}.toast.show{transform:translateX(-50%) translateY(0)}
+
+.participantBox{border:1px solid var(--line);border-radius:16px;background:#fbfdff;padding:10px;margin-top:6px}
+.participantTools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.participantTools button{border:1px solid var(--line);background:#f4f9fd;color:#456f8e;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;cursor:pointer}
+.deptGroup{border-top:1px dashed var(--line);padding-top:9px;margin-top:9px}
+.deptGroup:first-child{border-top:0;padding-top:0;margin-top:0}
+.deptTitle{display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:950;color:#245c84;margin-bottom:7px}
+.personGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.personCheck{display:flex;align-items:center;gap:7px;border:1px solid #dbeaf4;border-radius:12px;background:white;padding:8px;font-size:13px;font-weight:850;color:#526d7e}
+.personCheck input{width:auto;margin:0}
+.loadingBox{padding:14px;text-align:center;color:var(--muted);font-weight:850}
+@media(max-width:420px){.personGrid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -31,7 +44,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v0.1</span>
+  <span class="version">v0.2</span>
 </header>
 
 <section class="card userline">
@@ -70,8 +83,14 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:au
     <label class="label">討論主題</label>
     <input class="input" id="newTitle" placeholder="例如：大班畢業典禮">
     <label class="label">參與人員</label>
-    <input class="input" id="newParticipants" placeholder="姓名用逗號分隔">
-    <div class="hint">正式版會改成全體／部門／班級／個別人員／外聘協作的名單勾選。</div>
+    <div class="participantBox">
+      <div class="participantTools">
+        <button type="button" onclick="selectAllParticipants(true)">全選內部同仁</button>
+        <button type="button" onclick="selectAllParticipants(false)">全部取消</button>
+      </div>
+      <div id="participantList" class="loadingBox">正在讀取同仁名單…</div>
+    </div>
+    <div class="hint">直接勾選，不必輸入姓名。外聘協作人員之後會由 QR 帳號名單加入這裡。</div>
     <label class="label">保存期限（自結案封存日起算）</label>
     <select class="input" id="newRetention">
       <option value="30">30 天</option><option value="90">90 天</option><option value="180">180 天</option><option value="360">360 天</option><option value="永久">永久保留直到手動刪除</option>
@@ -84,7 +103,10 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:au
 <div class="toast" id="toast"></div>
 
 <script>
-const ROOM_KEY='heremay.discussionRooms.v01';
+const ROOM_KEY='heremay.discussionRooms.v02';
+const SERVICE_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
+let employeeDirectory=[];
+
 let employee=readEmployee();
 let currentUser=employee.name||employee['姓名']||'同仁';
 let currentMode='active';
@@ -98,13 +120,107 @@ function saveRooms(rows){localStorage.setItem(ROOM_KEY,JSON.stringify(rows))}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function fmt(ts){return ts?new Date(ts).toLocaleString('zh-TW',{hour12:false}):''}
 function toastMsg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2500)}
-function init(){userName.textContent=currentUser;userRole.textContent=userLabel();if(isGuest())newRoomBtn.style.display='none';renderRooms()}
+function loadEmployeeDirectory(){
+  return new Promise((resolve)=>{
+    const cb='discussionEmpCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    const timer=setTimeout(()=>{cleanup();resolve([])},12000);
+    function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
+    window[cb]=data=>{
+      cleanup();
+      const rows=Array.isArray(data?.employees)?data.employees:[];
+      employeeDirectory=rows.filter(x=>String(x.status||x.enabled||'').trim()!=='停用');
+      resolve(employeeDirectory);
+    };
+    script.onerror=()=>{cleanup();resolve([])};
+    script.src=SERVICE_URL+'?'+new URLSearchParams({action:'getAckRecords',callback:cb,_:Date.now()}).toString();
+    document.head.appendChild(script);
+  });
+}
+async function init(){
+  userName.textContent=currentUser;
+  userRole.textContent=userLabel();
+  if(isGuest())newRoomBtn.style.display='none';
+  renderRooms();
+  if(!isGuest()) await loadEmployeeDirectory();
+}
 function setMode(m){currentMode=m;activeTab.classList.toggle('active',m==='active');archivedTab.classList.toggle('active',m==='archived');renderRooms()}
 function visibleToMe(r){return !isGuest()||(r.participants||[]).includes(currentUser)}
 function renderRooms(){const q=(searchInput.value||'').trim().toLowerCase();const rooms=loadRooms().filter(visibleToMe).filter(r=>(currentMode==='active'?r.status!=='archived':r.status==='archived')).filter(r=>!q||String(r.title).toLowerCase().includes(q));roomList.innerHTML=rooms.length?rooms.sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt))).map(r=>{const last=(r.messages||[]).slice(-1)[0];return `<div class="room" onclick="openRoom('${r.id}')"><div class="room-top"><h3>${esc(r.title)}</h3><span class="badge ${r.status==='archived'?'arch':''}">${r.status==='archived'?'已封存':'進行中'}</span></div><div class="meta">建立：${esc(r.createdBy)}｜參與 ${(r.participants||[]).length} 人｜保存 ${esc(r.retentionLabel)}</div><div class="preview">${last?`${esc(last.author)}：${esc(last.text)}`:'尚無留言'}</div></div>`}).join(''):'<div class="empty">目前沒有討論樓</div>'}
-function openNewRoom(){if(isGuest()){toastMsg('外聘協作人員不能建立新討論樓');return}newTitle.value='';newParticipants.value='';newRetention.value='30';newRoomModal.classList.add('show')}
+function openNewRoom(){
+  if(isGuest()){toastMsg('外聘協作人員不能建立新討論樓');return}
+  newTitle.value='';
+  newRetention.value='30';
+  newRoomModal.classList.add('show');
+  renderParticipantList();
+}
 function closeNewRoom(){newRoomModal.classList.remove('show')}
-function createRoom(){const title=newTitle.value.trim();if(!title){toastMsg('請輸入討論主題');return}const ps=newParticipants.value.split(/[，,]/).map(s=>s.trim()).filter(Boolean);if(!ps.includes(currentUser))ps.unshift(currentUser);const rv=newRetention.value;const now=new Date().toISOString();const r={id:'room_'+Date.now(),title,participants:ps,retention:rv,retentionLabel:rv==='永久'?'永久':rv+'天',status:'active',createdBy:currentUser,createdAt:now,updatedAt:now,archivedAt:'',messages:[]};const rows=loadRooms();rows.push(r);saveRooms(rows);closeNewRoom();renderRooms();toastMsg('✅ 討論樓已建立')}
+
+function normalizeDept(emp){
+  const raw=String(emp.group||emp.department||emp.homeType||emp.jobTitle||'其他同仁').trim();
+  if(/主管|行政|園長|主任|負責人/.test(raw)) return '主管／行政';
+  if(/幼兒|教保|大班|中班|小班|幼幼/.test(raw)) return '幼兒部';
+  if(/安親/.test(raw)) return '安親部';
+  if(/庶務|廚|清潔|護士|護理|健康/.test(raw)) return '庶務／支援';
+  return raw||'其他同仁';
+}
+function renderParticipantList(){
+  const box=document.getElementById('participantList');
+  if(!box)return;
+  const rows=employeeDirectory.filter(x=>x&&x.name);
+  if(!rows.length){
+    box.className='loadingBox';
+    box.innerHTML='尚未取得同仁名單，請稍候重新開啟此視窗。';
+    return;
+  }
+  box.className='';
+  const groups={};
+  rows.forEach(emp=>{
+    const dept=normalizeDept(emp);
+    (groups[dept]||(groups[dept]=[])).push(emp);
+  });
+  box.innerHTML=Object.entries(groups).map(([dept,emps])=>`
+    <div class="deptGroup">
+      <div class="deptTitle">
+        <span>${esc(dept)}</span>
+        <label class="personCheck" style="padding:5px 8px">
+          <input type="checkbox" onchange="toggleDept('${esc(dept)}',this.checked)"> 本組全選
+        </label>
+      </div>
+      <div class="personGrid">
+        ${emps.map(emp=>`
+          <label class="personCheck">
+            <input class="participantCheck" type="checkbox"
+              data-dept="${esc(dept)}"
+              value="${esc(emp.name)}"
+              ${emp.name===currentUser?'checked':''}>
+            ${esc(emp.name)}${emp.jobTitle?`｜${esc(emp.jobTitle)}`:''}
+          </label>`).join('')}
+      </div>
+    </div>`).join('');
+}
+function toggleDept(dept,checked){
+  document.querySelectorAll('.participantCheck').forEach(cb=>{
+    if(cb.dataset.dept===dept) cb.checked=checked;
+  });
+}
+function selectAllParticipants(checked){
+  document.querySelectorAll('.participantCheck').forEach(cb=>cb.checked=checked);
+}
+function selectedParticipants(){
+  return [...document.querySelectorAll('.participantCheck:checked')].map(cb=>cb.value);
+}
+function createRoom(){
+  const title=newTitle.value.trim();
+  if(!title){toastMsg('請輸入討論主題');return}
+  const ps=selectedParticipants();
+  if(!ps.includes(currentUser))ps.unshift(currentUser);
+  if(ps.length<1){toastMsg('請至少勾選一位參與人員');return}
+  const rv=newRetention.value;
+  const now=new Date().toISOString();
+  const r={id:'room_'+Date.now(),title,participants:ps,retention:rv,retentionLabel:rv==='永久'?'永久':rv+'天',status:'active',createdBy:currentUser,createdAt:now,updatedAt:now,archivedAt:'',messages:[]};
+  const rows=loadRooms();rows.push(r);saveRooms(rows);closeNewRoom();renderRooms();toastMsg('✅ 討論樓已建立');
+}
 function openRoom(id){const r=loadRooms().find(x=>x.id===id);if(!r)return;currentRoomId=id;listView.classList.add('hide');roomView.classList.add('show');roomTitle.textContent=r.title;roomMeta.textContent=`建立：${r.createdBy}｜${fmt(r.createdAt)}｜保存 ${r.retentionLabel}`;roomParticipants.innerHTML=(r.participants||[]).map(p=>`<span class="pill">${esc(p)}</span>`).join('');messageList.innerHTML=(r.messages||[]).length?(r.messages||[]).map(m=>`<div class="msg"><strong>${esc(m.author)}</strong><span class="time">${fmt(m.time)}</span><p>${esc(m.text)}</p>${m.files?.length?`<div class="attach">附件：${m.files.map(esc).join('、')}</div>`:''}</div>`).join(''):'<div class="empty">這棟樓還沒有留言</div>';composerBox.style.display=r.status==='archived'?'none':'block';archiveBtn.style.display=(!isGuest()&&r.status!=='archived')?'block':'none'}
 function closeRoom(){currentRoomId='';roomView.classList.remove('show');listView.classList.remove('hide');renderRooms()}
 function sendMessage(){const text=messageInput.value.trim();if(!text){toastMsg('請先輸入訊息');return}const rows=loadRooms(),r=rows.find(x=>x.id===currentRoomId);if(!r||r.status==='archived')return;const files=[...fileInput.files].map(f=>f.name);r.messages.push({id:'msg_'+Date.now(),author:currentUser,text,files,time:new Date().toISOString()});r.updatedAt=new Date().toISOString();saveRooms(rows);messageInput.value='';fileInput.value='';openRoom(r.id);toastMsg('✅ 訊息已加入本樓')}
