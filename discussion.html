@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v0.8</title>
+<title>和美智慧校園｜討論區 v0.9</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -38,7 +38,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v0.8</span>
+  <span class="version">v0.9</span>
 </header>
 
 <section class="card userline">
@@ -65,7 +65,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
   <div id="composerBox" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:12px">
     <textarea id="messageInput" rows="4" placeholder="輸入公務訊息…"></textarea>
     <input id="fileInput" type="file" multiple accept=".pdf,.doc,.docx,image/*" class="input" style="margin-top:8px">
-    <div class="hint">附件會逐一上傳到「討論區附件」Google Drive。畫面會顯示每一個檔案的上傳進度與失敗原因。</div>
+    <div class="hint">照片會先在手機／電腦端自動縮圖再上傳；PDF、Word、文字檔則直接傳送。</div>
     <div class="row"><button class="send" onclick="sendMessage()">送出訊息</button><button class="soft" id="archiveBtn" onclick="archiveRoom()">結案封存</button></div>
   </div>
 </section>
@@ -120,36 +120,29 @@ function jsonp(action,params={}){
   });
 }
 
-function postHidden(action,payload){
-  return new Promise((resolve,reject)=>{
-    const frameName='discussionPost_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-    const iframe=document.createElement('iframe');
-    iframe.name=frameName;iframe.style.display='none';document.body.appendChild(iframe);
+async function postDirect(action,payload){
+  const body=new URLSearchParams();
+  body.set('action',action);
+  body.set('payload',JSON.stringify(payload));
 
-    const form=document.createElement('form');
-    form.method='POST';form.action=SERVICE_URL;form.target=frameName;form.style.display='none';
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),45000);
 
-    const a=document.createElement('input');a.type='hidden';a.name='action';a.value=action;form.appendChild(a);
-    const p=document.createElement('input');p.type='hidden';p.name='payload';p.value=JSON.stringify(payload);form.appendChild(p);
-    document.body.appendChild(form);
-
-    const timer=setTimeout(()=>{cleanup();reject(new Error('後端處理逾時'))},60000);
-    function cleanup(){
-      clearTimeout(timer);
-      window.removeEventListener('message',onMessage);
-      form.remove();
-      setTimeout(()=>iframe.remove(),200);
-    }
-    function onMessage(event){
-      const data=event.data||{};
-      if(data.type!=='HEREMAY_DISCUSSION_POST_RESULT')return;
-      cleanup();
-      const result=data.payload||{};
-      result.ok?resolve(result):reject(new Error(result.message||'後端處理失敗'));
-    }
-    window.addEventListener('message',onMessage);
-    form.submit();
-  });
+  try{
+    const res=await fetch(SERVICE_URL,{
+      method:'POST',
+      body,
+      signal:controller.signal
+    });
+    const result=await res.json();
+    if(!result?.ok)throw new Error(result?.message||'後端處理失敗');
+    return result;
+  }catch(err){
+    if(err?.name==='AbortError')throw new Error('後端處理逾時');
+    throw err;
+  }finally{
+    clearTimeout(timer);
+  }
 }
 
 async function loadEmployeeDirectory(){
@@ -267,7 +260,7 @@ async function createRoom(){
   }
   if(!participants.length){toastMsg('請至少勾選一位參與人員');return}
   try{
-    await postHidden('createRoom',{title,creatorId:currentUserId,creatorName:currentUser,participants,retention:newRetention.value});
+    await postDirect('createRoom',{title,creatorId:currentUserId,creatorName:currentUser,participants,retention:newRetention.value});
     closeNewRoom();
     await loadCloudRooms();
     toastMsg('✅ 討論樓已建立');
@@ -297,7 +290,7 @@ async function openRoom(id){
 function closeRoom(){currentRoomId='';roomView.classList.remove('show');listView.classList.remove('hide');renderRooms()}
 
 
-function readFileAsBase64(file){
+function blobToBase64(blob){
   return new Promise((resolve,reject)=>{
     const reader=new FileReader();
     reader.onload=()=>{
@@ -305,28 +298,61 @@ function readFileAsBase64(file){
       const comma=result.indexOf(',');
       resolve(comma>=0?result.slice(comma+1):result);
     };
-    reader.onerror=()=>reject(new Error('檔案讀取失敗：'+file.name));
-    reader.readAsDataURL(file);
+    reader.onerror=()=>reject(new Error('檔案讀取失敗'));
+    reader.readAsDataURL(blob);
   });
 }
 
-async function prepareAttachments(files){
-  const list=[...files];
-  const MAX_BYTES=10*1024*1024;
+function loadImageFile(file){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('照片讀取失敗：'+file.name))};
+    img.src=url;
+  });
+}
 
-  for(const file of list){
-    if(file.size>MAX_BYTES) throw new Error(`「${file.name}」超過 10MB，請縮小後再上傳`);
+async function prepareOneFile(file){
+  const MAX_FILE_BYTES=8*1024*1024;
+
+  if(file.size>MAX_FILE_BYTES && !file.type.startsWith('image/')){
+    throw new Error(`「${file.name}」超過 8MB，請先縮小後再上傳`);
   }
 
-  const result=[];
-  for(const file of list){
-    result.push({
-      name:file.name,
-      mimeType:file.type||'application/octet-stream',
-      base64:await readFileAsBase64(file)
-    });
+  // 照片先在前端縮到最長邊 1600px，JPEG 約 82% 品質。
+  if(file.type.startsWith('image/')){
+    const img=await loadImageFile(file);
+    const maxSide=1600;
+    const scale=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight));
+    const w=Math.max(1,Math.round(img.naturalWidth*scale));
+    const h=Math.max(1,Math.round(img.naturalHeight*scale));
+
+    const canvas=document.createElement('canvas');
+    canvas.width=w;canvas.height=h;
+    const ctx=canvas.getContext('2d');
+    ctx.drawImage(img,0,0,w,h);
+
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.82));
+    if(!blob)throw new Error('照片壓縮失敗：'+file.name);
+
+    const baseName=file.name.replace(/\.[^.]+$/,'');
+    return {
+      name:baseName+'.jpg',
+      mimeType:'image/jpeg',
+      base64:await blobToBase64(blob),
+      originalBytes:file.size,
+      uploadBytes:blob.size
+    };
   }
-  return result;
+
+  return {
+    name:file.name,
+    mimeType:file.type||'application/octet-stream',
+    base64:await blobToBase64(file),
+    originalBytes:file.size,
+    uploadBytes:file.size
+  };
 }
 
 async function sendMessage(){
@@ -335,56 +361,67 @@ async function sendMessage(){
 
   const files=[...fileInput.files];
   const sendBtn=document.querySelector('.send');
+
   try{
     if(sendBtn){sendBtn.disabled=true;sendBtn.textContent='正在送出留言…'}
 
-    // 先建立留言，取得正式 messageId
-    const msgResult=await postHidden('addMessage',{
+    const msgResult=await postDirect('addMessage',{
       roomId:currentRoomId,
       authorId:currentUserId,
       authorName:currentUser,
       text
     });
+
     const messageId=msgResult.messageId;
     if(!messageId)throw new Error('後端沒有回傳留言ID');
 
-    // 再逐一上傳附件，每個檔案獨立確認成功，避免兩個一起失敗卻看不出原因
     for(let i=0;i<files.length;i++){
       const file=files[i];
-      if(file.size>10*1024*1024)throw new Error(`「${file.name}」超過 10MB`);
+
+      if(sendBtn)sendBtn.textContent=`處理附件 ${i+1}/${files.length}…`;
+      const prepared=await prepareOneFile(file);
+
+      const savedKB=Math.round(prepared.uploadBytes/1024);
+      toastMsg(`📎 上傳 ${i+1}/${files.length}：${prepared.name}（${savedKB}KB）`);
       if(sendBtn)sendBtn.textContent=`上傳附件 ${i+1}/${files.length}…`;
-      toastMsg(`📎 正在上傳 ${i+1}/${files.length}：${file.name}`);
-      const base64=await readFileAsBase64(file);
-      await postHidden('uploadAttachment',{
+
+      await postDirect('uploadAttachment',{
         roomId:currentRoomId,
         messageId,
         uploaderId:currentUserId,
         uploaderName:currentUser,
-        name:file.name,
-        mimeType:file.type||'application/octet-stream',
-        base64
+        name:prepared.name,
+        mimeType:prepared.mimeType,
+        base64:prepared.base64
       });
     }
 
-    messageInput.value='';fileInput.value='';
+    messageInput.value='';
+    fileInput.value='';
     await openRoom(currentRoomId);
-    toastMsg(files.length?`✅ 留言與 ${files.length} 個附件都已上傳`:'✅ 留言已送出');
+    toastMsg(files.length?`✅ 留言與 ${files.length} 個附件都已完成`:'✅ 留言已送出');
+
   }catch(err){
-    toastMsg('⚠️ 上傳失敗：'+err.message);
-    // 留言可能已成功，因此重新讀取，至少不讓已成功的內容看似消失
+    toastMsg('⚠️ '+err.message);
     try{await openRoom(currentRoomId)}catch(e){}
   }finally{
     if(sendBtn){sendBtn.disabled=false;sendBtn.textContent='送出訊息'}
   }
 }
 
-function archiveRoom(){
+async function archiveRoom(){
   if(isGuest())return;
   const r=cloudRooms.find(x=>x.roomId===currentRoomId);if(!r)return;
   if(!confirm(`確定將「${r.title}」結案封存嗎？`))return;
-  postHidden('archiveRoom',{roomId:currentRoomId});
-  toastMsg('✅ 正在封存…');
-  setTimeout(async()=>{closeRoom();await loadCloudRooms();setMode('archived')},1200);
+  try{
+    await postDirect('archiveRoom',{roomId:currentRoomId});
+    closeRoom();
+    await loadCloudRooms();
+    setMode('archived');
+    toastMsg('✅ 已結案封存');
+  }catch(err){
+    toastMsg('⚠️ 封存失敗：'+err.message);
+  }
 }
 
 function goBack(){
