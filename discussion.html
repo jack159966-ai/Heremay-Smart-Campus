@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v0.3</title>
+<title>和美智慧校園｜討論區 v0.5</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -54,7 +54,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v0.3</span>
+  <span class="version">v0.5</span>
 </header>
 
 <section class="card userline">
@@ -113,8 +113,8 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:au
 <div class="toast" id="toast"></div>
 
 <script>
-const ROOM_KEY='heremay.discussionRooms.v03';
-const SERVICE_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
+const ROOM_KEY='heremay.discussionRooms.v05';
+const SERVICE_URL='https://script.google.com/macros/s/AKfycbxK-dOdOuyyTmZSUwULwmzMtS8egIP0P8LswamqsGxXroOO1LRsHvYiGsX32sX1oGQDXQ/exec';
 let employeeDirectory=[];
 
 let employee=readEmployee();
@@ -132,51 +132,44 @@ function fmt(ts){return ts?new Date(ts).toLocaleString('zh-TW',{hour12:false}):'
 function toastMsg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2500)}
 function loadEmployeeDirectory(){
   return new Promise((resolve)=>{
-    let done=false;
-    const frameName='discussionEmpFrame_'+Date.now();
-    const iframe=document.createElement('iframe');
-    iframe.name=frameName;
-    iframe.style.display='none';
-    document.body.appendChild(iframe);
+    const cb='discussionParticipants_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    const timer=setTimeout(()=>{cleanup();resolve([])},15000);
 
-    const form=document.createElement('form');
-    form.method='POST';
-    form.action=SERVICE_URL;
-    form.target=frameName;
-    form.style.display='none';
-
-    const action=document.createElement('input');
-    action.type='hidden'; action.name='action'; action.value='getAckRecords';
-    form.appendChild(action);
-    document.body.appendChild(form);
-
-    const timer=setTimeout(()=>{
-      if(done)return;
-      done=true;
-      form.remove(); iframe.remove();
-      resolve([]);
-    },12000);
-
-    function handler(event){
-      const data=event.data||{};
-      if(data.type!=='HEREMAY_ACK_RECORDS_RESULT') return;
-      const payload=data.payload||{};
-      if(done)return;
-      done=true;
+    function cleanup(){
       clearTimeout(timer);
-      window.removeEventListener('message',handler);
-      form.remove(); iframe.remove();
-
-      const rows=Array.isArray(payload.employees)?payload.employees:[];
-      employeeDirectory=rows.filter(x=>{
-        const status=String(x.status??x.enabled??x['狀態']??'').trim();
-        return x && x.name && !/停用|離職|註銷/.test(status);
-      });
-      resolve(employeeDirectory);
+      try{delete window[cb]}catch(e){}
+      script.remove();
     }
 
-    window.addEventListener('message',handler);
-    form.submit();
+    window[cb]=data=>{
+      cleanup();
+      if(!data || !data.ok){
+        toastMsg('⚠️ 員工名單讀取失敗');
+        resolve([]);
+        return;
+      }
+
+      const employees=Array.isArray(data.employees)?data.employees:[];
+      const guests=Array.isArray(data.guests)?data.guests:[];
+
+      employeeDirectory=[...employees,...guests].filter(x=>x&&x.name);
+      resolve(employeeDirectory);
+    };
+
+    script.onerror=()=>{
+      cleanup();
+      toastMsg('⚠️ 無法連線討論區後端');
+      resolve([]);
+    };
+
+    script.src=SERVICE_URL+'?'+new URLSearchParams({
+      action:'getParticipants',
+      callback:cb,
+      _:Date.now()
+    }).toString();
+
+    document.head.appendChild(script);
   });
 }
 function empText(emp){
@@ -186,6 +179,7 @@ function empText(emp){
   ].filter(Boolean).join('｜');
 }
 function topDept(emp){
+  if(emp.department) return String(emp.department);
   const t=empText(emp);
   if(/庶務|廚|清潔|護士|護理|健康中心/.test(t)) return '庶務組';
   if(/安親/.test(t)) return '安親部';
@@ -195,6 +189,7 @@ function topDept(emp){
   return '其他';
 }
 function kinderSubgroup(emp){
+  if(emp.subgroup) return String(emp.subgroup);
   const t=empText(emp);
   if(/音樂|美語|英語|體能|專科/.test(t)) return '專科老師';
   if(/大班|A[1-9]/i.test(t)) return '大班';
@@ -236,7 +231,7 @@ function renderParticipantList(){
   rows.forEach(emp=>(groups[topDept(emp)]||groups['其他']).push(emp));
 
   box.className='';
-  let html=`<div class="sourceState">✅ 已連上員工名單，共 ${rows.length} 人</div>`;
+  let html=`<div class="sourceState">✅ 已連上討論區後端，共 ${rows.length} 位可選人員</div>`;
   html+=`<div class="participantTools">
     <button type="button" onclick="selectAllParticipants(true)">全體勾選</button>
     <button type="button" onclick="selectAllParticipants(false)">全部取消</button>
@@ -314,6 +309,19 @@ function closeRoom(){currentRoomId='';roomView.classList.remove('show');listView
 function sendMessage(){const text=messageInput.value.trim();if(!text){toastMsg('請先輸入訊息');return}const rows=loadRooms(),r=rows.find(x=>x.id===currentRoomId);if(!r||r.status==='archived')return;const files=[...fileInput.files].map(f=>f.name);r.messages.push({id:'msg_'+Date.now(),author:currentUser,text,files,time:new Date().toISOString()});r.updatedAt=new Date().toISOString();saveRooms(rows);messageInput.value='';fileInput.value='';openRoom(r.id);toastMsg('✅ 訊息已加入本樓')}
 function archiveRoom(){if(isGuest())return;const rows=loadRooms(),r=rows.find(x=>x.id===currentRoomId);if(!r)return;if(!confirm(`確定將「${r.title}」結案封存嗎？`))return;r.status='archived';r.archivedAt=new Date().toISOString();r.updatedAt=r.archivedAt;saveRooms(rows);closeRoom();setMode('archived');toastMsg('✅ 已結案封存')}
 function goBack(){const role=localStorage.getItem('heremay.currentRole');location.href=role==='support'?'support.html':'teacher.html'}
+
+async function init(){
+  userName.textContent=currentUser;
+  userRole.textContent=userLabel();
+  if(isGuest()){
+    newRoomBtn.style.display='none';
+    renderRooms();
+    return;
+  }
+  renderRooms();
+  await loadEmployeeDirectory();
+}
+
 init();
 </script>
 </body>
