@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>和美智慧校園｜討論區 v0.1</title>
+<style>
+:root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
+*{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
+button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:auto;padding:16px 15px 40px}
+.top{display:flex;gap:10px;align-items:center}.back{border:0;background:#fff;border-radius:14px;padding:10px 12px;font-weight:900;color:#3d7399;box-shadow:var(--shadow)}
+.title{flex:1}.title h1{margin:0;color:#245c84;font-size:24px}.title p{margin:4px 0 0;color:var(--muted);font-size:13px;font-weight:750}.version{font-size:11px;font-weight:900;color:#fff;background:var(--blue);border-radius:999px;padding:5px 8px}
+.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:15px;margin-top:14px;box-shadow:var(--shadow)}
+.userline{display:flex;justify-content:space-between;gap:10px;align-items:center}.userline strong{font-size:18px;color:#245c84}.userline span{display:block;color:var(--muted);font-size:12px;font-weight:750;margin-top:3px}
+.primary{border:0;border-radius:14px;padding:11px 14px;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;font-weight:950;cursor:pointer}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tab{border:1px solid var(--line);background:#f8fcff;border-radius:14px;padding:10px;color:#567386;font-weight:900}.tab.active{background:var(--blue);color:#fff}
+.search,.input,textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:11px;background:#fbfdff}.search{margin-top:10px}
+.rooms{display:grid;gap:10px;margin-top:12px}.room{border:1px solid var(--line);border-radius:18px;padding:13px;background:#fbfdff;cursor:pointer}.room h3{margin:0;color:#245c84;font-size:17px}
+.room-top{display:flex;justify-content:space-between;gap:8px}.badge{border-radius:999px;padding:5px 8px;font-size:11px;font-weight:900;background:#e8f8ef;color:#23794f}.badge.arch{background:#eef1f4;color:#667782}
+.meta{margin-top:7px;color:var(--muted);font-size:12px;font-weight:750;line-height:1.5}.preview{margin-top:8px;font-size:14px;font-weight:800}.empty{text-align:center;color:var(--muted);font-weight:800;padding:22px 8px}
+.roomview{display:none}.roomview.show{display:block}.listview.hide{display:none}.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.pill{border-radius:999px;padding:5px 8px;border:1px solid var(--line);background:#f8fcff;color:#567386;font-size:11px;font-weight:900}
+.messages{display:grid;gap:9px;margin-top:14px}.msg{border:1px solid var(--line);border-radius:16px;padding:11px;background:#fff}.msg strong{color:#245c84}.msg .time{float:right;color:var(--muted);font-size:11px}.msg p{margin:6px 0 0;line-height:1.5;font-weight:750}.attach{margin-top:7px;border:1px dashed var(--line);border-radius:12px;padding:8px;background:#f8fcff;font-size:12px;font-weight:800}
+.row{display:flex;gap:8px;margin-top:8px}.row button{flex:1;border:0;border-radius:14px;padding:11px;font-weight:900}.soft{background:#eef5fa;color:#456f8e}.send{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff}
+.modal{position:fixed;inset:0;background:rgba(32,48,58,.42);display:none;align-items:flex-end;justify-content:center;padding:18px;z-index:30}.modal.show{display:flex}.sheet{width:min(100%,520px);max-height:85vh;overflow:auto;background:#fff;border-radius:26px;padding:17px}
+.label{display:block;margin:10px 0 5px;font-size:13px;font-weight:900;color:#526d7e}.hint{margin-top:8px;color:var(--muted);font-size:12px;font-weight:750;line-height:1.5}.close{width:100%;border:0;border-radius:15px;padding:11px;background:#eef3f6;color:#567386;font-weight:900;margin-top:10px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(120px);width:min(92%,430px);padding:13px 15px;border-radius:18px;background:#304b5d;color:#fff;font-weight:850;transition:.25s}.toast.show{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<main class="phone">
+<header class="top">
+  <button class="back" onclick="goBack()">← 返回</button>
+  <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
+  <span class="version">v0.1</span>
+</header>
+
+<section class="card userline">
+  <div><strong id="userName">讀取登入資料中…</strong><span id="userRole"></span></div>
+  <button class="primary" id="newRoomBtn" onclick="openNewRoom()">＋ 蓋新樓</button>
+</section>
+
+<section class="card listview" id="listView">
+  <div class="tabs">
+    <button class="tab active" id="activeTab" onclick="setMode('active')">進行中</button>
+    <button class="tab" id="archivedTab" onclick="setMode('archived')">已封存</button>
+  </div>
+  <input class="search" id="searchInput" placeholder="搜尋討論主題…" oninput="renderRooms()">
+  <div class="rooms" id="roomList"></div>
+</section>
+
+<section class="card roomview" id="roomView">
+  <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+    <div><h2 id="roomTitle" style="margin:0;color:#245c84"></h2><div class="meta" id="roomMeta"></div></div>
+    <button class="soft" style="border:0;border-radius:12px;padding:8px 10px;font-weight:900" onclick="closeRoom()">返回列表</button>
+  </div>
+  <div class="pills" id="roomParticipants"></div>
+  <div class="messages" id="messageList"></div>
+  <div id="composerBox" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:12px">
+    <textarea id="messageInput" rows="4" placeholder="輸入公務訊息…"></textarea>
+    <input id="fileInput" type="file" multiple accept=".pdf,.doc,.docx,image/*" class="input" style="margin-top:8px">
+    <div class="hint">v0.1 先保留附件介面；正式雲端上傳下一階段再接。</div>
+    <div class="row"><button class="send" onclick="sendMessage()">送出訊息</button><button class="soft" id="archiveBtn" onclick="archiveRoom()">結案封存</button></div>
+  </div>
+</section>
+</main>
+
+<div class="modal" id="newRoomModal" onclick="if(event.target===this)closeNewRoom()">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <h2 style="margin:0;color:#245c84">🏗️ 蓋一棟新樓</h2>
+    <label class="label">討論主題</label>
+    <input class="input" id="newTitle" placeholder="例如：大班畢業典禮">
+    <label class="label">參與人員</label>
+    <input class="input" id="newParticipants" placeholder="姓名用逗號分隔">
+    <div class="hint">正式版會改成全體／部門／班級／個別人員／外聘協作的名單勾選。</div>
+    <label class="label">保存期限（自結案封存日起算）</label>
+    <select class="input" id="newRetention">
+      <option value="30">30 天</option><option value="90">90 天</option><option value="180">180 天</option><option value="360">360 天</option><option value="永久">永久保留直到手動刪除</option>
+    </select>
+    <button class="primary" style="width:100%;margin-top:14px" onclick="createRoom()">建立討論樓</button>
+    <button class="close" onclick="closeNewRoom()">取消</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ROOM_KEY='heremay.discussionRooms.v01';
+let employee=readEmployee();
+let currentUser=employee.name||employee['姓名']||'同仁';
+let currentMode='active';
+let currentRoomId='';
+
+function readEmployee(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'null')||{}}catch(e){return{}}}
+function isGuest(){const t=[employee.role,employee.identityCategory,employee.jobTitle,employee.group,employee.homeType].filter(Boolean).join('｜');return /外聘|協作|專科/.test(t)||new URLSearchParams(location.search).get('guest')==='1'}
+function userLabel(){return [employee.jobTitle||employee.title||'',employee.group||employee.department||''].filter(Boolean).join('｜')||(isGuest()?'外聘協作人員':'和美同仁')}
+function loadRooms(){try{const a=JSON.parse(localStorage.getItem(ROOM_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+function saveRooms(rows){localStorage.setItem(ROOM_KEY,JSON.stringify(rows))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fmt(ts){return ts?new Date(ts).toLocaleString('zh-TW',{hour12:false}):''}
+function toastMsg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2500)}
+function init(){userName.textContent=currentUser;userRole.textContent=userLabel();if(isGuest())newRoomBtn.style.display='none';renderRooms()}
+function setMode(m){currentMode=m;activeTab.classList.toggle('active',m==='active');archivedTab.classList.toggle('active',m==='archived');renderRooms()}
+function visibleToMe(r){return !isGuest()||(r.participants||[]).includes(currentUser)}
+function renderRooms(){const q=(searchInput.value||'').trim().toLowerCase();const rooms=loadRooms().filter(visibleToMe).filter(r=>(currentMode==='active'?r.status!=='archived':r.status==='archived')).filter(r=>!q||String(r.title).toLowerCase().includes(q));roomList.innerHTML=rooms.length?rooms.sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt))).map(r=>{const last=(r.messages||[]).slice(-1)[0];return `<div class="room" onclick="openRoom('${r.id}')"><div class="room-top"><h3>${esc(r.title)}</h3><span class="badge ${r.status==='archived'?'arch':''}">${r.status==='archived'?'已封存':'進行中'}</span></div><div class="meta">建立：${esc(r.createdBy)}｜參與 ${(r.participants||[]).length} 人｜保存 ${esc(r.retentionLabel)}</div><div class="preview">${last?`${esc(last.author)}：${esc(last.text)}`:'尚無留言'}</div></div>`}).join(''):'<div class="empty">目前沒有討論樓</div>'}
+function openNewRoom(){if(isGuest()){toastMsg('外聘協作人員不能建立新討論樓');return}newTitle.value='';newParticipants.value='';newRetention.value='30';newRoomModal.classList.add('show')}
+function closeNewRoom(){newRoomModal.classList.remove('show')}
+function createRoom(){const title=newTitle.value.trim();if(!title){toastMsg('請輸入討論主題');return}const ps=newParticipants.value.split(/[，,]/).map(s=>s.trim()).filter(Boolean);if(!ps.includes(currentUser))ps.unshift(currentUser);const rv=newRetention.value;const now=new Date().toISOString();const r={id:'room_'+Date.now(),title,participants:ps,retention:rv,retentionLabel:rv==='永久'?'永久':rv+'天',status:'active',createdBy:currentUser,createdAt:now,updatedAt:now,archivedAt:'',messages:[]};const rows=loadRooms();rows.push(r);saveRooms(rows);closeNewRoom();renderRooms();toastMsg('✅ 討論樓已建立')}
+function openRoom(id){const r=loadRooms().find(x=>x.id===id);if(!r)return;currentRoomId=id;listView.classList.add('hide');roomView.classList.add('show');roomTitle.textContent=r.title;roomMeta.textContent=`建立：${r.createdBy}｜${fmt(r.createdAt)}｜保存 ${r.retentionLabel}`;roomParticipants.innerHTML=(r.participants||[]).map(p=>`<span class="pill">${esc(p)}</span>`).join('');messageList.innerHTML=(r.messages||[]).length?(r.messages||[]).map(m=>`<div class="msg"><strong>${esc(m.author)}</strong><span class="time">${fmt(m.time)}</span><p>${esc(m.text)}</p>${m.files?.length?`<div class="attach">附件：${m.files.map(esc).join('、')}</div>`:''}</div>`).join(''):'<div class="empty">這棟樓還沒有留言</div>';composerBox.style.display=r.status==='archived'?'none':'block';archiveBtn.style.display=(!isGuest()&&r.status!=='archived')?'block':'none'}
+function closeRoom(){currentRoomId='';roomView.classList.remove('show');listView.classList.remove('hide');renderRooms()}
+function sendMessage(){const text=messageInput.value.trim();if(!text){toastMsg('請先輸入訊息');return}const rows=loadRooms(),r=rows.find(x=>x.id===currentRoomId);if(!r||r.status==='archived')return;const files=[...fileInput.files].map(f=>f.name);r.messages.push({id:'msg_'+Date.now(),author:currentUser,text,files,time:new Date().toISOString()});r.updatedAt=new Date().toISOString();saveRooms(rows);messageInput.value='';fileInput.value='';openRoom(r.id);toastMsg('✅ 訊息已加入本樓')}
+function archiveRoom(){if(isGuest())return;const rows=loadRooms(),r=rows.find(x=>x.id===currentRoomId);if(!r)return;if(!confirm(`確定將「${r.title}」結案封存嗎？`))return;r.status='archived';r.archivedAt=new Date().toISOString();r.updatedAt=r.archivedAt;saveRooms(rows);closeRoom();setMode('archived');toastMsg('✅ 已結案封存')}
+function goBack(){const role=localStorage.getItem('heremay.currentRole');location.href=role==='support'?'support.html':'teacher.html'}
+init();
+</script>
+</body>
+</html>
