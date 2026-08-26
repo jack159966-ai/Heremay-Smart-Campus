@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v0.2</title>
+<title>和美智慧校園｜討論區 v0.3</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -37,6 +37,16 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:au
 .loadingBox{padding:14px;text-align:center;color:var(--muted);font-weight:850}
 @media(max-width:420px){.personGrid{grid-template-columns:1fr}}
 
+
+.groupTree{display:grid;gap:8px}
+.treeGroup{border:1px solid #dbeaf4;border-radius:14px;background:#fff;overflow:hidden}
+.treeHead{display:flex;align-items:center;gap:8px;padding:10px 11px;background:#f5faff;font-weight:950;color:#245c84;cursor:pointer}
+.treeHead .arrow{margin-left:auto;color:#66839a}.treeBody{display:none;padding:8px}.treeBody.show{display:block}
+.subGroup{border-top:1px dashed var(--line);padding-top:8px;margin-top:8px}.subGroup:first-child{border-top:0;padding-top:0;margin-top:0}
+.subHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-weight:900;color:#526d7e}
+.smallSelect{border:1px solid var(--line);background:#f8fcff;color:#456f8e;border-radius:999px;padding:5px 8px;font-size:11px;font-weight:900}
+.sourceState{margin-bottom:9px;padding:8px 10px;border-radius:12px;background:#f3f9fd;border:1px solid var(--line);color:#567386;font-size:12px;font-weight:850}
+
 </style>
 </head>
 <body>
@@ -44,7 +54,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v0.2</span>
+  <span class="version">v0.3</span>
 </header>
 
 <section class="card userline">
@@ -90,7 +100,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:au
       </div>
       <div id="participantList" class="loadingBox">正在讀取同仁名單…</div>
     </div>
-    <div class="hint">直接勾選，不必輸入姓名。外聘協作人員之後會由 QR 帳號名單加入這裡。</div>
+    <div class="hint">依「全體／幼兒部／安親部／庶務組」分層勾選；幼兒部再分大、中、小、幼幼班與專科老師。</div>
     <label class="label">保存期限（自結案封存日起算）</label>
     <select class="input" id="newRetention">
       <option value="30">30 天</option><option value="90">90 天</option><option value="180">180 天</option><option value="360">360 天</option><option value="永久">永久保留直到手動刪除</option>
@@ -103,7 +113,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,560px);margin:au
 <div class="toast" id="toast"></div>
 
 <script>
-const ROOM_KEY='heremay.discussionRooms.v02';
+const ROOM_KEY='heremay.discussionRooms.v03';
 const SERVICE_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
 let employeeDirectory=[];
 
@@ -122,86 +132,164 @@ function fmt(ts){return ts?new Date(ts).toLocaleString('zh-TW',{hour12:false}):'
 function toastMsg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2500)}
 function loadEmployeeDirectory(){
   return new Promise((resolve)=>{
-    const cb='discussionEmpCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-    const script=document.createElement('script');
-    const timer=setTimeout(()=>{cleanup();resolve([])},12000);
-    function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
-    window[cb]=data=>{
-      cleanup();
-      const rows=Array.isArray(data?.employees)?data.employees:[];
-      employeeDirectory=rows.filter(x=>String(x.status||x.enabled||'').trim()!=='停用');
+    let done=false;
+    const frameName='discussionEmpFrame_'+Date.now();
+    const iframe=document.createElement('iframe');
+    iframe.name=frameName;
+    iframe.style.display='none';
+    document.body.appendChild(iframe);
+
+    const form=document.createElement('form');
+    form.method='POST';
+    form.action=SERVICE_URL;
+    form.target=frameName;
+    form.style.display='none';
+
+    const action=document.createElement('input');
+    action.type='hidden'; action.name='action'; action.value='getAckRecords';
+    form.appendChild(action);
+    document.body.appendChild(form);
+
+    const timer=setTimeout(()=>{
+      if(done)return;
+      done=true;
+      form.remove(); iframe.remove();
+      resolve([]);
+    },12000);
+
+    function handler(event){
+      const data=event.data||{};
+      if(data.type!=='HEREMAY_ACK_RECORDS_RESULT') return;
+      const payload=data.payload||{};
+      if(done)return;
+      done=true;
+      clearTimeout(timer);
+      window.removeEventListener('message',handler);
+      form.remove(); iframe.remove();
+
+      const rows=Array.isArray(payload.employees)?payload.employees:[];
+      employeeDirectory=rows.filter(x=>{
+        const status=String(x.status??x.enabled??x['狀態']??'').trim();
+        return x && x.name && !/停用|離職|註銷/.test(status);
+      });
       resolve(employeeDirectory);
-    };
-    script.onerror=()=>{cleanup();resolve([])};
-    script.src=SERVICE_URL+'?'+new URLSearchParams({action:'getAckRecords',callback:cb,_:Date.now()}).toString();
-    document.head.appendChild(script);
+    }
+
+    window.addEventListener('message',handler);
+    form.submit();
   });
 }
-async function init(){
-  userName.textContent=currentUser;
-  userRole.textContent=userLabel();
-  if(isGuest())newRoomBtn.style.display='none';
-  renderRooms();
-  if(!isGuest()) await loadEmployeeDirectory();
+function empText(emp){
+  return [
+    emp.name,emp.group,emp.department,emp.jobTitle,emp.title,emp.className,emp.class,
+    emp.grade,emp.homeType,emp.identity,emp.identityCategory,emp.specialty
+  ].filter(Boolean).join('｜');
 }
-function setMode(m){currentMode=m;activeTab.classList.toggle('active',m==='active');archivedTab.classList.toggle('active',m==='archived');renderRooms()}
-function visibleToMe(r){return !isGuest()||(r.participants||[]).includes(currentUser)}
-function renderRooms(){const q=(searchInput.value||'').trim().toLowerCase();const rooms=loadRooms().filter(visibleToMe).filter(r=>(currentMode==='active'?r.status!=='archived':r.status==='archived')).filter(r=>!q||String(r.title).toLowerCase().includes(q));roomList.innerHTML=rooms.length?rooms.sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt))).map(r=>{const last=(r.messages||[]).slice(-1)[0];return `<div class="room" onclick="openRoom('${r.id}')"><div class="room-top"><h3>${esc(r.title)}</h3><span class="badge ${r.status==='archived'?'arch':''}">${r.status==='archived'?'已封存':'進行中'}</span></div><div class="meta">建立：${esc(r.createdBy)}｜參與 ${(r.participants||[]).length} 人｜保存 ${esc(r.retentionLabel)}</div><div class="preview">${last?`${esc(last.author)}：${esc(last.text)}`:'尚無留言'}</div></div>`}).join(''):'<div class="empty">目前沒有討論樓</div>'}
-function openNewRoom(){
-  if(isGuest()){toastMsg('外聘協作人員不能建立新討論樓');return}
-  newTitle.value='';
-  newRetention.value='30';
-  newRoomModal.classList.add('show');
-  renderParticipantList();
+function topDept(emp){
+  const t=empText(emp);
+  if(/庶務|廚|清潔|護士|護理|健康中心/.test(t)) return '庶務組';
+  if(/安親/.test(t)) return '安親部';
+  if(/幼兒|教保|大班|中班|小班|幼幼|A[1-9]|B[1-9]|C[1-9]|Y[1-9]/i.test(t)) return '幼兒部';
+  if(/音樂|美語|英語|體能|專科/.test(t)) return '幼兒部';
+  if(/主管|行政|園長|主任|負責人|會計|人事|總務/.test(t)) return '主管／行政';
+  return '其他';
 }
-function closeNewRoom(){newRoomModal.classList.remove('show')}
-
-function normalizeDept(emp){
-  const raw=String(emp.group||emp.department||emp.homeType||emp.jobTitle||'其他同仁').trim();
-  if(/主管|行政|園長|主任|負責人/.test(raw)) return '主管／行政';
-  if(/幼兒|教保|大班|中班|小班|幼幼/.test(raw)) return '幼兒部';
-  if(/安親/.test(raw)) return '安親部';
-  if(/庶務|廚|清潔|護士|護理|健康/.test(raw)) return '庶務／支援';
-  return raw||'其他同仁';
+function kinderSubgroup(emp){
+  const t=empText(emp);
+  if(/音樂|美語|英語|體能|專科/.test(t)) return '專科老師';
+  if(/大班|A[1-9]/i.test(t)) return '大班';
+  if(/中班|B[1-9]/i.test(t)) return '中班';
+  if(/小班|C[1-9]/i.test(t)) return '小班';
+  if(/幼幼|幼班|Y[1-9]/i.test(t)) return '幼幼班';
+  return '其他幼兒部';
+}
+function participantKey(name){return 'p_'+String(name).replace(/[^\w\u4e00-\u9fff]/g,'_')}
+function personLabel(emp){
+  const bits=[emp.name,emp.jobTitle||emp.title||'',emp.group||emp.department||''].filter(Boolean);
+  return bits.join('｜');
+}
+function personCheckbox(emp, dept, subgroup=''){
+  const checked=emp.name===currentUser?'checked':'';
+  return `<label class="personCheck">
+    <input class="participantCheck" type="checkbox"
+      data-dept="${esc(dept)}" data-subgroup="${esc(subgroup)}"
+      value="${esc(emp.name)}" ${checked}>
+    ${esc(personLabel(emp))}
+  </label>`;
+}
+function toggleTree(id){
+  const body=document.getElementById(id);
+  if(body) body.classList.toggle('show');
 }
 function renderParticipantList(){
   const box=document.getElementById('participantList');
   if(!box)return;
+
   const rows=employeeDirectory.filter(x=>x&&x.name);
   if(!rows.length){
-    box.className='loadingBox';
-    box.innerHTML='尚未取得同仁名單，請稍候重新開啟此視窗。';
+    box.className='';
+    box.innerHTML=`<div class="sourceState">⚠️ 尚未讀到員工名單。請確認由正式登入首頁進入，再重新開啟「蓋新樓」。</div>`;
     return;
   }
+
+  const groups={'主管／行政':[],'幼兒部':[],'安親部':[],'庶務組':[],'其他':[]};
+  rows.forEach(emp=>(groups[topDept(emp)]||groups['其他']).push(emp));
+
   box.className='';
-  const groups={};
-  rows.forEach(emp=>{
-    const dept=normalizeDept(emp);
-    (groups[dept]||(groups[dept]=[])).push(emp);
+  let html=`<div class="sourceState">✅ 已連上員工名單，共 ${rows.length} 人</div>`;
+  html+=`<div class="participantTools">
+    <button type="button" onclick="selectAllParticipants(true)">全體勾選</button>
+    <button type="button" onclick="selectAllParticipants(false)">全部取消</button>
+  </div><div class="groupTree">`;
+
+  const order=['主管／行政','幼兒部','安親部','庶務組','其他'];
+  order.forEach((dept,di)=>{
+    const emps=groups[dept];
+    if(!emps.length && dept==='其他') return;
+    const id='tree_'+di;
+    html+=`<div class="treeGroup">
+      <div class="treeHead" onclick="toggleTree('${id}')">
+        <input type="checkbox" onclick="event.stopPropagation();toggleDept('${esc(dept)}',this.checked)">
+        <span>${dept==='主管／行政'?'主管／行政':dept}</span>
+        <span style="font-size:12px;color:#7890a6">(${emps.length})</span>
+        <span class="arrow">⌄</span>
+      </div>
+      <div class="treeBody ${dept==='幼兒部'?'show':''}" id="${id}">`;
+
+    if(dept==='幼兒部'){
+      const subs={'大班':[],'中班':[],'小班':[],'幼幼班':[],'專科老師':[],'其他幼兒部':[]};
+      emps.forEach(emp=>subs[kinderSubgroup(emp)].push(emp));
+      ['大班','中班','小班','幼幼班','專科老師','其他幼兒部'].forEach(sub=>{
+        const list=subs[sub];
+        if(!list.length && sub!=='專科老師') return;
+        html+=`<div class="subGroup">
+          <div class="subHead">
+            <span>${sub} <small style="color:#8aa0b0">(${list.length})</small></span>
+            <button type="button" class="smallSelect" onclick="toggleSubgroup('${esc(sub)}',true)">本組全選</button>
+          </div>`;
+        if(list.length){
+          html+=`<div class="personGrid">${list.map(emp=>personCheckbox(emp,dept,sub)).join('')}</div>`;
+        }else{
+          html+=`<div class="hint">目前尚無${sub}帳號；外聘 QR 協作帳號建立後會顯示在這裡。</div>`;
+        }
+        html+=`</div>`;
+      });
+    }else{
+      html+=emps.length?`<div class="personGrid">${emps.map(emp=>personCheckbox(emp,dept,'')).join('')}</div>`:`<div class="hint">目前沒有名單。</div>`;
+    }
+    html+=`</div></div>`;
   });
-  box.innerHTML=Object.entries(groups).map(([dept,emps])=>`
-    <div class="deptGroup">
-      <div class="deptTitle">
-        <span>${esc(dept)}</span>
-        <label class="personCheck" style="padding:5px 8px">
-          <input type="checkbox" onchange="toggleDept('${esc(dept)}',this.checked)"> 本組全選
-        </label>
-      </div>
-      <div class="personGrid">
-        ${emps.map(emp=>`
-          <label class="personCheck">
-            <input class="participantCheck" type="checkbox"
-              data-dept="${esc(dept)}"
-              value="${esc(emp.name)}"
-              ${emp.name===currentUser?'checked':''}>
-            ${esc(emp.name)}${emp.jobTitle?`｜${esc(emp.jobTitle)}`:''}
-          </label>`).join('')}
-      </div>
-    </div>`).join('');
+  html+='</div>';
+  box.innerHTML=html;
 }
 function toggleDept(dept,checked){
   document.querySelectorAll('.participantCheck').forEach(cb=>{
     if(cb.dataset.dept===dept) cb.checked=checked;
+  });
+}
+function toggleSubgroup(subgroup,checked){
+  document.querySelectorAll('.participantCheck').forEach(cb=>{
+    if(cb.dataset.subgroup===subgroup) cb.checked=checked;
   });
 }
 function selectAllParticipants(checked){
