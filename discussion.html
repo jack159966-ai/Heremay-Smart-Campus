@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v1.4</title>
+<title>和美智慧校園｜討論區 v1.5</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -38,7 +38,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v1.4</span>
+  <span class="version">v1.5</span>
 </header>
 
 <section class="card userline">
@@ -121,17 +121,17 @@ function jsonp(action,params={}){
 }
 
 async function postDirect(action,payload){
-  const body=new URLSearchParams();
-  body.set('action',action);
-  body.set('payload',JSON.stringify(payload));
-
   const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),45000);
+  const timer=setTimeout(()=>controller.abort(),60000);
 
   try{
+    // 使用 text/plain 傳 JSON，可維持 simple request，不觸發 CORS preflight，
+    // 同時避開 Apps Script 對大型 URLSearchParams/form 欄位的解析問題。
     const res=await fetch(SERVICE_URL,{
       method:'POST',
-      body,
+      headers:{'Content-Type':'text/plain;charset=UTF-8'},
+      body:JSON.stringify({action,payload}),
+      redirect:'follow',
       signal:controller.signal
     });
 
@@ -141,7 +141,7 @@ async function postDirect(action,payload){
       result=JSON.parse(raw);
     }catch(e){
       if(/<!doctype|<html/i.test(raw)){
-        throw new Error('Google 伺服器拒絕了這次上傳要求，已改用分段上傳避免此問題');
+        throw new Error('Google 伺服器沒有把要求交給討論區後端');
       }
       throw new Error('後端回傳格式異常');
     }
@@ -370,8 +370,8 @@ async function prepareOneFile(file){
 
 
 async function uploadPreparedFileInChunks(prepared,messageId,fileNo,totalFiles,sendBtn){
-  // 每段 base64 約 450KB，遠低於 Apps Script 網頁應用程式可能拒絕的大型 POST。
-  const CHUNK_CHARS=450000;
+  // 每段 base64 約 120KB，遠低於 Apps Script 網頁應用程式可能拒絕的大型 POST。
+  const CHUNK_CHARS=120000;
   const base64=prepared.base64;
   const totalChunks=Math.ceil(base64.length/CHUNK_CHARS);
   const uploadId=(crypto?.randomUUID?.() || (Date.now()+'_'+Math.random().toString(36).slice(2)));
@@ -421,7 +421,7 @@ async function sendMessage(){
   try{
     if(sendBtn){
       sendBtn.disabled=true;
-      sendBtn.textContent=files.length?'正在準備附件…':'正在送出留言…';
+      sendBtn.textContent=files.length?'正在建立附件紀錄…':'正在送出留言…';
     }
 
     // 附件必須有一個 messageId 作為關聯，因此即使只有附件，
