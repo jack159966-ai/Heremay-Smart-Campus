@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v1.2</title>
+<title>和美智慧校園｜討論區 v1.3</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -19,7 +19,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 .room-top{display:flex;justify-content:space-between;gap:8px}.badge{border-radius:999px;padding:5px 8px;font-size:11px;font-weight:900;background:#e8f8ef;color:#23794f}.badge.arch{background:#eef1f4;color:#667782}
 .meta{margin-top:7px;color:var(--muted);font-size:12px;font-weight:750;line-height:1.5}.preview{margin-top:8px;font-size:14px;font-weight:800}.empty{text-align:center;color:var(--muted);font-weight:800;padding:22px 8px}
 .roomview{display:none}.roomview.show{display:block}.listview.hide{display:none}.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.pill{border-radius:999px;padding:5px 8px;border:1px solid var(--line);background:#f8fcff;color:#567386;font-size:11px;font-weight:900}
-.messages{display:grid;gap:9px;margin-top:14px}.msg{border:1px solid var(--line);border-radius:16px;padding:11px;background:#fff}.msg strong{color:#245c84}.msg .time{float:right;color:var(--muted);font-size:11px}.msg p{margin:6px 0 0;line-height:1.5;font-weight:750;white-space:pre-wrap}.attachmentList{display:grid;gap:6px;margin-top:9px}.attachmentLink{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:#f8fcff;color:#356f9a;text-decoration:none;font-size:12px;font-weight:900}.attachmentLink:hover{background:#eef8ff}
+.messages{display:grid;gap:9px;margin-top:14px}.msg{border:1px solid var(--line);border-radius:16px;padding:11px;background:#fff}.msg strong{color:#245c84}.msgHead{display:flex;align-items:center;gap:8px}.msgHead .time{margin-left:auto;color:var(--muted);font-size:11px}.deleteMsg{border:0;background:#fff1f1;color:#b45151;border-radius:9px;padding:4px 7px;font-size:11px;font-weight:900;cursor:pointer}.deleteMsg:hover{background:#ffe4e4}.msg p{margin:6px 0 0;line-height:1.5;font-weight:750;white-space:pre-wrap}.attachmentList{display:grid;gap:6px;margin-top:9px}.attachmentLink{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:#f8fcff;color:#356f9a;text-decoration:none;font-size:12px;font-weight:900}.attachmentLink:hover{background:#eef8ff}
 .row{display:flex;gap:8px;margin-top:8px}.row button{flex:1;border:0;border-radius:14px;padding:11px;font-weight:900;cursor:pointer}.soft{background:#eef5fa;color:#456f8e}.send{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff}
 .modal{position:fixed;inset:0;background:rgba(32,48,58,.42);display:none;align-items:flex-end;justify-content:center;padding:18px;z-index:30}.modal.show{display:flex}.sheet{width:min(100%,560px);max-height:88vh;overflow:auto;background:#fff;border-radius:26px;padding:17px}
 .label{display:block;margin:10px 0 5px;font-size:13px;font-weight:900;color:#526d7e}.hint{margin-top:8px;color:var(--muted);font-size:12px;font-weight:750;line-height:1.5}.close{width:100%;border:0;border-radius:15px;padding:11px;background:#eef3f6;color:#567386;font-weight:900;margin-top:10px;cursor:pointer}
@@ -38,7 +38,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v1.2</span>
+  <span class="version">v1.3</span>
 </header>
 
 <section class="card userline">
@@ -283,7 +283,9 @@ async function openRoom(id){
       const attachHtml=attachments.length
         ? `<div class="attachmentList">${attachments.map(a=>`<a class="attachmentLink" href="${esc(a.url)}" target="_blank" rel="noopener">📎 ${esc(a.name)}</a>`).join('')}</div>`
         : '';
-      return `<div class="msg"><strong>${esc(m.authorName||'同仁')}</strong><span class="time">${fmt(m.createdAt)}</span><p>${esc(m.text)}</p>${attachHtml}</div>`;
+      const delBtn=canDeleteMessage(m)?`<button class="deleteMsg" type="button" onclick="event.stopPropagation();deleteMessage('${esc(m.messageId)}')">刪除</button>`:'';
+      const textHtml=String(m.text||'').trim()?`<p>${esc(m.text)}</p>`:'';
+      return `<div class="msg"><div class="msgHead"><strong>${esc(m.authorName||'同仁')}</strong><span class="time">${fmt(m.createdAt)}</span>${delBtn}</div>${textHtml}${attachHtml}</div>`;
     }).join(''):'<div class="empty">這棟樓還沒有留言</div>';
   }catch(err){messageList.innerHTML=`<div class="empty">留言讀取失敗：${esc(err.message)}</div>`}
 }
@@ -357,14 +359,23 @@ async function prepareOneFile(file){
 
 async function sendMessage(){
   const text=messageInput.value.trim();
-  if(!text){toastMsg('請先輸入訊息');return}
-
   const files=[...fileInput.files];
+
+  if(!text && files.length===0){
+    toastMsg('請輸入訊息或選擇附件');
+    return;
+  }
+
   const sendBtn=document.querySelector('.send');
 
   try{
-    if(sendBtn){sendBtn.disabled=true;sendBtn.textContent='正在送出留言…'}
+    if(sendBtn){
+      sendBtn.disabled=true;
+      sendBtn.textContent=files.length?'正在準備附件…':'正在送出留言…';
+    }
 
+    // 附件必須有一個 messageId 作為關聯，因此即使只有附件，
+    // 也會建立「空文字留言」，畫面上只顯示附件，不顯示空白文字。
     const msgResult=await postDirect('addMessage',{
       roomId:currentRoomId,
       authorId:currentUserId,
@@ -381,8 +392,6 @@ async function sendMessage(){
       if(sendBtn)sendBtn.textContent=`處理附件 ${i+1}/${files.length}…`;
       const prepared=await prepareOneFile(file);
 
-      const savedKB=Math.round(prepared.uploadBytes/1024);
-      toastMsg(`📎 上傳 ${i+1}/${files.length}：${prepared.name}（${savedKB}KB）`);
       if(sendBtn)sendBtn.textContent=`上傳附件 ${i+1}/${files.length}…`;
 
       await postDirect('uploadAttachment',{
@@ -399,13 +408,19 @@ async function sendMessage(){
     messageInput.value='';
     fileInput.value='';
     await openRoom(currentRoomId);
-    toastMsg(files.length?`✅ 留言與 ${files.length} 個附件都已完成`:'✅ 留言已送出');
+
+    if(text && files.length) toastMsg(`✅ 訊息與 ${files.length} 個附件已送出`);
+    else if(files.length) toastMsg(`✅ ${files.length} 個附件已送出`);
+    else toastMsg('✅ 留言已送出');
 
   }catch(err){
     toastMsg('⚠️ '+err.message);
     try{await openRoom(currentRoomId)}catch(e){}
   }finally{
-    if(sendBtn){sendBtn.disabled=false;sendBtn.textContent='送出訊息'}
+    if(sendBtn){
+      sendBtn.disabled=false;
+      sendBtn.textContent='送出訊息';
+    }
   }
 }
 
@@ -433,27 +448,36 @@ function goBack(){
 
 
 function canDeleteMessage(msg){
-  const uid=String(currentEmployee?.employeeId||'').trim();
-  const uname=String(currentUser||'').trim();
-  const authorId=String(msg.userId||msg.messageUserId||msg['留言人ID']||'').trim();
-  const authorName=String(msg.userName||msg.messageUserName||msg['留言人姓名']||'').trim();
-  const own=(uid&&authorId&&uid===authorId)||(uname&&authorName&&uname===authorName);
-  const manager=/管理|主管|園長|主任|負責人/.test(String(currentEmployee?.jobTitle||currentEmployee?.identity||currentEmployee?.homeType||''));
-  return own||manager;
+  const authorId=String(msg.authorId||'').trim();
+  const authorName=String(msg.authorName||'').trim();
+  const own=(currentUserId&&authorId&&String(currentUserId)===authorId) ||
+            (currentUser&&authorName&&String(currentUser)===authorName);
+
+  const role=String(localStorage.getItem('heremay.currentRole')||'').toLowerCase();
+  const profile=[
+    employee.jobTitle,employee.title,employee.identityCategory,
+    employee.identity,employee.group,employee.department,employee.homeType
+  ].filter(Boolean).join('｜');
+
+  const manager=(role==='admin') || /負責人|園長|主任|主管|管理/.test(profile);
+  return own || manager;
 }
 
 async function deleteMessage(messageId){
   if(!messageId)return;
   if(!confirm('確定刪除這則留言？'))return;
-  const payload={
-    action:'deleteMessage',
-    messageId,
-    userId:String(currentEmployee?.employeeId||'').trim(),
-    userName:currentUser
-  };
-  const res=await postJson(payload);
-  if(!res?.ok)throw new Error(res?.error||'刪除失敗');
-  await openRoom(currentRoomId);
+
+  try{
+    await postDirect('deleteMessage',{
+      messageId,
+      userId:currentUserId,
+      userName:currentUser
+    });
+    toastMsg('✅ 留言已刪除');
+    await openRoom(currentRoomId);
+  }catch(err){
+    toastMsg('⚠️ '+err.message);
+  }
 }
 
 async function init(){
