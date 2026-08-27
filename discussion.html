@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v2.2</title>
+<title>和美智慧校園｜討論區 v2.3</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -71,6 +71,19 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
   padding:4px 8px;font-size:11px
 }
 
+
+.cleanupBar{display:flex;gap:8px;align-items:center;margin:8px 0 10px;flex-wrap:wrap}
+.cleanupBtn,.batchDeleteBtn,.cleanupCancelBtn{
+  border:0;border-radius:10px;padding:7px 11px;font-weight:800;cursor:pointer;font-size:12px
+}
+.cleanupBtn{background:#eef6fb;color:#2b668e}
+.batchDeleteBtn{background:#ffecec;color:#b34747}
+.cleanupCancelBtn{background:#f2f4f6;color:#60717c}
+.msg.batchMode{padding-left:42px;position:relative}
+.msgSelect{
+  position:absolute;left:13px;top:18px;width:18px;height:18px;cursor:pointer
+}
+
 </style>
 </head>
 <body>
@@ -78,7 +91,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v2.2</span>
+  <span class="version">v2.3</span>
 </header>
 
 <section class="card userline">
@@ -101,6 +114,11 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
     <button class="soft" style="border:0;border-radius:12px;padding:8px 10px;font-weight:900" onclick="closeRoom()">返回列表</button>
   </div>
   <div class="pills" id="roomParticipants"></div>
+      <div class="cleanupBar">
+        <button class="cleanupBtn" id="cleanupBtn" type="button" onclick="toggleCleanupMode()">整理留言</button>
+        <button class="batchDeleteBtn" id="batchDeleteBtn" type="button" onclick="batchDeleteSelected()" style="display:none">刪除選取</button>
+        <button class="cleanupCancelBtn" id="cleanupCancelBtn" type="button" onclick="toggleCleanupMode(false)" style="display:none">取消</button>
+      </div>
   <div class="messages" id="messageList"></div>
   <div id="composerBox" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:12px">
     <textarea id="messageInput" rows="4" placeholder="輸入公務訊息…"></textarea>
@@ -368,7 +386,7 @@ async function openRoom(id){
         : '';
       const delBtn=canDeleteMessage(m)?`<button class="deleteMsg" type="button" onclick="event.stopPropagation();deleteMessage('${esc(m.messageId)}')">刪除</button>`:'';
       const textHtml=String(m.text||'').trim()?`<p>${esc(m.text)}</p>`:'';
-      return `<div class="msg"><div class="msgHead"><strong>${esc(m.authorName||'同仁')}</strong><span class="time">${fmt(m.createdAt)}</span>${delBtn}</div>${textHtml}${attachHtml}</div>`;
+      return `<div class="msg" data-message-id="${esc(m.messageId||'')}"><div class="msgHead"><strong>${esc(m.authorName||'同仁')}</strong><span class="time">${fmt(m.createdAt)}</span>${delBtn}</div>${textHtml}${attachHtml}</div>`;
     }).join(''):'<div class="empty">這棟樓還沒有留言</div>';
   }catch(err){messageList.innerHTML=`<div class="empty">留言讀取失敗：${esc(err.message)}</div>`}
 }
@@ -557,6 +575,7 @@ function appendSentMessageLocally({messageId,text,attachments,createdAt}){
 
   const wrap=document.createElement('div');
   wrap.className='msg';
+  wrap.dataset.messageId=messageId;
   wrap.innerHTML=`<div class="msgHead"><strong>${esc(currentUser||'同仁')}</strong><span class="time">${fmt(createdAt)}</span>${delBtn}</div>${textHtml}${attachHtml}`;
   messageList.appendChild(wrap);
   wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -732,6 +751,76 @@ function goBack(){
 
 
 
+
+let cleanupMode=false;
+
+function toggleCleanupMode(force){
+  cleanupMode = typeof force==='boolean' ? force : !cleanupMode;
+
+  const btn=document.getElementById('cleanupBtn');
+  const batch=document.getElementById('batchDeleteBtn');
+  const cancel=document.getElementById('cleanupCancelBtn');
+
+  if(btn)btn.style.display=cleanupMode?'none':'inline-block';
+  if(batch)batch.style.display=cleanupMode?'inline-block':'none';
+  if(cancel)cancel.style.display=cleanupMode?'inline-block':'none';
+
+  document.querySelectorAll('#messageList .msg').forEach(msg=>{
+    const del=msg.querySelector('.deleteMsg');
+    const can=!!del;
+    msg.classList.toggle('batchMode', cleanupMode && can);
+
+    let cb=msg.querySelector('.msgSelect');
+    if(cleanupMode && can){
+      if(!cb){
+        cb=document.createElement('input');
+        cb.type='checkbox';
+        cb.className='msgSelect';
+        cb.value=msg.dataset.messageId||'';
+        msg.prepend(cb);
+      }
+      cb.style.display='';
+    }else if(cb){
+      cb.remove();
+    }
+  });
+}
+
+async function batchDeleteSelected(){
+  const ids=[...document.querySelectorAll('#messageList .msgSelect:checked')]
+    .map(x=>x.value).filter(Boolean);
+
+  if(!ids.length){
+    toastMsg('請先勾選要刪除的留言');
+    return;
+  }
+  if(!confirm(`確定一次刪除 ${ids.length} 則留言？`))return;
+
+  const selectedMsgs=new Map();
+  ids.forEach(id=>{
+    const el=document.querySelector(`#messageList .msg[data-message-id="${CSS.escape(id)}"]`);
+    if(el){
+      selectedMsgs.set(id,{el,parent:el.parentNode,next:el.nextSibling});
+      el.style.display='none'; // 先在畫面消失，體感立即
+    }
+  });
+
+  try{
+    const t0=performance.now();
+    const r=await postDirect('batchDeleteMessages',{
+      messageIds:ids,
+      userId:currentUserId,
+      userName:currentUser
+    });
+    selectedMsgs.forEach(({el})=>el.remove());
+    toggleCleanupMode(false);
+    toastMsg(`✅ 已刪除 ${r.deletedCount||ids.length} 則（${((performance.now()-t0)/1000).toFixed(1)}秒）`);
+  }catch(err){
+    selectedMsgs.forEach(({el})=>el.style.display='');
+    toastMsg('⚠️ '+err.message);
+  }
+}
+
 function toggleParticipantList(id,btn){
   const el=document.getElementById(id);
   if(!el)return;
@@ -760,18 +849,23 @@ async function deleteMessage(messageId){
   if(!messageId)return;
   if(!confirm('確定刪除這則留言？'))return;
 
+  const el=document.querySelector(`#messageList .msg[data-message-id="${CSS.escape(messageId)}"]`);
+  if(el)el.style.display='none';
+
   try{
     await postDirect('deleteMessage',{
       messageId,
       userId:currentUserId,
       userName:currentUser
     });
+    if(el)el.remove();
     toastMsg('✅ 留言已刪除');
-    await openRoom(currentRoomId);
   }catch(err){
+    if(el)el.style.display='';
     toastMsg('⚠️ '+err.message);
   }
 }
+
 
 async function init(){
   userName.textContent=currentUser;
