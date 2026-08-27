@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜Heremay Smart Campus v1.4.5</title>
+  <title>和美智慧校園｜Heremay Smart Campus v1.4.6</title>
 
   <!-- 手機桌面圖示與 PWA 設定 -->
   <meta name="theme-color" content="#eef9ff" />
@@ -314,7 +314,7 @@
 
     <footer>
       資料安全・隱私保護・安心使用<br />
-      <span id="versionText">Heremay Smart Campus v1.4.5</span>
+      <span id="versionText">Heremay Smart Campus v1.4.6</span>
     </footer>
   </main>
 
@@ -335,7 +335,7 @@
 
 
   <script>
-    const APP_VERSION = '1.4.5';
+    const APP_VERSION = '1.4.6';
 
     /*
       正式登入架構說明
@@ -357,7 +357,8 @@
       admin: 'admin.html',
       leader: 'leader.html',
       teacher: 'teacher.html',
-      support: 'support.html'
+      support: 'support.html',
+      parttime: 'parttime.html'
     };
 
     // 僅供尚未完成後端前測試畫面分流；正式上線後由伺服器回傳角色。
@@ -370,7 +371,8 @@
       '教保':'teacher','教保人員':'teacher','002':'teacher',
       'support':'support','support01':'support','庶務':'support',
       '庶務人員':'support','廚工':'support','清潔':'support',
-      '清潔人員':'support','003':'support'
+      '清潔人員':'support','003':'support',
+      'parttime':'parttime','兼任':'parttime','外聘':'parttime'
     };
 
     function setUpdateStatus(message, state='normal'){
@@ -804,7 +806,7 @@
           localStorage.removeItem('heremay.currentEmployee');
         }
 
-        goRole(result.role);
+        goRole(result.role, result.employee);
       }catch(err){
         console.error(err);
         if(err.name === 'NotAllowedError'){
@@ -896,7 +898,7 @@
         }
 
         document.getElementById('password').value = '';
-        goRole(result.role);
+        goRole(result.role, result.employee);
       }catch(err){
         console.error(err);
         showToast(`登入失敗：${err.message || err.name}`);
@@ -916,7 +918,31 @@
       if(event.target.id === 'faceModal') hideFaceModal();
     }
 
-    function goRole(role){
+    function goRole(role, employee=null){
+      const emp = employee || (() => {
+        try{
+          const raw = localStorage.getItem('heremay.currentEmployee');
+          return raw ? JSON.parse(raw) : null;
+        }catch(e){
+          return null;
+        }
+      })();
+
+      const homeType = String(emp?.homeType || emp?.['首頁類型'] || '').trim();
+      const identity = String(emp?.identity || emp?.identityCategory || emp?.['身分類別'] || '').trim();
+      const group = String(emp?.group || emp?.department || emp?.['編組'] || '').trim();
+
+      // 外聘兼任教師優先依人員主檔導向 parttime.html，
+      // 即使舊登入後端暫時仍回傳 teacher，也不會被送進教保首頁。
+      if(
+        homeType === '兼任首頁' ||
+        identity === '外聘兼任教師' ||
+        group === '外聘教師'
+      ){
+        window.location.href = routes.parttime;
+        return;
+      }
+
       const target = routes[role];
       if(!target){
         showToast('登入成功，但尚未設定此身分的首頁。');
