@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜庶務人員首頁 v13.5 討論區入口</title>
+  <title>和美智慧校園｜庶務人員首頁 v13.6 討論區未讀提示</title>
   <style>
     :root{
       --bg1:#f1fff6;
@@ -513,10 +513,34 @@
       .primary{grid-column:span 1}
       .due-grid{grid-template-columns:1fr}
     }
-  </style>
+  
+.discussionUnreadNotice{
+  display:none;align-items:center;gap:10px;
+  margin:10px 0 14px;padding:12px 14px;border-radius:14px;
+  background:#fff2f2;border:1px solid #efb1b1;color:#a63e3e;
+  font-weight:900;cursor:pointer;
+}
+.discussionUnreadNotice.show{display:flex}
+.discussionUnreadNotice .noticeDot{
+  width:10px;height:10px;border-radius:50%;background:#e65353;flex:0 0 auto;
+}
+.discussionUnreadNotice .noticeArrow{margin-left:auto}
+.discussionCardUnreadDot{
+  display:none;position:absolute;top:10px;right:10px;width:12px;height:12px;
+  border-radius:50%;background:#e65353;box-shadow:0 0 0 3px #fff;
+}
+.hasDiscussionUnread{position:relative}
+.hasDiscussionUnread .discussionCardUnreadDot{display:block}
+
+</style>
 </head>
 <body>
   <main class="phone">
+    <div id="discussionUnreadNotice" class="discussionUnreadNotice" onclick="location.href='discussion.html'">
+      <span class="noticeDot"></span>
+      <span>討論區有未讀訊息</span>
+      <span class="noticeArrow">›</span>
+    </div>
     <header class="top">
       <div class="brand">
         <div class="logo">🏡</div>
@@ -627,7 +651,8 @@
           <span>回報設備故障、耗材不足或需要協助事項</span>
         </button>
 
-        <button class="btn" onclick="window.location.href='discussion.html'">
+        <button class="btn hasDiscussionUnread" id="discussionHomeCard" onclick="window.location.href='discussion.html'">
+          <span class="discussionCardUnreadDot" aria-hidden="true"></span>
           <div class="icon">💬</div>
           <strong>討論區</strong>
           <span>公務交流、事件討論與檔案分享</span>
@@ -653,7 +678,7 @@
       </div>
     </section>
 
-    <div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.5｜討論區入口</div>
+    <div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.6｜討論區未讀提示</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -1232,6 +1257,58 @@
     restoreLocalAcks();
     loadCloudAckRecords();
     loadReminderRecords();
-  </script>
+  
+const DISCUSSION_NOTIFY_URL = 'https://script.google.com/macros/s/AKfycbxuvqWI2FlvCk5ZdEfhSNMF6O79pElfx2p4PZBIk-xT1zw0NVorhzX8wNPF9oOHxY2x/exec';
+
+function discussionJsonp(action, params={}){
+  return new Promise((resolve,reject)=>{
+    const cb='hm_discuss_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    const timer=setTimeout(()=>{cleanup();reject(new Error('討論區提示連線逾時'));},10000);
+
+    function cleanup(){
+      clearTimeout(timer);
+      try{delete window[cb];}catch(e){}
+      script.remove();
+    }
+
+    window[cb]=(data)=>{cleanup();resolve(data);};
+    const q=new URLSearchParams({action,callback:cb,...params});
+    script.src=DISCUSSION_NOTIFY_URL+'?'+q.toString();
+    script.onerror=()=>{cleanup();reject(new Error('討論區提示讀取失敗'));};
+    document.head.appendChild(script);
+  });
+}
+
+function getHomeEmployee(){
+  try{
+    const raw=localStorage.getItem('heremay.currentEmployee');
+    return raw?JSON.parse(raw):null;
+  }catch(e){
+    return null;
+  }
+}
+
+async function refreshDiscussionUnreadNotice(){
+  const employee=getHomeEmployee();
+  const userId=String(employee?.employeeId||'').trim();
+  const userName=String(employee?.name||'').trim();
+  if(!userId && !userName)return;
+
+  try{
+    const result=await discussionJsonp('getUnreadSummary',{userId,userName});
+    const hasUnread=!!result?.hasUnread;
+    document.getElementById('discussionUnreadNotice')?.classList.toggle('show',hasUnread);
+    document.getElementById('discussionHomeCard')?.classList.toggle('hasDiscussionUnread',hasUnread);
+  }catch(err){
+    console.warn('討論區未讀提示：',err.message);
+  }
+}
+
+window.addEventListener('pageshow',refreshDiscussionUnreadNotice);
+setTimeout(refreshDiscussionUnreadNotice,700);
+setInterval(refreshDiscussionUnreadNotice,60000);
+
+</script>
 </body>
 </html>
