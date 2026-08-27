@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v1.7</title>
+<title>和美智慧校園｜討論區 v1.8</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -38,7 +38,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v1.7</span>
+  <span class="version">v1.8</span>
 </header>
 
 <section class="card userline">
@@ -471,6 +471,25 @@ async function uploadPreparedFileInChunks(prepared,messageId,fileNo,totalFiles,s
   };
 }
 
+
+function appendSentMessageLocally({messageId,text,attachments,createdAt}){
+  const empty=messageList.querySelector('.empty');
+  if(empty) empty.remove();
+
+  const attachHtml=(attachments||[]).length
+    ? `<div class="attachmentList">${attachments.map(a=>`<a class="attachmentLink" href="${esc(a.url)}" target="_blank" rel="noopener">📎 ${esc(a.name)}</a>`).join('')}</div>`
+    : '';
+
+  const textHtml=String(text||'').trim()?`<p>${esc(text)}</p>`:'';
+  const delBtn=`<button class="deleteMsg" type="button" onclick="event.stopPropagation();deleteMessage('${esc(messageId)}')">刪除</button>`;
+
+  const wrap=document.createElement('div');
+  wrap.className='msg';
+  wrap.innerHTML=`<div class="msgHead"><strong>${esc(currentUser||'同仁')}</strong><span class="time">${fmt(createdAt)}</span>${delBtn}</div>${textHtml}${attachHtml}`;
+  messageList.appendChild(wrap);
+  wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
 async function sendMessage(){
   const text=messageInput.value.trim();
   const files=[...fileInput.files];
@@ -485,6 +504,7 @@ async function sendMessage(){
   try{
     const timingLines=[];
     const totalStart=nowMs();
+    const uploadedAttachments=[];
 
     if(sendBtn){
       sendBtn.disabled=true;
@@ -522,6 +542,10 @@ async function sendMessage(){
         sendBtn
       );
 
+      if(uploaded?.result?.attachment){
+        uploadedAttachments.push(uploaded.result.attachment);
+      }
+
       if(uploaded.timing.mode==='fast'){
         timingLines.push(`快速上傳 ${sec(uploaded.timing.fastMs)}秒`);
       }else{
@@ -535,10 +559,15 @@ async function sendMessage(){
     messageInput.value='';
     fileInput.value='';
 
-    const tRefresh=nowMs();
-    await openRoom(currentRoomId);
-    const refreshMs=nowMs()-tRefresh;
-    timingLines.push(`重新整理 ${sec(refreshMs)}秒`);
+    const tLocal=nowMs();
+    appendSentMessageLocally({
+      messageId,
+      text,
+      attachments:uploadedAttachments,
+      createdAt:new Date().toISOString()
+    });
+    const localMs=nowMs()-tLocal;
+    timingLines.push(`畫面更新 ${sec(localMs)}秒`);
 
     const totalMs=nowMs()-totalStart;
     timingLines.push(`總計 ${sec(totalMs)}秒`);
