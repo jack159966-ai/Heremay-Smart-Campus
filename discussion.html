@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v1.6</title>
+<title>和美智慧校園｜討論區 v1.7</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -38,7 +38,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v1.6</span>
+  <span class="version">v1.7</span>
 </header>
 
 <section class="card userline">
@@ -380,20 +380,54 @@ function showUploadTiming(lines){
 }
 
 async function uploadPreparedFileInChunks(prepared,messageId,fileNo,totalFiles,sendBtn){
-  const CHUNK_CHARS=120000;
+  const FAST_LIMIT_CHARS=700000;   // 約 500KB 實際檔案的 base64；先走單次快速上傳
+  const CHUNK_CHARS=240000;        // 需要分段時，每段放大到約 240KB
   const base64=prepared.base64;
+
+  // 小型／已壓縮附件先嘗試一次直接送出。
+  // 若 Google 拒絕，再自動退回分段上傳，不需要使用者重選檔案。
+  if(base64.length<=FAST_LIMIT_CHARS){
+    if(sendBtn)sendBtn.textContent=`快速上傳附件 ${fileNo}/${totalFiles}…`;
+
+    const tFast=nowMs();
+    try{
+      const result=await postDirect('uploadAttachment',{
+        roomId:currentRoomId,
+        messageId,
+        uploaderId:currentUserId,
+        uploaderName:currentUser,
+        name:prepared.name,
+        mimeType:prepared.mimeType,
+        base64
+      });
+
+      return {
+        result,
+        timing:{
+          chunkTimes:[],
+          fastMs:nowMs()-tFast,
+          finalizeMs:0,
+          totalMs:nowMs()-tFast,
+          mode:'fast'
+        }
+      };
+    }catch(err){
+      console.warn('快速上傳失敗，自動改用分段：',err.message);
+      // 接著往下走分段模式
+    }
+  }
+
   const totalChunks=Math.ceil(base64.length/CHUNK_CHARS);
   const uploadId=(crypto?.randomUUID?.() || (Date.now()+'_'+Math.random().toString(36).slice(2)));
   const chunkFileIds=[];
   const chunkTimes=[];
-
   const tAll=nowMs();
 
   for(let i=0;i<totalChunks;i++){
     const part=base64.slice(i*CHUNK_CHARS,(i+1)*CHUNK_CHARS);
 
     if(sendBtn){
-      sendBtn.textContent=`上傳附件 ${fileNo}/${totalFiles}（${i+1}/${totalChunks}）`;
+      sendBtn.textContent=`分段上傳 ${fileNo}/${totalFiles}（${i+1}/${totalChunks}）`;
     }
 
     const tChunk=nowMs();
@@ -429,8 +463,10 @@ async function uploadPreparedFileInChunks(prepared,messageId,fileNo,totalFiles,s
     result,
     timing:{
       chunkTimes,
+      fastMs:0,
       finalizeMs,
-      totalMs
+      totalMs,
+      mode:'chunk'
     }
   };
 }
@@ -486,10 +522,14 @@ async function sendMessage(){
         sendBtn
       );
 
-      uploaded.timing.chunkTimes.forEach((ms,idx)=>{
-        timingLines.push(`分段${idx+1} ${sec(ms)}秒`);
-      });
-      timingLines.push(`合併 ${sec(uploaded.timing.finalizeMs)}秒`);
+      if(uploaded.timing.mode==='fast'){
+        timingLines.push(`快速上傳 ${sec(uploaded.timing.fastMs)}秒`);
+      }else{
+        uploaded.timing.chunkTimes.forEach((ms,idx)=>{
+          timingLines.push(`分段${idx+1} ${sec(ms)}秒`);
+        });
+        timingLines.push(`合併 ${sec(uploaded.timing.finalizeMs)}秒`);
+      }
     }
 
     messageInput.value='';
