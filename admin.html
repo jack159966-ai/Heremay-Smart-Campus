@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.17</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.18</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -518,11 +518,49 @@
       .desktopToolBtn span{display:none}
     }
     @media(max-width:520px){.bottomToolGrid{gap:10px}.bottomSquareBtn{min-height:150px;border-radius:20px;padding:16px 8px}.bottomSquareBtn .sqIcon{font-size:38px}.bottomSquareBtn strong{font-size:18px}.bottomSquareBtn span{display:block;font-size:12px}}
-  </style>
+  
+.discussionUnreadNotice{
+  display:none;
+  align-items:center;
+  gap:10px;
+  margin:10px 0 14px;
+  padding:12px 14px;
+  border-radius:14px;
+  background:#fff2f2;
+  border:1px solid #efb1b1;
+  color:#a63e3e;
+  font-weight:900;
+  cursor:pointer;
+}
+.discussionUnreadNotice.show{display:flex}
+.discussionUnreadNotice .noticeDot{
+  width:10px;height:10px;border-radius:50%;background:#e65353;flex:0 0 auto;
+}
+.discussionUnreadNotice .noticeArrow{margin-left:auto}
+.discussionCardUnreadDot{
+  display:none;
+  position:absolute;
+  top:10px;
+  right:10px;
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:#e65353;
+  box-shadow:0 0 0 3px #fff;
+}
+.hasDiscussionUnread{position:relative}
+.hasDiscussionUnread .discussionCardUnreadDot{display:block}
+
+</style>
 </head>
 <body class="auth-pending">
   <div class="toast" id="toast"></div>
   <main class="app" id="home">
+    <div id="discussionUnreadNotice" class="discussionUnreadNotice" onclick="location.href='discussion.html'">
+      <span class="noticeDot"></span>
+      <span>討論區有未讀訊息</span>
+      <span class="noticeArrow">›</span>
+    </div>
     <header class="dashboardHeader">
       <div class="dashboardLogo"><img src="assets/logo.png?v=20260727f" alt="和美智慧校園 Logo" onerror="this.parentElement.textContent='🏰'"></div>
       <div class="dashboardIdentity">
@@ -595,7 +633,8 @@
       <button class="bottomSquareBtn" type="button" onclick="location.href='secretary.html'">
         <span class="sqIcon">🤖</span><strong>智慧秘書</strong><span>行事曆、公告與專案</span>
       </button>
-      <button class="bottomSquareBtn" type="button" onclick="location.href='discussion.html'">
+      <button class="bottomSquareBtn hasDiscussionUnread" id="discussionHomeCard" type="button" onclick="location.href='discussion.html'">
+        <span class="discussionCardUnreadDot" aria-hidden="true"></span>
         <span class="sqIcon">💬</span><strong>討論區</strong><span>公務交流、事件討論與檔案分享</span>
       </button>
       <button class="bottomSquareBtn" type="button" onclick="location.href='schedule.html'">
@@ -633,7 +672,7 @@
       </div>
     </section>
 
-    <div class="versionStamp">主管工作台 v24.17｜2026-08-21｜巡堂醒目化與排班管理移至電腦專用</div>
+    <div class="versionStamp">主管工作台 v24.18｜2026-08-21｜巡堂醒目化與排班管理移至電腦專用</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
@@ -1519,6 +1558,72 @@ function setupDesktopTools(){
 
 window.addEventListener('resize', setupDesktopTools);
 window.addEventListener('DOMContentLoaded', setupDesktopTools);
+
+
+const DISCUSSION_NOTIFY_URL = 'https://script.google.com/macros/s/AKfycbxuvqWI2FlvCk5ZdEfhSNMF6O79pElfx2p4PZBIk-xT1zw0NVorhzX8wNPF9oOHxY2x/exec';
+
+function discussionJsonp(action, params={}){
+  return new Promise((resolve,reject)=>{
+    const cb='hm_discuss_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    const timer=setTimeout(()=>{
+      cleanup();
+      reject(new Error('討論區提示連線逾時'));
+    },10000);
+
+    function cleanup(){
+      clearTimeout(timer);
+      try{delete window[cb];}catch(e){}
+      script.remove();
+    }
+
+    window[cb]=(data)=>{
+      cleanup();
+      resolve(data);
+    };
+
+    const q=new URLSearchParams({action,callback:cb,...params});
+    script.src=DISCUSSION_NOTIFY_URL+'?'+q.toString();
+    script.onerror=()=>{
+      cleanup();
+      reject(new Error('討論區提示讀取失敗'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+function getHomeEmployee(){
+  try{
+    const raw=localStorage.getItem('heremay.currentEmployee');
+    return raw?JSON.parse(raw):null;
+  }catch(e){
+    return null;
+  }
+}
+
+async function refreshDiscussionUnreadNotice(){
+  const employee=getHomeEmployee();
+  const userId=String(employee?.employeeId||'').trim();
+  const userName=String(employee?.name||'').trim();
+  if(!userId && !userName)return;
+
+  try{
+    const result=await discussionJsonp('getUnreadSummary',{userId,userName});
+    const hasUnread=!!result?.hasUnread;
+
+    const notice=document.getElementById('discussionUnreadNotice');
+    const card=document.getElementById('discussionHomeCard');
+
+    if(notice)notice.classList.toggle('show',hasUnread);
+    if(card)card.classList.toggle('hasDiscussionUnread',hasUnread);
+  }catch(err){
+    console.warn('討論區未讀提示：',err.message);
+  }
+}
+
+window.addEventListener('pageshow',refreshDiscussionUnreadNotice);
+setTimeout(refreshDiscussionUnreadNotice,700);
+setInterval(refreshDiscussionUnreadNotice,60000);
 
 </script>
 </body>
