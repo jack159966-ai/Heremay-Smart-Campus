@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v1.9</title>
+<title>和美智慧校園｜討論區 v2.0</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -38,7 +38,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v1.9</span>
+  <span class="version">v2.0</span>
 </header>
 
 <section class="card userline">
@@ -282,7 +282,13 @@ async function openRoom(id){
   const r=cloudRooms.find(x=>x.roomId===id);if(!r)return;
   currentRoomId=id;listView.classList.add('hide');roomView.classList.add('show');
   roomTitle.textContent=r.title;roomMeta.textContent=`建立：${r.creatorName}｜${fmt(r.createdAt)}｜保存 ${r.retention||'30'}${String(r.retention)==='永久'?'':'天'}`;
-  roomParticipants.innerHTML='<span class="pill">參與人員依討論樓權限控管</span>';
+  const participants=Array.isArray(r.participants)?r.participants:[];
+  roomParticipants.innerHTML=participants.length
+    ? participants.map(p=>{
+        const detail=[p.department,p.subgroup].filter(Boolean).join('・');
+        return `<span class="pill">${esc(p.name||'未命名')}${detail?` <small>(${esc(detail)})</small>`:''}</span>`;
+      }).join('')
+    : '<span class="pill">尚未取得參與人員資料</span>';
   messageList.innerHTML='<div class="loadingBox">正在讀取留言…</div>';
   composerBox.style.display=r.status==='已封存'?'none':'block';
   archiveBtn.style.display=(!isGuest()&&r.status!=='已封存')?'block':'none';
