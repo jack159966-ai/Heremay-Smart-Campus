@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v1.8</title>
+<title>和美智慧校園｜討論區 v1.9</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -38,7 +38,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v1.8</span>
+  <span class="version">v1.9</span>
 </header>
 
 <section class="card userline">
@@ -504,55 +504,109 @@ async function sendMessage(){
   try{
     const timingLines=[];
     const totalStart=nowMs();
+    let messageId='';
     const uploadedAttachments=[];
+    let createdAt=new Date().toISOString();
 
     if(sendBtn){
       sendBtn.disabled=true;
-      sendBtn.textContent=files.length?'正在建立附件紀錄…':'正在送出留言…';
+      sendBtn.textContent=files.length?'正在準備附件…':'正在送出留言…';
     }
 
-    const tMessage=nowMs();
-    const msgResult=await postDirect('addMessage',{
-      roomId:currentRoomId,
-      authorId:currentUserId,
-      authorName:currentUser,
-      text
-    });
-    const messageMs=nowMs()-tMessage;
-    timingLines.push(`建立紀錄 ${sec(messageMs)}秒`);
-
-    const messageId=msgResult.messageId;
-    if(!messageId)throw new Error('後端沒有回傳留言ID');
-
-    for(let i=0;i<files.length;i++){
-      const file=files[i];
-
-      if(sendBtn)sendBtn.textContent=`處理附件 ${i+1}/${files.length}…`;
-
+    // 小檔案最快路徑：一則訊息 + 一個附件，合併成單次後端請求。
+    if(files.length===1){
       const tPrepare=nowMs();
-      const prepared=await prepareOneFile(file);
+      const prepared=await prepareOneFile(files[0]);
       const prepareMs=nowMs()-tPrepare;
       timingLines.push(`準備檔案 ${sec(prepareMs)}秒`);
 
-      const uploaded=await uploadPreparedFileInChunks(
-        prepared,
-        messageId,
-        i+1,
-        files.length,
-        sendBtn
-      );
+      const FAST_COMBINED_LIMIT=700000;
 
-      if(uploaded?.result?.attachment){
-        uploadedAttachments.push(uploaded.result.attachment);
+      if(prepared.base64.length<=FAST_COMBINED_LIMIT){
+        if(sendBtn)sendBtn.textContent='快速送出附件…';
+
+        const tCombined=nowMs();
+        const result=await postDirect('addMessageWithAttachment',{
+          roomId:currentRoomId,
+          authorId:currentUserId,
+          authorName:currentUser,
+          text,
+          name:prepared.name,
+          mimeType:prepared.mimeType,
+          base64:prepared.base64
+        });
+        const combinedMs=nowMs()-tCombined;
+
+        messageId=result.messageId;
+        createdAt=result.createdAt||createdAt;
+        if(result.attachment)uploadedAttachments.push(result.attachment);
+        timingLines.push(`單次送出 ${sec(combinedMs)}秒`);
+      }else{
+        // 大檔案：維持原本安全流程
+        const tMessage=nowMs();
+        const msgResult=await postDirect('addMessage',{
+          roomId:currentRoomId,
+          authorId:currentUserId,
+          authorName:currentUser,
+          text
+        });
+        timingLines.push(`建立紀錄 ${sec(nowMs()-tMessage)}秒`);
+        messageId=msgResult.messageId;
+        if(!messageId)throw new Error('後端沒有回傳留言ID');
+
+        const uploaded=await uploadPreparedFileInChunks(
+          prepared,messageId,1,1,sendBtn
+        );
+
+        if(uploaded?.result?.attachment){
+          uploadedAttachments.push(uploaded.result.attachment);
+        }
+
+        if(uploaded.timing.mode==='fast'){
+          timingLines.push(`快速上傳 ${sec(uploaded.timing.fastMs)}秒`);
+        }else{
+          uploaded.timing.chunkTimes.forEach((ms,idx)=>{
+            timingLines.push(`分段${idx+1} ${sec(ms)}秒`);
+          });
+          timingLines.push(`合併 ${sec(uploaded.timing.finalizeMs)}秒`);
+        }
       }
 
-      if(uploaded.timing.mode==='fast'){
-        timingLines.push(`快速上傳 ${sec(uploaded.timing.fastMs)}秒`);
-      }else{
-        uploaded.timing.chunkTimes.forEach((ms,idx)=>{
-          timingLines.push(`分段${idx+1} ${sec(ms)}秒`);
-        });
-        timingLines.push(`合併 ${sec(uploaded.timing.finalizeMs)}秒`);
+    }else{
+      // 純文字或多附件：沿用原本穩定流程
+      const tMessage=nowMs();
+      const msgResult=await postDirect('addMessage',{
+        roomId:currentRoomId,
+        authorId:currentUserId,
+        authorName:currentUser,
+        text
+      });
+      timingLines.push(`建立紀錄 ${sec(nowMs()-tMessage)}秒`);
+
+      messageId=msgResult.messageId;
+      if(!messageId)throw new Error('後端沒有回傳留言ID');
+
+      for(let i=0;i<files.length;i++){
+        const tPrepare=nowMs();
+        const prepared=await prepareOneFile(files[i]);
+        timingLines.push(`準備檔案${i+1} ${sec(nowMs()-tPrepare)}秒`);
+
+        const uploaded=await uploadPreparedFileInChunks(
+          prepared,messageId,i+1,files.length,sendBtn
+        );
+
+        if(uploaded?.result?.attachment){
+          uploadedAttachments.push(uploaded.result.attachment);
+        }
+
+        if(uploaded.timing.mode==='fast'){
+          timingLines.push(`快速上傳${i+1} ${sec(uploaded.timing.fastMs)}秒`);
+        }else{
+          uploaded.timing.chunkTimes.forEach((ms,idx)=>{
+            timingLines.push(`附件${i+1}-分段${idx+1} ${sec(ms)}秒`);
+          });
+          timingLines.push(`附件${i+1}-合併 ${sec(uploaded.timing.finalizeMs)}秒`);
+        }
       }
     }
 
@@ -564,14 +618,11 @@ async function sendMessage(){
       messageId,
       text,
       attachments:uploadedAttachments,
-      createdAt:new Date().toISOString()
+      createdAt
     });
-    const localMs=nowMs()-tLocal;
-    timingLines.push(`畫面更新 ${sec(localMs)}秒`);
+    timingLines.push(`畫面更新 ${sec(nowMs()-tLocal)}秒`);
 
-    const totalMs=nowMs()-totalStart;
-    timingLines.push(`總計 ${sec(totalMs)}秒`);
-
+    timingLines.push(`總計 ${sec(nowMs()-totalStart)}秒`);
     showUploadTiming(timingLines);
 
   }catch(err){
