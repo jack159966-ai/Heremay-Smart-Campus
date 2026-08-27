@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.9.8</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.9.9</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -424,7 +424,7 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.9.8｜2026-08-10｜數字欄位 0 自動清空防誤輸入</div>
+<div class="version">團購／報名中心 v1.9.9｜2026-08-27｜首頁新活動提醒</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -559,6 +559,15 @@ document.addEventListener('focusout',event=>{
 });
 function currentEmployee(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}')}catch(e){return {}}}
 function currentName(){return currentEmployee().name||'目前使用者'}
+function groupbuySeenKey(){
+ const emp=currentEmployee();
+ const id=String(emp.employeeId||emp.id||emp['員工編號']||currentName()).trim();
+ return 'heremay.groupbuy.lastSeen.'+id;
+}
+function markGroupbuySeen(){
+ localStorage.setItem(groupbuySeenKey(),new Date().toISOString());
+ localStorage.removeItem('heremay.groupbuy.hasUnread');
+}
 function getC(){try{return JSON.parse(localStorage.getItem(CK)||'[]')}catch(e){return []}}
 function setC(v){localStorage.setItem(CK,JSON.stringify(v))}
 function getO(){try{return JSON.parse(localStorage.getItem(OK)||'[]')}catch(e){return []}}
@@ -783,6 +792,7 @@ async function loadCloudData(showMessage=true){
    setC(campaigns.map(normalizeCampaign));
    setO(orders);
    setT(templates);
+   markGroupbuySeen();
    setSyncState('ok','雲端同步完成｜'+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}));
    try{
      renderSavedTemplates();
@@ -818,7 +828,7 @@ async function cloudWrite(action,payload,successMessage){
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
-const APP_VERSION='1.9.8';
+const APP_VERSION='1.9.9';
 async function updateAppNow(){
  toast('正在檢查新版…');
  try{
