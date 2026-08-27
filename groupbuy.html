@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.9.10</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.9.11</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -424,7 +424,7 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.9.10｜2026-08-27｜進入即清除首頁提醒＋快速同步</div>
+<div class="version">團購／報名中心 v1.9.11｜2026-08-27｜首頁紅點跨角色修正</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -565,7 +565,10 @@ function groupbuySeenKey(){
  return 'heremay.groupbuy.lastSeen.'+id;
 }
 function markGroupbuySeen(){
- localStorage.setItem(groupbuySeenKey(),new Date().toISOString());
+ const now=new Date().toISOString();
+ localStorage.setItem(groupbuySeenKey(),now);
+ // 跨首頁共用備援：教師／庶務／主管即使讀到不同員工欄位，也能認得已讀時間。
+ localStorage.setItem('heremay.groupbuy.lastSeen.shared',now);
  localStorage.removeItem('heremay.groupbuy.hasUnread');
 }
 function getC(){try{return JSON.parse(localStorage.getItem(CK)||'[]')}catch(e){return []}}
@@ -831,7 +834,7 @@ async function cloudWrite(action,payload,successMessage){
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
-const APP_VERSION='1.9.10';
+const APP_VERSION='1.9.11';
 async function updateAppNow(){
  toast('正在檢查新版…');
  try{

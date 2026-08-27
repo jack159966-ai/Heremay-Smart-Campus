@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.19</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.20</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -552,7 +552,7 @@
 .hasDiscussionUnread .discussionCardUnreadDot{display:block}
 
 
-/* v24.19：登記中心新活動提醒 */
+/* v24.20：登記中心新活動提醒 */
 .groupbuyUnreadNotice{
   display:none;align-items:center;gap:9px;
   background:#fff3f3;border:1px solid #f2caca;color:#b33b3b;
@@ -702,7 +702,7 @@
       </div>
     </section>
 
-    <div class="versionStamp">主管工作台 v24.19｜2026-08-21｜巡堂醒目化與排班管理移至電腦專用</div>
+    <div class="versionStamp">主管工作台 v24.20｜2026-08-21｜巡堂醒目化與排班管理移至電腦專用</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
@@ -1623,8 +1623,11 @@ function checkAdminGroupbuyUnread(){
     window[cb]=result=>{
       try{
         const campaigns=Array.isArray(result?.data)?result.data:[];
-        const seenRaw=localStorage.getItem(adminGroupbuySeenKey())||'';
-        const seen=seenRaw?new Date(seenRaw).getTime():0;
+        const personalRaw=localStorage.getItem(adminGroupbuySeenKey())||'';
+        const sharedRaw=localStorage.getItem('heremay.groupbuy.lastSeen.shared')||'';
+        const personalSeen=personalRaw?new Date(personalRaw).getTime():0;
+        const sharedSeen=sharedRaw?new Date(sharedRaw).getTime():0;
+        const seen=Math.max(personalSeen,sharedSeen);
         const hasUnread=campaigns.some(c=>{
           const status=String(c.status||'open');
           if(status==='closed'||status==='cancelled'||c.deleted)return false;
