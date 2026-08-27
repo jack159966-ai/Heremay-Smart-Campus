@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v3.0</title>
+<title>和美智慧校園｜討論區 v3.2</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -229,6 +229,86 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 }
 .fileCard.galleryCard .fileCardActions a{margin:0}
 
+
+/* v3.1：檔案區／調整成員按鍵加大加深 */
+.fileLibraryBtn,
+.memberEditBtn{
+  min-height:40px;
+  padding:9px 14px;
+  border-radius:12px;
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:.2px;
+  cursor:pointer;
+  box-shadow:0 3px 8px rgba(36,92,132,.12);
+}
+
+.fileLibraryBtn{
+  background:#2f83b4;
+  color:#fff;
+  border:1px solid #24729f;
+}
+.fileLibraryBtn:hover{
+  background:#2676a5;
+}
+
+.memberEditBtn{
+  background:#4f9fc9;
+  color:#fff;
+  border:1px solid #3e8bb5;
+}
+.memberEditBtn:hover{
+  background:#428fb9;
+}
+
+.participantBar{
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+@media(max-width:480px){
+  .fileLibraryBtn,
+  .memberEditBtn{
+    min-height:42px;
+    padding:10px 13px;
+    font-size:14px;
+  }
+}
+
+
+/* v3.2：刪除留言／檔案區／調整成員同排 */
+.mainActionBar{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:10px 0 12px;
+}
+.mainActionBar .cleanupBtn,
+.mainActionBar .fileLibraryBtn,
+.mainActionBar .memberEditBtn{
+  min-height:42px;
+  padding:10px 14px;
+  border-radius:12px;
+  font-size:14px;
+  font-weight:900;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+@media(max-width:420px){
+  .mainActionBar{
+    gap:6px;
+  }
+  .mainActionBar .cleanupBtn,
+  .mainActionBar .fileLibraryBtn,
+  .mainActionBar .memberEditBtn{
+    padding:9px 11px;
+    font-size:13px;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -236,7 +316,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v3.0</span>
+  <span class="version">v3.2</span>
 </header>
 
 <section class="card userline">
@@ -259,8 +339,10 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
     <button class="soft" style="border:0;border-radius:12px;padding:8px 10px;font-weight:900" onclick="closeRoom()">返回列表</button>
   </div>
   <div class="pills" id="roomParticipants"></div>
-      <div class="cleanupBar">
+      <div class="cleanupBar mainActionBar">
         <button class="cleanupBtn" id="cleanupBtn" type="button" onclick="toggleCleanupMode()">刪除留言</button>
+        <button class="fileLibraryBtn" id="fileLibraryBtn" type="button" onclick="openFileLibrary()">📁 檔案區</button>
+        <button class="memberEditBtn" id="memberEditBtn" type="button" onclick="openEditMembers()">調整成員</button>
         <button class="batchDeleteBtn" id="batchDeleteBtn" type="button" onclick="batchDeleteSelected()" style="display:none">刪除已勾選</button>
         <button class="cleanupCancelBtn" id="cleanupCancelBtn" type="button" onclick="toggleCleanupMode(false)" style="display:none">取消刪除</button>
       </div>
@@ -710,8 +792,6 @@ async function openRoom(id){
           ${groupHtml}
           <button class="participantToggle" type="button"
             onclick="toggleParticipantList('${listId}',this)">查看 ${participants.length} 人 ▾</button>
-          <button class="fileLibraryBtn" type="button" onclick="openFileLibrary()">📁 檔案區</button>
-          ${canEditRoomMembers(r)?'<button class="memberEditBtn" type="button" onclick="openEditMembers()">調整成員</button>':''}
         </div>
         <div class="participantPeople" id="${listId}">${peopleHtml}</div>
       </div>`;
@@ -721,6 +801,12 @@ async function openRoom(id){
   messageList.innerHTML='<div class="loadingBox">正在讀取留言…</div>';
   composerBox.style.display=r.status==='已封存'?'none':'block';
   archiveBtn.style.display=(!isGuest()&&r.status!=='已封存')?'block':'none';
+  if(memberEditBtn){
+    memberEditBtn.style.display=canEditRoomMembers(r)?'inline-flex':'none';
+  }
+  if(fileLibraryBtn){
+    fileLibraryBtn.style.display='inline-flex';
+  }
   try{
     const data=await jsonp('getMessages',{roomId:id});
     const msgs=data?.ok&&Array.isArray(data.messages)?data.messages:[];
