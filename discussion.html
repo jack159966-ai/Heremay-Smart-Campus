@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v2.0</title>
+<title>和美智慧校園｜討論區 v2.2</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -31,6 +31,46 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 .subHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-weight:900;color:#526d7e}.personGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .personCheck{display:flex;align-items:center;gap:7px;border:1px solid #dbeaf4;border-radius:12px;background:white;padding:8px;font-size:13px;font-weight:850;color:#526d7e}.personCheck input{width:auto;margin:0}
 .loadingBox{padding:14px;text-align:center;color:var(--muted);font-weight:850}@media(max-width:430px){.personGrid{grid-template-columns:1fr}}
+
+.participantBox{margin:8px 0 10px}
+.participantBar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.participantBar .groupLabel{
+  color:#2d6489;
+  font-size:12px;
+  font-weight:800;
+}
+.participantBar .groupLabel + .groupLabel::before{
+  content:"・";
+  margin-right:8px;
+  color:#9ab1c0;
+}
+.participantToggle{
+  margin-left:6px;
+  border:0;
+  background:transparent;
+  color:#5f7f94;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+  padding:2px 4px;
+}
+.participantToggle:hover{color:#2d6489;text-decoration:underline}
+.participantPeople{
+  display:none;
+  margin-top:8px;padding:9px 10px;
+  border:1px dashed #cfe2ef;border-radius:12px;background:#fbfdff;
+  gap:6px;flex-wrap:wrap;
+}
+.participantPeople.open{display:flex}
+.participantPeople .personTag{
+  display:inline-flex;align-items:center;
+  border:1px solid #d7e7f2;border-radius:999px;
+  background:white;color:#365f7b;
+  padding:4px 8px;font-size:11px
+}
+
 </style>
 </head>
 <body>
@@ -38,7 +78,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v2.0</span>
+  <span class="version">v2.2</span>
 </header>
 
 <section class="card userline">
@@ -283,12 +323,38 @@ async function openRoom(id){
   currentRoomId=id;listView.classList.add('hide');roomView.classList.add('show');
   roomTitle.textContent=r.title;roomMeta.textContent=`建立：${r.creatorName}｜${fmt(r.createdAt)}｜保存 ${r.retention||'30'}${String(r.retention)==='永久'?'':'天'}`;
   const participants=Array.isArray(r.participants)?r.participants:[];
-  roomParticipants.innerHTML=participants.length
-    ? participants.map(p=>{
-        const detail=[p.department,p.subgroup].filter(Boolean).join('・');
-        return `<span class="pill">${esc(p.name||'未命名')}${detail?` <small>(${esc(detail)})</small>`:''}</span>`;
-      }).join('')
-    : '<span class="pill">尚未取得參與人員資料</span>';
+  if(participants.length){
+    const groups=[];
+    participants.forEach(p=>{
+      const dep=String(p.department||'').trim();
+      const sub=String(p.subgroup||'').trim();
+      if(dep && !groups.includes(dep))groups.push(dep);
+      if(sub && !groups.includes(sub))groups.push(sub);
+    });
+
+    const groupHtml=groups.length
+      ? groups.map(g=>`<span class="groupLabel">${esc(g)}</span>`).join('')
+      : '<span class="groupLabel">參與人員</span>';
+
+    const peopleHtml=participants.map(p=>{
+      const detail=[p.department,p.subgroup].filter(Boolean).join('・');
+      return `<span class="personTag">${esc(p.name||'未命名')}${detail?` <small>(${esc(detail)})</small>`:''}</span>`;
+    }).join('');
+
+    const listId='participantPeople_'+String(r.roomId||currentRoomId||'').replace(/[^a-zA-Z0-9_-]/g,'_');
+
+    roomParticipants.innerHTML=
+      `<div class="participantBox">
+        <div class="participantBar">
+          ${groupHtml}
+          <button class="participantToggle" type="button"
+            onclick="toggleParticipantList('${listId}',this)">查看 ${participants.length} 人 ▾</button>
+        </div>
+        <div class="participantPeople" id="${listId}">${peopleHtml}</div>
+      </div>`;
+  }else{
+    roomParticipants.innerHTML='<span class="pill">尚未取得參與人員資料</span>';
+  }
   messageList.innerHTML='<div class="loadingBox">正在讀取留言…</div>';
   composerBox.style.display=r.status==='已封存'?'none':'block';
   archiveBtn.style.display=(!isGuest()&&r.status!=='已封存')?'block':'none';
@@ -664,6 +730,15 @@ function goBack(){
   else location.href='teacher.html';
 }
 
+
+
+function toggleParticipantList(id,btn){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const open=el.classList.toggle('open');
+  const m=(btn.textContent.match(/\d+/)||[''])[0];
+  btn.textContent=open?`收起 ${m} 人 ▴`:`查看 ${m} 人 ▾`;
+}
 
 function canDeleteMessage(msg){
   const authorId=String(msg.authorId||'').trim();
