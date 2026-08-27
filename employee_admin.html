@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>和美智慧校園｜人員基本資料 v2.9 測試版</title>
+<title>和美智慧校園｜人員基本資料 v3.0 外聘兼任教師版</title>
 <style>
 :root{
   --bg:#f3f8ff; --card:#fff; --line:#dce7f7; --deep:#173f75;
@@ -242,6 +242,7 @@ textarea{min-height:84px;resize:vertical}
         <option>教保人員</option>
         <option>庶務人員</option>
         <option>護理人員</option>
+        <option>外聘兼任教師</option>
       </select>
     </div>
     <div class="field">
@@ -253,6 +254,7 @@ textarea{min-height:84px;resize:vertical}
         <option>安親部</option>
         <option>庶務組</option>
         <option>健康照護</option>
+        <option>外聘教師</option>
       </select>
     </div>
 
@@ -299,8 +301,9 @@ textarea{min-height:84px;resize:vertical}
         <option>中階主管首頁</option>
         <option>管理首頁</option>
         <option>庶務首頁</option>
+        <option>兼任首頁</option>
       </select>
-      <small>一般人員跨部門時會自動同步首頁；儲存時會再強制校正一次，中階／高階主管仍以管理級別為優先。</small>
+      <small>一般人員依身分／編組自動同步首頁；外聘兼任教師固定使用「兼任首頁」，中階／高階主管仍以管理級別為優先。</small>
     </div>
 
     <div class="field">
@@ -485,7 +488,7 @@ textarea{min-height:84px;resize:vertical}
   <button class="btn" type="button" onclick="previewSave()">儲存人員資料</button>
 </div>
 
-<div class="version">人員基本資料 v2.9 測試版｜2026-08-25｜儲存時強制校正首頁類型</div>
+<div class="version">人員基本資料 v3.0 外聘兼任教師版｜2026-08-25｜儲存時強制校正首頁類型</div>
 </main>
 
 <script>
@@ -655,6 +658,7 @@ function deriveHomeTypeForSave(){
   if(level==='中階主管') return '中階主管首頁';
 
   // 一般人員依部門／身分類別強制決定首頁。
+  if(identity==='外聘兼任教師' || group==='外聘教師') return '兼任首頁';
   if(identity==='庶務人員' || group==='庶務組') return '庶務首頁';
   if(identity==='教保人員' || group==='幼兒部' || group==='安親部') return '教保首頁';
 
@@ -668,6 +672,25 @@ function syncHomeTypeByRole(){
   const resolved=deriveHomeTypeForSave();
   home.value=resolved;
   return resolved;
+}
+
+
+function applyParttimeDefaults(){
+  const identity = document.getElementById('identity');
+  if(!identity || identity.value !== '外聘兼任教師') return;
+
+  document.getElementById('group').value = '外聘教師';
+  document.getElementById('employeeType').value = '兼職';
+  document.getElementById('classGroup').value = '';
+  document.getElementById('grade').value = '';
+  document.getElementById('managementLevel').value = '一般人員';
+  document.getElementById('announcementAdmin').checked = false;
+  document.getElementById('scheduleAdmin').checked = false;
+
+  // 外聘兼任教師不納入內部正式出勤統計，避免混入薪資／考勤流程。
+  document.getElementById('includeStats').checked = false;
+
+  syncHomeTypeByRole();
 }
 
 function applyNursingDefaults(){
@@ -1377,6 +1400,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
   }
   document.getElementById('identity')?.addEventListener('change', ()=>{
+    applyParttimeDefaults();
     applyNursingDefaults();
     syncHomeTypeByRole();
   });

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>和美智慧校園｜外聘兼任教師首頁 v1.0</title>
+  <style>
+    :root{
+      --bg1:#fffaf1;--bg2:#fff4df;--card:#fff;--line:#f2d5a3;
+      --orange:#e59a2f;--orange2:#f4b95c;--deep:#7a4a11;--ink:#3c2f22;
+      --muted:#8a765c;--shadow:0 12px 28px rgba(191,129,40,.14)
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Microsoft JhengHei","PingFang TC",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:linear-gradient(180deg,var(--bg1),var(--bg2));
+      color:var(--ink);min-height:100vh
+    }
+    .phone{width:min(100%,480px);margin:0 auto;padding:18px 16px 32px}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{
+      width:50px;height:50px;border-radius:18px;background:#fff7e8;
+      display:grid;place-items:center;font-size:28px;box-shadow:var(--shadow)
+    }
+    h1{margin:0;font-size:24px;color:var(--deep)}
+    .sub{margin-top:4px;color:var(--muted);font-size:13px;font-weight:700}
+    .tag{
+      background:linear-gradient(135deg,var(--orange),var(--orange2));
+      color:white;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:900
+    }
+    .discussionUnreadNotice{
+      display:none;align-items:center;gap:10px;margin:10px 0 14px;padding:12px 14px;
+      border-radius:14px;background:#fff2f2;border:1px solid #efb1b1;color:#a63e3e;
+      font-weight:900;cursor:pointer
+    }
+    .discussionUnreadNotice.show{display:flex}
+    .discussionUnreadNotice .dot{width:10px;height:10px;border-radius:50%;background:#e65353}
+    .discussionUnreadNotice .arrow{margin-left:auto}
+    .section{
+      background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:24px;
+      padding:16px;margin:14px 0;box-shadow:var(--shadow)
+    }
+    .welcome{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .welcome strong{display:block;font-size:20px;color:var(--deep)}
+    .welcome span{color:var(--muted);font-size:13px;font-weight:700}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .btn{
+      position:relative;border:1px solid var(--line);background:linear-gradient(180deg,#fff,#fffaf2);
+      border-radius:20px;padding:16px 12px;min-height:122px;cursor:pointer;text-align:left;
+      box-shadow:0 8px 18px rgba(191,129,40,.08)
+    }
+    .btn:active{transform:scale(.98)}
+    .icon{
+      width:42px;height:42px;border-radius:15px;background:#fff0d8;display:grid;place-items:center;
+      font-size:24px;margin-bottom:10px
+    }
+    .btn strong{display:block;color:var(--deep);font-size:18px;margin-bottom:5px}
+    .btn span{display:block;color:var(--muted);font-size:13px;font-weight:700;line-height:1.4}
+    .discussionCardUnreadDot{
+      display:none;position:absolute;top:10px;right:10px;width:12px;height:12px;border-radius:50%;
+      background:#e65353;box-shadow:0 0 0 3px #fff
+    }
+    .hasDiscussionUnread .discussionCardUnreadDot{display:block}
+    .note{
+      color:#7b6c58;font-size:13px;line-height:1.55;font-weight:700;background:#fffaf0;
+      border:1px dashed var(--line);border-radius:16px;padding:12px
+    }
+    .footer{margin-top:18px;text-align:center;color:#907b60;font-size:12px;font-weight:700}
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <header class="top">
+      <div class="brand">
+        <div class="logo">🎓</div>
+        <div>
+          <h1 id="pageTitle">外聘兼任教師首頁</h1>
+          <div class="sub" id="userSummary">和美智慧校園｜外聘／兼任教師工作台</div>
+        </div>
+      </div>
+      <span class="tag">兼任版</span>
+    </header>
+
+    <div id="discussionUnreadNotice" class="discussionUnreadNotice" onclick="location.href='discussion.html'">
+      <span class="dot"></span>
+      <span>討論區有未讀訊息</span>
+      <span class="arrow">›</span>
+    </div>
+
+    <section class="section welcome">
+      <div>
+        <strong id="welcomeName">您好</strong>
+        <span id="welcomeRole">僅顯示已授權的合作功能</span>
+      </div>
+      <div style="font-size:30px">👋</div>
+    </section>
+
+    <section class="section">
+      <div class="grid">
+        <button class="btn hasDiscussionUnread" id="discussionHomeCard" onclick="location.href='discussion.html'">
+          <span class="discussionCardUnreadDot" aria-hidden="true"></span>
+          <div class="icon">💬</div>
+          <strong>討論區</strong>
+          <span>查看受邀討論樓、留言與共享檔案</span>
+        </button>
+
+        <button class="btn" onclick="showInfo('公告 / 通知')">
+          <div class="icon">📣</div>
+          <strong>公告 / 通知</strong>
+          <span>查看與您有關的合作通知與重要提醒</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="note">
+        外聘兼任教師僅能使用被授權的合作功能；不能建立討論樓，也不能邀請其他成員。
+        討論區中的歷史留言與附件會依原討論樓保留。
+      </div>
+    </section>
+
+    <div class="footer">外聘兼任教師首頁 v1.0｜parttime.html</div>
+  </main>
+
+  <script>
+    const DISCUSSION_NOTIFY_URL = 'https://script.google.com/macros/s/AKfycbxuvqWI2FlvCk5ZdEfhSNMF6O79pElfx2p4PZBIk-xT1zw0NVorhzX8wNPF9oOHxY2x/exec';
+
+    function getHomeEmployee(){
+      try{
+        const raw=localStorage.getItem('heremay.currentEmployee');
+        return raw?JSON.parse(raw):null;
+      }catch(e){ return null; }
+    }
+
+    function loadProfile(){
+      const e=getHomeEmployee();
+      if(!e)return;
+
+      const name=String(e.name||'').trim();
+      const title=String(e.jobTitle||e.title||'外聘兼任教師').trim();
+      const group=String(e.group||e.department||'').trim();
+
+      if(name){
+        document.getElementById('welcomeName').textContent=`${name}，您好`;
+        document.getElementById('pageTitle').textContent=`${name}｜外聘兼任教師首頁`;
+      }
+
+      document.getElementById('userSummary').textContent=
+        [title,group,'和美智慧校園'].filter(Boolean).join('｜');
+
+      document.getElementById('welcomeRole').textContent=
+        [title,group].filter(Boolean).join('｜') || '僅顯示已授權的合作功能';
+    }
+
+    function discussionJsonp(action,params={}){
+      return new Promise((resolve,reject)=>{
+        const cb='hm_discuss_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+        const script=document.createElement('script');
+        const timer=setTimeout(()=>{cleanup();reject(new Error('討論區提示連線逾時'));},10000);
+
+        function cleanup(){
+          clearTimeout(timer);
+          try{delete window[cb];}catch(e){}
+          script.remove();
+        }
+
+        window[cb]=data=>{cleanup();resolve(data);};
+        const q=new URLSearchParams({action,callback:cb,...params});
+        script.src=DISCUSSION_NOTIFY_URL+'?'+q.toString();
+        script.onerror=()=>{cleanup();reject(new Error('討論區提示讀取失敗'));};
+        document.head.appendChild(script);
+      });
+    }
+
+    async function refreshDiscussionUnreadNotice(){
+      const e=getHomeEmployee();
+      const userId=String(e?.employeeId||'').trim();
+      const userName=String(e?.name||'').trim();
+      if(!userId && !userName)return;
+
+      try{
+        const result=await discussionJsonp('getUnreadSummary',{userId,userName});
+        const hasUnread=!!result?.hasUnread;
+        document.getElementById('discussionUnreadNotice')?.classList.toggle('show',hasUnread);
+        document.getElementById('discussionHomeCard')?.classList.toggle('hasDiscussionUnread',hasUnread);
+      }catch(err){
+        console.warn('討論區未讀提示：',err.message);
+      }
+    }
+
+    function showInfo(name){
+      alert(`${name}功能會顯示與此帳號授權範圍相關的內容。`);
+    }
+
+    loadProfile();
+    window.addEventListener('pageshow',refreshDiscussionUnreadNotice);
+    setTimeout(refreshDiscussionUnreadNotice,700);
+    setInterval(refreshDiscussionUnreadNotice,60000);
+  </script>
+</body>
+</html>
