@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v2.5</title>
+<title>和美智慧校園｜討論區 v2.6</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -92,10 +92,10 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
   margin-left:7px;vertical-align:2px
 }
 .room.unreadRoom{border-color:#efb1b1;background:#fffdfd}
-.room.unreadRoom h3::after{
-  content:"新";display:inline-flex;align-items:center;justify-content:center;
-  margin-left:7px;padding:2px 6px;border-radius:999px;
-  background:#e65353;color:#fff;font-size:10px;font-weight:950;vertical-align:2px
+.roomUnreadCount{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:20px;height:20px;padding:0 6px;margin-left:7px;border-radius:999px;
+  background:#e65353;color:#fff;font-size:11px;font-weight:950;vertical-align:2px
 }
 
 </style>
@@ -105,7 +105,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v2.5</span>
+  <span class="version">v2.6</span>
 </header>
 
 <section class="card userline">
@@ -257,7 +257,9 @@ function setMode(mode){
 
 
 function updateUnreadSummary(){
-  const unreadCount=cloudRooms.filter(r=>r.unread && r.status!=='已封存').length;
+  const unreadCount=cloudRooms
+    .filter(r=>r.status!=='已封存')
+    .reduce((sum,r)=>sum+(Number(r.unreadCount)||0),0);
   document.title=unreadCount
     ? `(${unreadCount}) 和美智慧校園｜討論區`
     : '和美智慧校園｜討論區';
@@ -271,7 +273,7 @@ function renderRooms(){
     .sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')));
   roomList.innerHTML=rooms.length?rooms.map(r=>`
     <div class="room ${r.unread?'unreadRoom':''}" onclick="openRoom('${esc(r.roomId)}')">
-      <div class="room-top"><h3>${esc(r.title)}</h3><span class="badge ${r.status==='已封存'?'arch':''}">${r.status==='已封存'?'已封存':'進行中'}</span></div>
+      <div class="room-top"><h3>${esc(r.title)}${r.unreadCount?`<span class="roomUnreadCount">${r.unreadCount>99?'99+':r.unreadCount}</span>`:''}</h3><span class="badge ${r.status==='已封存'?'arch':''}">${r.status==='已封存'?'已封存':'進行中'}</span></div>
       <div class="meta">建立：${esc(r.creatorName)}｜${fmt(r.createdAt)}｜保存 ${esc(r.retention||'30')}${String(r.retention)==='永久'?'':'天'}</div>
       <div class="preview">最後更新：${fmt(r.updatedAt||r.createdAt)}</div>
     </div>`).join(''):'<div class="empty">目前沒有討論樓</div>';
@@ -413,6 +415,7 @@ async function openRoom(id){
     }).join(''):'<div class="empty">這棟樓還沒有留言</div>';
     // 進樓即視為已讀：畫面先立即消除紅點，後端已讀時間背景寫入，不阻塞閱讀。
     r.unread=false;
+    r.unreadCount=0;
     updateUnreadSummary();
     postDirect('markRoomRead',{
       roomId:id,
