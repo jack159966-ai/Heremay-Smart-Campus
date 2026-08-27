@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v2.8</title>
+<title>和美智慧校園｜討論區 v2.9</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -144,6 +144,80 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
   .fileGrid{grid-template-columns:1fr}
 }
 
+
+/* v2.9：LINE／檔案總管式附件瀏覽 */
+.fileViewSwitch{
+  display:flex;gap:6px;margin:8px 0 10px
+}
+.fileViewSwitch button{
+  border:1px solid #d7e8f3;background:#f7fbfe;color:#50758c;
+  border-radius:10px;padding:7px 10px;font-weight:900;cursor:pointer
+}
+.fileViewSwitch button.active{background:#dff1fb;color:#245c84;border-color:#b9dff2}
+
+.fileGrid.gallery{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+.fileCard.galleryCard{
+  padding:0;overflow:hidden;background:#fff
+}
+.fileThumbWrap{
+  position:relative;width:100%;aspect-ratio:1/1;background:#eef4f7;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  cursor:pointer
+}
+.fileThumbWrap img{
+  width:100%;height:100%;object-fit:cover;display:block
+}
+.fileThumbFallback{
+  font-size:42px;color:#7890a0
+}
+.fileCardBody{padding:9px}
+.fileCard.galleryCard .fileName{
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.fileCard.listCard{
+  display:grid;grid-template-columns:46px minmax(0,1fr) auto;
+  gap:9px;align-items:center
+}
+.fileCard.listCard .fileIcon{margin:0;font-size:30px}
+.fileCard.listCard .fileMeta{margin-top:3px}
+.fileCard.listCard a{margin:0}
+
+.previewMask{
+  position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:90;
+  display:none;align-items:center;justify-content:center;padding:18px
+}
+.previewMask.show{display:flex}
+.previewBox{
+  width:min(96vw,980px);height:min(92vh,820px);position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center
+}
+.previewImage{
+  max-width:100%;max-height:calc(100% - 70px);object-fit:contain;
+  border-radius:10px;background:#111
+}
+.previewCaption{
+  color:#fff;margin-top:10px;max-width:85%;text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:800
+}
+.previewClose,.previewPrev,.previewNext{
+  position:absolute;border:0;background:rgba(255,255,255,.18);
+  color:#fff;cursor:pointer;border-radius:999px;font-weight:900
+}
+.previewClose{right:0;top:0;width:42px;height:42px;font-size:22px}
+.previewPrev,.previewNext{
+  top:50%;transform:translateY(-50%);width:46px;height:46px;font-size:28px
+}
+.previewPrev{left:0}.previewNext{right:0}
+
+@media(max-width:600px){
+  .fileGrid.gallery{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+  .fileCardBody{padding:6px}
+  .fileCard.galleryCard .fileName{font-size:11px}
+  .previewPrev{left:4px}.previewNext{right:4px}
+}
+
 </style>
 </head>
 <body>
@@ -151,7 +225,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v2.8</span>
+  <span class="version">v2.9</span>
 </header>
 
 <section class="card userline">
@@ -227,15 +301,31 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
       <input class="input" id="fileLibrarySearch" placeholder="搜尋檔名…" oninput="renderFileLibrary()">
       <select class="input" id="fileLibraryType" onchange="renderFileLibrary()">
         <option value="all">全部檔案</option>
-        <option value="image">圖片</option>
+        <option value="image">照片</option>
         <option value="pdf">PDF</option>
         <option value="word">Word</option>
         <option value="other">其他</option>
       </select>
     </div>
 
-    <div id="fileLibraryList" class="fileGrid"></div>
+    <div class="fileViewSwitch">
+      <button id="galleryViewBtn" class="active" type="button" onclick="setFileView('gallery')">▦ 縮圖</button>
+      <button id="listViewBtn" type="button" onclick="setFileView('list')">☷ 清單</button>
+    </div>
+
+    <div id="fileLibraryList" class="fileGrid gallery"></div>
     <button class="close" onclick="closeFileLibrary()">關閉</button>
+  </div>
+</div>
+
+
+<div class="previewMask" id="imagePreviewMask" onclick="if(event.target===this)closeImagePreview()">
+  <div class="previewBox">
+    <button class="previewClose" type="button" onclick="closeImagePreview()">×</button>
+    <button class="previewPrev" type="button" onclick="stepImagePreview(-1)">‹</button>
+    <img id="previewImage" class="previewImage" alt="照片預覽">
+    <button class="previewNext" type="button" onclick="stepImagePreview(1)">›</button>
+    <div class="previewCaption" id="previewCaption"></div>
   </div>
 </div>
 
@@ -249,6 +339,9 @@ let currentMode='active';
 let currentRoomId='';
 let currentIsManager=false;
 let currentRoomMessages=[];
+let fileViewMode='gallery';
+let previewImages=[];
+let previewIndex=0;
 let employee=readEmployee();
 let currentUser=employee.name||employee['姓名']||'同仁';
 let currentUserId=employee.employeeId||employee.id||employee['員工編號']||'';
@@ -645,6 +738,7 @@ function closeRoom(){currentRoomId='';currentRoomMessages=[];roomView.classList.
 
 
 
+
 function fileKind(name=''){
   const n=String(name||'').toLowerCase();
   if(/\.(jpg|jpeg|png|gif|webp|heic)$/i.test(n)) return 'image';
@@ -660,17 +754,31 @@ function fileIcon(kind){
   return '📄';
 }
 
+function driveThumb(fileId,size=480){
+  if(!fileId)return '';
+  return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w${size}`;
+}
+
+function drivePreview(fileId){
+  if(!fileId)return '';
+  return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(fileId)}`;
+}
+
 function collectRoomFiles(){
   const out=[];
   currentRoomMessages.forEach(msg=>{
     const atts=Array.isArray(msg.attachments)?msg.attachments:[];
     atts.forEach(att=>{
+      const fileId=att.driveFileId||att.fileId||'';
       out.push({
         name:att.name||'未命名檔案',
         url:att.url||'',
+        fileId,
+        thumbUrl:fileId?driveThumb(fileId,480):'',
+        previewUrl:fileId?drivePreview(fileId):(att.url||''),
         kind:fileKind(att.name||''),
-        author:msg.authorName||'',
-        createdAt:msg.createdAt||''
+        author:msg.authorName||att.uploaderName||'',
+        createdAt:msg.createdAt||att.uploadedAt||''
       });
     });
   });
@@ -678,15 +786,61 @@ function collectRoomFiles(){
   return out.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
 }
 
+function setFileView(mode){
+  fileViewMode=mode==='list'?'list':'gallery';
+  galleryViewBtn.classList.toggle('active',fileViewMode==='gallery');
+  listViewBtn.classList.toggle('active',fileViewMode==='list');
+  renderFileLibrary();
+}
+
 function openFileLibrary(){
   fileLibrarySearch.value='';
   fileLibraryType.value='all';
+  fileViewMode='gallery';
   fileLibraryModal.classList.add('show');
-  renderFileLibrary();
+  setFileView('gallery');
 }
 
 function closeFileLibrary(){
   fileLibraryModal.classList.remove('show');
+}
+
+function openImagePreview(fileIdOrUrl,name=''){
+  const all=collectRoomFiles().filter(f=>f.kind==='image');
+  previewImages=all;
+
+  previewIndex=Math.max(0,all.findIndex(f=>
+    (fileIdOrUrl && f.fileId===fileIdOrUrl) ||
+    (fileIdOrUrl && f.previewUrl===fileIdOrUrl)
+  ));
+
+  renderImagePreview();
+  imagePreviewMask.classList.add('show');
+}
+
+function closeImagePreview(){
+  imagePreviewMask.classList.remove('show');
+  previewImage.removeAttribute('src');
+}
+
+function stepImagePreview(delta){
+  if(!previewImages.length)return;
+  previewIndex=(previewIndex+delta+previewImages.length)%previewImages.length;
+  renderImagePreview();
+}
+
+function renderImagePreview(){
+  const f=previewImages[previewIndex];
+  if(!f)return;
+
+  // 先嘗試較大的 Drive 縮圖；失敗再回原檔預覽網址。
+  const largeThumb=f.fileId?driveThumb(f.fileId,1600):f.previewUrl;
+  previewImage.src=largeThumb||f.previewUrl||f.url||'';
+  previewImage.onerror=()=>{
+    previewImage.onerror=null;
+    if(f.previewUrl && previewImage.src!==f.previewUrl)previewImage.src=f.previewUrl;
+  };
+  previewCaption.textContent=`${previewIndex+1} / ${previewImages.length}　${f.name}`;
 }
 
 function renderFileLibrary(){
@@ -700,18 +854,66 @@ function renderFileLibrary(){
     return matchesText && matchesType;
   });
 
-  fileLibrarySummary.textContent=`這棟樓共有 ${all.length} 個附件`;
-  fileLibraryList.innerHTML=rows.length
-    ? rows.map(f=>`
-      <div class="fileCard">
+  fileLibrarySummary.textContent=`這棟樓共有 ${all.length} 個附件，其中照片 ${all.filter(f=>f.kind==='image').length} 張`;
+
+  fileLibraryList.className='fileGrid '+(fileViewMode==='gallery'?'gallery':'list');
+
+  if(!rows.length){
+    fileLibraryList.innerHTML='<div class="fileEmpty">找不到符合的檔案</div>';
+    return;
+  }
+
+  if(fileViewMode==='list'){
+    fileLibraryList.innerHTML=rows.map(f=>`
+      <div class="fileCard listCard">
         <div class="fileIcon">${fileIcon(f.kind)}</div>
-        <div class="fileName">${esc(f.name)}</div>
-        <div class="fileMeta">${esc(f.author||'')}｜${fmt(f.createdAt)}</div>
-        ${f.url?`<a href="${esc(f.url)}" target="_blank" rel="noopener">開啟檔案</a>`:''}
+        <div>
+          <div class="fileName">${esc(f.name)}</div>
+          <div class="fileMeta">${esc(f.author||'')}｜${fmt(f.createdAt)}</div>
+        </div>
+        ${f.url?`<a href="${esc(f.url)}" target="_blank" rel="noopener">開啟</a>`:''}
       </div>
-    `).join('')
-    : '<div class="fileEmpty">找不到符合的檔案</div>';
+    `).join('');
+    return;
+  }
+
+  fileLibraryList.innerHTML=rows.map(f=>{
+    if(f.kind==='image'){
+      const key=f.fileId||f.previewUrl||f.url||'';
+      return `
+        <div class="fileCard galleryCard">
+          <div class="fileThumbWrap" onclick="openImagePreview('${esc(key)}','${esc(f.name)}')">
+            ${f.thumbUrl
+              ? `<img loading="lazy" decoding="async" src="${esc(f.thumbUrl)}"
+                   alt="${esc(f.name)}"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                 <div class="fileThumbFallback" style="display:none">🖼️</div>`
+              : '<div class="fileThumbFallback">🖼️</div>'}
+          </div>
+          <div class="fileCardBody">
+            <div class="fileName" title="${esc(f.name)}">${esc(f.name)}</div>
+          </div>
+        </div>`;
+    }
+
+    return `
+      <div class="fileCard galleryCard">
+        <div class="fileThumbWrap" onclick="${f.url?`window.open('${esc(f.url)}','_blank')`:''}">
+          <div class="fileThumbFallback">${fileIcon(f.kind)}</div>
+        </div>
+        <div class="fileCardBody">
+          <div class="fileName" title="${esc(f.name)}">${esc(f.name)}</div>
+        </div>
+      </div>`;
+  }).join('');
 }
+
+document.addEventListener('keydown',e=>{
+  if(!imagePreviewMask?.classList.contains('show'))return;
+  if(e.key==='Escape')closeImagePreview();
+  if(e.key==='ArrowLeft')stepImagePreview(-1);
+  if(e.key==='ArrowRight')stepImagePreview(1);
+});
 
 function blobToBase64(blob){
   return new Promise((resolve,reject)=>{
