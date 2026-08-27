@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v2.6</title>
+<title>和美智慧校園｜討論區 v2.8</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -98,6 +98,52 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
   background:#e65353;color:#fff;font-size:11px;font-weight:950;vertical-align:2px
 }
 
+
+.memberEditBtn{
+  border:0;background:#edf6fc;color:#2d6489;border-radius:999px;
+  padding:5px 9px;font-size:12px;font-weight:900;cursor:pointer
+}
+.memberEditBtn:hover{background:#dfeff9}
+
+
+.fileLibraryBtn{
+  border:0;background:#edf6fc;color:#2d6489;border-radius:999px;
+  padding:5px 10px;font-size:12px;font-weight:900;cursor:pointer
+}
+.fileLibraryBtn:hover{background:#dfeff9}
+.fileLibraryToolbar{
+  display:flex;gap:8px;flex-wrap:wrap;margin:10px 0
+}
+.fileLibraryToolbar input,.fileLibraryToolbar select{
+  flex:1;min-width:120px
+}
+.fileGrid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px
+}
+.fileCard{
+  border:1px solid #d8e8f3;border-radius:14px;background:#fbfdff;
+  padding:11px;min-width:0
+}
+.fileCard .fileIcon{font-size:28px;margin-bottom:6px}
+.fileCard .fileName{
+  font-weight:900;color:#2b5d7d;font-size:13px;line-height:1.35;
+  word-break:break-word
+}
+.fileCard .fileMeta{
+  margin-top:6px;color:#7890a0;font-size:11px;line-height:1.45
+}
+.fileCard a{
+  display:inline-block;margin-top:8px;text-decoration:none;
+  background:#eaf5fc;color:#2a668e;border-radius:9px;padding:6px 8px;
+  font-size:12px;font-weight:900
+}
+.fileEmpty{
+  padding:20px;text-align:center;color:#7890a0;font-weight:800
+}
+@media(max-width:420px){
+  .fileGrid{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -105,7 +151,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v2.6</span>
+  <span class="version">v2.8</span>
 </header>
 
 <section class="card userline">
@@ -160,6 +206,39 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
   </div>
 </div>
 
+
+<div class="modal" id="editMembersModal" onclick="if(event.target===this)closeEditMembers()">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <h2 style="margin:0;color:#245c84">👥 調整參與人員</h2>
+    <div class="hint" style="margin:8px 0 10px">新增成員後可直接看到這棟樓既有的討論紀錄；移除成員後將無法再進入此樓。樓主不可移除。</div>
+    <div id="editParticipantList" class="loadingBox">正在讀取人員名單…</div>
+    <button class="primary" style="width:100%;margin-top:14px" onclick="saveRoomParticipants()">儲存參與人員</button>
+    <button class="close" onclick="closeEditMembers()">取消</button>
+  </div>
+</div>
+
+
+<div class="modal" id="fileLibraryModal" onclick="if(event.target===this)closeFileLibrary()">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <h2 style="margin:0;color:#245c84">📁 討論樓檔案</h2>
+    <div class="hint" id="fileLibrarySummary" style="margin-top:6px">整理這棟樓的所有附件</div>
+
+    <div class="fileLibraryToolbar">
+      <input class="input" id="fileLibrarySearch" placeholder="搜尋檔名…" oninput="renderFileLibrary()">
+      <select class="input" id="fileLibraryType" onchange="renderFileLibrary()">
+        <option value="all">全部檔案</option>
+        <option value="image">圖片</option>
+        <option value="pdf">PDF</option>
+        <option value="word">Word</option>
+        <option value="other">其他</option>
+      </select>
+    </div>
+
+    <div id="fileLibraryList" class="fileGrid"></div>
+    <button class="close" onclick="closeFileLibrary()">關閉</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -168,6 +247,8 @@ let employeeDirectory=[];
 let cloudRooms=[];
 let currentMode='active';
 let currentRoomId='';
+let currentIsManager=false;
+let currentRoomMessages=[];
 let employee=readEmployee();
 let currentUser=employee.name||employee['姓名']||'同仁';
 let currentUserId=employee.employeeId||employee.id||employee['員工編號']||'';
@@ -243,6 +324,7 @@ async function loadCloudRooms(){
   if(!currentUserId && currentUser==='同仁') return [];
   const data=await jsonp('getRooms',{userId:currentUserId,userName:currentUser});
   if(!data?.ok) throw new Error(data?.message||'討論樓讀取失敗');
+  currentIsManager=!!data.isManager;
   cloudRooms=Array.isArray(data.rooms)?data.rooms:[];
   renderRooms();
   return cloudRooms;
@@ -334,6 +416,138 @@ function renderParticipantList(){
   participantList.innerHTML=html;
 }
 
+
+function canEditRoomMembers(room){
+  if(!room || isGuest()) return false;
+  const isCreator=
+    (currentUserId && room.creatorId && String(currentUserId)===String(room.creatorId)) ||
+    (currentUser && room.creatorName && String(currentUser)===String(room.creatorName));
+  return currentIsManager || isCreator;
+}
+
+function editPersonCheckbox(emp,dept,sub,currentKeys,creatorId,creatorName){
+  const key=(emp.employeeId?'id:'+emp.employeeId:'name:'+emp.name);
+  const checked=currentKeys.has(key)?'checked':'';
+  const locked=
+    (creatorId && String(emp.employeeId||'')===String(creatorId)) ||
+    (creatorName && String(emp.name||'')===String(creatorName));
+
+  return `<label class="personCheck"><input class="editParticipantCheck" type="checkbox"
+    data-id="${esc(emp.employeeId||'')}" data-name="${esc(emp.name)}" data-type="${esc(emp.type||'employee')}"
+    data-dept="${esc(dept)}" data-subgroup="${esc(sub)}" ${checked} ${locked?'disabled':''}>
+    ${esc(personLabel(emp))}${locked?' <small>（樓主）</small>':''}</label>`;
+}
+
+function renderEditParticipantList(room){
+  const rows=employeeDirectory.filter(x=>x&&x.name);
+  if(!rows.length){
+    editParticipantList.innerHTML='<div class="sourceState">⚠️ 尚未讀到人員名單</div>';
+    return;
+  }
+
+  const currentKeys=new Set((room.participants||[]).map(p=>
+    p.personId ? 'id:'+p.personId : 'name:'+p.name
+  ));
+
+  const groups={'主管／行政':[],'幼兒部':[],'安親部':[],'庶務組':[],'其他':[]};
+  rows.forEach(emp=>(groups[topDept(emp)]||groups['其他']).push(emp));
+
+  let html=`<div class="sourceState">目前 ${room.participants?.length||0} 位參與者</div><div class="groupTree">`;
+
+  ['主管／行政','幼兒部','安親部','庶務組','其他'].forEach((dept,i)=>{
+    const emps=groups[dept];
+    if(!emps.length&&dept==='其他')return;
+
+    const id='editTree_'+i;
+    html+=`<div class="treeGroup"><div class="treeHead" onclick="toggleTree('${id}')">
+      <span>${esc(dept)}</span><span style="font-size:12px;color:#7890a6">(${emps.length})</span><span class="arrow">⌄</span></div>
+      <div class="treeBody ${dept==='幼兒部'?'show':''}" id="${id}">`;
+
+    if(dept==='幼兒部'){
+      const subs={'大班':[],'中班':[],'小班':[],'幼幼班':[],'專科老師':[],'其他幼兒部':[]};
+      emps.forEach(emp=>(subs[kinderSubgroup(emp)]||subs['其他幼兒部']).push(emp));
+
+      ['大班','中班','小班','幼幼班','專科老師','其他幼兒部'].forEach(sub=>{
+        const list=subs[sub];
+        if(!list.length&&sub!=='專科老師')return;
+
+        html+=`<div class="subGroup"><div class="subHead"><span>${sub} <small>(${list.length})</small></span></div>`;
+        html+=list.length
+          ? `<div class="personGrid">${list.map(emp=>editPersonCheckbox(emp,dept,sub,currentKeys,room.creatorId,room.creatorName)).join('')}</div>`
+          : `<div class="hint">目前尚無專科老師帳號。</div>`;
+        html+='</div>';
+      });
+    }else{
+      html+=emps.length
+        ? `<div class="personGrid">${emps.map(emp=>editPersonCheckbox(emp,dept,'',currentKeys,room.creatorId,room.creatorName)).join('')}</div>`
+        : `<div class="hint">目前沒有名單。</div>`;
+    }
+
+    html+='</div></div>';
+  });
+
+  html+='</div>';
+  editParticipantList.innerHTML=html;
+}
+
+async function openEditMembers(){
+  const room=cloudRooms.find(r=>r.roomId===currentRoomId);
+  if(!room || !canEditRoomMembers(room)){
+    toastMsg('只有樓主或主管可以調整參與人員');
+    return;
+  }
+
+  editMembersModal.classList.add('show');
+  editParticipantList.innerHTML='<div class="loadingBox">正在讀取人員名單…</div>';
+
+  try{
+    if(!employeeDirectory.length) await loadEmployeeDirectory();
+    renderEditParticipantList(room);
+  }catch(err){
+    editParticipantList.innerHTML=`<div class="sourceState">⚠️ ${esc(err.message)}</div>`;
+  }
+}
+
+function closeEditMembers(){
+  editMembersModal.classList.remove('show');
+}
+
+async function saveRoomParticipants(){
+  const room=cloudRooms.find(r=>r.roomId===currentRoomId);
+  if(!room)return;
+
+  const participants=[...document.querySelectorAll('.editParticipantCheck:checked, .editParticipantCheck:disabled')]
+    .map(cb=>({
+      employeeId:cb.dataset.id||'',
+      name:cb.dataset.name||'',
+      type:cb.dataset.type||'employee',
+      department:cb.dataset.dept||'',
+      subgroup:cb.dataset.subgroup||''
+    }));
+
+  try{
+    const result=await postDirect('updateRoomParticipants',{
+      roomId:currentRoomId,
+      userId:currentUserId,
+      userName:currentUser,
+      participants
+    });
+
+    closeEditMembers();
+    await loadCloudRooms();
+
+    const updated=cloudRooms.find(r=>r.roomId===currentRoomId);
+    if(updated){
+      // 重新畫目前樓層的成員資訊，但不搬動或清空既有留言。
+      await openRoom(currentRoomId);
+    }
+
+    toastMsg(`✅ 參與人員已更新，共 ${result.participantCount||participants.length} 人`);
+  }catch(err){
+    toastMsg('⚠️ 更新失敗：'+err.message);
+  }
+}
+
 async function openNewRoom(){
   if(isGuest()){toastMsg('外聘協作人員不能建立新討論樓');return}
   newTitle.value='';newRetention.value='30';newRoomModal.classList.add('show');
@@ -392,6 +606,8 @@ async function openRoom(id){
           ${groupHtml}
           <button class="participantToggle" type="button"
             onclick="toggleParticipantList('${listId}',this)">查看 ${participants.length} 人 ▾</button>
+          <button class="fileLibraryBtn" type="button" onclick="openFileLibrary()">📁 檔案區</button>
+          ${canEditRoomMembers(r)?'<button class="memberEditBtn" type="button" onclick="openEditMembers()">調整成員</button>':''}
         </div>
         <div class="participantPeople" id="${listId}">${peopleHtml}</div>
       </div>`;
@@ -404,6 +620,7 @@ async function openRoom(id){
   try{
     const data=await jsonp('getMessages',{roomId:id});
     const msgs=data?.ok&&Array.isArray(data.messages)?data.messages:[];
+    currentRoomMessages=msgs;
     messageList.innerHTML=msgs.length?msgs.map(m=>{
       const attachments=Array.isArray(m.attachments)?m.attachments:[];
       const attachHtml=attachments.length
@@ -424,8 +641,77 @@ async function openRoom(id){
     }).catch(err=>console.warn('已讀標記失敗：',err.message));
   }catch(err){messageList.innerHTML=`<div class="empty">留言讀取失敗：${esc(err.message)}</div>`}
 }
-function closeRoom(){currentRoomId='';roomView.classList.remove('show');listView.classList.remove('hide');renderRooms()}
+function closeRoom(){currentRoomId='';currentRoomMessages=[];roomView.classList.remove('show');listView.classList.remove('hide');renderRooms()}
 
+
+
+function fileKind(name=''){
+  const n=String(name||'').toLowerCase();
+  if(/\.(jpg|jpeg|png|gif|webp|heic)$/i.test(n)) return 'image';
+  if(/\.pdf$/i.test(n)) return 'pdf';
+  if(/\.(doc|docx)$/i.test(n)) return 'word';
+  return 'other';
+}
+
+function fileIcon(kind){
+  if(kind==='image') return '🖼️';
+  if(kind==='pdf') return '📕';
+  if(kind==='word') return '📘';
+  return '📄';
+}
+
+function collectRoomFiles(){
+  const out=[];
+  currentRoomMessages.forEach(msg=>{
+    const atts=Array.isArray(msg.attachments)?msg.attachments:[];
+    atts.forEach(att=>{
+      out.push({
+        name:att.name||'未命名檔案',
+        url:att.url||'',
+        kind:fileKind(att.name||''),
+        author:msg.authorName||'',
+        createdAt:msg.createdAt||''
+      });
+    });
+  });
+
+  return out.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+}
+
+function openFileLibrary(){
+  fileLibrarySearch.value='';
+  fileLibraryType.value='all';
+  fileLibraryModal.classList.add('show');
+  renderFileLibrary();
+}
+
+function closeFileLibrary(){
+  fileLibraryModal.classList.remove('show');
+}
+
+function renderFileLibrary(){
+  const all=collectRoomFiles();
+  const q=String(fileLibrarySearch.value||'').trim().toLowerCase();
+  const type=String(fileLibraryType.value||'all');
+
+  const rows=all.filter(f=>{
+    const matchesText=!q || String(f.name||'').toLowerCase().includes(q);
+    const matchesType=type==='all' || f.kind===type;
+    return matchesText && matchesType;
+  });
+
+  fileLibrarySummary.textContent=`這棟樓共有 ${all.length} 個附件`;
+  fileLibraryList.innerHTML=rows.length
+    ? rows.map(f=>`
+      <div class="fileCard">
+        <div class="fileIcon">${fileIcon(f.kind)}</div>
+        <div class="fileName">${esc(f.name)}</div>
+        <div class="fileMeta">${esc(f.author||'')}｜${fmt(f.createdAt)}</div>
+        ${f.url?`<a href="${esc(f.url)}" target="_blank" rel="noopener">開啟檔案</a>`:''}
+      </div>
+    `).join('')
+    : '<div class="fileEmpty">找不到符合的檔案</div>';
+}
 
 function blobToBase64(blob){
   return new Promise((resolve,reject)=>{
