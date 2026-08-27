@@ -532,6 +532,21 @@
 .hasDiscussionUnread{position:relative}
 .hasDiscussionUnread .discussionCardUnreadDot{display:block}
 
+
+/* 團購／登記中心新活動提醒 */
+.groupbuyHomeCard{position:relative}
+.groupbuyUnreadDot{
+  display:none;position:absolute;right:12px;top:11px;width:13px;height:13px;
+  border-radius:50%;background:#e04444;box-shadow:0 0 0 4px rgba(224,68,68,.13);
+  z-index:3
+}
+.groupbuyHomeCard.hasGroupbuyUnread .groupbuyUnreadDot{display:block}
+.groupbuyNotice{
+  display:none;margin:0 0 12px;padding:11px 13px;border-radius:14px;
+  background:#fff3f3;border:1px solid #f2caca;color:#b33b3b;font-weight:900
+}
+.groupbuyNotice.show{display:block}
+
 </style>
 </head>
 <body>
@@ -658,7 +673,8 @@
           <span>公務交流、事件討論與檔案分享</span>
         </button>
 
-        <button class="btn" onclick="openFeature('登記中心')">
+        <button class="btn groupbuyHomeCard" id="groupbuyHomeCard" onclick="window.location.href='groupbuy.html'">
+          <span class="groupbuyUnreadDot" id="groupbuyUnreadDot" aria-hidden="true"></span>
           <div class="icon">📝</div>
           <strong>登記中心</strong>
           <span>便當、活動、用品需求或統計登記</span>
@@ -678,7 +694,8 @@
       </div>
     </section>
 
-    <div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.6｜討論區未讀提示</div>
+    <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
+<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.7｜討論區＋登記中心提醒</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -936,6 +953,83 @@
       toast.classList.add('show');
       setTimeout(()=>toast.classList.remove('show'), ms);
     }
+
+
+    const GROUPBUY_SERVICE_URL='https://script.google.com/macros/s/AKfycbyGOxpeqwRU3_Q2HcoQHsMr_PvUkoLkpRwPPCLs5K6iWRye7fVeQdNkMAvc1oBvqFFrpw/exec';
+
+    function groupbuySeenKey(){
+      const emp=currentEmployee||{};
+      const id=String(emp.employeeId||emp.id||emp['員工編號']||currentUser||'user').trim();
+      return 'heremay.groupbuy.lastSeen.'+id;
+    }
+
+    function groupbuyTargetMatches(c){
+      const targets=Array.isArray(c.targets)?c.targets:[];
+      if(!targets.length||targets.includes('全體'))return true;
+
+      const emp=currentEmployee||{};
+      const text=[
+        emp.group,emp.department,emp.identity,emp.identityCategory,
+        emp.jobTitle,emp.homeType
+      ].filter(Boolean).join('｜');
+
+      if(targets.includes('行政') && /行政|管理|主管|園長|主任|負責人/.test(text))return true;
+      if(targets.includes('教保') && /教保|幼兒部|老師|教師/.test(text))return true;
+      if(targets.includes('庶務') && /庶務|廚|清潔|護理|護士/.test(text))return true;
+      return false;
+    }
+
+    function setGroupbuyUnread(show){
+      const card=document.getElementById('groupbuyHomeCard');
+      const notice=document.getElementById('groupbuyNotice');
+      card?.classList.toggle('hasGroupbuyUnread',!!show);
+      notice?.classList.toggle('show',!!show);
+      if(show)localStorage.setItem('heremay.groupbuy.hasUnread','1');
+      else localStorage.removeItem('heremay.groupbuy.hasUnread');
+    }
+
+    function checkGroupbuyUnread(){
+      return new Promise(resolve=>{
+        const cb='heremayGroupbuyUnread_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+        const script=document.createElement('script');
+        const timer=setTimeout(()=>cleanup(false),12000);
+
+        function cleanup(value){
+          clearTimeout(timer);
+          try{delete window[cb]}catch(e){}
+          script.remove();
+          resolve(value);
+        }
+
+        window[cb]=result=>{
+          try{
+            const campaigns=Array.isArray(result?.data)?result.data:[];
+            const seenRaw=localStorage.getItem(groupbuySeenKey())||'';
+            const seen=seenRaw?new Date(seenRaw).getTime():0;
+            const hasUnread=campaigns.some(c=>{
+              const status=String(c.status||'open');
+              if(status==='closed'||status==='cancelled'||c.deleted)return false;
+              if(!groupbuyTargetMatches(c))return false;
+              const created=new Date(c.createdAt||0).getTime();
+              return created>seen;
+            });
+            setGroupbuyUnread(hasUnread);
+            cleanup(hasUnread);
+          }catch(e){
+            cleanup(false);
+          }
+        };
+
+        script.onerror=()=>cleanup(false);
+        script.src=GROUPBUY_SERVICE_URL+'?'+new URLSearchParams({
+          action:'listCampaigns',callback:cb,_:Date.now()
+        }).toString();
+        document.head.appendChild(script);
+      });
+    }
+
+    window.addEventListener('pageshow',()=>setTimeout(checkGroupbuyUnread,900));
+    setInterval(checkGroupbuyUnread,60000);
 
     function openFeature(name){
       showToast(`已點選「${name}」：這裡之後會接到對應功能頁。`, 2200);

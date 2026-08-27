@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.9.9</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.9.10</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -424,7 +424,7 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.9.9｜2026-08-27｜首頁新活動提醒</div>
+<div class="version">團購／報名中心 v1.9.10｜2026-08-27｜進入即清除首頁提醒＋快速同步</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -585,7 +585,7 @@ function jsonpCloud(action,params={}){
  return new Promise((resolve,reject)=>{
    const cb='heremayCloudCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
    const script=document.createElement('script');
-   const timer=setTimeout(()=>cleanup(new Error('雲端讀取逾時')),45000);
+   const timer=setTimeout(()=>cleanup(new Error('雲端讀取逾時')),15000);
    function cleanup(error,data){
      clearTimeout(timer);
      try{delete window[cb]}catch(e){}
@@ -769,7 +769,17 @@ async function loadCloudData(showMessage=true){
  if(showMessage)setSyncState('busy','正在同步雲端資料…');
  try{
    let campaigns=[],orders=[],templates=[];
+
+   // v1.9.10：首頁先用一個 syncAll 請求抓完整資料。
+   // 原本同時送 3 個 Apps Script 請求，冷啟動時容易讓手機一直轉圈。
    try{
+     const result=await jsonpCloud('syncAll');
+     if(!result.ok)throw new Error(result.message||'雲端同步失敗');
+     campaigns=result.campaigns||[];
+     orders=result.orders||[];
+     templates=result.templates||[];
+   }catch(allError){
+     console.warn('整包同步失敗，改用分段同步',allError);
      const [cRes,oRes,tRes]=await Promise.all([
        jsonpCloud('listCampaigns'),
        jsonpCloud('listOrders'),
@@ -781,18 +791,11 @@ async function loadCloudData(showMessage=true){
      campaigns=cRes.data||[];
      orders=oRes.data||[];
      templates=tRes.data||[];
-   }catch(splitError){
-     console.warn('分段同步失敗，改用整包同步',splitError);
-     const result=await jsonpCloud('syncAll');
-     if(!result.ok)throw new Error(result.message||'雲端同步失敗');
-     campaigns=result.campaigns||[];
-     orders=result.orders||[];
-     templates=result.templates||[];
    }
+
    setC(campaigns.map(normalizeCampaign));
    setO(orders);
    setT(templates);
-   markGroupbuySeen();
    setSyncState('ok','雲端同步完成｜'+new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}));
    try{
      renderSavedTemplates();
@@ -828,7 +831,7 @@ async function cloudWrite(action,payload,successMessage){
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
-const APP_VERSION='1.9.9';
+const APP_VERSION='1.9.10';
 async function updateAppNow(){
  toast('正在檢查新版…');
  try{
@@ -1518,6 +1521,10 @@ async function toggleClose(id){
  await cloudWrite(c.closed?'reopenCampaign':'finishCampaign',{id},c.closed?'活動已重新開放':'活動已結束');
 }
 function renderAll(){renderAvailable();renderMine();renderStats()}
+
+// 只要使用者真的進入登記中心，就視為已看過首頁提醒。
+// 不再等待雲端同步完成，避免網路慢時回首頁紅點一直留著。
+markGroupbuySeen();
 
 document.getElementById('hostName').value=currentName();
 applyTemplate('drink',document.querySelector('.templateBtn'));

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.18</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.19</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -551,6 +551,27 @@
 .hasDiscussionUnread{position:relative}
 .hasDiscussionUnread .discussionCardUnreadDot{display:block}
 
+
+/* v24.19：登記中心新活動提醒 */
+.groupbuyUnreadNotice{
+  display:none;align-items:center;gap:9px;
+  background:#fff3f3;border:1px solid #f2caca;color:#b33b3b;
+  border-radius:16px;padding:11px 13px;margin-bottom:12px;
+  font-weight:900;cursor:pointer
+}
+.groupbuyUnreadNotice.show{display:flex}
+.groupbuyUnreadNotice .noticeDot{
+  width:11px;height:11px;border-radius:50%;background:#e04444;
+  box-shadow:0 0 0 4px rgba(224,68,68,.13)
+}
+.groupbuyUnreadNotice .noticeArrow{margin-left:auto}
+.groupbuyCardUnreadDot{
+  display:none;position:absolute;right:12px;top:11px;width:12px;height:12px;
+  border-radius:50%;background:#e04444;box-shadow:0 0 0 3px #fff
+}
+.hasGroupbuyUnread{position:relative}
+.hasGroupbuyUnread .groupbuyCardUnreadDot{display:block}
+
 </style>
 </head>
 <body class="auth-pending">
@@ -559,6 +580,11 @@
     <div id="discussionUnreadNotice" class="discussionUnreadNotice" onclick="location.href='discussion.html'">
       <span class="noticeDot"></span>
       <span>討論區有未讀訊息</span>
+      <span class="noticeArrow">›</span>
+    </div>
+    <div id="groupbuyUnreadNotice" class="groupbuyUnreadNotice" onclick="location.href='groupbuy.html'">
+      <span class="noticeDot"></span>
+      <span>有新的團購／登記事項</span>
       <span class="noticeArrow">›</span>
     </div>
     <header class="dashboardHeader">
@@ -637,6 +663,10 @@
         <span class="discussionCardUnreadDot" aria-hidden="true"></span>
         <span class="sqIcon">💬</span><strong>討論區</strong><span>公務交流、事件討論與檔案分享</span>
       </button>
+      <button class="bottomSquareBtn" id="groupbuyHomeCard" type="button" onclick="location.href='groupbuy.html'">
+        <span class="groupbuyCardUnreadDot" aria-hidden="true"></span>
+        <span class="sqIcon">🛒</span><strong>登記中心</strong><span>團購、報名、意願調查與活動登記</span>
+      </button>
       <button class="bottomSquareBtn" type="button" onclick="location.href='schedule.html'">
         <span class="sqIcon">🗓️</span><strong>班表查看</strong><span>查看已發布的各項班表</span>
       </button>
@@ -672,7 +702,7 @@
       </div>
     </section>
 
-    <div class="versionStamp">主管工作台 v24.18｜2026-08-21｜巡堂醒目化與排班管理移至電腦專用</div>
+    <div class="versionStamp">主管工作台 v24.19｜2026-08-21｜巡堂醒目化與排班管理移至電腦專用</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
@@ -1561,6 +1591,59 @@ window.addEventListener('DOMContentLoaded', setupDesktopTools);
 
 
 const DISCUSSION_NOTIFY_URL = 'https://script.google.com/macros/s/AKfycbxuvqWI2FlvCk5ZdEfhSNMF6O79pElfx2p4PZBIk-xT1zw0NVorhzX8wNPF9oOHxY2x/exec';
+
+
+const GROUPBUY_SERVICE_URL='https://script.google.com/macros/s/AKfycbyGOxpeqwRU3_Q2HcoQHsMr_PvUkoLkpRwPPCLs5K6iWRye7fVeQdNkMAvc1oBvqFFrpw/exec';
+
+function adminGroupbuySeenKey(){
+  const emp=currentAdminEmployee||readCurrentEmployee()||{};
+  const id=String(emp.employeeId||emp.id||emp['員工編號']||emp.name||'admin').trim();
+  return 'heremay.groupbuy.lastSeen.'+id;
+}
+function adminGroupbuyTargetMatches(c){
+  const targets=Array.isArray(c.targets)?c.targets:[];
+  if(!targets.length||targets.includes('全體')||targets.includes('行政'))return true;
+  return false;
+}
+function setAdminGroupbuyUnread(show){
+  document.getElementById('groupbuyUnreadNotice')?.classList.toggle('show',!!show);
+  document.getElementById('groupbuyHomeCard')?.classList.toggle('hasGroupbuyUnread',!!show);
+}
+function checkAdminGroupbuyUnread(){
+  return new Promise(resolve=>{
+    const cb='adminGroupbuyCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    const timer=setTimeout(()=>cleanup(false),12000);
+    function cleanup(v){
+      clearTimeout(timer);
+      try{delete window[cb]}catch(e){}
+      script.remove();
+      resolve(v);
+    }
+    window[cb]=result=>{
+      try{
+        const campaigns=Array.isArray(result?.data)?result.data:[];
+        const seenRaw=localStorage.getItem(adminGroupbuySeenKey())||'';
+        const seen=seenRaw?new Date(seenRaw).getTime():0;
+        const hasUnread=campaigns.some(c=>{
+          const status=String(c.status||'open');
+          if(status==='closed'||status==='cancelled'||c.deleted)return false;
+          if(!adminGroupbuyTargetMatches(c))return false;
+          return new Date(c.createdAt||0).getTime()>seen;
+        });
+        setAdminGroupbuyUnread(hasUnread);
+        cleanup(hasUnread);
+      }catch(e){cleanup(false)}
+    };
+    script.onerror=()=>cleanup(false);
+    script.src=GROUPBUY_SERVICE_URL+'?'+new URLSearchParams({
+      action:'listCampaigns',callback:cb,_:Date.now()
+    }).toString();
+    document.head.appendChild(script);
+  });
+}
+window.addEventListener('pageshow',()=>setTimeout(checkAdminGroupbuyUnread,900));
+setInterval(checkAdminGroupbuyUnread,60000);
 
 function discussionJsonp(action, params={}){
   return new Promise((resolve,reject)=>{
