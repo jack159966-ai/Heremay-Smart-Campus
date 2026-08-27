@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v2.9</title>
+<title>和美智慧校園｜討論區 v3.0</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -218,6 +218,17 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
   .previewPrev{left:4px}.previewNext{right:4px}
 }
 
+
+.fileDeleteBtn{
+  border:0;background:#fff0f0;color:#b84a4a;border-radius:9px;
+  padding:6px 8px;font-size:12px;font-weight:900;cursor:pointer
+}
+.fileDeleteBtn:hover{background:#ffe3e3}
+.fileCardActions{
+  display:flex;gap:6px;align-items:center;margin-top:7px;flex-wrap:wrap
+}
+.fileCard.galleryCard .fileCardActions a{margin:0}
+
 </style>
 </head>
 <body>
@@ -225,7 +236,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v2.9</span>
+  <span class="version">v3.0</span>
 </header>
 
 <section class="card userline">
@@ -771,13 +782,17 @@ function collectRoomFiles(){
     atts.forEach(att=>{
       const fileId=att.driveFileId||att.fileId||'';
       out.push({
+        attachmentId:att.attachmentId||'',
+        messageId:msg.messageId||'',
+        uploaderId:att.uploaderId||'',
+        uploaderName:att.uploaderName||msg.authorName||'',
         name:att.name||'未命名檔案',
         url:att.url||'',
         fileId,
         thumbUrl:fileId?driveThumb(fileId,480):'',
         previewUrl:fileId?drivePreview(fileId):(att.url||''),
         kind:fileKind(att.name||''),
-        author:msg.authorName||att.uploaderName||'',
+        author:att.uploaderName||msg.authorName||'',
         createdAt:msg.createdAt||att.uploadedAt||''
       });
     });
@@ -843,6 +858,55 @@ function renderImagePreview(){
   previewCaption.textContent=`${previewIndex+1} / ${previewImages.length}　${f.name}`;
 }
 
+
+function canDeleteRoomFile(file){
+  const room=cloudRooms.find(r=>r.roomId===currentRoomId);
+  const isCreator=room && (
+    (currentUserId && room.creatorId && String(currentUserId)===String(room.creatorId)) ||
+    (currentUser && room.creatorName && String(currentUser)===String(room.creatorName))
+  );
+
+  const isOwn=
+    (currentUserId && file.uploaderId && String(currentUserId)===String(file.uploaderId)) ||
+    (currentUser && file.uploaderName && String(currentUser)===String(file.uploaderName));
+
+  return currentIsManager || isCreator || isOwn;
+}
+
+async function deleteRoomFile(attachmentId,name=''){
+  if(!attachmentId){
+    toastMsg('⚠️ 這個檔案缺少附件編號，請重新進入討論樓後再試');
+    return;
+  }
+
+  const displayName=name||'這個檔案';
+  if(!confirm(`確定要刪除「${displayName}」嗎？\n\n刪除後會從討論樓資料夾與聊天附件中一起移除。`)){
+    return;
+  }
+
+  try{
+    await postDirect('deleteAttachment',{
+      attachmentId,
+      userId:currentUserId,
+      userName:currentUser
+    });
+
+    // 先從目前記憶資料移除，讓檔案區立即更新，不用等整頁重抓。
+    currentRoomMessages.forEach(msg=>{
+      if(!Array.isArray(msg.attachments))return;
+      msg.attachments=msg.attachments.filter(a=>String(a.attachmentId||'')!==String(attachmentId));
+    });
+
+    renderFileLibrary();
+    toastMsg('✅ 檔案已刪除');
+
+    // 同步刷新聊天時間軸，讓原本留言中的附件連結也立即消失。
+    setTimeout(()=>openRoom(currentRoomId).catch(()=>{}),150);
+  }catch(err){
+    toastMsg('⚠️ 刪除失敗：'+err.message);
+  }
+}
+
 function renderFileLibrary(){
   const all=collectRoomFiles();
   const q=String(fileLibrarySearch.value||'').trim().toLowerCase();
@@ -871,7 +935,10 @@ function renderFileLibrary(){
           <div class="fileName">${esc(f.name)}</div>
           <div class="fileMeta">${esc(f.author||'')}｜${fmt(f.createdAt)}</div>
         </div>
-        ${f.url?`<a href="${esc(f.url)}" target="_blank" rel="noopener">開啟</a>`:''}
+        <div class="fileCardActions">
+          ${f.url?`<a href="${esc(f.url)}" target="_blank" rel="noopener">開啟</a>`:''}
+          ${canDeleteRoomFile(f)?`<button class="fileDeleteBtn" type="button" onclick="deleteRoomFile('${esc(f.attachmentId)}','${esc(f.name)}')">刪除</button>`:''}
+        </div>
       </div>
     `).join('');
     return;
@@ -892,6 +959,7 @@ function renderFileLibrary(){
           </div>
           <div class="fileCardBody">
             <div class="fileName" title="${esc(f.name)}">${esc(f.name)}</div>
+            ${canDeleteRoomFile(f)?`<div class="fileCardActions"><button class="fileDeleteBtn" type="button" onclick="event.stopPropagation();deleteRoomFile('${esc(f.attachmentId)}','${esc(f.name)}')">刪除</button></div>`:''}
           </div>
         </div>`;
     }
@@ -903,6 +971,7 @@ function renderFileLibrary(){
         </div>
         <div class="fileCardBody">
           <div class="fileName" title="${esc(f.name)}">${esc(f.name)}</div>
+          ${canDeleteRoomFile(f)?`<div class="fileCardActions"><button class="fileDeleteBtn" type="button" onclick="event.stopPropagation();deleteRoomFile('${esc(f.attachmentId)}','${esc(f.name)}')">刪除</button></div>`:''}
         </div>
       </div>`;
   }).join('');
