@@ -316,7 +316,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v3.4</span>
+  <span class="version">v3.5</span>
 </header>
 
 <section class="card userline">
@@ -529,6 +529,11 @@ function discussionStateKey(){
   return 'heremay.discussion.unreadState.'+id;
 }
 
+function discussionAllReadKey(){
+  const id=String(currentUserId||currentUser||'user').trim();
+  return 'heremay.discussion.allReadAt.'+id;
+}
+
 function saveDiscussionUnreadState(){
   const unreadCount=cloudRooms
     .filter(r=>r.status!=='已封存')
@@ -543,6 +548,18 @@ function saveDiscussionUnreadState(){
   };
 
   localStorage.setItem(discussionStateKey(),JSON.stringify(state));
+
+  // 全部樓層讀完時留下時間戳，讓首頁能忽略雲端短暫回傳的舊未讀資料。
+  if(unreadCount===0){
+    const allReadAt=Date.now();
+    localStorage.setItem(discussionAllReadKey(),String(allReadAt));
+    if(currentUser){
+      localStorage.setItem(
+        'heremay.discussion.allReadAt.name.'+String(currentUser).trim(),
+        String(allReadAt)
+      );
+    }
+  }
 
   // 同時用姓名再存一份，避免不同頁面取得 employeeId 的時間點不同。
   if(currentUser){
