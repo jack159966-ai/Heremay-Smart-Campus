@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.2</title>
+  <title>和美智慧校園｜教保人員首頁 v15.3</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -720,7 +720,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.2｜討論區紅點同源判斷版</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.3｜討論區紅點返回刷新版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -1550,40 +1550,76 @@ function getHomeEmployee(){
   }
 }
 
+let discussionUnreadRequestSeq=0;
+
+function clearDiscussionUnreadVisual(){
+  const notice=document.getElementById('discussionUnreadNotice');
+  const card=document.getElementById('discussionHomeCard');
+  if(notice)notice.classList.remove('show');
+  if(card)card.classList.remove('hasDiscussionUnread');
+}
+
 async function refreshDiscussionUnreadNotice(){
+  // 每次重新進入首頁，先把舊畫面狀態清掉。
+  // 只有「這一次最新的」雲端結果真的有未讀，才重新加回紅點。
+  const seq=++discussionUnreadRequestSeq;
+  clearDiscussionUnreadVisual();
+
   const employee=getHomeEmployee();
   const userId=String(employee?.employeeId||employee?.id||employee?.['員工編號']||'').trim();
   const userName=String(employee?.name||employee?.['姓名']||'').trim();
   if(!userId && !userName)return;
 
   try{
-    // v15.2：首頁不再使用另一套 getUnreadSummary。
-    // 直接讀取與 discussion.html 完全相同的 getRooms 結果，
-    // 因此只要討論區列表上的紅色數字消失，首頁紅點就一定同步消失。
     const result=await discussionJsonp('getRooms',{
       userId,
       userName,
       _:Date.now()
     });
 
+    // 如果使用者在等待期間又觸發了較新的查詢，丟棄這個舊回應。
+    if(seq!==discussionUnreadRequestSeq)return;
+
     const rooms=Array.isArray(result?.rooms)?result.rooms:[];
-    const hasUnread=rooms.some(room=>
+    const activeUnreadRooms=rooms.filter(room=>
       String(room.status||'')!=='已封存' &&
       Number(room.unreadCount||0)>0
     );
 
+    const hasUnread=activeUnreadRooms.length>0;
     const notice=document.getElementById('discussionUnreadNotice');
     const card=document.getElementById('discussionHomeCard');
 
     if(notice)notice.classList.toggle('show',hasUnread);
     if(card)card.classList.toggle('hasDiscussionUnread',hasUnread);
+
+    console.log('[討論區首頁提醒]',{
+      userId,userName,
+      unreadRooms:activeUnreadRooms.map(r=>({
+        roomId:r.roomId,title:r.title,unreadCount:r.unreadCount
+      }))
+    });
   }catch(err){
+    // 連線失敗時維持「無紅點」，避免上一頁的舊紅點因 BFCache 留住。
+    if(seq===discussionUnreadRequestSeq)clearDiscussionUnreadVisual();
     console.warn('討論區未讀提示：',err.message);
   }
 }
 
-window.addEventListener('pageshow',refreshDiscussionUnreadNotice);
-setTimeout(refreshDiscussionUnreadNotice,700);
+window.addEventListener('pageshow',()=>{
+  discussionUnreadRequestSeq++;
+  clearDiscussionUnreadVisual();
+  setTimeout(refreshDiscussionUnreadNotice,250);
+});
+window.addEventListener('focus',()=>{
+  setTimeout(refreshDiscussionUnreadNotice,150);
+});
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'){
+    setTimeout(refreshDiscussionUnreadNotice,150);
+  }
+});
+setTimeout(refreshDiscussionUnreadNotice,500);
 setInterval(refreshDiscussionUnreadNotice,60000);
 
 </script>
