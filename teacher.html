@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.0</title>
+  <title>和美智慧校園｜教保人員首頁 v15.1</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -720,7 +720,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.0｜紅點修正版</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.1｜教師紅點身分修正版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -1030,23 +1030,37 @@
       return false;
     }
 
-    function groupbuySeenKey(){
+    function groupbuySeenKeys(){
       const emp=currentEmployee||{};
-      const id=String(emp.employeeId||emp.id||emp['員工編號']||currentUser||'user').trim();
-      return 'heremay.groupbuy.seenIds.'+id;
+      const values=[
+        emp.employeeId,emp.id,emp['員工編號'],
+        emp.name,currentUser
+      ].map(v=>String(v||'').trim()).filter(Boolean);
+
+      const unique=[...new Set(values)];
+      return unique.length
+        ? unique.map(v=>'heremay.groupbuy.seenIds.'+v)
+        : ['heremay.groupbuy.seenIds.user'];
     }
 
     function getGroupbuySeenIds(){
-      try{
-        const arr=JSON.parse(localStorage.getItem(groupbuySeenKey())||'[]');
-        return new Set(Array.isArray(arr)?arr.map(String):[]);
-      }catch(e){ return new Set(); }
+      const seen=new Set();
+      groupbuySeenKeys().forEach(key=>{
+        try{
+          const arr=JSON.parse(localStorage.getItem(key)||'[]');
+          if(Array.isArray(arr))arr.forEach(id=>seen.add(String(id)));
+        }catch(e){}
+      });
+      return seen;
     }
 
     function saveGroupbuySeenIds(ids){
       const seen=getGroupbuySeenIds();
       (ids||[]).forEach(id=>seen.add(String(id)));
-      localStorage.setItem(groupbuySeenKey(),JSON.stringify([...seen].slice(-500)));
+      const arr=[...seen].slice(-500);
+      groupbuySeenKeys().forEach(key=>
+        localStorage.setItem(key,JSON.stringify(arr))
+      );
     }
 
     function setGroupbuyUnread(show){
