@@ -808,7 +808,6 @@ async function openRoom(id){
     fileLibraryBtn.style.display='inline-flex';
   }
   try{
-    // v3.3：留言讀取與「已讀」合併成同一次後端要求。
     const data=await jsonp('getMessages',{
       roomId:id,
       userId:currentUserId,
@@ -825,12 +824,10 @@ async function openRoom(id){
       const textHtml=String(m.text||'').trim()?`<p>${esc(m.text)}</p>`:'';
       return `<div class="msg" data-message-id="${esc(m.messageId||'')}" data-author-id="${esc(m.authorId||'')}" data-author-name="${esc(m.authorName||'')}"><div class="msgHead"><strong>${esc(m.authorName||'同仁')}</strong><span class="time">${fmt(m.createdAt)}</span>${delBtn}</div>${textHtml}${attachHtml}</div>`;
     }).join(''):'<div class="empty">這棟樓還沒有留言</div>';
-    // getMessages 已在後端同步完成已讀寫入；此處只更新本頁畫面。
-    if(data?.readState?.marked!==false){
-      r.unread=false;
-      r.unreadCount=0;
-      updateUnreadSummary();
-    }
+    // v3.3：getMessages 後端會同步標記這棟樓已讀。
+    r.unread=false;
+    r.unreadCount=0;
+    updateUnreadSummary();
   }catch(err){messageList.innerHTML=`<div class="empty">留言讀取失敗：${esc(err.message)}</div>`}
 }
 function closeRoom(){currentRoomId='';currentRoomMessages=[];roomView.classList.remove('show');listView.classList.remove('hide');renderRooms()}

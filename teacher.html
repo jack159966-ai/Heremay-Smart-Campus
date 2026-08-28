@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v14.6 首頁未讀提示版</title>
+  <title>和美智慧校園｜教保人員首頁 v15.0</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -676,7 +676,7 @@
 
         
 
-        <button class="btn hasDiscussionUnread" id="discussionHomeCard" onclick="window.location.href='discussion.html'">
+        <button class="btn" id="discussionHomeCard" onclick="window.location.href='discussion.html'">
           <span class="discussionCardUnreadDot" aria-hidden="true"></span>
           <div class="icon">💬</div>
           <strong>討論區</strong>
@@ -720,7 +720,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v14.9｜紅點已讀修正</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.0｜紅點修正版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -1012,12 +1012,7 @@
 
 
     const GROUPBUY_SERVICE_URL='https://script.google.com/macros/s/AKfycbyGOxpeqwRU3_Q2HcoQHsMr_PvUkoLkpRwPPCLs5K6iWRye7fVeQdNkMAvc1oBvqFFrpw/exec';
-
-    function groupbuySeenKey(){
-      const emp=currentEmployee||{};
-      const id=String(emp.employeeId||emp.id||emp['員工編號']||currentUser||'user').trim();
-      return 'heremay.groupbuy.lastSeen.'+id;
-    }
+    let latestGroupbuyUnreadIds=[];
 
     function groupbuyTargetMatches(c){
       const targets=Array.isArray(c.targets)?c.targets:[];
@@ -1035,51 +1030,39 @@
       return false;
     }
 
+    function groupbuySeenKey(){
+      const emp=currentEmployee||{};
+      const id=String(emp.employeeId||emp.id||emp['員工編號']||currentUser||'user').trim();
+      return 'heremay.groupbuy.seenIds.'+id;
+    }
+
+    function getGroupbuySeenIds(){
+      try{
+        const arr=JSON.parse(localStorage.getItem(groupbuySeenKey())||'[]');
+        return new Set(Array.isArray(arr)?arr.map(String):[]);
+      }catch(e){ return new Set(); }
+    }
+
+    function saveGroupbuySeenIds(ids){
+      const seen=getGroupbuySeenIds();
+      (ids||[]).forEach(id=>seen.add(String(id)));
+      localStorage.setItem(groupbuySeenKey(),JSON.stringify([...seen].slice(-500)));
+    }
+
     function setGroupbuyUnread(show){
       const card=document.getElementById('groupbuyHomeCard');
       const notice=document.getElementById('groupbuyNotice');
       card?.classList.toggle('hasGroupbuyUnread',!!show);
       notice?.classList.toggle('show',!!show);
-      if(show)localStorage.setItem('heremay.groupbuy.hasUnread','1');
-      else localStorage.removeItem('heremay.groupbuy.hasUnread');
     }
 
-
-    let latestGroupbuyUnreadIds=[];
-
-    function readGroupbuyEmployee(){
-      try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}')||{}}
-      catch(e){return {}}
-    }
-    function groupbuySeenIdKeys(){
-      const emp=readGroupbuyEmployee();
-      const ids=[];
-      const employeeId=String(emp.employeeId||emp.id||emp['員工編號']||'').trim();
-      const name=String(emp.name||'').trim();
-      if(employeeId)ids.push('heremay.groupbuy.seenIds.id.'+employeeId);
-      if(name)ids.push('heremay.groupbuy.seenIds.name.'+name);
-      return ids.length?ids:['heremay.groupbuy.seenIds.fallback'];
-    }
-    function getGroupbuySeenIds(){
-      const set=new Set();
-      groupbuySeenIdKeys().forEach(k=>{
-        try{(JSON.parse(localStorage.getItem(k)||'[]')||[]).forEach(id=>set.add(String(id)))}catch(e){}
-      });
-      return set;
-    }
-    function saveGroupbuySeenIds(ids){
-      const merged=getGroupbuySeenIds();
-      (ids||[]).forEach(id=>merged.add(String(id)));
-      const arr=[...merged].slice(-500);
-      groupbuySeenIdKeys().forEach(k=>localStorage.setItem(k,JSON.stringify(arr)));
-    }
     function openGroupbuyAndAcknowledge(){
-      // 先把「這一次首頁看到的新活動」交給登記中心顯示 NEW，
-      // 同時在離開首頁前就記為已看過，因此返回時紅點一定會消失。
-      sessionStorage.setItem('heremay.groupbuy.entryNewIds',JSON.stringify(latestGroupbuyUnreadIds||[]));
+      sessionStorage.setItem(
+        'heremay.groupbuy.entryNewIds',
+        JSON.stringify(latestGroupbuyUnreadIds||[])
+      );
       saveGroupbuySeenIds(latestGroupbuyUnreadIds||[]);
-      setGroupbuyUnread?.(false);
-      if(typeof setAdminGroupbuyUnread==='function')setAdminGroupbuyUnread(false);
+      setGroupbuyUnread(false);
       location.href='groupbuy.html?v=1.9.12';
     }
 
@@ -1099,13 +1082,18 @@
         window[cb]=result=>{
           try{
             const campaigns=Array.isArray(result?.data)?result.data:[];
-            const seenIds=getGroupbuySeenIds();
-            latestGroupbuyUnreadIds=campaigns.filter(c=>{
-              const status=String(c.status||'open');
-              if(status==='closed'||status==='cancelled'||c.deleted)return false;
-              if(!groupbuyTargetMatches(c))return false;
-              return !seenIds.has(String(c.id||''));
-            }).map(c=>String(c.id||'')).filter(Boolean);
+            const seen=getGroupbuySeenIds();
+
+            latestGroupbuyUnreadIds=campaigns
+              .filter(c=>{
+                const status=String(c.status||'open');
+                if(status==='closed'||status==='cancelled'||c.deleted)return false;
+                if(!groupbuyTargetMatches(c))return false;
+                return !seen.has(String(c.id||''));
+              })
+              .map(c=>String(c.id||''))
+              .filter(Boolean);
+
             const hasUnread=latestGroupbuyUnreadIds.length>0;
             setGroupbuyUnread(hasUnread);
             cleanup(hasUnread);
@@ -1122,7 +1110,8 @@
       });
     }
 
-    window.addEventListener('pageshow',()=>setTimeout(checkGroupbuyUnread,900));
+    window.addEventListener('pageshow',()=>setTimeout(checkGroupbuyUnread,500));
+    setTimeout(checkGroupbuyUnread,900);
     setInterval(checkGroupbuyUnread,60000);
 
     function openFeature(name){
