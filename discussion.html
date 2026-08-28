@@ -316,7 +316,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v3.5</span>
+  <span class="version">v3.6</span>
 </header>
 
 <section class="card userline">
@@ -869,10 +869,14 @@ async function openRoom(id){
       const textHtml=String(m.text||'').trim()?`<p>${esc(m.text)}</p>`:'';
       return `<div class="msg" data-message-id="${esc(m.messageId||'')}" data-author-id="${esc(m.authorId||'')}" data-author-name="${esc(m.authorName||'')}"><div class="msgHead"><strong>${esc(m.authorName||'同仁')}</strong><span class="time">${fmt(m.createdAt)}</span>${delBtn}</div>${textHtml}${attachHtml}</div>`;
     }).join(''):'<div class="empty">這棟樓還沒有留言</div>';
-    // v3.3：getMessages 後端會同步標記這棟樓已讀。
-    r.unread=false;
-    r.unreadCount=0;
-    updateUnreadSummary();
+    // v3.6：只有後端確實找到參與紀錄並完成寫入，才把這棟樓顯示為已讀。
+    if(data?.readState?.marked){
+      r.unread=false;
+      r.unreadCount=0;
+      updateUnreadSummary();
+    }else{
+      toastMsg('⚠️ 留言已開啟，但雲端未能標記已讀，請通知主管檢查參與名單');
+    }
   }catch(err){messageList.innerHTML=`<div class="empty">留言讀取失敗：${esc(err.message)}</div>`}
 }
 function closeRoom(){currentRoomId='';currentRoomMessages=[];roomView.classList.remove('show');listView.classList.remove('hide');renderRooms()}
