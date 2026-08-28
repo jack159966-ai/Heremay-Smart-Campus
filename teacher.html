@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.1</title>
+  <title>和美智慧校園｜教保人員首頁 v15.2</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -720,7 +720,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.1｜教師紅點身分修正版</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.2｜討論區紅點同源判斷版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -1552,13 +1552,25 @@ function getHomeEmployee(){
 
 async function refreshDiscussionUnreadNotice(){
   const employee=getHomeEmployee();
-  const userId=String(employee?.employeeId||'').trim();
-  const userName=String(employee?.name||'').trim();
+  const userId=String(employee?.employeeId||employee?.id||employee?.['員工編號']||'').trim();
+  const userName=String(employee?.name||employee?.['姓名']||'').trim();
   if(!userId && !userName)return;
 
   try{
-    const result=await discussionJsonp('getUnreadSummary',{userId,userName});
-    const hasUnread=!!result?.hasUnread;
+    // v15.2：首頁不再使用另一套 getUnreadSummary。
+    // 直接讀取與 discussion.html 完全相同的 getRooms 結果，
+    // 因此只要討論區列表上的紅色數字消失，首頁紅點就一定同步消失。
+    const result=await discussionJsonp('getRooms',{
+      userId,
+      userName,
+      _:Date.now()
+    });
+
+    const rooms=Array.isArray(result?.rooms)?result.rooms:[];
+    const hasUnread=rooms.some(room=>
+      String(room.status||'')!=='已封存' &&
+      Number(room.unreadCount||0)>0
+    );
 
     const notice=document.getElementById('discussionUnreadNotice');
     const card=document.getElementById('discussionHomeCard');
