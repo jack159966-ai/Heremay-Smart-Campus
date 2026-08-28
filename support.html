@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜庶務人員首頁 v13.6 討論區未讀提示</title>
+  <title>和美智慧校園｜庶務人員首頁 v13.10 首頁紅點顯示修正版</title>
   <style>
     :root{
       --bg1:#f1fff6;
@@ -525,22 +525,22 @@
   width:10px;height:10px;border-radius:50%;background:#e65353;flex:0 0 auto;
 }
 .discussionUnreadNotice .noticeArrow{margin-left:auto}
-.discussionCardUnreadDot{
+.btn .discussionCardUnreadDot{
   display:none;position:absolute;top:10px;right:10px;width:12px;height:12px;
   border-radius:50%;background:#e65353;box-shadow:0 0 0 3px #fff;
 }
 .hasDiscussionUnread{position:relative}
-.hasDiscussionUnread .discussionCardUnreadDot{display:block}
+.btn.hasDiscussionUnread .discussionCardUnreadDot{display:block}
 
 
 /* 團購／登記中心新活動提醒 */
 .groupbuyHomeCard{position:relative}
-.groupbuyUnreadDot{
+.btn .groupbuyUnreadDot{
   display:none;position:absolute;right:12px;top:11px;width:13px;height:13px;
   border-radius:50%;background:#e04444;box-shadow:0 0 0 4px rgba(224,68,68,.13);
   z-index:3
 }
-.groupbuyHomeCard.hasGroupbuyUnread .groupbuyUnreadDot{display:block}
+.btn.groupbuyHomeCard.hasGroupbuyUnread .groupbuyUnreadDot{display:block}
 .groupbuyNotice{
   display:none;margin:0 0 12px;padding:11px 13px;border-radius:14px;
   background:#fff3f3;border:1px solid #f2caca;color:#b33b3b;font-weight:900
@@ -666,7 +666,7 @@
           <span>回報設備故障、耗材不足或需要協助事項</span>
         </button>
 
-        <button class="btn hasDiscussionUnread" id="discussionHomeCard" onclick="window.location.href='discussion.html'">
+        <button class="btn" id="discussionHomeCard" onclick="window.location.href='discussion.html'">
           <span class="discussionCardUnreadDot" aria-hidden="true"></span>
           <div class="icon">💬</div>
           <strong>討論區</strong>
@@ -695,7 +695,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.9｜紅點已讀修正</div>
+<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.10｜首頁紅點顯示修正版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>

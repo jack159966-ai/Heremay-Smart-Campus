@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.20</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.21</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -537,7 +537,7 @@
   width:10px;height:10px;border-radius:50%;background:#e65353;flex:0 0 auto;
 }
 .discussionUnreadNotice .noticeArrow{margin-left:auto}
-.discussionCardUnreadDot{
+.bottomSquareBtn .discussionCardUnreadDot{
   display:none;
   position:absolute;
   top:10px;
@@ -549,7 +549,7 @@
   box-shadow:0 0 0 3px #fff;
 }
 .hasDiscussionUnread{position:relative}
-.hasDiscussionUnread .discussionCardUnreadDot{display:block}
+.bottomSquareBtn.hasDiscussionUnread .discussionCardUnreadDot{display:block}
 
 
 /* v24.20：登記中心新活動提醒 */
@@ -565,12 +565,12 @@
   box-shadow:0 0 0 4px rgba(224,68,68,.13)
 }
 .groupbuyUnreadNotice .noticeArrow{margin-left:auto}
-.groupbuyCardUnreadDot{
+.bottomSquareBtn .groupbuyCardUnreadDot{
   display:none;position:absolute;right:12px;top:11px;width:12px;height:12px;
   border-radius:50%;background:#e04444;box-shadow:0 0 0 3px #fff
 }
 .hasGroupbuyUnread{position:relative}
-.hasGroupbuyUnread .groupbuyCardUnreadDot{display:block}
+.bottomSquareBtn.hasGroupbuyUnread .groupbuyCardUnreadDot{display:block}
 
 </style>
 </head>
@@ -659,7 +659,7 @@
       <button class="bottomSquareBtn" type="button" onclick="location.href='secretary.html'">
         <span class="sqIcon">🤖</span><strong>智慧秘書</strong><span>行事曆、公告與專案</span>
       </button>
-      <button class="bottomSquareBtn hasDiscussionUnread" id="discussionHomeCard" type="button" onclick="location.href='discussion.html'">
+      <button class="bottomSquareBtn" id="discussionHomeCard" type="button" onclick="location.href='discussion.html'">
         <span class="discussionCardUnreadDot" aria-hidden="true"></span>
         <span class="sqIcon">💬</span><strong>討論區</strong><span>公務交流、事件討論與檔案分享</span>
       </button>
@@ -702,7 +702,7 @@
       </div>
     </section>
 
-    <div class="versionStamp">主管工作台 v24.20｜2026-08-21｜巡堂醒目化與排班管理移至電腦專用</div>
+    <div class="versionStamp">主管工作台 v24.21｜2026-08-28｜首頁紅點顯示修正版</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
