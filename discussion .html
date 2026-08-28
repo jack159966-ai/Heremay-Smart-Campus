@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>和美智慧校園｜討論區 v3.4</title>
+<style>
+:root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
+*{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
+button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:auto;padding:16px 15px 40px}
+.top{display:flex;gap:10px;align-items:center}.back{border:0;background:#fff;border-radius:14px;padding:10px 12px;font-weight:900;color:#3d7399;box-shadow:var(--shadow);cursor:pointer}
+.title{flex:1}.title h1{margin:0;color:#245c84;font-size:24px}.title p{margin:4px 0 0;color:var(--muted);font-size:13px;font-weight:750}.version{font-size:11px;font-weight:900;color:#fff;background:var(--blue);border-radius:999px;padding:5px 8px}
+.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:15px;margin-top:14px;box-shadow:var(--shadow)}
+.userline{display:flex;justify-content:space-between;gap:10px;align-items:center}.userline strong{font-size:18px;color:#245c84}.userline span{display:block;color:var(--muted);font-size:12px;font-weight:750;margin-top:3px}
+.primary{border:0;border-radius:14px;padding:11px 14px;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;font-weight:950;cursor:pointer}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tab{border:1px solid var(--line);background:#f8fcff;border-radius:14px;padding:10px;color:#567386;font-weight:900;cursor:pointer}.tab.active{background:var(--blue);color:#fff}
+.search,.input,textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:11px;background:#fbfdff}.search{margin-top:10px}
+.rooms{display:grid;gap:10px;margin-top:12px}.room{border:1px solid var(--line);border-radius:18px;padding:13px;background:#fbfdff;cursor:pointer}.room h3{margin:0;color:#245c84;font-size:17px}
+.room-top{display:flex;justify-content:space-between;gap:8px}.badge{border-radius:999px;padding:5px 8px;font-size:11px;font-weight:900;background:#e8f8ef;color:#23794f}.badge.arch{background:#eef1f4;color:#667782}
+.meta{margin-top:7px;color:var(--muted);font-size:12px;font-weight:750;line-height:1.5}.preview{margin-top:8px;font-size:14px;font-weight:800}.empty{text-align:center;color:var(--muted);font-weight:800;padding:22px 8px}
+.roomview{display:none}.roomview.show{display:block}.listview.hide{display:none}.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.pill{border-radius:999px;padding:5px 8px;border:1px solid var(--line);background:#f8fcff;color:#567386;font-size:11px;font-weight:900}
+.messages{display:grid;gap:9px;margin-top:14px}.msg{border:1px solid var(--line);border-radius:16px;padding:11px;background:#fff}.msg strong{color:#245c84}.msgHead{display:flex;align-items:center;gap:8px}.msgHead .time{margin-left:auto;color:var(--muted);font-size:11px}.deleteMsg{border:0;background:#fff1f1;color:#b45151;border-radius:9px;padding:4px 7px;font-size:11px;font-weight:900;cursor:pointer}.deleteMsg:hover{background:#ffe4e4}.msg p{margin:6px 0 0;line-height:1.5;font-weight:750;white-space:pre-wrap}.attachmentList{display:grid;gap:6px;margin-top:9px}.attachmentLink{display:flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:#f8fcff;color:#356f9a;text-decoration:none;font-size:12px;font-weight:900}.attachmentLink:hover{background:#eef8ff}
+.row{display:flex;gap:8px;margin-top:8px}.row button{flex:1;border:0;border-radius:14px;padding:11px;font-weight:900;cursor:pointer}.soft{background:#eef5fa;color:#456f8e}.send{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff}
+.modal{position:fixed;inset:0;background:rgba(32,48,58,.42);display:none;align-items:flex-end;justify-content:center;padding:18px;z-index:30}.modal.show{display:flex}.sheet{width:min(100%,560px);max-height:88vh;overflow:auto;background:#fff;border-radius:26px;padding:17px}
+.label{display:block;margin:10px 0 5px;font-size:13px;font-weight:900;color:#526d7e}.hint{margin-top:8px;color:var(--muted);font-size:12px;font-weight:750;line-height:1.5}.close{width:100%;border:0;border-radius:15px;padding:11px;background:#eef3f6;color:#567386;font-weight:900;margin-top:10px;cursor:pointer}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(120px);width:min(92%,430px);padding:13px 15px;border-radius:18px;background:#304b5d;color:#fff;font-weight:850;transition:.25s;z-index:50}.toast.show{transform:translateX(-50%) translateY(0)}
+.sourceState{margin-bottom:9px;padding:8px 10px;border-radius:12px;background:#f3f9fd;border:1px solid var(--line);color:#567386;font-size:12px;font-weight:850}
+.participantTools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}.participantTools button,.smallSelect{border:1px solid var(--line);background:#f4f9fd;color:#456f8e;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:900;cursor:pointer}
+.groupTree{display:grid;gap:8px}.treeGroup{border:1px solid #dbeaf4;border-radius:14px;background:#fff;overflow:hidden}.treeHead{display:flex;align-items:center;gap:8px;padding:10px 11px;background:#f5faff;font-weight:950;color:#245c84;cursor:pointer}.treeHead .arrow{margin-left:auto;color:#66839a}
+.treeBody{display:none;padding:8px}.treeBody.show{display:block}.subGroup{border-top:1px dashed var(--line);padding-top:8px;margin-top:8px}.subGroup:first-child{border-top:0;padding-top:0;margin-top:0}
+.subHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-weight:900;color:#526d7e}.personGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.personCheck{display:flex;align-items:center;gap:7px;border:1px solid #dbeaf4;border-radius:12px;background:white;padding:8px;font-size:13px;font-weight:850;color:#526d7e}.personCheck input{width:auto;margin:0}
+.loadingBox{padding:14px;text-align:center;color:var(--muted);font-weight:850}@media(max-width:430px){.personGrid{grid-template-columns:1fr}}
+
+.participantBox{margin:8px 0 10px}
+.participantBar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.participantBar .groupLabel{
+  color:#2d6489;
+  font-size:12px;
+  font-weight:800;
+}
+.participantBar .groupLabel + .groupLabel::before{
+  content:"・";
+  margin-right:8px;
+  color:#9ab1c0;
+}
+.participantToggle{
+  margin-left:6px;
+  border:0;
+  background:transparent;
+  color:#5f7f94;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+  padding:2px 4px;
+}
+.participantToggle:hover{color:#2d6489;text-decoration:underline}
+.participantPeople{
+  display:none;
+  margin-top:8px;padding:9px 10px;
+  border:1px dashed #cfe2ef;border-radius:12px;background:#fbfdff;
+  gap:6px;flex-wrap:wrap;
+}
+.participantPeople.open{display:flex}
+.participantPeople .personTag{
+  display:inline-flex;align-items:center;
+  border:1px solid #d7e7f2;border-radius:999px;
+  background:white;color:#365f7b;
+  padding:4px 8px;font-size:11px
+}
+
+
+.cleanupBar{display:flex;gap:8px;align-items:center;margin:8px 0 10px;flex-wrap:wrap}
+.cleanupBtn,.batchDeleteBtn,.cleanupCancelBtn{
+  border:0;border-radius:10px;padding:7px 11px;font-weight:800;cursor:pointer;font-size:12px
+}
+.cleanupBtn{background:#d95d5d;color:#fff;font-size:14px;padding:9px 14px}
+.batchDeleteBtn{background:#ffecec;color:#b34747}
+.cleanupCancelBtn{background:#f2f4f6;color:#60717c}
+.msg.batchMode{padding-left:42px;position:relative}
+.msgSelect{
+  position:absolute;left:13px;top:18px;width:18px;height:18px;cursor:pointer
+}
+
+
+.unreadDot{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:18px;height:18px;padding:0 6px;border-radius:999px;
+  background:#e65353;color:#fff;font-size:10px;font-weight:950;
+  margin-left:7px;vertical-align:2px
+}
+.room.unreadRoom{border-color:#efb1b1;background:#fffdfd}
+.roomUnreadCount{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:20px;height:20px;padding:0 6px;margin-left:7px;border-radius:999px;
+  background:#e65353;color:#fff;font-size:11px;font-weight:950;vertical-align:2px
+}
+
+
+.memberEditBtn{
+  border:0;background:#edf6fc;color:#2d6489;border-radius:999px;
+  padding:5px 9px;font-size:12px;font-weight:900;cursor:pointer
+}
+.memberEditBtn:hover{background:#dfeff9}
+
+
+.fileLibraryBtn{
+  border:0;background:#edf6fc;color:#2d6489;border-radius:999px;
+  padding:5px 10px;font-size:12px;font-weight:900;cursor:pointer
+}
+.fileLibraryBtn:hover{background:#dfeff9}
+.fileLibraryToolbar{
+  display:flex;gap:8px;flex-wrap:wrap;margin:10px 0
+}
+.fileLibraryToolbar input,.fileLibraryToolbar select{
+  flex:1;min-width:120px
+}
+.fileGrid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px
+}
+.fileCard{
+  border:1px solid #d8e8f3;border-radius:14px;background:#fbfdff;
+  padding:11px;min-width:0
+}
+.fileCard .fileIcon{font-size:28px;margin-bottom:6px}
+.fileCard .fileName{
+  font-weight:900;color:#2b5d7d;font-size:13px;line-height:1.35;
+  word-break:break-word
+}
+.fileCard .fileMeta{
+  margin-top:6px;color:#7890a0;font-size:11px;line-height:1.45
+}
+.fileCard a{
+  display:inline-block;margin-top:8px;text-decoration:none;
+  background:#eaf5fc;color:#2a668e;border-radius:9px;padding:6px 8px;
+  font-size:12px;font-weight:900
+}
+.fileEmpty{
+  padding:20px;text-align:center;color:#7890a0;font-weight:800
+}
+@media(max-width:420px){
+  .fileGrid{grid-template-columns:1fr}
+}
+
+
+/* v2.9：LINE／檔案總管式附件瀏覽 */
+.fileViewSwitch{
+  display:flex;gap:6px;margin:8px 0 10px
+}
+.fileViewSwitch button{
+  border:1px solid #d7e8f3;background:#f7fbfe;color:#50758c;
+  border-radius:10px;padding:7px 10px;font-weight:900;cursor:pointer
+}
+.fileViewSwitch button.active{background:#dff1fb;color:#245c84;border-color:#b9dff2}
+
+.fileGrid.gallery{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+.fileCard.galleryCard{
+  padding:0;overflow:hidden;background:#fff
+}
+.fileThumbWrap{
+  position:relative;width:100%;aspect-ratio:1/1;background:#eef4f7;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  cursor:pointer
+}
+.fileThumbWrap img{
+  width:100%;height:100%;object-fit:cover;display:block
+}
+.fileThumbFallback{
+  font-size:42px;color:#7890a0
+}
+.fileCardBody{padding:9px}
+.fileCard.galleryCard .fileName{
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.fileCard.listCard{
+  display:grid;grid-template-columns:46px minmax(0,1fr) auto;
+  gap:9px;align-items:center
+}
+.fileCard.listCard .fileIcon{margin:0;font-size:30px}
+.fileCard.listCard .fileMeta{margin-top:3px}
+.fileCard.listCard a{margin:0}
+
+.previewMask{
+  position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:90;
+  display:none;align-items:center;justify-content:center;padding:18px
+}
+.previewMask.show{display:flex}
+.previewBox{
+  width:min(96vw,980px);height:min(92vh,820px);position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center
+}
+.previewImage{
+  max-width:100%;max-height:calc(100% - 70px);object-fit:contain;
+  border-radius:10px;background:#111
+}
+.previewCaption{
+  color:#fff;margin-top:10px;max-width:85%;text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:800
+}
+.previewClose,.previewPrev,.previewNext{
+  position:absolute;border:0;background:rgba(255,255,255,.18);
+  color:#fff;cursor:pointer;border-radius:999px;font-weight:900
+}
+.previewClose{right:0;top:0;width:42px;height:42px;font-size:22px}
+.previewPrev,.previewNext{
+  top:50%;transform:translateY(-50%);width:46px;height:46px;font-size:28px
+}
+.previewPrev{left:0}.previewNext{right:0}
+
+@media(max-width:600px){
+  .fileGrid.gallery{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+  .fileCardBody{padding:6px}
+  .fileCard.galleryCard .fileName{font-size:11px}
+  .previewPrev{left:4px}.previewNext{right:4px}
+}
+
+
+.fileDeleteBtn{
+  border:0;background:#fff0f0;color:#b84a4a;border-radius:9px;
+  padding:6px 8px;font-size:12px;font-weight:900;cursor:pointer
+}
+.fileDeleteBtn:hover{background:#ffe3e3}
+.fileCardActions{
+  display:flex;gap:6px;align-items:center;margin-top:7px;flex-wrap:wrap
+}
+.fileCard.galleryCard .fileCardActions a{margin:0}
+
+
+/* v3.1：檔案區／調整成員按鍵加大加深 */
+.fileLibraryBtn,
+.memberEditBtn{
+  min-height:40px;
+  padding:9px 14px;
+  border-radius:12px;
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:.2px;
+  cursor:pointer;
+  box-shadow:0 3px 8px rgba(36,92,132,.12);
+}
+
+.fileLibraryBtn{
+  background:#2f83b4;
+  color:#fff;
+  border:1px solid #24729f;
+}
+.fileLibraryBtn:hover{
+  background:#2676a5;
+}
+
+.memberEditBtn{
+  background:#4f9fc9;
+  color:#fff;
+  border:1px solid #3e8bb5;
+}
+.memberEditBtn:hover{
+  background:#428fb9;
+}
+
+.participantBar{
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+@media(max-width:480px){
+  .fileLibraryBtn,
+  .memberEditBtn{
+    min-height:42px;
+    padding:10px 13px;
+    font-size:14px;
+  }
+}
+
+
+/* v3.2：刪除留言／檔案區／調整成員同排 */
+.mainActionBar{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:10px 0 12px;
+}
+.mainActionBar .cleanupBtn,
+.mainActionBar .fileLibraryBtn,
+.mainActionBar .memberEditBtn{
+  min-height:42px;
+  padding:10px 14px;
+  border-radius:12px;
+  font-size:14px;
+  font-weight:900;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+@media(max-width:420px){
+  .mainActionBar{
+    gap:6px;
+  }
+  .mainActionBar .cleanupBtn,
+  .mainActionBar .fileLibraryBtn,
+  .mainActionBar .memberEditBtn{
+    padding:9px 11px;
+    font-size:13px;
+  }
+}
+
+</style>
+</head>
+<body>
+<main class="phone">
+<header class="top">
+  <button class="back" onclick="goBack()">← 返回</button>
+  <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
+  <span class="version">v3.5</span>
+</header>
+
+<section class="card userline">
+  <div><strong id="userName">讀取登入資料中…</strong><span id="userRole"></span></div>
+  <button class="primary" id="newRoomBtn" onclick="openNewRoom()">＋ 蓋新樓</button>
+</section>
+
+<section class="card listview" id="listView">
+  <div class="tabs">
+    <button class="tab active" id="activeTab" onclick="setMode('active')">進行中</button>
+    <button class="tab" id="archivedTab" onclick="setMode('archived')">已封存</button>
+  </div>
+  <input class="search" id="searchInput" placeholder="搜尋討論主題…" oninput="renderRooms()">
+  <div class="rooms" id="roomList"><div class="loadingBox">正在讀取討論樓…</div></div>
+</section>
+
+<section class="card roomview" id="roomView">
+  <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+    <div><h2 id="roomTitle" style="margin:0;color:#245c84"></h2><div class="meta" id="roomMeta"></div></div>
+    <button class="soft" style="border:0;border-radius:12px;padding:8px 10px;font-weight:900" onclick="closeRoom()">返回列表</button>
+  </div>
+  <div class="pills" id="roomParticipants"></div>
+      <div class="cleanupBar mainActionBar">
+        <button class="cleanupBtn" id="cleanupBtn" type="button" onclick="toggleCleanupMode()">刪除留言</button>
+        <button class="fileLibraryBtn" id="fileLibraryBtn" type="button" onclick="openFileLibrary()">📁 檔案區</button>
+        <button class="memberEditBtn" id="memberEditBtn" type="button" onclick="openEditMembers()">調整成員</button>
+        <button class="batchDeleteBtn" id="batchDeleteBtn" type="button" onclick="batchDeleteSelected()" style="display:none">刪除已勾選</button>
+        <button class="cleanupCancelBtn" id="cleanupCancelBtn" type="button" onclick="toggleCleanupMode(false)" style="display:none">取消刪除</button>
+      </div>
+  <div class="messages" id="messageList"></div>
+  <div id="composerBox" style="margin-top:12px;border-top:1px dashed var(--line);padding-top:12px">
+    <textarea id="messageInput" rows="4" placeholder="輸入公務訊息…"></textarea>
+    <input id="fileInput" type="file" multiple accept=".pdf,.doc,.docx,image/*" class="input" style="margin-top:8px">
+    <div class="hint">照片會先在手機／電腦端自動縮圖再上傳；PDF、Word、文字檔則直接傳送。</div>
+    <div class="row"><button class="send" onclick="sendMessage()">送出訊息</button><button class="soft" id="archiveBtn" onclick="archiveRoom()">結案封存</button></div>
+  </div>
+</section>
+</main>
+
+<div class="modal" id="newRoomModal" onclick="if(event.target===this)closeNewRoom()">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <h2 style="margin:0;color:#245c84">🏗️ 蓋一棟新樓</h2>
+    <label class="label">討論主題</label>
+    <input class="input" id="newTitle" placeholder="例如：大班畢業典禮">
+    <label class="label">參與人員</label>
+    <div id="participantList" class="loadingBox">正在讀取同仁名單…</div>
+    <div class="hint">名單來自正式員工主檔；外聘協作帳號會顯示在「專科老師」。</div>
+    <label class="label">保存期限（自結案封存日起算）</label>
+    <select class="input" id="newRetention">
+      <option value="30">30 天</option><option value="90">90 天</option><option value="180">180 天</option><option value="360">360 天</option><option value="永久">永久保留直到手動刪除</option>
+    </select>
+    <button class="primary" style="width:100%;margin-top:14px" onclick="createRoom()">建立討論樓</button>
+    <button class="close" onclick="closeNewRoom()">取消刪除</button>
+  </div>
+</div>
+
+
+<div class="modal" id="editMembersModal" onclick="if(event.target===this)closeEditMembers()">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <h2 style="margin:0;color:#245c84">👥 調整參與人員</h2>
+    <div class="hint" style="margin:8px 0 10px">新增成員後可直接看到這棟樓既有的討論紀錄；移除成員後將無法再進入此樓。樓主不可移除。</div>
+    <div id="editParticipantList" class="loadingBox">正在讀取人員名單…</div>
+    <button class="primary" style="width:100%;margin-top:14px" onclick="saveRoomParticipants()">儲存參與人員</button>
+    <button class="close" onclick="closeEditMembers()">取消</button>
+  </div>
+</div>
+
+
+<div class="modal" id="fileLibraryModal" onclick="if(event.target===this)closeFileLibrary()">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <h2 style="margin:0;color:#245c84">📁 討論樓檔案</h2>
+    <div class="hint" id="fileLibrarySummary" style="margin-top:6px">整理這棟樓的所有附件</div>
+
+    <div class="fileLibraryToolbar">
+      <input class="input" id="fileLibrarySearch" placeholder="搜尋檔名…" oninput="renderFileLibrary()">
+      <select class="input" id="fileLibraryType" onchange="renderFileLibrary()">
+        <option value="all">全部檔案</option>
+        <option value="image">照片</option>
+        <option value="pdf">PDF</option>
+        <option value="word">Word</option>
+        <option value="other">其他</option>
+      </select>
+    </div>
+
+    <div class="fileViewSwitch">
+      <button id="galleryViewBtn" class="active" type="button" onclick="setFileView('gallery')">▦ 縮圖</button>
+      <button id="listViewBtn" type="button" onclick="setFileView('list')">☷ 清單</button>
+    </div>
+
+    <div id="fileLibraryList" class="fileGrid gallery"></div>
+    <button class="close" onclick="closeFileLibrary()">關閉</button>
+  </div>
+</div>
+
+
+<div class="previewMask" id="imagePreviewMask" onclick="if(event.target===this)closeImagePreview()">
+  <div class="previewBox">
+    <button class="previewClose" type="button" onclick="closeImagePreview()">×</button>
+    <button class="previewPrev" type="button" onclick="stepImagePreview(-1)">‹</button>
+    <img id="previewImage" class="previewImage" alt="照片預覽">
+    <button class="previewNext" type="button" onclick="stepImagePreview(1)">›</button>
+    <div class="previewCaption" id="previewCaption"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SERVICE_URL='https://script.google.com/macros/s/AKfycbxuvqWI2FlvCk5ZdEfhSNMF6O79pElfx2p4PZBIk-xT1zw0NVorhzX8wNPF9oOHxY2x/exec';
+let employeeDirectory=[];
+let cloudRooms=[];
+let currentMode='active';
+let currentRoomId='';
+let currentIsManager=false;
+let currentRoomMessages=[];
+let fileViewMode='gallery';
+let previewImages=[];
+let previewIndex=0;
+let employee=readEmployee();
+let currentUser=employee.name||employee['姓名']||'同仁';
+let currentUserId=employee.employeeId||employee.id||employee['員工編號']||'';
+
+function readEmployee(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'null')||{}}catch(e){return{}}}
+function isGuest(){const t=[employee.role,employee.identityCategory,employee.jobTitle,employee.group,employee.homeType].filter(Boolean).join('｜');return /外聘|協作|專科/.test(t)||new URLSearchParams(location.search).get('guest')==='1'}
+function userLabel(){return [employee.jobTitle||employee.title||'',employee.group||employee.department||''].filter(Boolean).join('｜')||(isGuest()?'外聘協作人員':'和美同仁')}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fmt(ts){return ts?new Date(ts).toLocaleString('zh-TW',{hour12:false}):''}
+function toastMsg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2600)}
+
+function jsonp(action,params={}){
+  return new Promise((resolve,reject)=>{
+    const cb='discussionCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    const timer=setTimeout(()=>{cleanup();reject(new Error('連線逾時'))},20000);
+    function cleanup(){clearTimeout(timer);try{delete window[cb]}catch(e){}script.remove()}
+    window[cb]=data=>{cleanup();resolve(data)};
+    script.onerror=()=>{cleanup();reject(new Error('後端連線失敗'))};
+    script.src=SERVICE_URL+'?'+new URLSearchParams({action,callback:cb,...params,_:Date.now()}).toString();
+    document.head.appendChild(script);
+  });
+}
+
+async function postDirect(action,payload){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),60000);
+
+  try{
+    // 使用 text/plain 傳 JSON，可維持 simple request，不觸發 CORS preflight，
+    // 同時避開 Apps Script 對大型 URLSearchParams/form 欄位的解析問題。
+    const res=await fetch(SERVICE_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=UTF-8'},
+      body:JSON.stringify({action,payload}),
+      redirect:'follow',
+      signal:controller.signal
+    });
+
+    const raw=await res.text();
+    let result;
+    try{
+      result=JSON.parse(raw);
+    }catch(e){
+      if(/<!doctype|<html/i.test(raw)){
+        throw new Error('Google 伺服器沒有把要求交給討論區後端');
+      }
+      throw new Error('後端回傳格式異常');
+    }
+
+    if(!result?.ok)throw new Error(result?.message||'後端處理失敗');
+    return result;
+  }catch(err){
+    if(err?.name==='AbortError')throw new Error('後端處理逾時');
+    throw err;
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
+async function loadEmployeeDirectory(){
+  const data=await jsonp('getParticipants');
+  if(!data?.ok) throw new Error(data?.message||'名單讀取失敗');
+  employeeDirectory=[...(Array.isArray(data.employees)?data.employees:[]),...(Array.isArray(data.guests)?data.guests:[])].filter(x=>x&&x.name);
+  if(!currentUserId){
+    const me=employeeDirectory.find(x=>x.name===currentUser);
+    if(me) currentUserId=me.employeeId||'';
+  }
+  return employeeDirectory;
+}
+
+async function loadCloudRooms(){
+  if(!currentUserId && currentUser==='同仁') return [];
+  const data=await jsonp('getRooms',{userId:currentUserId,userName:currentUser});
+  if(!data?.ok) throw new Error(data?.message||'討論樓讀取失敗');
+  currentIsManager=!!data.isManager;
+  cloudRooms=Array.isArray(data.rooms)?data.rooms:[];
+  renderRooms();
+  return cloudRooms;
+}
+
+function setMode(mode){
+  currentMode=mode;
+  activeTab.classList.toggle('active',mode==='active');
+  archivedTab.classList.toggle('active',mode==='archived');
+  renderRooms();
+}
+
+
+function discussionStateKey(){
+  const id=String(currentUserId||currentUser||'user').trim();
+  return 'heremay.discussion.unreadState.'+id;
+}
+
+function discussionAllReadKey(){
+  const id=String(currentUserId||currentUser||'user').trim();
+  return 'heremay.discussion.allReadAt.'+id;
+}
+
+function saveDiscussionUnreadState(){
+  const unreadCount=cloudRooms
+    .filter(r=>r.status!=='已封存')
+    .reduce((sum,r)=>sum+(Number(r.unreadCount)||0),0);
+
+  const state={
+    unreadCount,
+    hasUnread:unreadCount>0,
+    checkedAt:Date.now(),
+    userId:String(currentUserId||''),
+    userName:String(currentUser||'')
+  };
+
+  localStorage.setItem(discussionStateKey(),JSON.stringify(state));
+
+  // 全部樓層讀完時留下時間戳，讓首頁能忽略雲端短暫回傳的舊未讀資料。
+  if(unreadCount===0){
+    const allReadAt=Date.now();
+    localStorage.setItem(discussionAllReadKey(),String(allReadAt));
+    if(currentUser){
+      localStorage.setItem(
+        'heremay.discussion.allReadAt.name.'+String(currentUser).trim(),
+        String(allReadAt)
+      );
+    }
+  }
+
+  // 同時用姓名再存一份，避免不同頁面取得 employeeId 的時間點不同。
+  if(currentUser){
+    localStorage.setItem(
+      'heremay.discussion.unreadState.name.'+String(currentUser).trim(),
+      JSON.stringify(state)
+    );
+  }
+
+  document.title=unreadCount
+    ? `(${unreadCount}) 和美智慧校園｜討論區`
+    : '和美智慧校園｜討論區';
+}
+
+function updateUnreadSummary(){
+  saveDiscussionUnreadState();
+}
+
+function renderRooms(){
+  const q=(searchInput.value||'').trim().toLowerCase();
+  const rooms=cloudRooms
+    .filter(r=>currentMode==='active'?r.status!=='已封存':r.status==='已封存')
+    .filter(r=>!q||String(r.title||'').toLowerCase().includes(q))
+    .sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')));
+  roomList.innerHTML=rooms.length?rooms.map(r=>`
+    <div class="room ${r.unread?'unreadRoom':''}" onclick="openRoom('${esc(r.roomId)}')">
+      <div class="room-top"><h3>${esc(r.title)}${r.unreadCount?`<span class="roomUnreadCount">${r.unreadCount>99?'99+':r.unreadCount}</span>`:''}</h3><span class="badge ${r.status==='已封存'?'arch':''}">${r.status==='已封存'?'已封存':'進行中'}</span></div>
+      <div class="meta">建立：${esc(r.creatorName)}｜${fmt(r.createdAt)}｜保存 ${esc(r.retention||'30')}${String(r.retention)==='永久'?'':'天'}</div>
+      <div class="preview">最後更新：${fmt(r.updatedAt||r.createdAt)}</div>
+    </div>`).join(''):'<div class="empty">目前沒有討論樓</div>';
+  updateUnreadSummary();
+}
+
+function empText(emp){return [emp.name,emp.group,emp.department,emp.jobTitle,emp.className,emp.identity,emp.subgroup].filter(Boolean).join('｜')}
+function topDept(emp){return String(emp.department||'其他')}
+function kinderSubgroup(emp){return String(emp.subgroup||'其他幼兒部')}
+function personLabel(emp){return [emp.name,emp.jobTitle||'',emp.className||''].filter(Boolean).join('｜')}
+function personCheckbox(emp,dept,sub=''){
+  const checked=emp.name===currentUser?'checked':'';
+  return `<label class="personCheck"><input class="participantCheck" type="checkbox"
+    data-id="${esc(emp.employeeId||'')}" data-name="${esc(emp.name)}" data-type="${esc(emp.type||'employee')}"
+    data-dept="${esc(dept)}" data-subgroup="${esc(sub)}" ${checked}>
+    ${esc(personLabel(emp))}</label>`;
+}
+function toggleTree(id){document.getElementById(id)?.classList.toggle('show')}
+function toggleDept(dept,checked){document.querySelectorAll('.participantCheck').forEach(cb=>{if(cb.dataset.dept===dept)cb.checked=checked})}
+function toggleSubgroup(sub,checked){document.querySelectorAll('.participantCheck').forEach(cb=>{if(cb.dataset.subgroup===sub)cb.checked=checked})}
+function selectAllParticipants(checked){document.querySelectorAll('.participantCheck').forEach(cb=>cb.checked=checked)}
+function selectedParticipants(){
+  return [...document.querySelectorAll('.participantCheck:checked')].map(cb=>({
+    employeeId:cb.dataset.id||'',name:cb.dataset.name||'',type:cb.dataset.type||'employee',
+    department:cb.dataset.dept||'',subgroup:cb.dataset.subgroup||''
+  }));
+}
+
+function renderParticipantList(){
+  const rows=employeeDirectory.filter(x=>x&&x.name);
+  if(!rows.length){participantList.innerHTML='<div class="sourceState">⚠️ 尚未讀到人員名單</div>';return}
+  const groups={'主管／行政':[],'幼兒部':[],'安親部':[],'庶務組':[],'其他':[]};
+  rows.forEach(emp=>(groups[topDept(emp)]||groups['其他']).push(emp));
+  let html=`<div class="sourceState">✅ 已連上員工主檔，共 ${rows.length} 位可選人員</div>
+    <div class="participantTools"><button type="button" onclick="selectAllParticipants(true)">全體勾選</button><button type="button" onclick="selectAllParticipants(false)">全部取消</button></div><div class="groupTree">`;
+  ['主管／行政','幼兒部','安親部','庶務組','其他'].forEach((dept,i)=>{
+    const emps=groups[dept];if(!emps.length&&dept==='其他')return;
+    const id='tree_'+i;
+    html+=`<div class="treeGroup"><div class="treeHead" onclick="toggleTree('${id}')">
+      <input type="checkbox" onclick="event.stopPropagation();toggleDept('${esc(dept)}',this.checked)">
+      <span>${esc(dept)}</span><span style="font-size:12px;color:#7890a6">(${emps.length})</span><span class="arrow">⌄</span></div>
+      <div class="treeBody ${dept==='幼兒部'?'show':''}" id="${id}">`;
+    if(dept==='幼兒部'){
+      const subs={'大班':[],'中班':[],'小班':[],'幼幼班':[],'專科老師':[],'其他幼兒部':[]};
+      emps.forEach(emp=>(subs[kinderSubgroup(emp)]||subs['其他幼兒部']).push(emp));
+      ['大班','中班','小班','幼幼班','專科老師','其他幼兒部'].forEach(sub=>{
+        const list=subs[sub];if(!list.length&&sub!=='專科老師')return;
+        html+=`<div class="subGroup"><div class="subHead"><span>${sub} <small>(${list.length})</small></span><button type="button" class="smallSelect" onclick="toggleSubgroup('${sub}',true)">本組全選</button></div>`;
+        html+=list.length?`<div class="personGrid">${list.map(emp=>personCheckbox(emp,dept,sub)).join('')}</div>`:`<div class="hint">目前尚無專科老師帳號。</div>`;
+        html+='</div>';
+      });
+    }else{
+      html+=emps.length?`<div class="personGrid">${emps.map(emp=>personCheckbox(emp,dept,'')).join('')}</div>`:'<div class="hint">目前沒有名單。</div>';
+    }
+    html+='</div></div>';
+  });
+  html+='</div>';
+  participantList.innerHTML=html;
+}
+
+
+function canEditRoomMembers(room){
+  if(!room || isGuest()) return false;
+  const isCreator=
+    (currentUserId && room.creatorId && String(currentUserId)===String(room.creatorId)) ||
+    (currentUser && room.creatorName && String(currentUser)===String(room.creatorName));
+  return currentIsManager || isCreator;
+}
+
+function editPersonCheckbox(emp,dept,sub,currentKeys,creatorId,creatorName){
+  const key=(emp.employeeId?'id:'+emp.employeeId:'name:'+emp.name);
+  const checked=currentKeys.has(key)?'checked':'';
+  const locked=
+    (creatorId && String(emp.employeeId||'')===String(creatorId)) ||
+    (creatorName && String(emp.name||'')===String(creatorName));
+
+  return `<label class="personCheck"><input class="editParticipantCheck" type="checkbox"
+    data-id="${esc(emp.employeeId||'')}" data-name="${esc(emp.name)}" data-type="${esc(emp.type||'employee')}"
+    data-dept="${esc(dept)}" data-subgroup="${esc(sub)}" ${checked} ${locked?'disabled':''}>
+    ${esc(personLabel(emp))}${locked?' <small>（樓主）</small>':''}</label>`;
+}
+
+function renderEditParticipantList(room){
+  const rows=employeeDirectory.filter(x=>x&&x.name);
+  if(!rows.length){
+    editParticipantList.innerHTML='<div class="sourceState">⚠️ 尚未讀到人員名單</div>';
+    return;
+  }
+
+  const currentKeys=new Set((room.participants||[]).map(p=>
+    p.personId ? 'id:'+p.personId : 'name:'+p.name
+  ));
+
+  const groups={'主管／行政':[],'幼兒部':[],'安親部':[],'庶務組':[],'其他':[]};
+  rows.forEach(emp=>(groups[topDept(emp)]||groups['其他']).push(emp));
+
+  let html=`<div class="sourceState">目前 ${room.participants?.length||0} 位參與者</div><div class="groupTree">`;
+
+  ['主管／行政','幼兒部','安親部','庶務組','其他'].forEach((dept,i)=>{
+    const emps=groups[dept];
+    if(!emps.length&&dept==='其他')return;
+
+    const id='editTree_'+i;
+    html+=`<div class="treeGroup"><div class="treeHead" onclick="toggleTree('${id}')">
+      <span>${esc(dept)}</span><span style="font-size:12px;color:#7890a6">(${emps.length})</span><span class="arrow">⌄</span></div>
+      <div class="treeBody ${dept==='幼兒部'?'show':''}" id="${id}">`;
+
+    if(dept==='幼兒部'){
+      const subs={'大班':[],'中班':[],'小班':[],'幼幼班':[],'專科老師':[],'其他幼兒部':[]};
+      emps.forEach(emp=>(subs[kinderSubgroup(emp)]||subs['其他幼兒部']).push(emp));
+
+      ['大班','中班','小班','幼幼班','專科老師','其他幼兒部'].forEach(sub=>{
+        const list=subs[sub];
+        if(!list.length&&sub!=='專科老師')return;
+
+        html+=`<div class="subGroup"><div class="subHead"><span>${sub} <small>(${list.length})</small></span></div>`;
+        html+=list.length
+          ? `<div class="personGrid">${list.map(emp=>editPersonCheckbox(emp,dept,sub,currentKeys,room.creatorId,room.creatorName)).join('')}</div>`
+          : `<div class="hint">目前尚無專科老師帳號。</div>`;
+        html+='</div>';
+      });
+    }else{
+      html+=emps.length
+        ? `<div class="personGrid">${emps.map(emp=>editPersonCheckbox(emp,dept,'',currentKeys,room.creatorId,room.creatorName)).join('')}</div>`
+        : `<div class="hint">目前沒有名單。</div>`;
+    }
+
+    html+='</div></div>';
+  });
+
+  html+='</div>';
+  editParticipantList.innerHTML=html;
+}
+
+async function openEditMembers(){
+  const room=cloudRooms.find(r=>r.roomId===currentRoomId);
+  if(!room || !canEditRoomMembers(room)){
+    toastMsg('只有樓主或主管可以調整參與人員');
+    return;
+  }
+
+  editMembersModal.classList.add('show');
+  editParticipantList.innerHTML='<div class="loadingBox">正在讀取人員名單…</div>';
+
+  try{
+    if(!employeeDirectory.length) await loadEmployeeDirectory();
+    renderEditParticipantList(room);
+  }catch(err){
+    editParticipantList.innerHTML=`<div class="sourceState">⚠️ ${esc(err.message)}</div>`;
+  }
+}
+
+function closeEditMembers(){
+  editMembersModal.classList.remove('show');
+}
+
+async function saveRoomParticipants(){
+  const room=cloudRooms.find(r=>r.roomId===currentRoomId);
+  if(!room)return;
+
+  const participants=[...document.querySelectorAll('.editParticipantCheck:checked, .editParticipantCheck:disabled')]
+    .map(cb=>({
+      employeeId:cb.dataset.id||'',
+      name:cb.dataset.name||'',
+      type:cb.dataset.type||'employee',
+      department:cb.dataset.dept||'',
+      subgroup:cb.dataset.subgroup||''
+    }));
+
+  try{
+    const result=await postDirect('updateRoomParticipants',{
+      roomId:currentRoomId,
+      userId:currentUserId,
+      userName:currentUser,
+      participants
+    });
+
+    closeEditMembers();
+    await loadCloudRooms();
+
+    const updated=cloudRooms.find(r=>r.roomId===currentRoomId);
+    if(updated){
+      // 重新畫目前樓層的成員資訊，但不搬動或清空既有留言。
+      await openRoom(currentRoomId);
+    }
+
+    toastMsg(`✅ 參與人員已更新，共 ${result.participantCount||participants.length} 人`);
+  }catch(err){
+    toastMsg('⚠️ 更新失敗：'+err.message);
+  }
+}
+
+async function openNewRoom(){
+  if(isGuest()){toastMsg('外聘協作人員不能建立新討論樓');return}
+  newTitle.value='';newRetention.value='30';newRoomModal.classList.add('show');
+  if(!employeeDirectory.length){
+    participantList.innerHTML='<div class="loadingBox">正在讀取員工主檔…</div>';
+    try{await loadEmployeeDirectory()}catch(err){participantList.innerHTML=`<div class="sourceState">⚠️ ${esc(err.message)}</div>`;return}
+  }
+  renderParticipantList();
+}
+function closeNewRoom(){newRoomModal.classList.remove('show')}
+
+async function createRoom(){
+  const title=newTitle.value.trim();if(!title){toastMsg('請輸入討論主題');return}
+  const participants=selectedParticipants();
+  if(!participants.some(p=>p.name===currentUser)){
+    const me=employeeDirectory.find(x=>x.name===currentUser);
+    participants.unshift(me?{employeeId:me.employeeId||'',name:me.name,type:me.type||'employee',department:me.department||'',subgroup:me.subgroup||''}:{employeeId:currentUserId,name:currentUser,type:'employee',department:'',subgroup:''});
+  }
+  if(!participants.length){toastMsg('請至少勾選一位參與人員');return}
+  try{
+    await postDirect('createRoom',{title,creatorId:currentUserId,creatorName:currentUser,participants,retention:newRetention.value});
+    closeNewRoom();
+    await loadCloudRooms();
+    toastMsg('✅ 討論樓已建立');
+  }catch(err){toastMsg('⚠️ 建立失敗：'+err.message)}
+}
+
+async function openRoom(id){
+  const r=cloudRooms.find(x=>x.roomId===id);if(!r)return;
+  currentRoomId=id;listView.classList.add('hide');roomView.classList.add('show');
+  roomTitle.textContent=r.title;roomMeta.textContent=`建立：${r.creatorName}｜${fmt(r.createdAt)}｜保存 ${r.retention||'30'}${String(r.retention)==='永久'?'':'天'}`;
+  const participants=Array.isArray(r.participants)?r.participants:[];
+  if(participants.length){
+    const groups=[];
+    participants.forEach(p=>{
+      const dep=String(p.department||'').trim();
+      const sub=String(p.subgroup||'').trim();
+      if(dep && !groups.includes(dep))groups.push(dep);
+      if(sub && !groups.includes(sub))groups.push(sub);
+    });
+
+    const groupHtml=groups.length
+      ? groups.map(g=>`<span class="groupLabel">${esc(g)}</span>`).join('')
+      : '<span class="groupLabel">參與人員</span>';
+
+    const peopleHtml=participants.map(p=>{
+      const detail=[p.department,p.subgroup].filter(Boolean).join('・');
+      return `<span class="personTag">${esc(p.name||'未命名')}${detail?` <small>(${esc(detail)})</small>`:''}</span>`;
+    }).join('');
+
+    const listId='participantPeople_'+String(r.roomId||currentRoomId||'').replace(/[^a-zA-Z0-9_-]/g,'_');
+
+    roomParticipants.innerHTML=
+      `<div class="participantBox">
+        <div class="participantBar">
+          ${groupHtml}
+          <button class="participantToggle" type="button"
+            onclick="toggleParticipantList('${listId}',this)">查看 ${participants.length} 人 ▾</button>
+        </div>
+        <div class="participantPeople" id="${listId}">${peopleHtml}</div>
+      </div>`;
+  }else{
+    roomParticipants.innerHTML='<span class="pill">尚未取得參與人員資料</span>';
+  }
+  messageList.innerHTML='<div class="loadingBox">正在讀取留言…</div>';
+  composerBox.style.display=r.status==='已封存'?'none':'block';
+  archiveBtn.style.display=(!isGuest()&&r.status!=='已封存')?'block':'none';
+  if(memberEditBtn){
+    memberEditBtn.style.display=canEditRoomMembers(r)?'inline-flex':'none';
+  }
+  if(fileLibraryBtn){
+    fileLibraryBtn.style.display='inline-flex';
+  }
+  try{
+    const data=await jsonp('getMessages',{
+      roomId:id,
+      userId:currentUserId,
+      userName:currentUser
+    });
+    const msgs=data?.ok&&Array.isArray(data.messages)?data.messages:[];
+    currentRoomMessages=msgs;
+    messageList.innerHTML=msgs.length?msgs.map(m=>{
+      const attachments=Array.isArray(m.attachments)?m.attachments:[];
+      const attachHtml=attachments.length
+        ? `<div class="attachmentList">${attachments.map(a=>`<a class="attachmentLink" href="${esc(a.url)}" target="_blank" rel="noopener">📎 ${esc(a.name)}</a>`).join('')}</div>`
+        : '';
+      const delBtn='';
+      const textHtml=String(m.text||'').trim()?`<p>${esc(m.text)}</p>`:'';
+      return `<div class="msg" data-message-id="${esc(m.messageId||'')}" data-author-id="${esc(m.authorId||'')}" data-author-name="${esc(m.authorName||'')}"><div class="msgHead"><strong>${esc(m.authorName||'同仁')}</strong><span class="time">${fmt(m.createdAt)}</span>${delBtn}</div>${textHtml}${attachHtml}</div>`;
+    }).join(''):'<div class="empty">這棟樓還沒有留言</div>';
+    // v3.3：getMessages 後端會同步標記這棟樓已讀。
+    r.unread=false;
+    r.unreadCount=0;
+    updateUnreadSummary();
+  }catch(err){messageList.innerHTML=`<div class="empty">留言讀取失敗：${esc(err.message)}</div>`}
+}
+function closeRoom(){currentRoomId='';currentRoomMessages=[];roomView.classList.remove('show');listView.classList.remove('hide');renderRooms()}
+
+
+
+
+function fileKind(name=''){
+  const n=String(name||'').toLowerCase();
+  if(/\.(jpg|jpeg|png|gif|webp|heic)$/i.test(n)) return 'image';
+  if(/\.pdf$/i.test(n)) return 'pdf';
+  if(/\.(doc|docx)$/i.test(n)) return 'word';
+  return 'other';
+}
+
+function fileIcon(kind){
+  if(kind==='image') return '🖼️';
+  if(kind==='pdf') return '📕';
+  if(kind==='word') return '📘';
+  return '📄';
+}
+
+function driveThumb(fileId,size=480){
+  if(!fileId)return '';
+  return `https://drive.google.com/thumbnail?id=${encodeURIComponent(fileId)}&sz=w${size}`;
+}
+
+function drivePreview(fileId){
+  if(!fileId)return '';
+  return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(fileId)}`;
+}
+
+function collectRoomFiles(){
+  const out=[];
+  currentRoomMessages.forEach(msg=>{
+    const atts=Array.isArray(msg.attachments)?msg.attachments:[];
+    atts.forEach(att=>{
+      const fileId=att.driveFileId||att.fileId||'';
+      out.push({
+        attachmentId:att.attachmentId||'',
+        messageId:msg.messageId||'',
+        uploaderId:att.uploaderId||'',
+        uploaderName:att.uploaderName||msg.authorName||'',
+        name:att.name||'未命名檔案',
+        url:att.url||'',
+        fileId,
+        thumbUrl:fileId?driveThumb(fileId,480):'',
+        previewUrl:fileId?drivePreview(fileId):(att.url||''),
+        kind:fileKind(att.name||''),
+        author:att.uploaderName||msg.authorName||'',
+        createdAt:msg.createdAt||att.uploadedAt||''
+      });
+    });
+  });
+
+  return out.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+}
+
+function setFileView(mode){
+  fileViewMode=mode==='list'?'list':'gallery';
+  galleryViewBtn.classList.toggle('active',fileViewMode==='gallery');
+  listViewBtn.classList.toggle('active',fileViewMode==='list');
+  renderFileLibrary();
+}
+
+function openFileLibrary(){
+  fileLibrarySearch.value='';
+  fileLibraryType.value='all';
+  fileViewMode='gallery';
+  fileLibraryModal.classList.add('show');
+  setFileView('gallery');
+}
+
+function closeFileLibrary(){
+  fileLibraryModal.classList.remove('show');
+}
+
+function openImagePreview(fileIdOrUrl,name=''){
+  const all=collectRoomFiles().filter(f=>f.kind==='image');
+  previewImages=all;
+
+  previewIndex=Math.max(0,all.findIndex(f=>
+    (fileIdOrUrl && f.fileId===fileIdOrUrl) ||
+    (fileIdOrUrl && f.previewUrl===fileIdOrUrl)
+  ));
+
+  renderImagePreview();
+  imagePreviewMask.classList.add('show');
+}
+
+function closeImagePreview(){
+  imagePreviewMask.classList.remove('show');
+  previewImage.removeAttribute('src');
+}
+
+function stepImagePreview(delta){
+  if(!previewImages.length)return;
+  previewIndex=(previewIndex+delta+previewImages.length)%previewImages.length;
+  renderImagePreview();
+}
+
+function renderImagePreview(){
+  const f=previewImages[previewIndex];
+  if(!f)return;
+
+  // 先嘗試較大的 Drive 縮圖；失敗再回原檔預覽網址。
+  const largeThumb=f.fileId?driveThumb(f.fileId,1600):f.previewUrl;
+  previewImage.src=largeThumb||f.previewUrl||f.url||'';
+  previewImage.onerror=()=>{
+    previewImage.onerror=null;
+    if(f.previewUrl && previewImage.src!==f.previewUrl)previewImage.src=f.previewUrl;
+  };
+  previewCaption.textContent=`${previewIndex+1} / ${previewImages.length}　${f.name}`;
+}
+
+
+function canDeleteRoomFile(file){
+  const room=cloudRooms.find(r=>r.roomId===currentRoomId);
+  const isCreator=room && (
+    (currentUserId && room.creatorId && String(currentUserId)===String(room.creatorId)) ||
+    (currentUser && room.creatorName && String(currentUser)===String(room.creatorName))
+  );
+
+  const isOwn=
+    (currentUserId && file.uploaderId && String(currentUserId)===String(file.uploaderId)) ||
+    (currentUser && file.uploaderName && String(currentUser)===String(file.uploaderName));
+
+  return currentIsManager || isCreator || isOwn;
+}
+
+async function deleteRoomFile(attachmentId,name=''){
+  if(!attachmentId){
+    toastMsg('⚠️ 這個檔案缺少附件編號，請重新進入討論樓後再試');
+    return;
+  }
+
+  const displayName=name||'這個檔案';
+  if(!confirm(`確定要刪除「${displayName}」嗎？\n\n刪除後會從討論樓資料夾與聊天附件中一起移除。`)){
+    return;
+  }
+
+  try{
+    await postDirect('deleteAttachment',{
+      attachmentId,
+      userId:currentUserId,
+      userName:currentUser
+    });
+
+    // 先從目前記憶資料移除，讓檔案區立即更新，不用等整頁重抓。
+    currentRoomMessages.forEach(msg=>{
+      if(!Array.isArray(msg.attachments))return;
+      msg.attachments=msg.attachments.filter(a=>String(a.attachmentId||'')!==String(attachmentId));
+    });
+
+    renderFileLibrary();
+    toastMsg('✅ 檔案已刪除');
+
+    // 同步刷新聊天時間軸，讓原本留言中的附件連結也立即消失。
+    setTimeout(()=>openRoom(currentRoomId).catch(()=>{}),150);
+  }catch(err){
+    toastMsg('⚠️ 刪除失敗：'+err.message);
+  }
+}
+
+function renderFileLibrary(){
+  const all=collectRoomFiles();
+  const q=String(fileLibrarySearch.value||'').trim().toLowerCase();
+  const type=String(fileLibraryType.value||'all');
+
+  const rows=all.filter(f=>{
+    const matchesText=!q || String(f.name||'').toLowerCase().includes(q);
+    const matchesType=type==='all' || f.kind===type;
+    return matchesText && matchesType;
+  });
+
+  fileLibrarySummary.textContent=`這棟樓共有 ${all.length} 個附件，其中照片 ${all.filter(f=>f.kind==='image').length} 張`;
+
+  fileLibraryList.className='fileGrid '+(fileViewMode==='gallery'?'gallery':'list');
+
+  if(!rows.length){
+    fileLibraryList.innerHTML='<div class="fileEmpty">找不到符合的檔案</div>';
+    return;
+  }
+
+  if(fileViewMode==='list'){
+    fileLibraryList.innerHTML=rows.map(f=>`
+      <div class="fileCard listCard">
+        <div class="fileIcon">${fileIcon(f.kind)}</div>
+        <div>
+          <div class="fileName">${esc(f.name)}</div>
+          <div class="fileMeta">${esc(f.author||'')}｜${fmt(f.createdAt)}</div>
+        </div>
+        <div class="fileCardActions">
+          ${f.url?`<a href="${esc(f.url)}" target="_blank" rel="noopener">開啟</a>`:''}
+          ${canDeleteRoomFile(f)?`<button class="fileDeleteBtn" type="button" onclick="deleteRoomFile('${esc(f.attachmentId)}','${esc(f.name)}')">刪除</button>`:''}
+        </div>
+      </div>
+    `).join('');
+    return;
+  }
+
+  fileLibraryList.innerHTML=rows.map(f=>{
+    if(f.kind==='image'){
+      const key=f.fileId||f.previewUrl||f.url||'';
+      return `
+        <div class="fileCard galleryCard">
+          <div class="fileThumbWrap" onclick="openImagePreview('${esc(key)}','${esc(f.name)}')">
+            ${f.thumbUrl
+              ? `<img loading="lazy" decoding="async" src="${esc(f.thumbUrl)}"
+                   alt="${esc(f.name)}"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                 <div class="fileThumbFallback" style="display:none">🖼️</div>`
+              : '<div class="fileThumbFallback">🖼️</div>'}
+          </div>
+          <div class="fileCardBody">
+            <div class="fileName" title="${esc(f.name)}">${esc(f.name)}</div>
+            ${canDeleteRoomFile(f)?`<div class="fileCardActions"><button class="fileDeleteBtn" type="button" onclick="event.stopPropagation();deleteRoomFile('${esc(f.attachmentId)}','${esc(f.name)}')">刪除</button></div>`:''}
+          </div>
+        </div>`;
+    }
+
+    return `
+      <div class="fileCard galleryCard">
+        <div class="fileThumbWrap" onclick="${f.url?`window.open('${esc(f.url)}','_blank')`:''}">
+          <div class="fileThumbFallback">${fileIcon(f.kind)}</div>
+        </div>
+        <div class="fileCardBody">
+          <div class="fileName" title="${esc(f.name)}">${esc(f.name)}</div>
+          ${canDeleteRoomFile(f)?`<div class="fileCardActions"><button class="fileDeleteBtn" type="button" onclick="event.stopPropagation();deleteRoomFile('${esc(f.attachmentId)}','${esc(f.name)}')">刪除</button></div>`:''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+document.addEventListener('keydown',e=>{
+  if(!imagePreviewMask?.classList.contains('show'))return;
+  if(e.key==='Escape')closeImagePreview();
+  if(e.key==='ArrowLeft')stepImagePreview(-1);
+  if(e.key==='ArrowRight')stepImagePreview(1);
+});
+
+function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const result=String(reader.result||'');
+      const comma=result.indexOf(',');
+      resolve(comma>=0?result.slice(comma+1):result);
+    };
+    reader.onerror=()=>reject(new Error('檔案讀取失敗'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function loadImageFile(file){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('照片讀取失敗：'+file.name))};
+    img.src=url;
+  });
+}
+
+async function prepareOneFile(file){
+  const MAX_FILE_BYTES=8*1024*1024;
+
+  if(file.size>MAX_FILE_BYTES && !file.type.startsWith('image/')){
+    throw new Error(`「${file.name}」超過 8MB，請先縮小後再上傳`);
+  }
+
+  // 照片先在前端縮到最長邊 1600px，JPEG 約 82% 品質。
+  if(file.type.startsWith('image/')){
+    const img=await loadImageFile(file);
+    const maxSide=1600;
+    const scale=Math.min(1,maxSide/Math.max(img.naturalWidth,img.naturalHeight));
+    const w=Math.max(1,Math.round(img.naturalWidth*scale));
+    const h=Math.max(1,Math.round(img.naturalHeight*scale));
+
+    const canvas=document.createElement('canvas');
+    canvas.width=w;canvas.height=h;
+    const ctx=canvas.getContext('2d');
+    ctx.drawImage(img,0,0,w,h);
+
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.82));
+    if(!blob)throw new Error('照片壓縮失敗：'+file.name);
+
+    const baseName=file.name.replace(/\.[^.]+$/,'');
+    return {
+      name:baseName+'.jpg',
+      mimeType:'image/jpeg',
+      base64:await blobToBase64(blob),
+      originalBytes:file.size,
+      uploadBytes:blob.size
+    };
+  }
+
+  return {
+    name:file.name,
+    mimeType:file.type||'application/octet-stream',
+    base64:await blobToBase64(file),
+    originalBytes:file.size,
+    uploadBytes:file.size
+  };
+}
+
+
+
+function nowMs(){ return performance.now(); }
+function sec(ms){ return (ms/1000).toFixed(2); }
+
+function showUploadTiming(lines){
+  const msg = lines.join('｜');
+  console.log('[上傳計時]', msg);
+  toastMsg('⏱️ '+msg);
+}
+
+async function uploadPreparedFileInChunks(prepared,messageId,fileNo,totalFiles,sendBtn){
+  const FAST_LIMIT_CHARS=700000;   // 約 500KB 實際檔案的 base64；先走單次快速上傳
+  const CHUNK_CHARS=240000;        // 需要分段時，每段放大到約 240KB
+  const base64=prepared.base64;
+
+  // 小型／已壓縮附件先嘗試一次直接送出。
+  // 若 Google 拒絕，再自動退回分段上傳，不需要使用者重選檔案。
+  if(base64.length<=FAST_LIMIT_CHARS){
+    if(sendBtn)sendBtn.textContent=`快速上傳附件 ${fileNo}/${totalFiles}…`;
+
+    const tFast=nowMs();
+    try{
+      const result=await postDirect('uploadAttachment',{
+        roomId:currentRoomId,
+        messageId,
+        uploaderId:currentUserId,
+        uploaderName:currentUser,
+        name:prepared.name,
+        mimeType:prepared.mimeType,
+        base64
+      });
+
+      return {
+        result,
+        timing:{
+          chunkTimes:[],
+          fastMs:nowMs()-tFast,
+          finalizeMs:0,
+          totalMs:nowMs()-tFast,
+          mode:'fast'
+        }
+      };
+    }catch(err){
+      console.warn('快速上傳失敗，自動改用分段：',err.message);
+      // 接著往下走分段模式
+    }
+  }
+
+  const totalChunks=Math.ceil(base64.length/CHUNK_CHARS);
+  const uploadId=(crypto?.randomUUID?.() || (Date.now()+'_'+Math.random().toString(36).slice(2)));
+  const chunkFileIds=[];
+  const chunkTimes=[];
+  const tAll=nowMs();
+
+  for(let i=0;i<totalChunks;i++){
+    const part=base64.slice(i*CHUNK_CHARS,(i+1)*CHUNK_CHARS);
+
+    if(sendBtn){
+      sendBtn.textContent=`分段上傳 ${fileNo}/${totalFiles}（${i+1}/${totalChunks}）`;
+    }
+
+    const tChunk=nowMs();
+    const r=await postDirect('uploadAttachmentChunk',{
+      roomId:currentRoomId,
+      uploadId,
+      chunkIndex:i,
+      base64:part
+    });
+    const elapsed=nowMs()-tChunk;
+    chunkTimes.push(elapsed);
+
+    if(!r.chunkFileId)throw new Error('附件分段上傳失敗');
+    chunkFileIds.push(r.chunkFileId);
+  }
+
+  if(sendBtn)sendBtn.textContent=`組合附件 ${fileNo}/${totalFiles}…`;
+
+  const tFinalize=nowMs();
+  const result=await postDirect('finalizeAttachmentUpload',{
+    roomId:currentRoomId,
+    messageId,
+    uploaderId:currentUserId,
+    uploaderName:currentUser,
+    name:prepared.name,
+    mimeType:prepared.mimeType,
+    chunkFileIds
+  });
+  const finalizeMs=nowMs()-tFinalize;
+  const totalMs=nowMs()-tAll;
+
+  return {
+    result,
+    timing:{
+      chunkTimes,
+      fastMs:0,
+      finalizeMs,
+      totalMs,
+      mode:'chunk'
+    }
+  };
+}
+
+
+function appendSentMessageLocally({messageId,text,attachments,createdAt}){
+  const empty=messageList.querySelector('.empty');
+  if(empty) empty.remove();
+
+  const attachHtml=(attachments||[]).length
+    ? `<div class="attachmentList">${attachments.map(a=>`<a class="attachmentLink" href="${esc(a.url)}" target="_blank" rel="noopener">📎 ${esc(a.name)}</a>`).join('')}</div>`
+    : '';
+
+  const textHtml=String(text||'').trim()?`<p>${esc(text)}</p>`:'';
+  const delBtn='';
+
+  const wrap=document.createElement('div');
+  wrap.className='msg';
+  wrap.dataset.messageId=messageId;
+  wrap.dataset.authorId=currentUserId||'';
+  wrap.dataset.authorName=currentUser||'';
+  wrap.innerHTML=`<div class="msgHead"><strong>${esc(currentUser||'同仁')}</strong><span class="time">${fmt(createdAt)}</span>${delBtn}</div>${textHtml}${attachHtml}`;
+  messageList.appendChild(wrap);
+  wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+async function sendMessage(){
+  const text=messageInput.value.trim();
+  const files=[...fileInput.files];
+
+  if(!text && files.length===0){
+    toastMsg('請輸入訊息或選擇附件');
+    return;
+  }
+
+  const sendBtn=document.querySelector('.send');
+
+  try{
+    const timingLines=[];
+    const totalStart=nowMs();
+    let messageId='';
+    const uploadedAttachments=[];
+    let createdAt=new Date().toISOString();
+
+    if(sendBtn){
+      sendBtn.disabled=true;
+      sendBtn.textContent=files.length?'正在準備附件…':'正在送出留言…';
+    }
+
+    // 小檔案最快路徑：一則訊息 + 一個附件，合併成單次後端請求。
+    if(files.length===1){
+      const tPrepare=nowMs();
+      const prepared=await prepareOneFile(files[0]);
+      const prepareMs=nowMs()-tPrepare;
+      timingLines.push(`準備檔案 ${sec(prepareMs)}秒`);
+
+      const FAST_COMBINED_LIMIT=700000;
+
+      if(prepared.base64.length<=FAST_COMBINED_LIMIT){
+        if(sendBtn)sendBtn.textContent='快速送出附件…';
+
+        const tCombined=nowMs();
+        const result=await postDirect('addMessageWithAttachment',{
+          roomId:currentRoomId,
+          authorId:currentUserId,
+          authorName:currentUser,
+          text,
+          name:prepared.name,
+          mimeType:prepared.mimeType,
+          base64:prepared.base64
+        });
+        const combinedMs=nowMs()-tCombined;
+
+        messageId=result.messageId;
+        createdAt=result.createdAt||createdAt;
+        if(result.attachment)uploadedAttachments.push(result.attachment);
+        timingLines.push(`單次送出 ${sec(combinedMs)}秒`);
+      }else{
+        // 大檔案：維持原本安全流程
+        const tMessage=nowMs();
+        const msgResult=await postDirect('addMessage',{
+          roomId:currentRoomId,
+          authorId:currentUserId,
+          authorName:currentUser,
+          text
+        });
+        timingLines.push(`建立紀錄 ${sec(nowMs()-tMessage)}秒`);
+        messageId=msgResult.messageId;
+        if(!messageId)throw new Error('後端沒有回傳留言ID');
+
+        const uploaded=await uploadPreparedFileInChunks(
+          prepared,messageId,1,1,sendBtn
+        );
+
+        if(uploaded?.result?.attachment){
+          uploadedAttachments.push(uploaded.result.attachment);
+        }
+
+        if(uploaded.timing.mode==='fast'){
+          timingLines.push(`快速上傳 ${sec(uploaded.timing.fastMs)}秒`);
+        }else{
+          uploaded.timing.chunkTimes.forEach((ms,idx)=>{
+            timingLines.push(`分段${idx+1} ${sec(ms)}秒`);
+          });
+          timingLines.push(`合併 ${sec(uploaded.timing.finalizeMs)}秒`);
+        }
+      }
+
+    }else{
+      // 純文字或多附件：沿用原本穩定流程
+      const tMessage=nowMs();
+      const msgResult=await postDirect('addMessage',{
+        roomId:currentRoomId,
+        authorId:currentUserId,
+        authorName:currentUser,
+        text
+      });
+      timingLines.push(`建立紀錄 ${sec(nowMs()-tMessage)}秒`);
+
+      messageId=msgResult.messageId;
+      if(!messageId)throw new Error('後端沒有回傳留言ID');
+
+      for(let i=0;i<files.length;i++){
+        const tPrepare=nowMs();
+        const prepared=await prepareOneFile(files[i]);
+        timingLines.push(`準備檔案${i+1} ${sec(nowMs()-tPrepare)}秒`);
+
+        const uploaded=await uploadPreparedFileInChunks(
+          prepared,messageId,i+1,files.length,sendBtn
+        );
+
+        if(uploaded?.result?.attachment){
+          uploadedAttachments.push(uploaded.result.attachment);
+        }
+
+        if(uploaded.timing.mode==='fast'){
+          timingLines.push(`快速上傳${i+1} ${sec(uploaded.timing.fastMs)}秒`);
+        }else{
+          uploaded.timing.chunkTimes.forEach((ms,idx)=>{
+            timingLines.push(`附件${i+1}-分段${idx+1} ${sec(ms)}秒`);
+          });
+          timingLines.push(`附件${i+1}-合併 ${sec(uploaded.timing.finalizeMs)}秒`);
+        }
+      }
+    }
+
+    messageInput.value='';
+    fileInput.value='';
+
+    const tLocal=nowMs();
+    appendSentMessageLocally({
+      messageId,
+      text,
+      attachments:uploadedAttachments,
+      createdAt
+    });
+    timingLines.push(`畫面更新 ${sec(nowMs()-tLocal)}秒`);
+
+    timingLines.push(`總計 ${sec(nowMs()-totalStart)}秒`);
+    showUploadTiming(timingLines);
+
+  }catch(err){
+    toastMsg('⚠️ '+err.message);
+    try{await openRoom(currentRoomId)}catch(e){}
+  }finally{
+    if(sendBtn){
+      sendBtn.disabled=false;
+      sendBtn.textContent='送出訊息';
+    }
+  }
+}
+
+async function archiveRoom(){
+  if(isGuest())return;
+  const r=cloudRooms.find(x=>x.roomId===currentRoomId);if(!r)return;
+  if(!confirm(`確定將「${r.title}」結案封存嗎？`))return;
+  try{
+    await postDirect('archiveRoom',{roomId:currentRoomId});
+    closeRoom();
+    await loadCloudRooms();
+    setMode('archived');
+    toastMsg('✅ 已結案封存');
+  }catch(err){
+    toastMsg('⚠️ 封存失敗：'+err.message);
+  }
+}
+
+function goBack(){
+  saveDiscussionUnreadState();
+  const role=String(localStorage.getItem('heremay.currentRole')||'').toLowerCase();
+  if(role==='admin')location.href='admin.html';
+  else if(role==='support')location.href='support.html';
+  else location.href='teacher.html';
+}
+
+
+
+
+let cleanupMode=false;
+
+function toggleCleanupMode(force){
+  cleanupMode = typeof force==='boolean' ? force : !cleanupMode;
+
+  const btn=document.getElementById('cleanupBtn');
+  const batch=document.getElementById('batchDeleteBtn');
+  const cancel=document.getElementById('cleanupCancelBtn');
+
+  if(btn)btn.style.display=cleanupMode?'none':'inline-block';
+  if(batch)batch.style.display=cleanupMode?'inline-block':'none';
+  if(cancel)cancel.style.display=cleanupMode?'inline-block':'none';
+
+  document.querySelectorAll('#messageList .msg').forEach(msg=>{
+    const authorId=String(msg.dataset.authorId||'').trim();
+    const authorName=String(msg.dataset.authorName||'').trim();
+    const role=String(localStorage.getItem('heremay.currentRole')||'').toLowerCase();
+    const profile=[
+      employee.jobTitle,employee.title,employee.identityCategory,
+      employee.identity,employee.group,employee.department,employee.homeType
+    ].filter(Boolean).join('｜');
+    const manager=(role==='admin') || /負責人|園長|主任|主管|管理/.test(profile);
+    const own=(currentUserId&&authorId&&String(currentUserId)===authorId) ||
+              (currentUser&&authorName&&String(currentUser)===authorName);
+    const can=own||manager;
+    msg.classList.toggle('batchMode', cleanupMode && can);
+
+    let cb=msg.querySelector('.msgSelect');
+    if(cleanupMode && can){
+      if(!cb){
+        cb=document.createElement('input');
+        cb.type='checkbox';
+        cb.className='msgSelect';
+        cb.value=msg.dataset.messageId||'';
+        msg.prepend(cb);
+      }
+      cb.style.display='';
+    }else if(cb){
+      cb.remove();
+    }
+  });
+}
+
+async function batchDeleteSelected(){
+  const ids=[...document.querySelectorAll('#messageList .msgSelect:checked')]
+    .map(x=>x.value).filter(Boolean);
+
+  if(!ids.length){
+    toastMsg('請先勾選要刪除的留言');
+    return;
+  }
+  if(!confirm(`確定一次刪除 ${ids.length} 則留言？`))return;
+
+  const selectedMsgs=new Map();
+  ids.forEach(id=>{
+    const el=document.querySelector(`#messageList .msg[data-message-id="${CSS.escape(id)}"]`);
+    if(el){
+      selectedMsgs.set(id,{el,parent:el.parentNode,next:el.nextSibling});
+      el.style.display='none'; // 先在畫面消失，體感立即
+    }
+  });
+
+  try{
+    const t0=performance.now();
+    const r=await postDirect('batchDeleteMessages',{
+      messageIds:ids,
+      userId:currentUserId,
+      userName:currentUser
+    });
+    selectedMsgs.forEach(({el})=>el.remove());
+    toggleCleanupMode(false);
+    toastMsg(`✅ 已刪除 ${r.deletedCount||ids.length} 則（${((performance.now()-t0)/1000).toFixed(1)}秒）`);
+  }catch(err){
+    selectedMsgs.forEach(({el})=>el.style.display='');
+    toastMsg('⚠️ '+err.message);
+  }
+}
+
+function toggleParticipantList(id,btn){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const open=el.classList.toggle('open');
+  const m=(btn.textContent.match(/\d+/)||[''])[0];
+  btn.textContent=open?`收起 ${m} 人 ▴`:`查看 ${m} 人 ▾`;
+}
+
+function canDeleteMessage(msg){
+  const authorId=String(msg.authorId||'').trim();
+  const authorName=String(msg.authorName||'').trim();
+  const own=(currentUserId&&authorId&&String(currentUserId)===authorId) ||
+            (currentUser&&authorName&&String(currentUser)===authorName);
+
+  const role=String(localStorage.getItem('heremay.currentRole')||'').toLowerCase();
+  const profile=[
+    employee.jobTitle,employee.title,employee.identityCategory,
+    employee.identity,employee.group,employee.department,employee.homeType
+  ].filter(Boolean).join('｜');
+
+  const manager=(role==='admin') || /負責人|園長|主任|主管|管理/.test(profile);
+  return own || manager;
+}
+
+async function deleteMessage(messageId){
+  if(!messageId)return;
+  if(!confirm('確定刪除這則留言？'))return;
+
+  const el=document.querySelector(`#messageList .msg[data-message-id="${CSS.escape(messageId)}"]`);
+  if(el)el.style.display='none';
+
+  try{
+    await postDirect('deleteMessage',{
+      messageId,
+      userId:currentUserId,
+      userName:currentUser
+    });
+    if(el)el.remove();
+    toastMsg('✅ 留言已刪除');
+  }catch(err){
+    if(el)el.style.display='';
+    toastMsg('⚠️ '+err.message);
+  }
+}
+
+
+async function init(){
+  userName.textContent=currentUser;
+  userRole.textContent=userLabel();
+  if(isGuest())newRoomBtn.style.display='none';
+
+  roomList.innerHTML='<div class="loadingBox">正在讀取討論樓…</div>';
+
+  try{
+    // 討論樓與員工名單同時讀，不再一個等完再讀下一個。
+    const roomPromise = loadCloudRooms();
+    const participantPromise = loadEmployeeDirectory();
+
+    const results = await Promise.allSettled([roomPromise, participantPromise]);
+
+    const roomResult = results[0];
+    const participantResult = results[1];
+
+    if(roomResult.status==='rejected'){
+      roomList.innerHTML=`<div class="empty">⚠️ 討論樓讀取失敗：${esc(roomResult.reason?.message||'未知錯誤')}<br>請重新整理。</div>`;
+    }
+
+    if(participantResult.status==='rejected'){
+      console.warn('員工名單讀取失敗：', participantResult.reason);
+    }
+
+    if(currentUser==='同仁'&&employeeDirectory.length){
+      userRole.textContent='未取得登入身分，請由首頁重新登入';
+    }
+  }catch(err){
+    roomList.innerHTML=`<div class="empty">⚠️ ${esc(err.message)}<br>請稍後重新整理。</div>`;
+  }
+}
+
+init();
+</script>
+</body>
+</html>

@@ -720,7 +720,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.4｜討論區紅點共享狀態版</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.5｜討論區紅點已讀修正版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -1596,6 +1596,32 @@ function readRecentDiscussionState(){
   return null;
 }
 
+function readDiscussionAllReadAt(){
+  const employee=getHomeEmployee();
+  const userId=String(employee?.employeeId||employee?.id||employee?.['員工編號']||'').trim();
+  const userName=String(employee?.name||employee?.['姓名']||'').trim();
+  const keys=[];
+  if(userId)keys.push('heremay.discussion.allReadAt.'+userId);
+  if(userName){
+    keys.push('heremay.discussion.allReadAt.'+userName);
+    keys.push('heremay.discussion.allReadAt.name.'+userName);
+  }
+  return keys.reduce((latest,key)=>{
+    const value=Number(localStorage.getItem(key)||0);
+    return Math.max(latest,Number.isFinite(value)?value:0);
+  },0);
+}
+
+function discussionTimeValue(value){
+  if(!value)return 0;
+  if(typeof value==='number')return value;
+  const direct=Date.parse(value);
+  if(Number.isFinite(direct))return direct;
+  const normalized=String(value).replace(/\//g,'-').replace(' ','T');
+  const retry=Date.parse(normalized);
+  return Number.isFinite(retry)?retry:0;
+}
+
 async function refreshDiscussionUnreadNotice(forceNetwork=false){
   const seq=++discussionUnreadRequestSeq;
   clearDiscussionUnreadVisual();
@@ -1623,9 +1649,22 @@ async function refreshDiscussionUnreadNotice(forceNetwork=false){
     if(seq!==discussionUnreadRequestSeq)return;
 
     const rooms=Array.isArray(result?.rooms)?result.rooms:[];
-    const unreadCount=rooms
+    let unreadCount=rooms
       .filter(room=>String(room.status||'')!=='已封存')
       .reduce((sum,room)=>sum+(Number(room.unreadCount||0)||0),0);
+
+    // 討論區剛確認全部已讀後，雲端偶爾仍會短暫回傳舊的未讀數。
+    // 只有樓層確實在「全部已讀時間」之後更新，才重新亮起紅點。
+    const allReadAt=readDiscussionAllReadAt();
+    if(unreadCount>0 && allReadAt>0){
+      const newestUnreadUpdate=rooms
+        .filter(room=>String(room.status||'')!=='已封存' && Number(room.unreadCount||0)>0)
+        .reduce((latest,room)=>Math.max(
+          latest,
+          discussionTimeValue(room.updatedAt||room.lastMessageAt||room.createdAt)
+        ),0);
+      if(newestUnreadUpdate && newestUnreadUpdate<=allReadAt)unreadCount=0;
+    }
 
     applyDiscussionUnreadVisual(unreadCount>0);
 
