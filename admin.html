@@ -582,7 +582,7 @@
       <span>討論區有未讀訊息</span>
       <span class="noticeArrow">›</span>
     </div>
-    <div id="groupbuyUnreadNotice" class="groupbuyUnreadNotice" onclick="location.href='groupbuy.html'">
+    <div id="groupbuyUnreadNotice" class="groupbuyUnreadNotice" onclick="openGroupbuyAndAcknowledge()">
       <span class="noticeDot"></span>
       <span>有新的團購／登記事項</span>
       <span class="noticeArrow">›</span>
@@ -663,7 +663,7 @@
         <span class="discussionCardUnreadDot" aria-hidden="true"></span>
         <span class="sqIcon">💬</span><strong>討論區</strong><span>公務交流、事件討論與檔案分享</span>
       </button>
-      <button class="bottomSquareBtn" id="groupbuyHomeCard" type="button" onclick="location.href='groupbuy.html'">
+      <button class="bottomSquareBtn" id="groupbuyHomeCard" type="button" onclick="openGroupbuyAndAcknowledge()">
         <span class="groupbuyCardUnreadDot" aria-hidden="true"></span>
         <span class="sqIcon">🛒</span><strong>登記中心</strong><span>團購、報名、意願調查與活動登記</span>
       </button>
@@ -1609,6 +1609,45 @@ function setAdminGroupbuyUnread(show){
   document.getElementById('groupbuyUnreadNotice')?.classList.toggle('show',!!show);
   document.getElementById('groupbuyHomeCard')?.classList.toggle('hasGroupbuyUnread',!!show);
 }
+
+    let latestGroupbuyUnreadIds=[];
+
+    function readGroupbuyEmployee(){
+      try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}')||{}}
+      catch(e){return {}}
+    }
+    function groupbuySeenIdKeys(){
+      const emp=readGroupbuyEmployee();
+      const ids=[];
+      const employeeId=String(emp.employeeId||emp.id||emp['員工編號']||'').trim();
+      const name=String(emp.name||'').trim();
+      if(employeeId)ids.push('heremay.groupbuy.seenIds.id.'+employeeId);
+      if(name)ids.push('heremay.groupbuy.seenIds.name.'+name);
+      return ids.length?ids:['heremay.groupbuy.seenIds.fallback'];
+    }
+    function getGroupbuySeenIds(){
+      const set=new Set();
+      groupbuySeenIdKeys().forEach(k=>{
+        try{(JSON.parse(localStorage.getItem(k)||'[]')||[]).forEach(id=>set.add(String(id)))}catch(e){}
+      });
+      return set;
+    }
+    function saveGroupbuySeenIds(ids){
+      const merged=getGroupbuySeenIds();
+      (ids||[]).forEach(id=>merged.add(String(id)));
+      const arr=[...merged].slice(-500);
+      groupbuySeenIdKeys().forEach(k=>localStorage.setItem(k,JSON.stringify(arr)));
+    }
+    function openGroupbuyAndAcknowledge(){
+      // 先把「這一次首頁看到的新活動」交給登記中心顯示 NEW，
+      // 同時在離開首頁前就記為已看過，因此返回時紅點一定會消失。
+      sessionStorage.setItem('heremay.groupbuy.entryNewIds',JSON.stringify(latestGroupbuyUnreadIds||[]));
+      saveGroupbuySeenIds(latestGroupbuyUnreadIds||[]);
+      setGroupbuyUnread?.(false);
+      if(typeof setAdminGroupbuyUnread==='function')setAdminGroupbuyUnread(false);
+      location.href='groupbuy.html?v=1.9.12';
+    }
+
 function checkAdminGroupbuyUnread(){
   return new Promise(resolve=>{
     const cb='adminGroupbuyCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
@@ -1623,17 +1662,14 @@ function checkAdminGroupbuyUnread(){
     window[cb]=result=>{
       try{
         const campaigns=Array.isArray(result?.data)?result.data:[];
-        const personalRaw=localStorage.getItem(adminGroupbuySeenKey())||'';
-        const sharedRaw=localStorage.getItem('heremay.groupbuy.lastSeen.shared')||'';
-        const personalSeen=personalRaw?new Date(personalRaw).getTime():0;
-        const sharedSeen=sharedRaw?new Date(sharedRaw).getTime():0;
-        const seen=Math.max(personalSeen,sharedSeen);
-        const hasUnread=campaigns.some(c=>{
+        const seenIds=getGroupbuySeenIds();
+        latestGroupbuyUnreadIds=campaigns.filter(c=>{
           const status=String(c.status||'open');
           if(status==='closed'||status==='cancelled'||c.deleted)return false;
           if(!adminGroupbuyTargetMatches(c))return false;
-          return new Date(c.createdAt||0).getTime()>seen;
-        });
+          return !seenIds.has(String(c.id||''));
+        }).map(c=>String(c.id||'')).filter(Boolean);
+        const hasUnread=latestGroupbuyUnreadIds.length>0;
         setAdminGroupbuyUnread(hasUnread);
         cleanup(hasUnread);
       }catch(e){cleanup(false)}

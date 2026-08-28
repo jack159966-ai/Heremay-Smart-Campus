@@ -673,7 +673,7 @@
           <span>公務交流、事件討論與檔案分享</span>
         </button>
 
-        <button class="btn groupbuyHomeCard" id="groupbuyHomeCard" onclick="window.location.href='groupbuy.html'">
+        <button class="btn groupbuyHomeCard" id="groupbuyHomeCard" onclick="openGroupbuyAndAcknowledge()">
           <span class="groupbuyUnreadDot" id="groupbuyUnreadDot" aria-hidden="true"></span>
           <div class="icon">📝</div>
           <strong>登記中心</strong>
@@ -695,7 +695,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.8｜登記中心紅點修正</div>
+<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.9｜紅點已讀修正</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -988,6 +988,45 @@
       else localStorage.removeItem('heremay.groupbuy.hasUnread');
     }
 
+
+    let latestGroupbuyUnreadIds=[];
+
+    function readGroupbuyEmployee(){
+      try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}')||{}}
+      catch(e){return {}}
+    }
+    function groupbuySeenIdKeys(){
+      const emp=readGroupbuyEmployee();
+      const ids=[];
+      const employeeId=String(emp.employeeId||emp.id||emp['員工編號']||'').trim();
+      const name=String(emp.name||'').trim();
+      if(employeeId)ids.push('heremay.groupbuy.seenIds.id.'+employeeId);
+      if(name)ids.push('heremay.groupbuy.seenIds.name.'+name);
+      return ids.length?ids:['heremay.groupbuy.seenIds.fallback'];
+    }
+    function getGroupbuySeenIds(){
+      const set=new Set();
+      groupbuySeenIdKeys().forEach(k=>{
+        try{(JSON.parse(localStorage.getItem(k)||'[]')||[]).forEach(id=>set.add(String(id)))}catch(e){}
+      });
+      return set;
+    }
+    function saveGroupbuySeenIds(ids){
+      const merged=getGroupbuySeenIds();
+      (ids||[]).forEach(id=>merged.add(String(id)));
+      const arr=[...merged].slice(-500);
+      groupbuySeenIdKeys().forEach(k=>localStorage.setItem(k,JSON.stringify(arr)));
+    }
+    function openGroupbuyAndAcknowledge(){
+      // 先把「這一次首頁看到的新活動」交給登記中心顯示 NEW，
+      // 同時在離開首頁前就記為已看過，因此返回時紅點一定會消失。
+      sessionStorage.setItem('heremay.groupbuy.entryNewIds',JSON.stringify(latestGroupbuyUnreadIds||[]));
+      saveGroupbuySeenIds(latestGroupbuyUnreadIds||[]);
+      setGroupbuyUnread?.(false);
+      if(typeof setAdminGroupbuyUnread==='function')setAdminGroupbuyUnread(false);
+      location.href='groupbuy.html?v=1.9.12';
+    }
+
     function checkGroupbuyUnread(){
       return new Promise(resolve=>{
         const cb='heremayGroupbuyUnread_'+Date.now()+'_'+Math.random().toString(36).slice(2);
@@ -1004,18 +1043,14 @@
         window[cb]=result=>{
           try{
             const campaigns=Array.isArray(result?.data)?result.data:[];
-            const personalRaw=localStorage.getItem(groupbuySeenKey())||'';
-            const sharedRaw=localStorage.getItem('heremay.groupbuy.lastSeen.shared')||'';
-            const personalSeen=personalRaw?new Date(personalRaw).getTime():0;
-            const sharedSeen=sharedRaw?new Date(sharedRaw).getTime():0;
-            const seen=Math.max(personalSeen,sharedSeen);
-            const hasUnread=campaigns.some(c=>{
+            const seenIds=getGroupbuySeenIds();
+            latestGroupbuyUnreadIds=campaigns.filter(c=>{
               const status=String(c.status||'open');
               if(status==='closed'||status==='cancelled'||c.deleted)return false;
               if(!groupbuyTargetMatches(c))return false;
-              const created=new Date(c.createdAt||0).getTime();
-              return created>seen;
-            });
+              return !seenIds.has(String(c.id||''));
+            }).map(c=>String(c.id||'')).filter(Boolean);
+            const hasUnread=latestGroupbuyUnreadIds.length>0;
             setGroupbuyUnread(hasUnread);
             cleanup(hasUnread);
           }catch(e){

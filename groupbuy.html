@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.9.11</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.9.12</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -298,6 +298,18 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
 .goodsSimple .specRow .specPrice{min-width:0}
 .goodsSimple .specRow::before{content:"單價";font-weight:900;color:#355d88;align-self:center}
 @media(max-width:760px){.goodsSimple .specRow{grid-template-columns:72px minmax(0,1fr)}.goodsSimple .productNameInput{font-size:18px;padding:14px}.goodsSimple .specPrice{font-size:18px;padding:14px}}
+
+.newCampaignBadge{
+  display:inline-flex;align-items:center;justify-content:center;
+  margin-left:7px;padding:4px 8px;border-radius:999px;
+  background:#e54855;color:#fff;font-size:12px;font-weight:950;
+  vertical-align:middle;box-shadow:0 2px 7px rgba(229,72,85,.22)
+}
+.campaignSummary.isNewCampaign{
+  border:2px solid #f3a5ad;
+  background:#fffafb;
+}
+
 </style>
 </head>
 <body>
@@ -424,7 +436,7 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.9.11｜2026-08-27｜首頁紅點跨角色修正</div>
+<div class="version">團購／報名中心 v1.9.12｜2026-08-28｜新活動標示</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -559,6 +571,11 @@ document.addEventListener('focusout',event=>{
 });
 function currentEmployee(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}')}catch(e){return {}}}
 function currentName(){return currentEmployee().name||'目前使用者'}
+function entryNewCampaignIds(){
+ try{return JSON.parse(sessionStorage.getItem('heremay.groupbuy.entryNewIds')||'[]').map(String)}
+ catch(e){return []}
+}
+function isNewCampaign(c){return entryNewCampaignIds().includes(String(c?.id||''))}
 function groupbuySeenKey(){
  const emp=currentEmployee();
  const id=String(emp.employeeId||emp.id||emp['員工編號']||currentName()).trim();
@@ -834,7 +851,7 @@ async function cloudWrite(action,payload,successMessage){
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
-const APP_VERSION='1.9.11';
+const APP_VERSION='1.9.12';
 async function updateAppNow(){
  toast('正在檢查新版…');
  try{
@@ -1288,7 +1305,7 @@ function renderAvailable(){
    box.innerHTML=`<div class="actions"><button class="btn secondary" onclick="openedCampaignId='';renderAvailable()">← 返回活動清單</button></div>${eventCard(c)}`;
    return;
  }
- box.innerHTML=cs.length?`<div class="campaignList">${cs.map(c=>`<div class="campaignSummary"><h3>${esc(c.title)} ${c.cancelled?'<span class="badge no">已取消</span>':''}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}</div>${c.capacity>0?`<div class="counter">已報名 ${participantCount(c)}／${c.capacity} 人｜剩餘 ${remaining(c)} 人</div>`:''}<div class="summaryActions"><button class="btn" onclick="openedCampaignId='${c.id}';renderAvailable()">進入${c.template==='survey'?'調查':(c.template==='travel'||c.template==='training'?'報名':'訂購')}</button>${isHost(c)?`<button class="btn secondary" onclick="editCampaign('${c.id}')">編輯活動</button><button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="finishCampaign('${c.id}')">活動結束</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button>`:''}</div></div>`).join('')}</div>`:'<div class="empty">目前沒有可參加的活動。</div>';
+ box.innerHTML=cs.length?`<div class="campaignList">${cs.map(c=>`<div class="campaignSummary ${isNewCampaign(c)?'isNewCampaign':''}"><h3>${esc(c.title)} ${isNewCampaign(c)?'<span class="newCampaignBadge">NEW 新活動</span>':''} ${c.cancelled?'<span class="badge no">已取消</span>':''}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}</div>${c.capacity>0?`<div class="counter">已報名 ${participantCount(c)}／${c.capacity} 人｜剩餘 ${remaining(c)} 人</div>`:''}<div class="summaryActions"><button class="btn" onclick="openedCampaignId='${c.id}';renderAvailable()">進入${c.template==='survey'?'調查':(c.template==='travel'||c.template==='training'?'報名':'訂購')}</button>${isHost(c)?`<button class="btn secondary" onclick="editCampaign('${c.id}')">編輯活動</button><button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="finishCampaign('${c.id}')">活動結束</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button>`:''}</div></div>`).join('')}</div>`:'<div class="empty">目前沒有可參加的活動。</div>';
 }
 function renderMine(){const os=getO().filter(o=>o.user===currentName());document.getElementById('myOrders').innerHTML=os.length?os.map(o=>{const c=getC().find(c=>c.id===o.campaignId);if(c?.template==='survey'){const answers=o.surveyAnswers||safeOrderLines(o)[0]?.prefs||{};const questions=surveyProduct(c).prefs||[];const answerRows=questions.map(q=>`<div class="meta"><strong>${esc(q.name)}：</strong>${esc(textValue(answers[q.name])||'—')}</div>`).join('');return `<article class="eventCard"><h3>${esc(c.title)}</h3><div class="meta">最後更新：${new Date(o.updatedAt||o.createdAt).toLocaleString('zh-TW',{hour12:false})}</div>${answerRows}${o.note?`<div class="meta"><strong>備註：</strong>${esc(o.note)}</div>`:''}<div class="actions"><button class="btn secondary" type="button" onclick="openedCampaignId='${c.id}';showPanel('available',document.querySelectorAll('.tab')[0])">查看／修改回答</button></div></article>`;}return `<article class="eventCard"><h3>${esc(c?.title||'活動')}</h3><div class="meta">${new Date(o.createdAt).toLocaleString('zh-TW',{hour12:false})}</div><div class="meta">狀態：${o.status==='accepted'?'正取':o.status==='waitlist'?'候補':'不參加'}</div>${safeOrderLines(o).map(l=>`<div class="meta">${esc(l.name)}｜${esc(l.spec)}｜${esc(Object.entries(l.prefs||{}).map(([k,v])=>k+'：'+(Array.isArray(v)?v.join('、'):v)).join('；'))}｜單價 $${Number(l.price||0)}｜${l.qty} 人／份｜小計 $${l.subtotal}</div>`).join('')}</article>`}).join(''):'<div class="empty">目前沒有回覆紀錄。</div>'}
 function textValue(v){return Array.isArray(v)?v.join('、'):String(v??'')}

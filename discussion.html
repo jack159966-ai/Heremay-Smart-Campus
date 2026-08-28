@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v3.2</title>
+<title>和美智慧校園｜討論區 v3.3</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -316,7 +316,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v3.2</span>
+  <span class="version">v3.3</span>
 </header>
 
 <section class="card userline">
@@ -808,7 +808,12 @@ async function openRoom(id){
     fileLibraryBtn.style.display='inline-flex';
   }
   try{
-    const data=await jsonp('getMessages',{roomId:id});
+    // v3.3：留言讀取與「已讀」合併成同一次後端要求。
+    const data=await jsonp('getMessages',{
+      roomId:id,
+      userId:currentUserId,
+      userName:currentUser
+    });
     const msgs=data?.ok&&Array.isArray(data.messages)?data.messages:[];
     currentRoomMessages=msgs;
     messageList.innerHTML=msgs.length?msgs.map(m=>{
@@ -820,15 +825,12 @@ async function openRoom(id){
       const textHtml=String(m.text||'').trim()?`<p>${esc(m.text)}</p>`:'';
       return `<div class="msg" data-message-id="${esc(m.messageId||'')}" data-author-id="${esc(m.authorId||'')}" data-author-name="${esc(m.authorName||'')}"><div class="msgHead"><strong>${esc(m.authorName||'同仁')}</strong><span class="time">${fmt(m.createdAt)}</span>${delBtn}</div>${textHtml}${attachHtml}</div>`;
     }).join(''):'<div class="empty">這棟樓還沒有留言</div>';
-    // 進樓即視為已讀：畫面先立即消除紅點，後端已讀時間背景寫入，不阻塞閱讀。
-    r.unread=false;
-    r.unreadCount=0;
-    updateUnreadSummary();
-    postDirect('markRoomRead',{
-      roomId:id,
-      userId:currentUserId,
-      userName:currentUser
-    }).catch(err=>console.warn('已讀標記失敗：',err.message));
+    // getMessages 已在後端同步完成已讀寫入；此處只更新本頁畫面。
+    if(data?.readState?.marked!==false){
+      r.unread=false;
+      r.unreadCount=0;
+      updateUnreadSummary();
+    }
   }catch(err){messageList.innerHTML=`<div class="empty">留言讀取失敗：${esc(err.message)}</div>`}
 }
 function closeRoom(){currentRoomId='';currentRoomMessages=[];roomView.classList.remove('show');listView.classList.remove('hide');renderRooms()}
