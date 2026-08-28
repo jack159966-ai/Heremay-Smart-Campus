@@ -720,7 +720,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.5｜討論區紅點已讀修正版</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.6｜討論區紅點返回清除版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -1692,11 +1692,15 @@ async function refreshDiscussionUnreadNotice(forceNetwork=false){
 // 返回首頁時只做一次檢查；若討論區剛寫過狀態，就完全不發網路要求。
 window.addEventListener('pageshow',()=>{
   clearDiscussionUnreadVisual();
+  if(sessionStorage.getItem('heremay.discussion.justCleared')==='yes'){
+    sessionStorage.removeItem('heremay.discussion.justCleared');
+    return;
+  }
   setTimeout(()=>refreshDiscussionUnreadNotice(false),120);
 });
 
-// 每 60 秒才做一次真正的雲端檢查，避免首頁一直轉圈。
-setInterval(()=>refreshDiscussionUnreadNotice(true),60000);
+// 不在首頁停留期間反覆重查，避免舊雲端回應把剛清除的紅點重新點亮。
+// 下次重新進入首頁時仍會自動查詢真正的新未讀訊息。
 
 </script>
 </body>

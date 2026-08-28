@@ -316,7 +316,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <header class="top">
   <button class="back" onclick="goBack()">← 返回</button>
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一樓｜結案可封存</p></div>
-  <span class="version">v3.6</span>
+  <span class="version">v3.7</span>
 </header>
 
 <section class="card userline">
@@ -1471,6 +1471,12 @@ async function archiveRoom(){
 
 function goBack(){
   saveDiscussionUnreadState();
+  const remainingUnread=cloudRooms
+    .filter(r=>r.status!=='已封存')
+    .reduce((sum,r)=>sum+(Number(r.unreadCount)||0),0);
+  if(remainingUnread===0){
+    sessionStorage.setItem('heremay.discussion.justCleared','yes');
+  }
   const role=String(localStorage.getItem('heremay.currentRole')||'').toLowerCase();
   if(role==='admin')location.href='admin.html';
   else if(role==='support')location.href='support.html';
