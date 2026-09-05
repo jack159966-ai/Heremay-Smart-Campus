@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜Heremay Smart Campus v1.4.6</title>
+  <title>和美智慧校園｜Heremay Smart Campus v1.4.7</title>
 
   <!-- 手機桌面圖示與 PWA 設定 -->
   <meta name="theme-color" content="#eef9ff" />
@@ -314,7 +314,7 @@
 
     <footer>
       資料安全・隱私保護・安心使用<br />
-      <span id="versionText">Heremay Smart Campus v1.4.6</span>
+      <span id="versionText">Heremay Smart Campus v1.4.7</span>
     </footer>
   </main>
 
@@ -335,7 +335,7 @@
 
 
   <script>
-    const APP_VERSION = '1.4.6';
+    const APP_VERSION = '1.4.7';
 
     /*
       正式登入架構說明
@@ -352,6 +352,9 @@
     let waitingWorker = null;
     let refreshing = false;
     let faceLoginBusy = false;
+    let preparedLogin = null;
+    let prepareLoginTimer = null;
+    const PREPARED_LOGIN_TTL_MS = 4 * 60 * 1000;
 
     const routes = {
       admin: 'admin.html',
@@ -400,7 +403,7 @@
 
       try{
         const registration = await navigator.serviceWorker.register(
-          './sw.js',
+          './sw.js?v=147',
           { scope:'./', updateViaCache:'none' }
         );
 
@@ -618,6 +621,36 @@
       return data;
     }
 
+    function clearPreparedLogin(){
+      preparedLogin = null;
+    }
+
+    function prepareFaceLogin(account){
+      account = String(account || '').trim();
+      if(!account || !CONFIG.PASSKEY_API_BASE) return null;
+
+      if(
+        preparedLogin &&
+        preparedLogin.account === account &&
+        Date.now() - preparedLogin.createdAt < PREPARED_LOGIN_TTL_MS
+      ) return preparedLogin.promise;
+
+      const record = {
+        account,
+        createdAt: Date.now(),
+        promise: apiPost('/auth/passkey/login/options', { account })
+      };
+      record.promise.catch(() => {
+        if(preparedLogin === record) preparedLogin = null;
+      });
+      preparedLogin = record;
+      return record.promise;
+    }
+
+    function getPreparedLoginOptions(account){
+      return prepareFaceLogin(account);
+    }
+
 
     function iframeLogin(account, password){
       return new Promise((resolve, reject) => {
@@ -777,9 +810,7 @@
           return;
         }
 
-        const optionsData = await apiPost('/auth/passkey/login/options', {
-          account
-        });
+        const optionsData = await getPreparedLoginOptions(account);
 
         const assertion = await navigator.credentials.get({
           publicKey: normalizePublicKeyOptions(optionsData.publicKey)
@@ -815,6 +846,7 @@
           showToast(`刷臉登入失敗：${err.message || err.name}`);
         }
       }finally{
+        clearPreparedLogin();
         faceLoginBusy = false;
         if(faceBtn){
           faceBtn.disabled = false;
@@ -985,14 +1017,19 @@
       }
     }
 
-    window.addEventListener('load', async () => {
-      await refreshAssetCacheOnce();
-      registerUpdateSystem();
-
+    window.addEventListener('load', () => {
       const lastAccount = localStorage.getItem('heremay.lastFaceAccount');
       if(lastAccount){
         document.getElementById('account').value = lastAccount;
+        prepareFaceLogin(lastAccount);
       }
+      document.getElementById('account').addEventListener('input', event => {
+        const account=event.target.value.trim();
+        clearTimeout(prepareLoginTimer);
+        clearPreparedLogin();
+        if(account) prepareLoginTimer=setTimeout(()=>prepareFaceLogin(account),500);
+      });
+      refreshAssetCacheOnce().finally(registerUpdateSystem);
     });
   </script>
 
