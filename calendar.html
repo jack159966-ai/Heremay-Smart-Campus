@@ -120,12 +120,12 @@
     .modal-mask{position:fixed;inset:0;background:rgba(26,39,56,.62);display:none;align-items:center;justify-content:center;padding:16px;z-index:130}.modal-mask.show{display:flex}.modal-card{width:min(520px,100%);max-height:82vh;overflow:auto;background:#fff;border-radius:22px;padding:18px;box-shadow:0 24px 70px rgba(0,0,0,.28)}
     .modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.modal-head h3{margin:0;color:var(--primary-dark)}.choice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.choice-btn{border:1px solid var(--line);border-radius:14px;padding:14px 12px;background:#f8fbff;color:var(--text);font-weight:850;cursor:pointer;text-align:left}.choice-check{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:14px;padding:12px;background:#f8fbff;font-weight:800}.choice-check input{width:auto;transform:scale(1.15)}.sound-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
     .time-parts{display:grid;grid-template-columns:1fr auto 1fr auto;gap:7px;align-items:center}.time-parts span{font-weight:800;color:var(--muted)}
-    .month-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .month-nav{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px}
     .month-title{font-size:1.12rem;font-weight:900;color:var(--primary-dark);min-width:150px;text-align:center}
-    .month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}
+    .month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:12px;width:100%;overflow:hidden}
     .weekday{text-align:center;font-weight:900;font-size:.82rem;color:var(--muted);padding:6px 2px}
     .weekday.sun{color:#d65b5b}.weekday.sat{color:#4f86c6}
-    .calendar-day{position:relative;min-height:104px;border:1px solid var(--line);border-radius:13px;background:#fff;padding:8px 6px;cursor:pointer;text-align:left;color:var(--text)}
+    .calendar-day{position:relative;min-width:0;max-width:100%;min-height:104px;border:1px solid var(--line);border-radius:13px;background:#fff;padding:8px 6px;cursor:pointer;text-align:left;color:var(--text);overflow:hidden}
     .calendar-day:hover{border-color:var(--primary);background:#f5faff}
     .calendar-day.outside{opacity:.36}
     .calendar-day.today{box-shadow:inset 0 0 0 2px var(--primary)}
@@ -140,8 +140,8 @@
       font-weight:900;display:flex;align-items:center;justify-content:center;
       box-shadow:0 3px 8px rgba(214,91,91,.25)
     }
-    .day-events{margin-top:5px;display:flex;flex-direction:column;gap:3px;overflow:hidden}
-    .day-event-title{display:block;width:100%;padding:4px 5px;border-radius:6px;background:#eaf4ff;color:var(--primary-dark);font-size:.88rem;font-weight:900;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .day-events{min-width:0;margin-top:5px;display:flex;flex-direction:column;gap:3px;overflow:hidden}
+    .day-event-title{display:block;min-width:0;width:100%;padding:4px 5px;border-radius:6px;background:#eaf4ff;color:var(--primary-dark);font-size:.88rem;font-weight:900;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .day-event-more{font-size:.7rem;color:var(--danger);font-weight:900;padding-left:4px}
     .day-title-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
     .day-title-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;border:1px solid var(--line);border-radius:13px;padding:12px;background:#f8fbff;color:var(--text);cursor:pointer;font-weight:900}
@@ -155,10 +155,16 @@
       .three-day-grid{grid-template-columns:1fr}
       .reminder-row{grid-template-columns:1fr 1fr}
       .reminder-row .remove{grid-column:1/-1}
-      .calendar-day{min-height:96px;padding:6px 4px}
-      .day-event-title{font-size:.8rem;padding:3px 4px}
-      .day-lunar{font-size:.68rem}
-      .month-grid{gap:4px}
+      .month-nav{grid-template-columns:auto 1fr auto;gap:5px}
+      .month-nav .btn{padding:9px 7px;font-size:.78rem}
+      .month-title{min-width:0;font-size:.95rem}
+      .calendar-day{min-height:132px;padding:5px 3px;border-radius:9px}
+      .day-date-line{gap:3px;align-items:baseline}
+      .day-number{font-size:.86rem}
+      .day-lunar{font-size:.58rem}
+      .day-event-title{font-size:.72rem;padding:3px 2px;line-height:1.18;white-space:normal;word-break:break-all;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2}
+      .month-grid{gap:3px}
+      .weekday{font-size:.72rem;padding:5px 0}
     }
   </style>
 </head>
@@ -176,7 +182,7 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v2.10.2</span>
+      <span class="pill" id="versionStatus">版本 v2.10.3</span>
       <span class="pill" id="timezoneStatus">時區檢查中</span>
       <span class="pill" id="travelStatus">出國模式：關</span>
     </div>
@@ -399,7 +405,7 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v2.10.2｜2026-09-05｜放大月曆工作標題</div>
+  <div class="version">行事曆 v2.10.3｜2026-09-05｜手機七欄完整顯示</div>
 </main>
 
 <div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
@@ -408,7 +414,7 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='2.10.2';
+const APP_VERSION='2.10.3';
 const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null,shareTargets:[],calendarCursor:new Date(),selectedDate:new Date(),currentUser:null};
 const FIRED_KEY='heremay_calendar_fired_v290';
 
@@ -1560,7 +1566,7 @@ function downloadBackup(){
 
 
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js?v=2102',{updateViaCache:'none'})
+  navigator.serviceWorker.register('./sw.js?v=2103',{updateViaCache:'none'})
     .then(reg=>{
       reg.update().catch(()=>{});
       if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -1568,8 +1574,8 @@ if('serviceWorker' in navigator){
     .catch(error=>console.warn('Service Worker 註冊失敗',error));
 
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(!sessionStorage.getItem('heremay_sw_reloaded_2102')){
-      sessionStorage.setItem('heremay_sw_reloaded_2102','1');
+    if(!sessionStorage.getItem('heremay_sw_reloaded_2103')){
+      sessionStorage.setItem('heremay_sw_reloaded_2103','1');
       location.reload();
     }
   });
