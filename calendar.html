@@ -138,6 +138,13 @@
       font-weight:900;display:flex;align-items:center;justify-content:center;
       box-shadow:0 3px 8px rgba(214,91,91,.25)
     }
+    .day-events{margin-top:5px;display:flex;flex-direction:column;gap:3px;overflow:hidden}
+    .day-event-title{display:block;width:100%;padding:3px 5px;border-radius:6px;background:#eaf4ff;color:var(--primary-dark);font-size:.73rem;font-weight:800;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .day-event-more{font-size:.7rem;color:var(--danger);font-weight:900;padding-left:4px}
+    .day-title-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+    .day-title-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;border:1px solid var(--line);border-radius:13px;padding:12px;background:#f8fbff;color:var(--text);cursor:pointer;font-weight:900}
+    .day-title-btn:hover{border-color:var(--primary);background:#eef7ff}
+    .day-title-time{font-size:.82rem;color:var(--muted);font-weight:700;white-space:nowrap}
     .selected-date-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:14px}
     .selected-date-title{font-weight:900;color:var(--primary-dark)}
     .date-check{margin-top:6px;padding:9px 11px;border-radius:12px;background:#eef7ff;color:var(--primary-dark);font-weight:800;display:none}
@@ -146,7 +153,7 @@
       .three-day-grid{grid-template-columns:1fr}
       .reminder-row{grid-template-columns:1fr 1fr}
       .reminder-row .remove{grid-column:1/-1}
-      .calendar-day{min-height:58px;padding:6px 4px}
+      .calendar-day{min-height:78px;padding:6px 4px}
       .day-lunar{display:none}
       .month-grid{gap:4px}
     }
@@ -166,7 +173,7 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v2.9.1</span>
+      <span class="pill" id="versionStatus">版本 v2.10.0</span>
       <span class="pill" id="timezoneStatus">時區檢查中</span>
       <span class="pill" id="travelStatus">出國模式：關</span>
     </div>
@@ -349,7 +356,7 @@
     </div>
   </section>
 
-  <section class="panel" id="threeDayPanel">
+  <section class="panel" id="threeDayPanel" style="display:none">
     <div class="panel-head">
       <h2>今日、明日、後天提醒</h2>
       <span class="pill" id="threeDayCount">0 項</span>
@@ -363,7 +370,7 @@
     </div>
   </section>
 
-  <section class="panel">
+  <section class="panel" id="recentEventsPanel" style="display:none">
     <div class="panel-head">
       <h2>近期一般行程</h2>
       <span class="pill" id="eventCount">0 筆</span>
@@ -374,7 +381,7 @@
     </div>
   </section>
 
-  <section class="panel">
+  <section class="panel" id="routineEventsPanel" style="display:none">
     <div class="panel-head">
       <h2>週期性工作</h2>
       <div style="display:flex;align-items:center;gap:8px"><span class="pill" id="routineCount">0 項</span><button class="btn" id="routineToggleBtn" type="button" onclick="toggleRoutinePanel()">查看週期性工作</button></div>
@@ -385,7 +392,7 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v2.9.1｜2026-09-05｜私人分享者僅能查看</div>
+  <div class="version">行事曆 v2.10.0｜2026-09-05｜日期格顯示標題與防誤觸編輯</div>
 </main>
 
 <div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
@@ -394,7 +401,7 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='2.9.1';
+const APP_VERSION='2.10.0';
 const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null,shareTargets:[],calendarCursor:new Date(),selectedDate:new Date(),currentUser:null};
 const FIRED_KEY='heremay_calendar_fired_v290';
 
@@ -594,7 +601,11 @@ function setReminderSettings(reminders){
 }
 function setEditingMode(isEditing){
   const threeDayPanel=document.getElementById('threeDayPanel');
-  if(threeDayPanel) threeDayPanel.style.display=isEditing?'none':'';
+  const monthPanel=document.getElementById('monthCalendarPanel');
+  if(monthPanel)monthPanel.style.display=isEditing?'none':'';
+  if(threeDayPanel)threeDayPanel.style.display='none';
+  document.getElementById('recentEventsPanel').style.display='none';
+  document.getElementById('routineEventsPanel').style.display='none';
 }
 function startNewEvent(){
   resetEventForm();
@@ -987,14 +998,16 @@ function renderMonthCalendar(){
   for(let i=0;i<42;i++){
     const date=new Date(gridStart.getFullYear(),gridStart.getMonth(),gridStart.getDate()+i);
     const key=dateKey(date);
-    const eventCount=eventsForCalendarDate(date).length;
-    const badgeText=eventCount>=3?'3+':String(eventCount);
+    const dayEvents=eventsForCalendarDate(date);
+    const eventCount=dayEvents.length;
     const classes=['calendar-day'];
     if(date.getMonth()!==month)classes.push('outside');
     if(sameCalendarDay(date,today))classes.push('today');
     if(sameCalendarDay(date,state.selectedDate))classes.push('selected');
     if(sameCalendarDay(date,startDate)||sameCalendarDay(date,endDate))classes.push('form-date');
-    html+=`<button class="${classes.join(' ')}" type="button" onclick="selectCalendarDate('${key}')"><div class="day-number">${date.getDate()}</div><div class="day-lunar">${lunarDateLabel(date)}</div>${eventCount?`<span class="event-badge" aria-label="${eventCount}筆行程">${badgeText}</span>`:''}</button>`;
+    const titles=dayEvents.slice(0,2).map(item=>`<span class="day-event-title" title="${esc(item.標題||'未命名行程')}">${esc(item.標題||'未命名行程')}</span>`).join('');
+    const more=eventCount>2?`<span class="day-event-more">＋${eventCount-2}筆</span>`:'';
+    html+=`<button class="${classes.join(' ')}" type="button" onclick="selectCalendarDate('${key}')"><div class="day-number">${date.getDate()}</div><div class="day-lunar">${lunarDateLabel(date)}</div>${eventCount?`<div class="day-events">${titles}${more}</div>`:''}</button>`;
   }
   box.innerHTML=html;
 }
@@ -1007,7 +1020,18 @@ function renderSelectedDateEvents(){
   const items=eventsForCalendarDate(date);
   title.textContent=`${date.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'})}｜${weekdayName(date)}`;
   count.textContent=`${items.length} 項`;
-  list.innerHTML=items.length?items.map(item=>renderEventCard(item,{routine:isPeriodicItem(item)})).join(''):'<div class="empty">這一天沒有行程</div>';
+  list.innerHTML=items.length?`<div class="day-title-list">${items.map(item=>`<button class="day-title-btn" type="button" onclick="openDayEvent('${escAttr(item.行程ID)}')"><span>${esc(item.標題||'未命名行程')}</span><span class="day-title-time">${esc(item.開始時間||'全天')} ›</span></button>`).join('')}</div>`:'<div class="empty">這一天沒有行程</div>';
+}
+
+function openDayEvent(id){
+  const item=getEventById(id);
+  if(!item){showToast('找不到這筆行程');return}
+  if(canManageEvent(item)){
+    editEvent(id);
+    return;
+  }
+  const list=document.getElementById('selectedDateList');
+  list.innerHTML=`<div class="actions"><button class="btn" type="button" onclick="renderSelectedDateEvents()">← 返回當天標題</button></div>${renderEventCard(item,{routine:isPeriodicItem(item)})}`;
 }
 
 function formObject(form){
@@ -1502,7 +1526,7 @@ function downloadBackup(){
 
 
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js?v=291',{updateViaCache:'none'})
+  navigator.serviceWorker.register('./sw.js?v=2100',{updateViaCache:'none'})
     .then(reg=>{
       reg.update().catch(()=>{});
       if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -1510,8 +1534,8 @@ if('serviceWorker' in navigator){
     .catch(error=>console.warn('Service Worker 註冊失敗',error));
 
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(!sessionStorage.getItem('heremay_sw_reloaded_291')){
-      sessionStorage.setItem('heremay_sw_reloaded_291','1');
+    if(!sessionStorage.getItem('heremay_sw_reloaded_2100')){
+      sessionStorage.setItem('heremay_sw_reloaded_2100','1');
       location.reload();
     }
   });
