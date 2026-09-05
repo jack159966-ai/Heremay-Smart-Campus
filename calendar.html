@@ -166,7 +166,7 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v2.9.0</span>
+      <span class="pill" id="versionStatus">版本 v2.9.1</span>
       <span class="pill" id="timezoneStatus">時區檢查中</span>
       <span class="pill" id="travelStatus">出國模式：關</span>
     </div>
@@ -385,7 +385,7 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v2.9.0｜2026-09-05｜私人與公務行程權限</div>
+  <div class="version">行事曆 v2.9.1｜2026-09-05｜私人分享者僅能查看</div>
 </main>
 
 <div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
@@ -394,7 +394,7 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='2.9.0';
+const APP_VERSION='2.9.1';
 const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null,shareTargets:[],calendarCursor:new Date(),selectedDate:new Date(),currentUser:null};
 const FIRED_KEY='heremay_calendar_fired_v290';
 
@@ -656,6 +656,17 @@ function applyRepeatDefaults(showMessage=true){
 function getEventById(id){
   return state.events.find(item=>String(item.行程ID)===String(id));
 }
+function isOwnedByCurrentUser(item){
+  const actor=currentActor();
+  const ownerId=String(item.建立者ID||'').trim();
+  const ownerName=String(item.建立者||'').trim();
+  if(!ownerId&&!ownerName)return true;
+  if(ownerId&&actor.userId)return ownerId===actor.userId;
+  return !!ownerName&&ownerName===actor.userName;
+}
+function canManageEvent(item){
+  return String(item['私人／公務']||'公務')!=='私人'||isOwnedByCurrentUser(item);
+}
 function editEvent(id){
   const item=getEventById(id);
   if(!item){showToast('找不到這筆行程');return}
@@ -793,6 +804,7 @@ function renderEventCard(item,{routine=false}={}){
   const reminders=Array.isArray(item.提醒設定JSON)?item.提醒設定JSON:[];
   const reminderText=reminders.length?reminders.map(r=>`${r.value}${r.unit}前`).join('、'):'不提醒';
   const shareTargets=Array.isArray(item.分享對象JSON)?item.分享對象JSON:normalizeShareTargets(item.分享對象JSON||item.分享對象||'');
+  const manageActions=canManageEvent(item)?`<div class="actions"><button class="btn primary" type="button" onclick="editEvent('${escAttr(item.行程ID)}')">編輯</button><button class="btn danger" type="button" onclick="deleteEventItem('${escAttr(item.行程ID)}')">刪除</button></div>`:'<div class="hint">此為他人分享的私人行程，僅供查看。</div>';
   return `<article class="item">
     <div class="item-title">${esc(item.標題||'未命名行程')}</div>
     <div><span class="tag">${esc(item['私人／公務']||'公務')}</span>${(item['私人／公務']==='私人'&&shareTargets.length)?shareTargets.map(v=>`<span class="tag">分享：${esc(v)}</span>`).join(''):''}${(String(item.強提醒)==='是'||item.強提醒===true)?'<span class="tag">強提醒</span>':''}${routine?`<span class="tag">${esc(repeatLabel(item))}</span>`:''}</div>
@@ -804,10 +816,7 @@ function renderEventCard(item,{routine=false}={}){
       提醒：${esc(reminderText)}<br>
       同步狀態：${esc(item.同步狀態||'待同步')}
     </div>
-    <div class="actions">
-      <button class="btn primary" type="button" onclick="editEvent('${escAttr(item.行程ID)}')">編輯</button>
-      <button class="btn danger" type="button" onclick="deleteEventItem('${escAttr(item.行程ID)}')">刪除</button>
-    </div>
+    ${manageActions}
   </article>`;
 }
 function isPeriodicItem(item){
@@ -1493,7 +1502,7 @@ function downloadBackup(){
 
 
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js?v=290',{updateViaCache:'none'})
+  navigator.serviceWorker.register('./sw.js?v=291',{updateViaCache:'none'})
     .then(reg=>{
       reg.update().catch(()=>{});
       if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -1501,8 +1510,8 @@ if('serviceWorker' in navigator){
     .catch(error=>console.warn('Service Worker 註冊失敗',error));
 
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(!sessionStorage.getItem('heremay_sw_reloaded_290')){
-      sessionStorage.setItem('heremay_sw_reloaded_290','1');
+    if(!sessionStorage.getItem('heremay_sw_reloaded_291')){
+      sessionStorage.setItem('heremay_sw_reloaded_291','1');
       location.reload();
     }
   });
