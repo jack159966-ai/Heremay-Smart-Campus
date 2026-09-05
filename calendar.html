@@ -125,7 +125,7 @@
     .month-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px}
     .weekday{text-align:center;font-weight:900;font-size:.82rem;color:var(--muted);padding:6px 2px}
     .weekday.sun{color:#d65b5b}.weekday.sat{color:#4f86c6}
-    .calendar-day{position:relative;min-height:72px;border:1px solid var(--line);border-radius:13px;background:#fff;padding:8px 6px;cursor:pointer;text-align:left;color:var(--text)}
+    .calendar-day{position:relative;min-height:104px;border:1px solid var(--line);border-radius:13px;background:#fff;padding:8px 6px;cursor:pointer;text-align:left;color:var(--text)}
     .calendar-day:hover{border-color:var(--primary);background:#f5faff}
     .calendar-day.outside{opacity:.36}
     .calendar-day.today{box-shadow:inset 0 0 0 2px var(--primary)}
@@ -141,7 +141,7 @@
       box-shadow:0 3px 8px rgba(214,91,91,.25)
     }
     .day-events{margin-top:5px;display:flex;flex-direction:column;gap:3px;overflow:hidden}
-    .day-event-title{display:block;width:100%;padding:3px 5px;border-radius:6px;background:#eaf4ff;color:var(--primary-dark);font-size:.73rem;font-weight:800;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .day-event-title{display:block;width:100%;padding:4px 5px;border-radius:6px;background:#eaf4ff;color:var(--primary-dark);font-size:.88rem;font-weight:900;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .day-event-more{font-size:.7rem;color:var(--danger);font-weight:900;padding-left:4px}
     .day-title-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
     .day-title-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;border:1px solid var(--line);border-radius:13px;padding:12px;background:#f8fbff;color:var(--text);cursor:pointer;font-weight:900}
@@ -155,7 +155,8 @@
       .three-day-grid{grid-template-columns:1fr}
       .reminder-row{grid-template-columns:1fr 1fr}
       .reminder-row .remove{grid-column:1/-1}
-      .calendar-day{min-height:78px;padding:6px 4px}
+      .calendar-day{min-height:96px;padding:6px 4px}
+      .day-event-title{font-size:.8rem;padding:3px 4px}
       .day-lunar{font-size:.68rem}
       .month-grid{gap:4px}
     }
@@ -175,7 +176,7 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v2.10.1</span>
+      <span class="pill" id="versionStatus">版本 v2.10.2</span>
       <span class="pill" id="timezoneStatus">時區檢查中</span>
       <span class="pill" id="travelStatus">出國模式：關</span>
     </div>
@@ -398,7 +399,7 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v2.10.1｜2026-09-05｜日期同行與時間直接輸入</div>
+  <div class="version">行事曆 v2.10.2｜2026-09-05｜放大月曆工作標題</div>
 </main>
 
 <div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
@@ -407,7 +408,7 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='2.10.1';
+const APP_VERSION='2.10.2';
 const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null,shareTargets:[],calendarCursor:new Date(),selectedDate:new Date(),currentUser:null};
 const FIRED_KEY='heremay_calendar_fired_v290';
 
@@ -1559,7 +1560,7 @@ function downloadBackup(){
 
 
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js?v=2101',{updateViaCache:'none'})
+  navigator.serviceWorker.register('./sw.js?v=2102',{updateViaCache:'none'})
     .then(reg=>{
       reg.update().catch(()=>{});
       if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -1567,8 +1568,8 @@ if('serviceWorker' in navigator){
     .catch(error=>console.warn('Service Worker 註冊失敗',error));
 
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(!sessionStorage.getItem('heremay_sw_reloaded_2101')){
-      sessionStorage.setItem('heremay_sw_reloaded_2101','1');
+    if(!sessionStorage.getItem('heremay_sw_reloaded_2102')){
+      sessionStorage.setItem('heremay_sw_reloaded_2102','1');
       location.reload();
     }
   });
