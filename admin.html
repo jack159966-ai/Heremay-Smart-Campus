@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.24</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.25</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -327,7 +327,7 @@
     body{background:linear-gradient(180deg,#f6f9ff 0%,#eef7ff 52%,#f9fbff 100%)}
     .app{width:min(820px,100%);padding:14px 12px 36px}
     .dashboardHeader{
-      display:grid;grid-template-columns:68px 1fr auto auto;gap:14px;align-items:center;
+      display:grid;grid-template-columns:68px 1fr auto;gap:14px;align-items:center;
       padding:10px 6px 16px;
     }
     .dashboardLogo{
@@ -354,7 +354,7 @@
     .dashboardIdentity small{display:block;color:#52708d;font-weight:850;font-size:15px;margin-bottom:3px}
     .dashboardName{font-size:38px;line-height:1.05;font-weight:950;color:#12386f;letter-spacing:.5px}
     .dashboardClock{text-align:right;color:#183f73;font-weight:900}
-    .dashboardClock .dateLine{font-size:18px}
+    .dashboardClock .dateLine{font-size:36px;line-height:1.1;white-space:nowrap}
     .dashboardClock .timeLine{font-size:36px;line-height:1.05;color:#2461c6;margin-top:4px}
     .dashCard{
       background:rgba(255,255,255,.95);border:1px solid var(--dash-line);
@@ -419,13 +419,16 @@
     .toolCard p{margin:4px 0 0;color:#6d8095;font-weight:750;line-height:1.4}
     .toolCard .go{font-size:25px;color:#6082ad}
     .secretaryHeading{margin:0 0 13px;color:#153e72;font-size:24px;font-weight:950}
-    .versionStamp{text-align:center;color:#7890a6;font-size:12px;font-weight:800;margin-top:8px}
+    .versionStamp{color:#7890a6;font-size:13px;font-weight:850}
+    .refreshVersionRow{display:flex;align-items:center;gap:12px;margin:0 0 14px}
+    .refreshVersionRow .versionStamp{flex:1;text-align:left}
     @media(max-width:620px){
-      .dashboardHeader{grid-template-columns:58px 1fr auto;gap:10px}.refreshVersionBtn{grid-column:1/-1;width:100%}
+      .dashboardHeader{grid-template-columns:58px 1fr;gap:10px}
+      .dashboardClock{grid-column:1/-1;text-align:center}
       .dashboardLogo{width:58px;height:58px;border-radius:0;overflow:visible}
       .dashboardIdentity small{font-size:13px}
       .dashboardName{font-size:34px}
-      .dashboardClock .dateLine{font-size:14px}
+      .dashboardClock .dateLine{font-size:28px}
       .dashboardClock .timeLine{font-size:30px}
       .dashCard{padding:15px;border-radius:22px}
       .dashTitle{font-size:23px}
@@ -443,7 +446,9 @@
     }
     @media(max-width:390px){
       .dashboardName{font-size:30px}
-      .dashboardClock .dateLine{display:none}.refreshVersionBtn{grid-column:1/-1}
+      .dashboardClock .dateLine{font-size:27px}
+      .refreshVersionRow{gap:8px}
+      .refreshVersionRow .versionStamp{font-size:12px}
       .secretaryGrid,.lowGrid{grid-template-columns:1fr}
     }
 
@@ -462,8 +467,8 @@
     .refreshVersionBtn:active{transform:scale(.98)}
     .refreshVersionWide{
       display:block!important;
-      width:100%!important;
-      margin:0 0 14px!important;
+      width:auto!important;
+      margin:0!important;
       padding:13px 16px!important;
       font-size:16px!important;
       text-align:center!important;
@@ -597,9 +602,12 @@
       
     </header>
 
-    <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
-      🔄 檢查並重新整理最新版
-    </button>
+    <div class="refreshVersionRow">
+      <div class="versionStamp">主管工作台 v24.25</div>
+      <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
+        🔄 檢查並重新整理最新版
+      </button>
+    </div>
 
     <section class="dashCard">
       <h2 class="dashTitle">📅 今天待辦 <span class="count" id="todayCount">0 件</span></h2>
@@ -622,13 +630,6 @@
       </div>
     </section>
 
-
-    <section class="dashCard">
-      <h2 class="dashTitle">📣 公布欄 <span class="count" id="adminNoticeCount">0 則</span></h2>
-      <div id="adminNoticeList"></div>
-      <button class="completedToggle" type="button" onclick="location.href='announcement.html'">管理公告 ›</button>
-    </section>
-
     <section class="dashCard">
       <button class="patrolButton" type="button" onclick="location.href='patrol.html'">
         <span class="pIcon">📋</span>
@@ -641,6 +642,12 @@
     <section class="dashCard">
       <h2 class="dashTitle">💬 同仁反饋 <span class="count" id="adminReportCount">0 件</span></h2>
       <div id="adminReportList"></div>
+    </section>
+
+    <section class="dashCard">
+      <h2 class="dashTitle">📣 公布欄 <span class="count" id="adminNoticeCount">0 則</span></h2>
+      <div id="adminNoticeList"></div>
+      <button class="completedToggle" type="button" onclick="location.href='announcement.html'">管理公告 ›</button>
     </section>
 
     <section class="dashCard">
@@ -702,7 +709,6 @@
       </div>
     </section>
 
-    <div class="versionStamp">主管工作台 v24.24｜2026-08-28｜登記中心入口修正版</div>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
@@ -995,7 +1001,7 @@ function pad(n){return String(n).padStart(2,'0')}
 function tick(){
   const d=new Date(); const days=['日','一','二','三','四','五','六'];
   const clock=document.getElementById('clock');
-  if(clock) clock.innerHTML=`<div class="dateLine">${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}（週${days[d.getDay()]}）</div><div class="timeLine">${pad(d.getHours())}:${pad(d.getMinutes())}</div>`;
+  if(clock) clock.innerHTML=`<div class="dateLine">${d.getMonth()+1}月${d.getDate()}日（星期${days[d.getDay()]}）</div><div class="timeLine">${pad(d.getHours())}:${pad(d.getMinutes())}</div>`;
   const t1=new Date(d);t1.setDate(d.getDate()+1);
   const t2=new Date(d);t2.setDate(d.getDate()+2);
   const t1Title=document.getElementById('tomorrowTitle');
