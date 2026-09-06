@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#edf8ff">
+  <title>和美智慧校園｜粉專素材收件匣</title>
+  <style>
+    :root{--blue:#4aa9dc;--deep:#24536b;--line:#cceaf7;--bg:#edf8ff}
+    *{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden}
+    body{font-family:"Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--deep)}
+    .page{height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+    .topbar{flex:0 0 auto;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 5px 16px rgba(62,122,160,.10);z-index:2}
+    .back{border:2px solid #318fc4;border-radius:15px;padding:11px 15px;background:var(--blue);color:#fff;font-size:16px;font-weight:900;cursor:pointer;white-space:nowrap;box-shadow:0 6px 16px rgba(36,83,107,.22)}
+    .back:active{transform:scale(.97)}
+    .title{min-width:0;flex:1}
+    .title strong{display:block;font-size:20px;color:var(--deep)}
+    .title span{display:block;margin-top:2px;color:#648291;font-size:12px;font-weight:750}
+    .versionbar{width:100%;display:flex;align-items:center;gap:10px}
+    .version{margin-right:auto;color:#648291;font-size:13px;font-weight:850}
+    .refresh{border:1px solid #8fcce9;border-radius:13px;padding:9px 13px;background:#edf8fe;color:#2779a5;font-size:14px;font-weight:900;cursor:pointer;white-space:nowrap}
+    .refresh:active{transform:scale(.97)}
+    iframe{display:block;flex:1;width:100%;min-height:0;border:0;background:var(--bg)}
+    @media(max-width:520px){
+      .topbar{padding:10px;gap:9px}
+      .back{padding:10px 12px;font-size:15px}
+      .title strong{font-size:17px}
+      .title span{display:none}
+      .versionbar{gap:8px}
+      .version{font-size:12px}
+      .refresh{padding:8px 10px;font-size:13px}
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="title">
+        <strong>📥 粉專素材收件匣</strong>
+        <span>投稿預覽、下載與發布狀態管理</span>
+      </div>
+      <button class="back" type="button" onclick="location.href='admin.html'">返回主管首頁</button>
+      <div class="versionbar">
+        <span class="version">粉專收件匣 v1.0.2</span>
+        <button class="refresh" type="button" onclick="refreshLatestVersion()">🔄 檢查並重新整理最新版</button>
+      </div>
+    </header>
+    <iframe id="mediaInbox" title="粉專素材收件匣" allow="clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </main>
+  <script>
+    const GAS_ADMIN_URL='https://script.google.com/macros/s/AKfycbzs1cNvsDJFhu0J_8qAepgL-a6MGIPnyVFNw5JFAespotS4uKtEf4EaYIY7oKzGDMak/exec?page=admin';
+    const incoming=new URLSearchParams(location.search);
+    const target=new URL(GAS_ADMIN_URL);
+    const admin=String(incoming.get('admin')||'').trim();
+    if(admin) target.searchParams.set('admin',admin);
+    document.getElementById('mediaInbox').src=target.toString();
+
+    async function refreshLatestVersion(){
+      const button=document.querySelector('.refresh');
+      if(button){button.disabled=true;button.textContent='正在更新…';}
+      try{
+        if('serviceWorker' in navigator){
+          const registrations=await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map(registration=>registration.update().catch(()=>{})));
+        }
+        if('caches' in window){
+          const names=await caches.keys();
+          await Promise.all(names.map(name=>caches.delete(name)));
+        }
+      }catch(error){
+        console.warn('更新快取時發生問題',error);
+      }
+      const url=new URL(location.href);
+      url.searchParams.set('refresh',Date.now());
+      location.replace(url.toString());
+    }
+  </script>
+</body>
+</html>
