@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#edf8ff">
+  <title>和美智慧校園｜粉專素材收件匣</title>
+  <style>
+    :root{--blue:#4aa9dc;--deep:#24536b;--line:#cceaf7;--bg:#edf8ff}
+    *{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden}
+    body{font-family:"Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--deep)}
+    .page{height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+    .topbar{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 5px 16px rgba(62,122,160,.10);z-index:2}
+    .back{border:1px solid var(--line);border-radius:15px;padding:11px 15px;background:#edf8fe;color:#347da3;font-size:16px;font-weight:900;cursor:pointer;white-space:nowrap}
+    .title{min-width:0;flex:1}
+    .title strong{display:block;font-size:20px;color:var(--deep)}
+    .title span{display:block;margin-top:2px;color:#648291;font-size:12px;font-weight:750}
+    iframe{display:block;flex:1;width:100%;min-height:0;border:0;background:var(--bg)}
+    @media(max-width:520px){
+      .topbar{padding:10px;gap:9px}
+      .back{padding:10px 12px;font-size:15px}
+      .title strong{font-size:17px}
+      .title span{display:none}
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <button class="back" type="button" onclick="location.href='admin.html'">← 返回主管首頁</button>
+      <div class="title">
+        <strong>📥 粉專素材收件匣</strong>
+        <span>投稿預覽、下載與發布狀態管理</span>
+      </div>
+    </header>
+    <iframe id="mediaInbox" title="粉專素材收件匣" allow="clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </main>
+  <script>
+    const GAS_ADMIN_URL='https://script.google.com/macros/s/AKfycbzs1cNvsDJFhu0J_8qAepgL-a6MGIPnyVFNw5JFAespotS4uKtEf4EaYIY7oKzGDMak/exec?page=admin';
+    const incoming=new URLSearchParams(location.search);
+    const target=new URL(GAS_ADMIN_URL);
+    const admin=String(incoming.get('admin')||'').trim();
+    if(admin) target.searchParams.set('admin',admin);
+    document.getElementById('mediaInbox').src=target.toString();
+  </script>
+</body>
+</html>
