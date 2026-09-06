@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.25</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.26</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -353,7 +353,7 @@
     }
     .dashboardIdentity small{display:block;color:#52708d;font-weight:850;font-size:15px;margin-bottom:3px}
     .dashboardName{font-size:38px;line-height:1.05;font-weight:950;color:#12386f;letter-spacing:.5px}
-    .dashboardClock{text-align:right;color:#183f73;font-weight:900}
+    .dashboardClock{display:flex;align-items:baseline;justify-content:flex-end;gap:12px;text-align:right;color:#183f73;font-weight:900}
     .dashboardClock .dateLine{font-size:36px;line-height:1.1;white-space:nowrap}
     .dashboardClock .timeLine{font-size:36px;line-height:1.05;color:#2461c6;margin-top:4px}
     .dashCard{
@@ -424,7 +424,7 @@
     .refreshVersionRow .versionStamp{flex:1;text-align:left}
     @media(max-width:620px){
       .dashboardHeader{grid-template-columns:58px 1fr;gap:10px}
-      .dashboardClock{grid-column:1/-1;text-align:center}
+      .dashboardClock{grid-column:1/-1;justify-content:center;text-align:center}
       .dashboardLogo{width:58px;height:58px;border-radius:0;overflow:visible}
       .dashboardIdentity small{font-size:13px}
       .dashboardName{font-size:34px}
@@ -603,7 +603,7 @@
     </header>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.25</div>
+      <div class="versionStamp">主管工作台 v24.26</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -664,7 +664,7 @@
         <span class="sqIcon">🏖️</span><strong>請假管理</strong><span>近期與每月請假</span>
       </button>
       <button class="bottomSquareBtn" type="button" onclick="location.href='secretary.html'">
-        <span class="sqIcon">🤖</span><strong>智慧秘書</strong><span>行事曆、公告與專案</span>
+        <span class="sqIcon">🤖</span><strong>智慧秘書</strong><span>行事曆、班表與專案</span>
       </button>
       <button class="bottomSquareBtn" id="discussionHomeCard" type="button" onclick="location.href='discussion.html'">
         <span class="discussionCardUnreadDot" aria-hidden="true"></span>
@@ -673,9 +673,6 @@
       <button class="bottomSquareBtn" id="groupbuyHomeCard" type="button" onclick="openGroupbuyAndAcknowledge()">
         <span class="groupbuyCardUnreadDot" aria-hidden="true"></span>
         <span class="sqIcon">🛒</span><strong>登記中心</strong><span>團購、報名、意願調查與活動登記</span>
-      </button>
-      <button class="bottomSquareBtn" type="button" onclick="location.href='schedule.html'">
-        <span class="sqIcon">🗓️</span><strong>班表查看</strong><span>查看已發布的各項班表</span>
       </button>
     </section>
 
