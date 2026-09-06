@@ -291,7 +291,8 @@
       </div>
 
       <div class="divider">或使用快速登入</div>
-      <button class="face-btn" id="faceLoginBtn" type="button" onclick="faceLogin()">🔐 Face ID／指紋／Windows Hello 快速登入</button>
+      <button class="face-btn" id="faceLoginBtn" type="button" onclick="faceLogin()">🔐 快速登入</button>
+      <p class="access-note">使用臉部、指紋或手機解鎖</p>
       <button class="text-btn face-setup" type="button" onclick="registerFaceLogin()">首次使用？設定快速登入</button>
 
       <p class="access-note">此裝置保持登入後，下次可直接進入系統</p>
@@ -730,13 +731,13 @@
       }
 
       if(!window.PublicKeyCredential || !navigator.credentials){
-        showToast('這個瀏覽器不支援 Face ID／指紋登入。');
+        showToast('這個瀏覽器不支援快速登入。');
         return;
       }
 
       if(CONFIG.TEMP_DEMO_MODE && !CONFIG.PASSKEY_API_BASE){
         localStorage.setItem('heremay.lastFaceAccount', account);
-        showToast('入口頁已準備完成；新 NAS 登入伺服器完成後即可正式綁定 Face ID。');
+        showToast('入口頁已準備完成；登入伺服器完成後即可正式設定快速登入。');
         return;
       }
 
@@ -759,7 +760,7 @@
 
         localStorage.setItem('heremay.lastFaceAccount', account);
         document.getElementById('password').value = '';
-        showToast('Face ID／生物辨識登入設定完成。');
+        showToast('快速登入設定完成。');
       }catch(err){
         console.error(err);
         if(err.name === 'NotAllowedError'){
@@ -774,19 +775,19 @@
       if(faceLoginBusy) return;
 
       const faceBtn = document.getElementById('faceLoginBtn');
-      const originalText = faceBtn?.textContent || '🔐 Face ID／指紋／Windows Hello 快速登入';
+      const originalText = faceBtn?.textContent || '🔐 快速登入';
 
       const typedAccount = document.getElementById('account').value.trim();
       const account = typedAccount ||
         localStorage.getItem('heremay.lastFaceAccount') || '';
 
       if(!account){
-        showToast('首次使用請先輸入帳號，再設定刷臉登入。');
+        showToast('首次使用請先輸入帳號，再設定快速登入。');
         return;
       }
 
       if(!window.PublicKeyCredential || !navigator.credentials){
-        showToast('這個瀏覽器不支援 Face ID／指紋登入。');
+        showToast('這個瀏覽器不支援快速登入。');
         return;
       }
 
@@ -843,7 +844,7 @@
         if(err.name === 'NotAllowedError'){
           showToast('生物辨識已取消或驗證未通過。');
         }else{
-          showToast(`刷臉登入失敗：${err.message || err.name}`);
+          showToast(`快速登入失敗：${err.message || err.name}`);
         }
       }finally{
         clearPreparedLogin();
