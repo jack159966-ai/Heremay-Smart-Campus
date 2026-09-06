@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜庶務人員首頁 v13.10 首頁紅點顯示修正版</title>
+  <title>和美智慧校園｜庶務人員首頁 v13.11</title>
   <style>
     :root{
       --bg1:#f1fff6;
@@ -57,7 +57,9 @@
       place-items:center;
       box-shadow:var(--shadow);
       font-size:28px;
+      overflow:hidden;
     }
+    .logo img{width:100%;height:100%;object-fit:cover;display:block}
     .brand h1{
       margin:0;
       font-size:24px;
@@ -164,6 +166,8 @@
       position:relative;
       z-index:1;
     }
+    .section-title-label{display:flex;align-items:center;gap:8px}
+    .section-title-icon{width:32px;height:32px;object-fit:contain;border-radius:8px;flex:0 0 auto}
     .tag{
       font-size:12px;
       color:#fff;
@@ -359,7 +363,9 @@
       color:#1f7a48;
       font-size:25px;
       margin-bottom:10px;
+      overflow:hidden;
     }
+    .icon img{width:100%;height:100%;object-fit:contain;display:block;border-radius:12px}
     .btn strong{
       display:block;
       font-size:18px;
@@ -391,6 +397,10 @@
       font-weight:700;
       font-size:12.5px;
     }
+    .version-refresh-row{display:flex;align-items:center;gap:10px;margin:2px 0 14px}
+    .page-version{flex:1;color:#668273;font-size:13px;font-weight:900;text-align:left}
+    .refresh-version-btn{width:auto;border:1px solid #9eddb6;background:linear-gradient(135deg,#fff,#e6f8ed);color:#1f6b42;border-radius:18px;padding:12px 14px;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 8px 20px rgba(47,168,102,.12);white-space:nowrap}
+    .refresh-version-btn:active{transform:scale(.985)}
     .toast{
       position:fixed;
       left:50%;
@@ -558,7 +568,7 @@
     </div>
     <header class="top">
       <div class="brand">
-        <div class="logo">🏡</div>
+        <div class="logo"><img src="assets/support-staff.jpg?v=20260906b" alt="庶務人員"></div>
         <div>
           <h1 id="pageTitle">庶務人員首頁</h1>
           <div class="sub" id="userSummary">和美智慧校園｜廚工／清潔工作台</div>
@@ -570,13 +580,18 @@
       </div>
     </header>
 
+    <div class="version-refresh-row">
+      <div class="page-version">庶務人員首頁 v13.11</div>
+      <button class="refresh-version-btn" type="button" onclick="refreshLatestVersion()">🔄 檢查並重新整理最新版</button>
+    </div>
+
     <section class="repeat-alert" id="repeatAlert">
       <h2>🔔 主管再次提醒</h2>
       <div id="repeatAlertList"></div>
     </section>
 
     <section class="section board">
-      <div class="section-title"><span>📌 園方公佈欄</span><span class="tag yellow">即時公告</span></div>
+      <div class="section-title"><span class="section-title-label"><img class="section-title-icon" src="assets/announcement.jpg?v=20260906b" alt="">園方公佈欄</span><span class="tag yellow">即時公告</span></div>
       <div id="dynamicNoticeBoard"><div class="announce"><p>正在讀取公告…</p></div></div>
     </section>
 
@@ -635,7 +650,7 @@
       </div>
       <div class="grid">
         <button class="btn primary" onclick="window.location.href='attendance.html'">
-          <div class="icon">✅</div>
+          <div class="icon"><img src="assets/attendance-statistics.jpg?v=20260906b" alt="打卡與出勤"></div>
           <div>
             <strong>打卡 / 出勤</strong>
             <span>上班、下班、請假與出勤狀態</span>
@@ -643,45 +658,45 @@
         </button>
 
         <button class="btn" onclick="window.location.href='salary_slip.html'">
-          <div class="icon">🧾</div>
+          <div class="icon"><img src="assets/salary-slip.jpg?v=20260906b" alt="薪資條"></div>
           <strong>我的薪資條</strong>
           <span>查看園方已發放的個人薪資明細</span>
         </button>
 
         <button class="btn" onclick="openFeature('工作清單')">
-          <div class="icon">📋</div>
+          <div class="icon"><img src="assets/todo-list.jpg?v=20260906b" alt="工作清單"></div>
           <strong>工作清單</strong>
           <span>今日廚務、清潔與園務支援事項</span>
         </button>
 
         <button class="btn" onclick="openFeature('清潔 / 廚務事項')">
-          <div class="icon">🍽️</div>
+          <div class="icon"><img src="assets/support-staff.jpg?v=20260906b" alt="清潔與廚務事項"></div>
           <strong>清潔 / 廚務事項</strong>
           <span>廚房、餐具、清潔區域與消毒紀錄</span>
         </button>
 
         <button class="btn" onclick="openReportCenter()">
-          <div class="icon">🛠️</div>
+          <div class="icon"><img src="assets/feedback.jpg?v=20260906b" alt="報修與採購回報"></div>
           <strong>報修 / 採購回報</strong>
           <span>回報設備故障、耗材不足或需要協助事項</span>
         </button>
 
         <button class="btn" id="discussionHomeCard" onclick="window.location.href='discussion.html'">
           <span class="discussionCardUnreadDot" aria-hidden="true"></span>
-          <div class="icon">💬</div>
+          <div class="icon"><img src="assets/discussion.jpg?v=20260906b" alt="討論區"></div>
           <strong>討論區</strong>
           <span>公務交流、事件討論與檔案分享</span>
         </button>
 
         <button class="btn groupbuyHomeCard" id="groupbuyHomeCard" onclick="openGroupbuyAndAcknowledge()">
           <span class="groupbuyUnreadDot" id="groupbuyUnreadDot" aria-hidden="true"></span>
-          <div class="icon">📝</div>
+          <div class="icon"><img src="assets/groupbuy.jpg?v=20260906b" alt="登記中心"></div>
           <strong>登記中心</strong>
           <span>便當、活動、用品需求或統計登記</span>
         </button>
 
         <button class="btn" onclick="openFeature('今日提醒')">
-          <div class="icon">🔔</div>
+          <div class="icon"><img src="assets/todo-list.jpg?v=20260906b" alt="今日提醒"></div>
           <strong>今日提醒</strong>
           <span>查看今日待辦、到期與臨時交辦</span>
         </button>
@@ -695,7 +710,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.10｜首頁紅點顯示修正版</div>
+<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.11｜功能圖示更新版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -1390,6 +1405,25 @@
     loadCloudAckRecords();
     loadReminderRecords();
   
+async function refreshLatestVersion(){
+  showToast('正在檢查並重新載入最新版…', 2200);
+  try{
+    if('serviceWorker' in navigator){
+      const registrations=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(registration=>registration.update().catch(()=>{})));
+    }
+    if('caches' in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.filter(key=>/heremay|smart|campus|cache/i.test(key)).map(key=>caches.delete(key)));
+    }
+  }catch(error){
+    console.warn('更新快取時發生問題',error);
+  }
+  const url=new URL(location.href);
+  url.searchParams.set('refresh',Date.now());
+  setTimeout(()=>location.replace(url.toString()),450);
+}
+
 const DISCUSSION_NOTIFY_URL = 'https://script.google.com/macros/s/AKfycbxuvqWI2FlvCk5ZdEfhSNMF6O79pElfx2p4PZBIk-xT1zw0NVorhzX8wNPF9oOHxY2x/exec';
 
 function discussionJsonp(action, params={}){

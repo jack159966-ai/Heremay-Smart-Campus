@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.4</title>
+  <title>和美智慧校園｜教保人員首頁 v15.8</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -67,7 +67,9 @@
       place-items:center;
       box-shadow:var(--shadow);
       font-size:28px;
+      overflow:hidden;
     }
+    .logo img{width:100%;height:100%;object-fit:cover;display:block}
     .brand h1{
       margin:0;
       font-size:24px;
@@ -179,6 +181,8 @@
       position:relative;
       z-index:1;
     }
+    .section-title-label{display:flex;align-items:center;gap:8px}
+    .section-title-icon{width:32px;height:32px;object-fit:contain;border-radius:8px;flex:0 0 auto}
     .tag{
       font-size:12px;
       color:#fff;
@@ -374,7 +378,9 @@
       color:#9c294f;
       font-size:25px;
       margin-bottom:10px;
+      overflow:hidden;
     }
+    .icon img{width:100%;height:100%;object-fit:contain;display:block;border-radius:12px}
     .btn strong{
       display:block;
       font-size:18px;
@@ -499,14 +505,16 @@
       cursor:pointer;
     }
 
+    .version-refresh-row{display:flex;align-items:center;gap:10px;margin:2px 0 14px}
+    .page-version{flex:1;color:#94707e;font-size:13px;font-weight:900;text-align:left}
     .refresh-sync-btn{
-      width:100%;
+      width:auto;
       border:1px solid #f3a9c2;
       background:linear-gradient(135deg,#fff,#ffe5ef);
       color:#8f3152;
       border-radius:18px;
       padding:13px 16px;
-      margin:2px 0 14px;
+      margin:0;
       font-size:16px;
       font-weight:900;
       cursor:pointer;
@@ -521,6 +529,7 @@
       .grid{grid-template-columns:1fr}
       .primary{grid-column:span 1}
       .due-grid{grid-template-columns:1fr}
+      .version-refresh-row{gap:8px}.page-version{font-size:12px}.refresh-sync-btn{padding:11px 12px;font-size:14px}
     }
   
 .discussionUnreadNotice{
@@ -576,7 +585,7 @@
   <main class="phone">
     <header class="top">
       <div class="brand">
-        <div class="logo">👩‍🏫</div>
+        <div class="logo"><img src="assets/teacher.jpg?v=20260906b" alt="教保人員"></div>
         <div>
           <h1 id="pageTitle">教保人員首頁</h1>
           <div class="sub" id="userSummary">和美智慧校園｜班級工作台</div>
@@ -588,9 +597,10 @@
       </div>
     </header>
 
-    <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">
-      🔄 同步資料／檢查最新版
-    </button>
+    <div class="version-refresh-row">
+      <div class="page-version">教保人員首頁 v15.8</div>
+      <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
+    </div>
 
     <section class="repeat-alert" id="repeatAlert">
       <h2>🔔 主管再次提醒</h2>
@@ -598,7 +608,7 @@
     </section>
 
     <section class="section board">
-      <div class="section-title"><span>📌 園方公佈欄</span><span class="tag yellow">即時公告</span></div>
+      <div class="section-title"><span class="section-title-label"><img class="section-title-icon" src="assets/announcement.jpg?v=20260906b" alt="">園方公佈欄</span><span class="tag yellow">即時公告</span></div>
       <div id="dynamicNoticeBoard"><div class="announce"><p>正在讀取公告…</p></div></div>
     </section>
 
@@ -657,7 +667,7 @@
       </div>
       <div class="grid">
         <button class="btn primary" onclick="window.location.href='attendance.html'">
-          <div class="icon">✅</div>
+          <div class="icon"><img src="assets/attendance-statistics.jpg?v=20260906b" alt="打卡與出勤"></div>
           <div>
             <strong>打卡 / 出勤</strong>
             <span>上班、下班、請假與出勤狀態</span>
@@ -665,7 +675,7 @@
         </button>
 
         <button class="btn" onclick="window.location.href='salary_slip.html'">
-          <div class="icon">🧾</div>
+          <div class="icon"><img src="assets/salary-slip.jpg?v=20260906b" alt="薪資條"></div>
           <strong>我的薪資條</strong>
           <span>查看園方已發放的個人薪資明細</span>
         </button>
@@ -678,26 +688,26 @@
 
         <button class="btn" id="discussionHomeCard" onclick="window.location.href='discussion.html'">
           <span class="discussionCardUnreadDot" aria-hidden="true"></span>
-          <div class="icon">💬</div>
+          <div class="icon"><img src="assets/discussion.jpg?v=20260906b" alt="討論區"></div>
           <strong>討論區</strong>
           <span>公務交流、事件討論與檔案分享</span>
         </button>
 
         <button class="btn groupbuyHomeCard" id="groupbuyHomeCard" onclick="openGroupbuyAndAcknowledge()">
           <span class="groupbuyUnreadDot" id="groupbuyUnreadDot" aria-hidden="true"></span>
-          <div class="icon">📝</div>
+          <div class="icon"><img src="assets/groupbuy.jpg?v=20260906b" alt="登記中心"></div>
           <strong>登記中心</strong>
           <span>便當、旅遊、活動與用品需求登記</span>
         </button>
 
         <button class="btn" onclick="window.location.href='schedule.html'">
-          <div class="icon">🗓️</div>
+          <div class="icon"><img src="assets/schedule.jpg?v=20260906b" alt="排班表"></div>
           <strong>排班表</strong>
           <span>查看本週及未來兩週的各項輪值</span>
         </button>
 
         <button class="btn" id="announcementAdminBtn" style="display:none" onclick="window.location.href='announcement_v1.1.3.html'">
-          <div class="icon">📢</div>
+          <div class="icon"><img src="assets/announcement.jpg?v=20260906b" alt="公告管理"></div>
           <strong>公告管理</strong>
           <span>發布、修改與管理園方正式公告</span>
         </button>
@@ -705,7 +715,7 @@
         
 
         <button class="btn" onclick="openMediaSubmission()">
-          <div class="icon">📸</div>
+          <div class="icon"><img src="assets/media-submission.jpg?v=20260906b" alt="班級素材投稿"></div>
           <strong>班級素材投稿</strong>
           <span>提供粉絲專頁文章與 3～30 張活動照片</span>
         </button>
@@ -720,7 +730,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.7｜首頁紅點顯示修正版</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.8｜功能圖示更新版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>

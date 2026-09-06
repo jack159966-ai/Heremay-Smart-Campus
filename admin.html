@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.31</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.32</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -365,6 +365,7 @@
       margin:0 0 14px;display:flex;align-items:center;gap:10px;
       color:#153e72;font-size:25px;font-weight:950;
     }
+    .dashTitleIcon{width:34px;height:34px;object-fit:contain;border-radius:8px;flex:0 0 auto}
     .dashTitle .count{
       margin-left:auto;background:#fff2e8;color:#e86f1d;border-radius:999px;
       padding:6px 12px;font-size:15px;
@@ -405,7 +406,8 @@
       padding:17px 18px;display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;
       box-shadow:0 8px 22px rgba(47,104,216,.18);
     }
-    .patrolButton .pIcon{font-size:36px}
+    .patrolButton .pIcon{width:56px;height:56px;display:grid;place-items:center;flex:0 0 auto}
+    .patrolButton .pIcon img{width:100%;height:100%;object-fit:contain;border-radius:12px;display:block}
     .patrolButton strong{font-size:24px;color:#0f3f98}
     .patrolButton span{display:block;color:#506b8b;font-weight:800;margin-top:3px}
     .patrolButton .arrow{margin-left:auto;font-size:30px;color:#1f57bd}
@@ -493,7 +495,8 @@
   
     .bottomToolGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:14px}
     .bottomSquareBtn{min-height:170px;border:1px solid #dfe8f6;border-radius:24px;background:#fff;padding:20px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;cursor:pointer;box-shadow:0 8px 20px rgba(45,82,132,.10)}
-    .bottomSquareBtn .sqIcon{font-size:42px;line-height:1}
+    .bottomSquareBtn .sqIcon{width:66px;height:66px;display:grid;place-items:center;line-height:1}
+    .bottomSquareBtn .sqIcon img{width:100%;height:100%;object-fit:contain;border-radius:16px;display:block}
     .bottomSquareBtn .sqAvatar{width:66px;height:66px;border-radius:18px;object-fit:cover;object-position:center 20%;border:2px solid #cfe2ff;box-shadow:0 6px 15px rgba(45,82,132,.18)}
     .bottomSquareBtn strong{font-size:21px;color:#183f73}
     .bottomSquareBtn span{font-size:14px;color:#6d8095;font-weight:750;line-height:1.35}
@@ -508,7 +511,8 @@
       padding:14px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;
       gap:7px;text-align:center;cursor:pointer;box-shadow:0 8px 20px rgba(45,82,132,.09)
     }
-    .desktopToolBtn .deskIcon{font-size:32px;line-height:1}
+    .desktopToolBtn .deskIcon{width:48px;height:48px;display:grid;place-items:center;line-height:1}
+    .desktopToolBtn .deskIcon img{width:100%;height:100%;object-fit:contain;border-radius:11px;display:block}
     .desktopToolBtn strong{font-size:16px;color:#183f73}
     .desktopToolBtn span{font-size:12px;color:#6d8095;font-weight:750;line-height:1.35}
     .desktopToolBtn:disabled{
@@ -519,11 +523,11 @@
     @media(max-width:700px){
       .desktopToolGrid{grid-template-columns:repeat(3,1fr);gap:8px}
       .desktopToolBtn{min-height:104px;border-radius:18px;padding:9px 5px}
-      .desktopToolBtn .deskIcon{font-size:28px}
+      .desktopToolBtn .deskIcon{width:42px;height:42px}
       .desktopToolBtn strong{font-size:14px}
       .desktopToolBtn span{display:none}
     }
-    @media(max-width:520px){.bottomToolGrid{gap:10px}.bottomSquareBtn{min-height:150px;border-radius:20px;padding:16px 8px}.bottomSquareBtn .sqIcon{font-size:38px}.bottomSquareBtn .sqAvatar{width:60px;height:60px;border-radius:16px}.bottomSquareBtn strong{font-size:18px}.bottomSquareBtn span{display:block;font-size:12px}}
+    @media(max-width:520px){.bottomToolGrid{gap:10px}.bottomSquareBtn{min-height:150px;border-radius:20px;padding:16px 8px}.bottomSquareBtn .sqIcon{width:60px;height:60px}.bottomSquareBtn .sqAvatar{width:60px;height:60px;border-radius:16px}.bottomSquareBtn strong{font-size:18px}.bottomSquareBtn span{display:block;font-size:12px}}
   
 .discussionUnreadNotice{
   display:none;
@@ -604,21 +608,21 @@
     </header>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.31</div>
+      <div class="versionStamp">主管工作台 v24.32</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
     </div>
 
     <section class="dashCard">
-      <h2 class="dashTitle">📅 今天待辦 <span class="count" id="todayCount">0 件</span></h2>
+      <h2 class="dashTitle"><img class="dashTitleIcon" src="assets/todo-list.jpg?v=20260906b" alt="">今天待辦 <span class="count" id="todayCount">0 件</span></h2>
       <div class="taskList" id="todayList"></div>
       <button class="completedToggle" id="completedToggle" type="button" onclick="toggleCompleted()">已完成 0 件⌄</button>
       <div class="completedList taskList" id="completedList"></div>
     </section>
 
     <section class="dashCard">
-      <h2 class="dashTitle">🗓️ 明天／後天</h2>
+      <h2 class="dashTitle"><img class="dashTitleIcon" src="assets/schedule.jpg?v=20260906b" alt="">明天／後天</h2>
       <div class="futureGrid">
         <article class="futureBox">
           <h3 id="tomorrowTitle">明天</h3>
@@ -633,7 +637,7 @@
 
     <section class="dashCard">
       <button class="patrolButton" type="button" onclick="location.href='patrol.html'">
-        <span class="pIcon">📋</span>
+        <span class="pIcon"><img src="assets/patrol.jpg?v=20260906b" alt="巡堂"></span>
         <span><strong>巡堂</strong><span>上午／下午巡堂、紀錄與週報表</span></span>
         <span class="arrow">›</span>
       </button>
@@ -641,19 +645,19 @@
 
 
     <section class="dashCard">
-      <h2 class="dashTitle">💬 同仁反饋 <span class="count" id="adminReportCount">0 件</span></h2>
+      <h2 class="dashTitle"><img class="dashTitleIcon" src="assets/feedback.jpg?v=20260906b" alt="">同仁反饋 <span class="count" id="adminReportCount">0 件</span></h2>
       <div id="adminReportList"></div>
     </section>
 
     <section class="dashCard">
-      <h2 class="dashTitle">📣 公布欄 <span class="count" id="adminNoticeCount">0 則</span></h2>
+      <h2 class="dashTitle"><img class="dashTitleIcon" src="assets/announcement.jpg?v=20260906b" alt="">公布欄 <span class="count" id="adminNoticeCount">0 則</span></h2>
       <div id="adminNoticeList"></div>
       <button class="completedToggle" type="button" onclick="location.href='announcement.html'">管理公告 ›</button>
     </section>
 
     <section class="dashCard">
       <button class="patrolButton" type="button" onclick="openMediaAdminInbox()">
-        <span class="pIcon">📥</span>
+        <span class="pIcon"><img src="assets/media-submission.jpg?v=20260906b" alt="粉專素材收件匣"></span>
         <span><strong>粉專素材收件匣</strong><span>預覽老師投稿、複製文章、下載素材與更新發布狀態</span></span>
         <span class="arrow">›</span>
       </button>
@@ -662,18 +666,18 @@
 
     <section class="bottomToolGrid">
       <button class="bottomSquareBtn" type="button" onclick="location.href='leave_admin.html'">
-        <span class="sqIcon">🏖️</span><strong>請假管理</strong><span>近期與每月請假</span>
+        <span class="sqIcon"><img src="assets/leave-management.jpg?v=20260906b" alt="請假管理"></span><strong>請假管理</strong><span>近期與每月請假</span>
       </button>
       <button class="bottomSquareBtn" type="button" onclick="location.href='secretary.html?v=2.5.0'">
         <img class="sqAvatar" src="assets/secretary-avatar.jpg?v=20260906a" alt="智慧秘書"><strong>智慧秘書</strong><span>行事曆、班表與專案</span>
       </button>
       <button class="bottomSquareBtn" id="discussionHomeCard" type="button" onclick="location.href='discussion.html'">
         <span class="discussionCardUnreadDot" aria-hidden="true"></span>
-        <span class="sqIcon">💬</span><strong>討論區</strong><span>公務交流、事件討論與檔案分享</span>
+        <span class="sqIcon"><img src="assets/discussion.jpg?v=20260906b" alt="討論區"></span><strong>討論區</strong><span>公務交流、事件討論與檔案分享</span>
       </button>
       <button class="bottomSquareBtn" id="groupbuyHomeCard" type="button" onclick="openGroupbuyAndAcknowledge()">
         <span class="groupbuyCardUnreadDot" aria-hidden="true"></span>
-        <span class="sqIcon">🛒</span><strong>登記中心</strong><span>團購、報名、意願調查與活動登記</span>
+        <span class="sqIcon"><img src="assets/groupbuy.jpg?v=20260906b" alt="登記中心"></span><strong>登記中心</strong><span>團購、報名、意願調查與活動登記</span>
       </button>
     </section>
 
@@ -684,22 +688,22 @@
       </div>
       <div class="desktopToolGrid">
         <button class="desktopToolBtn" type="button" data-desktop-tool="schedule_admin.html" data-tool-name="排班管理">
-          <span class="deskIcon">🗂️</span><strong>排班管理</strong><span>建立、確認與發布班表</span>
+          <span class="deskIcon"><img src="assets/schedule.jpg?v=20260906b" alt="排班管理"></span><strong>排班管理</strong><span>建立、確認與發布班表</span>
         </button>
         <button class="desktopToolBtn" type="button" data-desktop-tool="attendance_admin.html" data-tool-name="出缺勤統計">
-          <span class="deskIcon">📊</span><strong>出缺勤統計</strong><span>月出勤、缺勤與工時彙整</span>
+          <span class="deskIcon"><img src="assets/attendance-statistics.jpg?v=20260906b" alt="出缺勤統計"></span><strong>出缺勤統計</strong><span>月出勤、缺勤與工時彙整</span>
         </button>
         <button class="desktopToolBtn" type="button" data-desktop-tool="salary_admin.html" data-tool-name="薪資計算">
-          <span class="deskIcon">🧮</span><strong>薪資計算</strong><span>薪資試算與加扣項</span>
+          <span class="deskIcon"><img src="assets/salary-calculator.jpg?v=20260906b" alt="薪資計算"></span><strong>薪資計算</strong><span>薪資試算與加扣項</span>
         </button>
         <button class="desktopToolBtn" type="button" data-desktop-tool="salary_slip_admin.html" data-tool-name="薪資條發放">
-          <span class="deskIcon">🧾</span><strong>薪資條發放</strong><span>製作、預覽與發放薪資條</span>
+          <span class="deskIcon"><img src="assets/salary-slip.jpg?v=20260906b" alt="薪資條發放"></span><strong>薪資條發放</strong><span>製作、預覽與發放薪資條</span>
         </button>
         <button class="desktopToolBtn" type="button" data-desktop-tool="patrol_admin.html" data-tool-name="巡堂報表列印">
-          <span class="deskIcon">🖨️</span><strong>巡堂報表</strong><span>查詢、整理與列印</span>
+          <span class="deskIcon"><img src="assets/report-printing.jpg?v=20260906b" alt="巡堂報表"></span><strong>巡堂報表</strong><span>查詢、整理與列印</span>
         </button>
         <button class="desktopToolBtn" type="button" data-desktop-tool="" data-tool-name="PDF／Excel 匯出">
-          <span class="deskIcon">📤</span><strong>資料匯出</strong><span>PDF、Excel 與月報表</span>
+          <span class="deskIcon"><img src="assets/data-export.jpg?v=20260906b" alt="資料匯出"></span><strong>資料匯出</strong><span>PDF、Excel 與月報表</span>
         </button>
         <button class="desktopToolBtn" type="button" data-desktop-tool="settings_admin.html" data-tool-name="大量參數設定">
           <span class="deskIcon">⚙️</span><strong>大量參數設定</strong><span>人員、班別、假別與薪資參數</span>
