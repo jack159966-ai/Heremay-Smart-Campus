@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.30</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.31</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -494,6 +494,7 @@
     .bottomToolGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:14px}
     .bottomSquareBtn{min-height:170px;border:1px solid #dfe8f6;border-radius:24px;background:#fff;padding:20px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;cursor:pointer;box-shadow:0 8px 20px rgba(45,82,132,.10)}
     .bottomSquareBtn .sqIcon{font-size:42px;line-height:1}
+    .bottomSquareBtn .sqAvatar{width:66px;height:66px;border-radius:18px;object-fit:cover;object-position:center 20%;border:2px solid #cfe2ff;box-shadow:0 6px 15px rgba(45,82,132,.18)}
     .bottomSquareBtn strong{font-size:21px;color:#183f73}
     .bottomSquareBtn span{font-size:14px;color:#6d8095;font-weight:750;line-height:1.35}
 
@@ -522,7 +523,7 @@
       .desktopToolBtn strong{font-size:14px}
       .desktopToolBtn span{display:none}
     }
-    @media(max-width:520px){.bottomToolGrid{gap:10px}.bottomSquareBtn{min-height:150px;border-radius:20px;padding:16px 8px}.bottomSquareBtn .sqIcon{font-size:38px}.bottomSquareBtn strong{font-size:18px}.bottomSquareBtn span{display:block;font-size:12px}}
+    @media(max-width:520px){.bottomToolGrid{gap:10px}.bottomSquareBtn{min-height:150px;border-radius:20px;padding:16px 8px}.bottomSquareBtn .sqIcon{font-size:38px}.bottomSquareBtn .sqAvatar{width:60px;height:60px;border-radius:16px}.bottomSquareBtn strong{font-size:18px}.bottomSquareBtn span{display:block;font-size:12px}}
   
 .discussionUnreadNotice{
   display:none;
@@ -603,7 +604,7 @@
     </header>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.30</div>
+      <div class="versionStamp">主管工作台 v24.31</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -664,7 +665,7 @@
         <span class="sqIcon">🏖️</span><strong>請假管理</strong><span>近期與每月請假</span>
       </button>
       <button class="bottomSquareBtn" type="button" onclick="location.href='secretary.html?v=2.5.0'">
-        <span class="sqIcon">🤖</span><strong>智慧秘書</strong><span>行事曆、班表與專案</span>
+        <img class="sqAvatar" src="assets/secretary-avatar.jpg?v=20260906a" alt="智慧秘書"><strong>智慧秘書</strong><span>行事曆、班表與專案</span>
       </button>
       <button class="bottomSquareBtn" id="discussionHomeCard" type="button" onclick="location.href='discussion.html'">
         <span class="discussionCardUnreadDot" aria-hidden="true"></span>
