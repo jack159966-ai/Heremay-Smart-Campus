@@ -364,6 +364,7 @@
         <div class="actions">
           <button class="btn primary" id="eventSubmitBtn" type="submit">儲存行程</button>
           <button class="btn" type="button" onclick="resetEventForm()">清除</button>
+          <button class="btn danger" id="eventDeleteBtn" type="button" onclick="deleteEditingEvent()" style="display:none">刪除此行程</button>
         </div>
       </form>
     </div>
@@ -414,7 +415,7 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='2.10.3';
+const APP_VERSION='2.10.4';
 const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null,shareTargets:[],calendarCursor:new Date(),selectedDate:new Date(),currentUser:null};
 const FIRED_KEY='heremay_calendar_fired_v290';
 
@@ -643,6 +644,7 @@ function resetEventForm(){
   form.elements['建立時間'].value='';
   document.getElementById('eventFormTitle').textContent='新增行程';
   document.getElementById('eventSubmitBtn').textContent='儲存行程';
+  document.getElementById('eventDeleteBtn').style.display='none';
   setReminderSettings([{value:10,unit:'分鐘'}]);setShareTargets([]);
   form.elements['瀏覽器通知'].checked=true;
   form.elements['同步Google日曆'].checked=true;
@@ -725,6 +727,7 @@ function editEvent(id){
   setReminderSettings(Array.isArray(item.提醒設定JSON)?item.提醒設定JSON:[]);
   document.getElementById('eventFormTitle').textContent='編輯行程';
   document.getElementById('eventSubmitBtn').textContent='儲存修改';
+  document.getElementById('eventDeleteBtn').style.display='';
   document.getElementById('eventFormBody').style.display='';
   setEditingMode(true);
   document.getElementById('eventPanel').scrollIntoView({behavior:'smooth',block:'start'});
@@ -739,6 +742,33 @@ async function deleteEventItem(id){
     showToast('行程已刪除');
     await syncAll();
   }catch(err){showToast('刪除失敗：'+err.message)}
+}
+async function deleteEditingEvent(){
+  const form=document.getElementById('eventForm');
+  const id=String(form.elements['行程ID'].value||'').trim();
+  if(!id){showToast('目前不是已儲存的行程');return}
+  const item=getEventById(id);
+  if(!item){showToast('找不到這筆行程');return}
+  if(!confirm(`確定刪除「${item.標題}」嗎？Google 日曆中的對應行程也會一併刪除。`))return;
+  const btn=document.getElementById('eventDeleteBtn');
+  btn.disabled=true;
+  const oldText=btn.textContent;
+  btn.textContent='刪除中…';
+  try{
+    const result=await postAction('deleteEvent',{id,...currentActor()});
+    if(!result.ok)throw new Error(result.message||'刪除失敗');
+    resetEventForm();
+    document.getElementById('eventFormBody').style.display='none';
+    setEditingMode(false);
+    await syncAll();
+    document.getElementById('monthCalendarPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
+    showToast('行程已刪除');
+  }catch(err){
+    showToast('刪除失敗：'+err.message);
+  }finally{
+    btn.disabled=false;
+    btn.textContent=oldText;
+  }
 }
 function normalizeRepeat(item={}){
   let unit=String(item.重複單位||'').trim();
