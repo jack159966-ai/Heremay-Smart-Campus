@@ -182,7 +182,7 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v2.10.4</span>
+      <span class="pill" id="versionStatus">版本 v2.11.0</span>
       <span class="pill" id="timezoneStatus">時區檢查中</span>
       <span class="pill" id="travelStatus">出國模式：關</span>
     </div>
@@ -190,7 +190,6 @@
 
   <div class="toolbar">
     <button class="toolbtn" type="button" onclick="location.href='secretary.html'">← 返回智慧秘書</button>
-    <button class="toolbtn primary" type="button" onclick="startNewEvent()">＋ 新增行程</button>
     <button class="toolbtn" type="button" onclick="updateAndSync()">🔄 更新與同步</button>
     <button class="toolbtn" type="button" onclick="toggleMoreSettings()">⚙️ 更多設定</button>
   </div>
@@ -231,10 +230,9 @@
     </div>
   </section>
 
-  <section class="panel" id="eventPanel">
+  <section class="panel" id="eventPanel" style="display:none">
     <div class="panel-head">
       <h2 id="eventFormTitle">新增行程</h2>
-      <button class="btn" type="button" onclick="collapseForm()">收合</button>
     </div>
     <div class="panel-body" id="eventFormBody" style="display:none">
       <div class="notice">公務與週期性工作預設採台灣時間。人在海外且當地為夜間時，系統只顯示靜音通知；開啟出國／休假模式可暫停週期性工作的強提醒。</div>
@@ -363,8 +361,8 @@
 
         <div class="actions">
           <button class="btn primary" id="eventSubmitBtn" type="submit">儲存行程</button>
-          <button class="btn" type="button" onclick="resetEventForm()">清除</button>
           <button class="btn danger" id="eventDeleteBtn" type="button" onclick="deleteEditingEvent()" style="display:none">刪除此行程</button>
+          <button class="btn" type="button" onclick="cancelEventForm()">取消</button>
         </div>
       </form>
     </div>
@@ -406,7 +404,7 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v2.10.4｜2026-09-09｜新增行程刪除功能</div>
+  <div class="version">行事曆 v2.11.0｜2026-09-09｜由日期直接新增行程</div>
 </main>
 
 <div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
@@ -415,7 +413,7 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='2.10.4';
+const APP_VERSION='2.11.0';
 const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null,shareTargets:[],calendarCursor:new Date(),selectedDate:new Date(),currentUser:null};
 const FIRED_KEY='heremay_calendar_fired_v290';
 
@@ -621,20 +619,26 @@ function setEditingMode(isEditing){
   document.getElementById('recentEventsPanel').style.display='none';
   document.getElementById('routineEventsPanel').style.display='none';
 }
-function startNewEvent(){
+function startNewEventForSelectedDate(){
+  const selected=state.selectedDate||new Date();
+  const selectedKey=dateKey(selected);
   resetEventForm();
+  const form=document.getElementById('eventForm');
+  form.elements['開始日期'].value=selectedKey;
+  form.elements['結束日期'].value=selectedKey;
+  document.getElementById('eventFormTitle').textContent=`新增 ${selected.getMonth()+1}月${selected.getDate()}日行程`;
+  document.getElementById('eventPanel').style.display='';
   document.getElementById('eventFormBody').style.display='';
+  updateDateCheckLabels();
   setEditingMode(true);
   document.getElementById('eventPanel').scrollIntoView({behavior:'smooth',block:'start'});
 }
-function collapseForm(){
-  const body=document.getElementById('eventFormBody');
-  const willOpen=body.style.display==='none';
-  body.style.display=willOpen?'':'none';
-  setEditingMode(willOpen);
-  if(!willOpen){
-    document.getElementById('monthCalendarPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
-  }
+function cancelEventForm(){
+  resetEventForm();
+  document.getElementById('eventFormBody').style.display='none';
+  document.getElementById('eventPanel').style.display='none';
+  setEditingMode(false);
+  document.getElementById('monthCalendarPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function resetEventForm(){
   const form=document.getElementById('eventForm');
@@ -728,6 +732,7 @@ function editEvent(id){
   document.getElementById('eventFormTitle').textContent='編輯行程';
   document.getElementById('eventSubmitBtn').textContent='儲存修改';
   document.getElementById('eventDeleteBtn').style.display='';
+  document.getElementById('eventPanel').style.display='';
   document.getElementById('eventFormBody').style.display='';
   setEditingMode(true);
   document.getElementById('eventPanel').scrollIntoView({behavior:'smooth',block:'start'});
@@ -759,6 +764,7 @@ async function deleteEditingEvent(){
     if(!result.ok)throw new Error(result.message||'刪除失敗');
     resetEventForm();
     document.getElementById('eventFormBody').style.display='none';
+    document.getElementById('eventPanel').style.display='none';
     setEditingMode(false);
     await syncAll();
     document.getElementById('monthCalendarPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1065,7 +1071,11 @@ function renderSelectedDateEvents(){
   const items=eventsForCalendarDate(date);
   title.textContent=`${date.toLocaleDateString('zh-TW',{year:'numeric',month:'long',day:'numeric'})}｜${weekdayName(date)}`;
   count.textContent=`${items.length} 項`;
-  list.innerHTML=items.length?`<div class="day-title-list">${items.map(item=>`<button class="day-title-btn" type="button" onclick="openDayEvent('${escAttr(item.行程ID)}')"><span>${esc(item.標題||'未命名行程')}</span><span class="day-title-time">${esc(item.開始時間||'全天')} ›</span></button>`).join('')}</div>`:'<div class="empty">這一天沒有行程</div>';
+  const addButton=`<div class="actions" style="margin-top:10px"><button class="btn primary" type="button" onclick="startNewEventForSelectedDate()">＋ 新增 ${date.getMonth()+1}/${date.getDate()} 行程</button></div>`;
+  const eventList=items.length
+    ?`<div class="day-title-list">${items.map(item=>`<button class="day-title-btn" type="button" onclick="openDayEvent('${escAttr(item.行程ID)}')"><span>${esc(item.標題||'未命名行程')}</span><span class="day-title-time">${esc(item.開始時間||'全天')} ›</span></button>`).join('')}</div>`
+    :'<div class="empty">這一天目前沒有行程</div>';
+  list.innerHTML=addButton+eventList;
 }
 
 function openDayEvent(id){
@@ -1230,6 +1240,7 @@ document.getElementById('eventForm').addEventListener('submit',async e=>{
     await syncAll();
     resetEventForm();
     document.getElementById('eventFormBody').style.display='none';
+    document.getElementById('eventPanel').style.display='none';
     setEditingMode(false);
     document.getElementById('monthCalendarPanel')?.scrollIntoView({behavior:'smooth',block:'start'});
     if(result.calendarSynced){
@@ -1596,7 +1607,7 @@ function downloadBackup(){
 
 
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js?v=2103',{updateViaCache:'none'})
+  navigator.serviceWorker.register('./sw.js?v=2110',{updateViaCache:'none'})
     .then(reg=>{
       reg.update().catch(()=>{});
       if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -1604,8 +1615,8 @@ if('serviceWorker' in navigator){
     .catch(error=>console.warn('Service Worker 註冊失敗',error));
 
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(!sessionStorage.getItem('heremay_sw_reloaded_2103')){
-      sessionStorage.setItem('heremay_sw_reloaded_2103','1');
+    if(!sessionStorage.getItem('heremay_sw_reloaded_2110')){
+      sessionStorage.setItem('heremay_sw_reloaded_2110','1');
       location.reload();
     }
   });
@@ -1622,6 +1633,7 @@ window.addEventListener('load',()=>{
   eventForm.elements['開始日期'].addEventListener('change',()=>syncCalendarWithFormDate('開始日期'));
   eventForm.elements['結束日期'].addEventListener('change',()=>syncCalendarWithFormDate('結束日期'));
   document.getElementById('eventFormBody').style.display='none';
+  document.getElementById('eventPanel').style.display='none';
   setEditingMode(false);
   state.calendarCursor=new Date(new Date().getFullYear(),new Date().getMonth(),1);
   state.selectedDate=new Date();
