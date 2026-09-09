@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.8.0</title>
+  <title>和美智慧校園｜打卡與出勤 v2.8.1</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -81,7 +81,7 @@
   <header class="top">
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.8.0 敏感操作再次驗證</span>
+    <span class="version">v2.8.1 每次敏感操作重新驗證</span>
   </header>
 
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
@@ -181,7 +181,7 @@
       <button class="auth-primary" style="margin-top:9px" type="button" onclick="verifySensitiveWithPassword()">確認密碼</button>
     </div>
     <div class="auth-error" id="sensitiveAuthError"></div>
-    <div class="auth-note">驗證成功後 5 分鐘內，不必重複驗證。帳號固定為目前登入者，不能切換他人帳號。</div>
+    <div class="auth-note">每次打卡、請假、取消請假或出勤回報都會重新驗證。帳號固定為目前登入者，不能切換他人帳號。</div>
     <button class="close" type="button" onclick="cancelSensitiveAuth()">取消</button>
   </div>
 </div>
@@ -283,7 +283,6 @@
     const error=document.getElementById('sensitiveAuthError');if(error)error.textContent=message;
   }
   function requireSensitiveAuth(){
-    if(hasSensitiveGrant())return Promise.resolve(true);
     if(sensitiveAuthPending)return sensitiveAuthPending.promise;
     let resolvePromise;
     const promise=new Promise(resolve=>{resolvePromise=resolve});
@@ -301,7 +300,7 @@
     document.getElementById('sensitiveAuthModal').classList.remove('show');
     const pending=sensitiveAuthPending;sensitiveAuthPending=null;
     if(pending)pending.resolve(true);
-    toastMsg('✅ 本人驗證成功，5 分鐘內有效');
+    toastMsg('✅ 本人驗證成功');
   }
   function cancelSensitiveAuth(){
     document.getElementById('sensitiveAuthModal').classList.remove('show');
@@ -415,7 +414,7 @@
   async function syncOfflinePunches(manual=false){
     const queue=readOfflineQueue();if(!queue.length){if(manual)toastMsg('目前沒有待補傳的打卡紀錄');renderOfflineQueue();return}
     if(!navigator.onLine){if(manual)toastMsg('目前仍未連上網路');return}
-    if(!hasSensitiveGrant()&&!manual){renderOfflineQueue();return}
+    if(!manual){renderOfflineQueue();return}
     if(!await requireSensitiveAuth()){if(manual)toastMsg('已取消本人驗證，尚未補傳');return}
     const remaining=[];let done=0;
     for(const item of queue){
