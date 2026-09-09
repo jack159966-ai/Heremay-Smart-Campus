@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.7.8</title>
+  <title>和美智慧校園｜打卡與出勤 v2.8.0</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -68,6 +68,11 @@
     .abnormal-box{margin-top:10px;border:1px solid #f3b8c0;background:#fff7f8;border-radius:16px;padding:11px}
     .abnormal-box label{display:block;font-size:12px;font-weight:900;color:#8b4050;margin-bottom:6px}
     .abnormal-box select,.abnormal-box input{width:100%;border:1px solid #e5bdc4;border-radius:12px;padding:10px;background:#fff}
+    .auth-account{margin:10px 0 12px;border:1px solid var(--line);border-radius:16px;padding:11px 12px;background:#f8fcff;color:#526d7e;font-weight:850;line-height:1.55}
+    .auth-actions{display:grid;gap:9px}.auth-primary,.auth-password-btn{width:100%;border:0;border-radius:16px;padding:13px;font-weight:950;cursor:pointer}
+    .auth-primary{color:white;background:linear-gradient(135deg,var(--blue),var(--blue2))}.auth-password-btn{color:#245c84;background:#eaf5fc}
+    .auth-password-box{display:none;margin-top:10px}.auth-password-box.show{display:block}.auth-password-box input{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fbfdff;text-align:center;font-size:20px;font-weight:900;letter-spacing:5px}
+    .auth-note{margin-top:10px;color:var(--muted);font-size:12px;font-weight:800;line-height:1.5}.auth-error{min-height:20px;margin-top:8px;color:#b84154;font-size:12px;font-weight:900}
 
   </style>
 </head>
@@ -76,7 +81,7 @@
   <header class="top">
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.7.8 過去請假紀錄不可自行取消</span>
+    <span class="version">v2.8.0 敏感操作再次驗證</span>
   </header>
 
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
@@ -163,9 +168,27 @@
 </main>
 
 <div class="modal" id="periodModal" onclick="closePeriodModal(event)"><div class="sheet" onclick="event.stopPropagation()"><h3 id="modalDate">選擇請假時段</h3><div class="leave-people"><h4 id="leavePoolTitle">當日請假狀況</h4><div id="dayLeavePeople"></div><div class="quota-line"><span id="amQuota"></span><span id="pmQuota"></span></div></div><div id="alreadyLeaveNote" class="warning" style="display:none;margin-top:10px"></div><div class="choice" id="periodChoiceBox"><button id="fullDayChoice" onclick="setDatePeriod('全天')">全天</button><button id="amChoice" onclick="setDatePeriod('上午')">上午</button><button id="pmChoice" onclick="setDatePeriod('下午')">下午</button></div><button class="close" onclick="hidePeriodModal()">取消</button></div></div>
+<div class="modal" id="sensitiveAuthModal">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <h2>🔐 請確認本人操作</h2>
+    <div class="auth-account">目前登入：<strong id="sensitiveAuthName">—</strong><br>帳號：<span id="sensitiveAuthAccount">—</span></div>
+    <div class="auth-actions">
+      <button class="auth-primary" id="sensitivePasskeyBtn" type="button" onclick="verifySensitiveWithPasskey()">使用 Face ID／快速登入</button>
+      <button class="auth-password-btn" type="button" onclick="showSensitivePassword()">改用 6 位數密碼</button>
+    </div>
+    <div class="auth-password-box" id="sensitivePasswordBox">
+      <input id="sensitivePassword" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" placeholder="••••••" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" onkeydown="if(event.key==='Enter')verifySensitiveWithPassword()">
+      <button class="auth-primary" style="margin-top:9px" type="button" onclick="verifySensitiveWithPassword()">確認密碼</button>
+    </div>
+    <div class="auth-error" id="sensitiveAuthError"></div>
+    <div class="auth-note">驗證成功後 5 分鐘內，不必重複驗證。帳號固定為目前登入者，不能切換他人帳號。</div>
+    <button class="close" type="button" onclick="cancelSensitiveAuth()">取消</button>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 <script>
   const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzQIkRS3hLLiDMQj6WV6SyeEmFHO80f_Sl9qHciPkWpXZfuzggmfdTRLjtbvhhMZ624Zw/exec';
+  const PASSKEY_API_BASE = 'https://heremay-passkey-backend-943533867342.asia-east1.run.app';
   const ATTENDANCE_RULES = {
     earlyToleranceMinutes: 30,
     lateToleranceMinutes: 30,
@@ -206,6 +229,106 @@
   let viewDate = new Date(); viewDate.setDate(1);
   let selectedDates = new Map();
   let pendingDate = '';
+  let sensitiveGrant = null;
+  let sensitiveAuthPending = null;
+
+  function bytesToBase64url(bytes){
+    let binary='';bytes.forEach(b=>binary+=String.fromCharCode(b));
+    return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+  function base64urlToBytes(value){
+    const padding='='.repeat((4-value.length%4)%4);
+    const binary=atob((value+padding).replace(/-/g,'+').replace(/_/g,'/'));
+    return Uint8Array.from(binary,c=>c.charCodeAt(0));
+  }
+  function normalizePublicKeyOptions(options){
+    const copy=typeof structuredClone==='function'?structuredClone(options):JSON.parse(JSON.stringify(options));
+    if(copy.challenge)copy.challenge=base64urlToBytes(copy.challenge);
+    if(copy.user&&copy.user.id)copy.user.id=base64urlToBytes(copy.user.id);
+    if(Array.isArray(copy.allowCredentials))copy.allowCredentials=copy.allowCredentials.map(item=>({...item,id:base64urlToBytes(item.id)}));
+    if(Array.isArray(copy.excludeCredentials))copy.excludeCredentials=copy.excludeCredentials.map(item=>({...item,id:base64urlToBytes(item.id)}));
+    return copy;
+  }
+  function credentialToJSON(credential){
+    const response=credential.response;
+    const json={id:credential.id,rawId:bytesToBase64url(new Uint8Array(credential.rawId)),type:credential.type,clientExtensionResults:credential.getClientExtensionResults(),response:{}};
+    if(response.clientDataJSON)json.response.clientDataJSON=bytesToBase64url(new Uint8Array(response.clientDataJSON));
+    if(response.attestationObject)json.response.attestationObject=bytesToBase64url(new Uint8Array(response.attestationObject));
+    if(typeof response.getTransports==='function')json.response.transports=response.getTransports();
+    if(response.authenticatorData)json.response.authenticatorData=bytesToBase64url(new Uint8Array(response.authenticatorData));
+    if(response.signature)json.response.signature=bytesToBase64url(new Uint8Array(response.signature));
+    if(response.userHandle)json.response.userHandle=bytesToBase64url(new Uint8Array(response.userHandle));
+    return json;
+  }
+  async function sensitiveApiPost(path,body){
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+    try{
+      const response=await fetch(`${PASSKEY_API_BASE}${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{}),signal:controller.signal});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok||!data.ok)throw new Error(data.message||`驗證服務錯誤 HTTP ${response.status}`);
+      return data;
+    }catch(error){
+      if(error&&error.name==='AbortError')throw new Error('驗證連線逾時，請稍後再試');
+      throw error;
+    }finally{clearTimeout(timer)}
+  }
+  function hasSensitiveGrant(){
+    return !!(sensitiveGrant&&sensitiveGrant.token&&sensitiveGrant.account===employeeKey()&&Number(sensitiveGrant.expiresAt||0)>Date.now()+3000);
+  }
+  function sensitiveAuthFields(){
+    return hasSensitiveGrant()?{sensitiveToken:sensitiveGrant.token,sensitivePurpose:'attendance',authAccount:employeeKey()}:{};
+  }
+  function setSensitiveAuthBusy(busy,message=''){
+    const passkey=document.getElementById('sensitivePasskeyBtn');if(passkey)passkey.disabled=busy;
+    const error=document.getElementById('sensitiveAuthError');if(error)error.textContent=message;
+  }
+  function requireSensitiveAuth(){
+    if(hasSensitiveGrant())return Promise.resolve(true);
+    if(sensitiveAuthPending)return sensitiveAuthPending.promise;
+    let resolvePromise;
+    const promise=new Promise(resolve=>{resolvePromise=resolve});
+    sensitiveAuthPending={promise,resolve:resolvePromise};
+    document.getElementById('sensitiveAuthName').textContent=employeeNameText();
+    document.getElementById('sensitiveAuthAccount').textContent=employeeKey();
+    document.getElementById('sensitivePassword').value='';
+    document.getElementById('sensitivePasswordBox').classList.remove('show');
+    setSensitiveAuthBusy(false,'');
+    document.getElementById('sensitiveAuthModal').classList.add('show');
+    return promise;
+  }
+  function finishSensitiveAuth(grant){
+    sensitiveGrant={token:grant.token,expiresAt:Number(grant.expiresAt||0),account:employeeKey()};
+    document.getElementById('sensitiveAuthModal').classList.remove('show');
+    const pending=sensitiveAuthPending;sensitiveAuthPending=null;
+    if(pending)pending.resolve(true);
+    toastMsg('✅ 本人驗證成功，5 分鐘內有效');
+  }
+  function cancelSensitiveAuth(){
+    document.getElementById('sensitiveAuthModal').classList.remove('show');
+    const pending=sensitiveAuthPending;sensitiveAuthPending=null;
+    if(pending)pending.resolve(false);
+  }
+  function showSensitivePassword(){
+    document.getElementById('sensitivePasswordBox').classList.add('show');
+    setTimeout(()=>document.getElementById('sensitivePassword').focus(),50);
+  }
+  async function verifySensitiveWithPassword(){
+    const password=String(document.getElementById('sensitivePassword').value||'');
+    if(!/^\d{6}$/.test(password)){setSensitiveAuthBusy(false,'請輸入本人 6 位數密碼');return}
+    setSensitiveAuthBusy(true,'正在確認密碼…');
+    try{finishSensitiveAuth(await sensitiveApiPost('/auth/step-up/password',{account:employeeKey(),password,purpose:'attendance'}))}
+    catch(error){setSensitiveAuthBusy(false,error.message||'驗證失敗')}
+  }
+  async function verifySensitiveWithPasskey(){
+    if(!window.PublicKeyCredential||!navigator.credentials){showSensitivePassword();setSensitiveAuthBusy(false,'此裝置不支援快速登入，請使用 6 位數密碼');return}
+    setSensitiveAuthBusy(true,'正在啟動 Face ID／快速登入…');
+    try{
+      const options=await sensitiveApiPost('/auth/step-up/passkey/options',{account:employeeKey(),purpose:'attendance'});
+      const credential=await navigator.credentials.get({publicKey:normalizePublicKeyOptions(options.publicKey)});
+      const grant=await sensitiveApiPost('/auth/step-up/passkey/verify',{account:employeeKey(),purpose:'attendance',credential:credentialToJSON(credential)});
+      finishSensitiveAuth(grant);
+    }catch(error){setSensitiveAuthBusy(false,error.message||'快速登入失敗；可改用 6 位數密碼')}
+  }
 
   function isFlexibleCleaner(){
     // C 類員工為戶外清潔責任制人員；同時保留職稱文字判斷，兼容舊資料。
@@ -292,10 +415,12 @@
   async function syncOfflinePunches(manual=false){
     const queue=readOfflineQueue();if(!queue.length){if(manual)toastMsg('目前沒有待補傳的打卡紀錄');renderOfflineQueue();return}
     if(!navigator.onLine){if(manual)toastMsg('目前仍未連上網路');return}
+    if(!hasSensitiveGrant()&&!manual){renderOfflineQueue();return}
+    if(!await requireSensitiveAuth()){if(manual)toastMsg('已取消本人驗證，尚未補傳');return}
     const remaining=[];let done=0;
     for(const item of queue){
       try{
-        const url=`${SERVICE_URL}?action=${encodeURIComponent(item.action)}&payload=${encodeURIComponent(JSON.stringify({...item.fields,syncStatus:'離線補傳',uploadedAt:new Date().toISOString()}))}`;
+        const url=`${SERVICE_URL}?action=${encodeURIComponent(item.action)}&payload=${encodeURIComponent(JSON.stringify({...item.fields,...sensitiveAuthFields(),syncStatus:'離線補傳',uploadedAt:new Date().toISOString()}))}`;
         const result=await jsonp(url);if(!result.ok)throw new Error(result.message||'補傳失敗');done++;
       }catch(e){remaining.push(item)}
     }
@@ -365,6 +490,7 @@
       latest.employeeId||latest.id||latest['員工編號']||''
     ).trim();
     const newId=employeeKey();
+    if(oldId!==newId)sensitiveGrant=null;
     if(loginAccount && objectAccount && loginAccount!==objectAccount){
       console.warn('登入帳號與 currentEmployee 不一致，改以登入帳號為準：',loginAccount,objectAccount);
     }
@@ -735,7 +861,7 @@
     }
     return{reason:s.value,note:''};
   }
-  function submitConfirmedPunch(){
+  async function submitConfirmedPunch(){
     const type=pendingPunchType, abnormal=abnormalPunchInfo(type);
     if(abnormal.abnormal || abnormal.overtime){
       const r=collectAbnormalReason();
@@ -750,6 +876,7 @@
       pendingAbnormalReason={reason:'',note:'',abnormalType:'',scheduledTime:'',overtimeMinutes:0};
     }
     closePunchConfirm();
+    if(!await requireSensitiveAuth()){toastMsg('已取消本人驗證，未送出打卡');return}
     if(type==='in') clockIn();
     if(type==='out') clockOut();
     if(type==='dutyIn') dutyIn();
@@ -962,7 +1089,7 @@
   function closePeriodModal(e){if(e.target.id==='periodModal')hidePeriodModal()}
   function renderSelected(){selectedList.innerHTML='';[...selectedDates.entries()].sort().forEach(([d,p])=>{const el=document.createElement('div');el.className='selected-item';el.innerHTML=`<div><strong>${d}</strong><span>${p}</span></div><button class="remove" onclick="removeDate('${d}')">移除</button>`;selectedList.append(el)})}
   function removeDate(d){selectedDates.delete(d);renderCalendar()}
-  function submitLeave(){if(!selectedDates.size){toastMsg('請先從月曆選擇日期');return}const type=leaveType.value,reasonText=reason.value.trim();if(type!=='特休'&&!reasonText){toastMsg('其他假別請填寫申請原因');return}const items=[...selectedDates.entries()];submitLeaveQueue(items,type,reasonText,0,[])}
+  async function submitLeave(){if(!selectedDates.size){toastMsg('請先從月曆選擇日期');return}const type=leaveType.value,reasonText=reason.value.trim();if(type!=='特休'&&!reasonText){toastMsg('其他假別請填寫申請原因');return}if(!await requireSensitiveAuth()){toastMsg('已取消本人驗證，未送出請假');return}const items=[...selectedDates.entries()];submitLeaveQueue(items,type,reasonText,0,[])}
   async function submitLeaveQueue(items,type,reasonText,index,results){
     if(index>=items.length){
       selectedDates.clear();
@@ -999,7 +1126,7 @@
     const leaveDate=String(row.date||'').slice(0,10);
     return !['已取消','駁回','已駁回'].includes(status) && !!leaveDate && leaveDate>=todayKey();
   }
-  function cancelLeaveById(leaveId){
+  async function cancelLeaveById(leaveId){
     const row=(cloudReady?cloudMyLeaves:JSON.parse(localStorage.getItem(leaveKey())||'[]')).find(x=>String(x.leaveId||'')===String(leaveId||''));
     if(row&&String(row.date||'').slice(0,10)<todayKey()){
       toastMsg('過去日期的請假已成為考勤紀錄，不能自行取消');
@@ -1007,6 +1134,7 @@
     }
     if(!row||!canCancelLeave(row)){toastMsg('找不到這筆可取消的請假，請重新整理後再試');return}
     if(!confirm(`確定取消 ${row.date} ${row.period}的${row.type}嗎？`))return;
+    if(!await requireSensitiveAuth()){toastMsg('已取消本人驗證，請假紀錄未變更');return}
     postAttendance('cancelLeave',{leaveId,employeeId:employeeKey(),reason:'員工自行取消'},'cancelLeave');
   }
   function leaveCardHtml(x,withCancel=true){
@@ -1034,6 +1162,8 @@
       toastMsg('上一項資料正在處理；可按上方同步鍵重新整理狀態');
       return;
     }
+
+    fields={...fields,...sensitiveAuthFields()};
 
     pendingCloudAction={kind,options};
     setPunchPending(kind,true);
@@ -1149,6 +1279,7 @@
     const type=String(document.getElementById('reportType').value||'其他');
     const note=String(document.getElementById('reportNote').value||'').trim().slice(0,15);
     const s=workSchedule();
+    if(!await requireSensitiveAuth()){toastMsg('已取消本人驗證，未送出回報');return}
     const payload={
       type:'出勤狀況',
       title:`${employeeNameText()}｜${type}`,
@@ -1156,7 +1287,8 @@
       department:attendanceDepartment(),
       reporter:employeeNameText(),
       employeeId:employeeKey(),
-      note:`${todayKey()}｜${s.name}`
+      note:`${todayKey()}｜${s.name}`,
+      ...sensitiveAuthFields()
     };
     try{
       const r=await jsonp(`${SERVICE_URL}?action=saveReport&payload=${encodeURIComponent(JSON.stringify(payload))}`);
