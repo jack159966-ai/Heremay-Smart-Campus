@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>和美智慧校園｜出缺勤統計 v1.5.2</title>
+<title>和美智慧校園｜出缺勤統計 v1.5.3</title>
 <style>
 :root{--blue:#1768ac;--navy:#17324d;--line:#d7e0e9;--soft:#f3f7fb;--red:#b42318;--amber:#a15c00;--green:#16734a}
 *{box-sizing:border-box}body{margin:0;background:#edf3f8;color:#1e2936;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif}
@@ -30,6 +30,7 @@ th{background:#f5f8fb;color:#40556b;position:sticky;top:0;z-index:1}.name{text-a
 .drawer-head h2{margin:0}.tabs{display:flex;gap:8px;margin:14px 0}.tab.active{background:var(--blue);color:white}.tab{background:#eaf0f6;color:#39536b}
 .summary-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}.summary-strip div{border:1px solid var(--line);border-radius:10px;padding:9px;text-align:center}.summary-strip span{display:block;font-size:11px;color:#66778a;font-weight:800}.summary-strip b{font-size:15px}
 .detail-table{min-width:760px}.edit{padding:6px 9px;background:#e9f3ff;color:#1768ac;border-radius:8px}
+.adjust-actions{display:flex;flex-direction:column;gap:6px;align-items:stretch}.cancel-leave-admin{padding:6px 9px;background:#fff0ee;color:var(--red);border:1px solid #f4c4bf;border-radius:8px;white-space:nowrap}
 .modal{position:fixed;inset:0;background:rgba(15,29,43,.65);display:none;align-items:center;justify-content:center;padding:18px;z-index:40}.modal.show{display:flex}
 .modal-card{width:min(620px,96vw);background:#fff;border-radius:18px;padding:18px}.modal-card h3{margin:0 0 12px}
 .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.form-grid .full{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
@@ -76,7 +77,7 @@ th{background:#f5f8fb;color:#40556b;position:sticky;top:0;z-index:1}.name{text-a
 <body>
 <header>
  <div class="wrap">
-  <div><h1>出缺勤統計</h1><p>分年分月統計、整天未打卡、半天假、異常原因、加班候選、班別差異、園長補正與 PDF</p></div>
+  <div><h1>出缺勤統計</h1><p>v1.5.3｜分年分月統計、整天未打卡、半天假、主管撤銷請假、出勤補正與 PDF</p></div>
   <button class="light no-print" onclick="location.href='admin.html'">返回主管首頁</button>
  </div>
 </header>
@@ -416,6 +417,11 @@ function renderPersonDetail(){
   const reason=abnormalReasonText(p);
   const overtime=overtimeCandidateInfo(p);
   const overtimeText=overtime.isOvertime ? `${fmtMin(overtime.minutes)}｜待主管確認` : '—';
+  const leaveButtons=dayLeaves.map(leave=>{
+    const id=encodeURIComponent(String(leave.leaveId||''));
+    const leaveType=encodeURIComponent(String(leave.type||'請假'));
+    return `<button class="cancel-leave-admin" onclick="adminCancelLeave(decodeURIComponent('${id}'),'${date}',decodeURIComponent('${leaveType}'))">撤銷${esc(leave.type||'請假')}</button>`;
+  }).join('');
   return `<tr>
     <td>${date}</td>
     <td>${esc(originalShift)}</td>
@@ -429,7 +435,7 @@ function renderPersonDetail(){
     <td>${fmtMin(p.early)}</td>
     <td>${fmtMin(p.otherShortage)}</td>
     <td class="${wholeMissing||((p.in||p.out)&&(!p.in||!p.out))?'warn':''}">${esc(status)}</td>
-    <td><button class="edit" onclick="openEdit('${date}')">主管調整</button></td>
+    <td><div class="adjust-actions"><button class="edit" onclick="openEdit('${date}')">主管調整</button>${leaveButtons}</div></td>
   </tr>`;
  }).join(''):'<tr><td colspan="13" class="muted">此月份沒有出勤或請假紀錄</td></tr>';
 }
@@ -448,6 +454,23 @@ async function saveAdjustment(){
   if(!r.ok)throw new Error(r.message||'儲存失敗');
   closeEdit();await loadData();openPerson(selected.employeeId);alert('出勤資料已補正。');
  }catch(e){alert('儲存失敗：'+e.message)}
+}
+
+async function adminCancelLeave(leaveId,date,leaveType){
+ if(!leaveId){alert('這筆請假缺少識別碼，請重新整理後再試。');return}
+ const reason=prompt(`請輸入撤銷 ${date} ${leaveType}的原因：`,'當日恢復上班');
+ if(reason===null)return;
+ if(!String(reason).trim()){alert('請填寫撤銷原因。');return}
+ if(!confirm(`確定由主管撤銷 ${selected.employeeName} ${date} 的${leaveType}嗎？\n\n原申請會保留，狀態改為已取消。`))return;
+ const employeeId=selected.employeeId;
+ const payload={leaveId,employeeId,reason:`主管撤銷：${String(reason).trim()}`,cancelledBy:'主管',operatorRole:'admin'};
+ try{
+  const r=await jsonpRetry(`${SERVICE_URL}?action=cancelLeave&payload=${encodeURIComponent(JSON.stringify(payload))}`,2);
+  if(!r.ok)throw new Error(r.message||'撤銷失敗');
+  await loadData();
+  openPerson(employeeId);
+  alert('請假已由主管撤銷，原申請紀錄仍會保留。');
+ }catch(e){alert('撤銷失敗：'+e.message)}
 }
 
 function printPerson(){
