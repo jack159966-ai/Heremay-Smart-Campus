@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>和美智慧校園｜出缺勤統計 v1.5.4</title>
+<title>和美智慧校園｜出缺勤統計 v1.5.5</title>
 <style>
 :root{--blue:#1768ac;--navy:#17324d;--line:#d7e0e9;--soft:#f3f7fb;--red:#b42318;--amber:#a15c00;--green:#16734a}
 *{box-sizing:border-box}body{margin:0;background:#edf3f8;color:#1e2936;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif}
@@ -78,7 +78,7 @@ th{background:#f5f8fb;color:#40556b;position:sticky;top:0;z-index:1}.name{text-a
 <body>
 <header>
  <div class="wrap">
-  <div><h1>出缺勤統計</h1><p>v1.5.4｜主管敏感操作每次重新驗證</p></div>
+  <div><h1>出缺勤統計</h1><p>v1.5.5｜進入頁面先驗證主管本人</p></div>
   <button class="light no-print" onclick="location.href='admin.html'">返回主管首頁</button>
  </div>
 </header>
@@ -149,7 +149,7 @@ th{background:#f5f8fb;color:#40556b;position:sticky;top:0;z-index:1}.name{text-a
   <h3>🔐 請確認主管本人操作</h3>
   <div class="auth-account">目前登入：<strong id="sensitiveAuthName">—</strong><br>帳號：<span id="sensitiveAuthAccount">—</span></div>
   <div class="auth-stack"><button class="primary" id="sensitivePasskeyBtn" onclick="verifySensitiveWithPasskey()">使用 Face ID／快速登入</button><button class="light" onclick="showSensitivePassword()">改用 6 位數密碼</button></div>
-  <div class="auth-password" id="sensitivePasswordBox"><input id="sensitivePassword" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" onkeydown="if(event.key==='Enter')verifySensitiveWithPassword()"><button class="primary" style="width:100%;margin-top:9px" onclick="verifySensitiveWithPassword()">確認密碼</button></div>
+  <div class="auth-password" id="sensitivePasswordBox"><input id="sensitivePassword" type="text" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="請輸入 6 位數字" oninput="sanitizeSensitivePassword()" onkeydown="if(event.key==='Enter')verifySensitiveWithPassword()"><div id="sensitivePasswordCount" class="small" style="text-align:center;margin-top:6px">已輸入 0／6 位</div><button class="primary" style="width:100%;margin-top:9px" onclick="verifySensitiveWithPassword()">確認密碼</button></div>
   <div class="auth-error" id="sensitiveAuthError"></div>
   <div class="small">每次補正出勤或撤銷請假都會重新驗證；只能使用目前登入的主管帳號。</div>
   <div class="actions"><button class="light" onclick="cancelSensitiveAuth()">取消</button></div>
@@ -175,7 +175,7 @@ const ATTENDANCE_RULES={
 };
 
 let data={employees:[],punches:[],leaves:[]}, selected=null, detailMode='month';
-let sensitiveGrant=null,sensitiveAuthPending=null;
+let sensitiveGrant=null,sensitiveAuthPending=null,adminSessionUnlocked=false;
 
 function currentOperator(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'null')||{}}catch(e){return{}}}
 function operatorAccount(){const e=currentOperator();return String(localStorage.getItem('heremay.lastFaceAccount')||e.account||e.loginAccount||e.username||e.employeeId||e.id||e['員工編號']||'').trim()}
@@ -187,11 +187,13 @@ function credentialToJSON(credential){const r=credential.response,j={id:credenti
 async function sensitiveApiPost(path,body){const c=new AbortController(),timer=setTimeout(()=>c.abort(),15000);try{const response=await fetch(`${PASSKEY_API_BASE}${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{}),signal:c.signal});const result=await response.json().catch(()=>({}));if(!response.ok||!result.ok)throw new Error(result.message||`驗證服務錯誤 HTTP ${response.status}`);return result}catch(e){if(e&&e.name==='AbortError')throw new Error('驗證連線逾時');throw e}finally{clearTimeout(timer)}}
 function sensitiveFields(){return sensitiveGrant&&sensitiveGrant.token?{sensitiveToken:sensitiveGrant.token,sensitivePurpose:'attendance_admin',authAccount:operatorAccount()}: {}}
 function setSensitiveAuthState(busy,message=''){document.getElementById('sensitivePasskeyBtn').disabled=busy;document.getElementById('sensitiveAuthError').textContent=message}
-function requireSensitiveAuth(){if(sensitiveAuthPending)return sensitiveAuthPending.promise;const account=operatorAccount();if(!account){alert('找不到目前登入的主管帳號，請返回首頁重新登入。');return Promise.resolve(false)}let resolvePromise;const promise=new Promise(resolve=>resolvePromise=resolve);sensitiveAuthPending={promise,resolve:resolvePromise};document.getElementById('sensitiveAuthName').textContent=operatorName();document.getElementById('sensitiveAuthAccount').textContent=account;document.getElementById('sensitivePassword').value='';document.getElementById('sensitivePasswordBox').classList.remove('show');setSensitiveAuthState(false,'');document.getElementById('sensitiveAuthModal').classList.add('show');return promise}
-function finishSensitiveAuth(grant){sensitiveGrant={token:grant.token,expiresAt:Number(grant.expiresAt||0)};document.getElementById('sensitiveAuthModal').classList.remove('show');const p=sensitiveAuthPending;sensitiveAuthPending=null;if(p)p.resolve(true)}
+function requireSensitiveAuth(){if(adminSessionUnlocked)return Promise.resolve(true);if(sensitiveAuthPending)return sensitiveAuthPending.promise;const account=operatorAccount();if(!account){alert('找不到目前登入的主管帳號，請返回首頁重新登入。');return Promise.resolve(false)}let resolvePromise;const promise=new Promise(resolve=>resolvePromise=resolve);sensitiveAuthPending={promise,resolve:resolvePromise};document.getElementById('sensitiveAuthName').textContent=operatorName();document.getElementById('sensitiveAuthAccount').textContent=account;document.getElementById('sensitivePassword').value='';document.getElementById('sensitivePasswordCount').textContent='已輸入 0／6 位';document.getElementById('sensitivePasswordBox').classList.remove('show');setSensitiveAuthState(false,'');document.getElementById('sensitiveAuthModal').classList.add('show');return promise}
+function finishSensitiveAuth(grant){sensitiveGrant={token:grant.token,expiresAt:Number(grant.expiresAt||0)};adminSessionUnlocked=true;document.getElementById('sensitiveAuthModal').classList.remove('show');const p=sensitiveAuthPending;sensitiveAuthPending=null;if(p)p.resolve(true)}
 function cancelSensitiveAuth(){document.getElementById('sensitiveAuthModal').classList.remove('show');const p=sensitiveAuthPending;sensitiveAuthPending=null;if(p)p.resolve(false)}
 function showSensitivePassword(){document.getElementById('sensitivePasswordBox').classList.add('show');setTimeout(()=>document.getElementById('sensitivePassword').focus(),50)}
-async function verifySensitiveWithPassword(){const password=String(document.getElementById('sensitivePassword').value||'');if(!/^\d{6}$/.test(password)){setSensitiveAuthState(false,'請輸入本人 6 位數密碼');return}setSensitiveAuthState(true,'正在確認密碼…');try{finishSensitiveAuth(await sensitiveApiPost('/auth/step-up/password',{account:operatorAccount(),password,purpose:'attendance_admin'}))}catch(e){setSensitiveAuthState(false,e.message||'驗證失敗')}}
+function normalizeDigits(value){return String(value||'').normalize('NFKC').replace(/[^0-9]/g,'').slice(0,6)}
+function sanitizeSensitivePassword(){const input=document.getElementById('sensitivePassword'),password=normalizeDigits(input.value);input.value=password;document.getElementById('sensitivePasswordCount').textContent=`已輸入 ${password.length}／6 位`;document.getElementById('sensitiveAuthError').textContent=''}
+async function verifySensitiveWithPassword(){const password=normalizeDigits(document.getElementById('sensitivePassword').value);document.getElementById('sensitivePassword').value=password;if(password.length!==6){setSensitiveAuthState(false,`目前只有 ${password.length} 位，請輸入完整 6 位數密碼`);return}setSensitiveAuthState(true,'正在確認密碼…');try{finishSensitiveAuth(await sensitiveApiPost('/auth/step-up/password',{account:operatorAccount(),password,purpose:'attendance_admin'}))}catch(e){setSensitiveAuthState(false,e.message||'驗證失敗')}}
 async function verifySensitiveWithPasskey(){if(!window.PublicKeyCredential||!navigator.credentials){showSensitivePassword();setSensitiveAuthState(false,'此裝置不支援快速登入，請使用密碼');return}setSensitiveAuthState(true,'正在啟動快速登入…');try{const options=await sensitiveApiPost('/auth/step-up/passkey/options',{account:operatorAccount(),purpose:'attendance_admin'});const credential=await navigator.credentials.get({publicKey:normalizePublicKeyOptions(options.publicKey)});finishSensitiveAuth(await sensitiveApiPost('/auth/step-up/passkey/verify',{account:operatorAccount(),purpose:'attendance_admin',credential:credentialToJSON(credential)}))}catch(e){setSensitiveAuthState(false,e.message||'快速登入失敗')}}
 
 function pad(n){return String(n).padStart(2,'0')}
@@ -520,6 +522,6 @@ function printPerson(){
  setTimeout(()=>{if(document.body.classList.contains('print-person'))restore()},1200);
 }
 
-init();
+requireSensitiveAuth().then(ok=>{if(ok)init();else location.href='admin.html'});
 </script>
 </body></html>
