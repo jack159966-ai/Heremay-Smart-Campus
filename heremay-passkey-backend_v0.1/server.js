@@ -16,7 +16,7 @@ app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 8080);
-const SERVICE_VERSION = '1.1.0';
+const SERVICE_VERSION = '1.1.1';
 const RP_NAME = process.env.RP_NAME || '和美智慧校園';
 const RP_ID = process.env.RP_ID || 'jack159966-ai.github.io';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://jack159966-ai.github.io')
@@ -148,12 +148,21 @@ function normalizeSensitivePurpose(value) {
   return purpose;
 }
 
+function assertSensitivePurposeAllowed(employee, purpose) {
+  if (purpose === 'attendance_admin' || purpose === 'salary_admin') {
+    if (!['admin', 'leader'].includes(clean(employee?.role))) {
+      throw new Error('此帳號沒有主管操作權限');
+    }
+  }
+}
+
 function sensitiveTokenHash(token) {
   return createHash('sha256').update(clean(token)).digest('hex');
 }
 
 async function issueSensitiveToken(employee, purpose) {
   purpose = normalizeSensitivePurpose(purpose);
+  assertSensitivePurposeAllowed(employee, purpose);
   const token = randomBytes(32).toString('base64url');
   const expiresAt = Date.now() + SENSITIVE_TOKEN_TTL_MS;
   await db.collection('sensitiveTokens').doc(sensitiveTokenHash(token)).set({
