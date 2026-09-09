@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.7.6</title>
+  <title>和美智慧校園｜打卡與出勤 v2.7.7</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -14,10 +14,10 @@
     body{margin:0;min-height:100vh;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;color:var(--ink);background:linear-gradient(180deg,#eff8ff,#f8fbfd)}
     button,input,select,textarea{font:inherit}
     .phone{width:min(100%,520px);margin:auto;padding:16px 15px 34px}
-    .top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .back{border:0;background:white;border-radius:15px;padding:10px 12px;font-weight:900;color:#3d7399;box-shadow:var(--shadow);cursor:pointer}
+    .top{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:8px 12px}
+    .back{grid-column:2;grid-row:1;border:0;background:white;border-radius:15px;padding:10px 12px;font-weight:900;color:#3d7399;box-shadow:var(--shadow);cursor:pointer}
     .title{min-width:0;flex:1}.title h1{font-size:23px;margin:0;color:#245c84}.title p{margin:4px 0 0;color:var(--muted);font-size:13px;font-weight:750}
-    .version{font-size:11px;font-weight:900;color:#fff;background:var(--blue);border-radius:999px;padding:5px 8px}
+    .version{grid-column:1/-1;grid-row:2;justify-self:start;font-size:11px;font-weight:900;color:#fff;background:var(--blue);border-radius:999px;padding:5px 8px}
     .card{background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:var(--radius);padding:15px;margin-top:14px;box-shadow:var(--shadow)}
     .who{display:flex;align-items:center;gap:12px}.avatar{width:50px;height:50px;border-radius:18px;display:grid;place-items:center;font-size:27px;background:#e5f3ff}.who strong{font-size:19px;color:#245c84}.who span{display:block;color:var(--muted);font-size:13px;font-weight:750;margin-top:3px}
     .clock{text-align:center;padding:8px 0 2px}.date{font-size:14px;color:var(--muted);font-weight:850}.time{font-size:44px;font-weight:950;color:#245c84;letter-spacing:1px;line-height:1.15}.status{display:inline-block;margin-top:5px;border-radius:999px;padding:7px 11px;font-size:13px;font-weight:900;background:#edf6fc;color:#3d7399}
@@ -27,7 +27,7 @@
     .punch.ready-state{opacity:1;filter:none}
     .mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.mini{background:#f6fbff;border:1px solid var(--line);border-radius:16px;padding:10px;text-align:center}.mini b{display:block;font-size:18px;color:#245c84}.mini span{font-size:11px;color:var(--muted);font-weight:800}
     .section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.section-title h2{margin:0;font-size:19px;color:#245c84}.tag{font-size:11px;font-weight:900;color:#3d7399;background:#edf6fc;border-radius:999px;padding:5px 8px}
-    .tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.tab{border:1px solid var(--line);background:#f8fcff;border-radius:14px;padding:10px 4px;color:#567386;font-size:13px;font-weight:900;cursor:pointer}.tab.active{background:var(--blue);color:white;border-color:var(--blue)}
+    .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.tab{border:1px solid var(--line);background:#f8fcff;border-radius:14px;padding:10px 4px;color:#567386;font-size:13px;font-weight:900;cursor:pointer}.tab.active{background:var(--blue);color:white;border-color:var(--blue)}
     .panel{display:none}.panel.active{display:block}
     .balance{display:grid;grid-template-columns:1fr 1fr;gap:10px}.balance-box{border:1px solid var(--line);border-radius:18px;padding:13px;background:#f8fcff}.balance-box b{display:block;font-size:24px;color:#245c84}.balance-box span{font-size:12px;color:var(--muted);font-weight:800}.warning{margin-top:10px;border:1px solid #ffd49a;background:#fff9ec;color:#996000;border-radius:16px;padding:10px;font-size:13px;font-weight:800;line-height:1.5}
     .calendar-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}.month-btn{border:0;background:#eaf5fc;color:#245c84;border-radius:12px;padding:8px 11px;font-weight:900;cursor:pointer}.month-title{font-size:18px;font-weight:950;color:#245c84}
@@ -74,9 +74,9 @@
 <body>
 <main class="phone">
   <header class="top">
-    <button class="back" onclick="goBack()">← 返回</button>
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
-    <span class="version">v2.7.6 修正重複狀況回報欄</span>
+    <button class="back" onclick="goBack()">← 返回</button>
+    <span class="version">v2.7.7 返回鍵右上｜精簡功能入口</span>
   </header>
 
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
@@ -115,7 +115,7 @@
   </section>
 
   <section class="card">
-    <div class="tabs"><button class="tab active" onclick="showTab('leave',this)">請假</button><button class="tab" onclick="showTab('attendance',this)">出勤</button><button class="tab" onclick="showTab('balance',this)">餘額</button><button class="tab" onclick="showTab('records',this)">紀錄</button><button class="tab" onclick="showTab('salary',this)">薪資</button></div>
+    <div class="tabs"><button class="tab active" onclick="showTab('leave',this)">請假</button><button class="tab" onclick="showTab('attendance',this)">出勤</button><button class="tab" onclick="showTab('balance',this)">餘額</button><button class="tab" onclick="showTab('records',this)">紀錄</button></div>
   </section>
 
   <section class="card panel active" id="leavePanel">
@@ -160,10 +160,6 @@
     <div id="recordList"></div>
   </section>
 
-  <section class="card panel" id="salaryPanel">
-    <div class="section-title"><h2>薪資通知</h2><span class="tag">次月 5 日</span></div>
-    <div class="salary"><h3>本月薪資尚未公布</h3><p>園長完成審查與核定後，系統會於次月 5 日將薪資明細通知本人。</p><div class="salary-lock">🔒 僅本人與授權管理層可查看</div></div>
-  </section>
 </main>
 
 <div class="modal" id="periodModal" onclick="closePeriodModal(event)"><div class="sheet" onclick="event.stopPropagation()"><h3 id="modalDate">選擇請假時段</h3><div class="leave-people"><h4 id="leavePoolTitle">當日請假狀況</h4><div id="dayLeavePeople"></div><div class="quota-line"><span id="amQuota"></span><span id="pmQuota"></span></div></div><div id="alreadyLeaveNote" class="warning" style="display:none;margin-top:10px"></div><div class="choice" id="periodChoiceBox"><button id="fullDayChoice" onclick="setDatePeriod('全天')">全天</button><button id="amChoice" onclick="setDatePeriod('上午')">上午</button><button id="pmChoice" onclick="setDatePeriod('下午')">下午</button></div><button class="close" onclick="hidePeriodModal()">取消</button></div></div>
