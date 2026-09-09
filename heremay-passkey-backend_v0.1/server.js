@@ -16,7 +16,7 @@ app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 8080);
-const SERVICE_VERSION = '1.1.1';
+const SERVICE_VERSION = '1.1.2';
 const RP_NAME = process.env.RP_NAME || '和美智慧校園';
 const RP_ID = process.env.RP_ID || 'jack159966-ai.github.io';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://jack159966-ai.github.io')
@@ -25,11 +25,14 @@ const LOGIN_SHEET_ID = process.env.LOGIN_SHEET_ID || '1qF7NhSzpg5MAskTEXSWPt1Z__
 const LOGIN_SHEET_TAB = process.env.LOGIN_SHEET_TAB || '員工登入資料';
 const CHALLENGE_TTL_MS = 5 * 60 * 1000;
 const SENSITIVE_TOKEN_TTL_MS = 5 * 60 * 1000;
+const ADMIN_SENSITIVE_TOKEN_TTL_MS = 8 * 60 * 60 * 1000;
 const SENSITIVE_PURPOSES = new Set(['attendance','attendance_admin','salary','salary_admin']);
 
 app.use(cors({
   origin(origin, cb) {
-    if (!origin) return cb(null, true);
+    // 電腦版正式系統會直接從園方 GitHub 同步資料夾開啟，瀏覽器的 Origin 會是字串 "null"。
+    // 仍需通過帳密及角色驗證，僅在此放行跨來源連線。
+    if (!origin || origin === 'null') return cb(null, true);
     if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
     return cb(new Error('Origin not allowed'));
   },
@@ -164,7 +167,8 @@ async function issueSensitiveToken(employee, purpose) {
   purpose = normalizeSensitivePurpose(purpose);
   assertSensitivePurposeAllowed(employee, purpose);
   const token = randomBytes(32).toString('base64url');
-  const expiresAt = Date.now() + SENSITIVE_TOKEN_TTL_MS;
+  const ttlMs = purpose.endsWith('_admin') ? ADMIN_SENSITIVE_TOKEN_TTL_MS : SENSITIVE_TOKEN_TTL_MS;
+  const expiresAt = Date.now() + ttlMs;
   await db.collection('sensitiveTokens').doc(sensitiveTokenHash(token)).set({
     userId: userDocId(employee),
     employeeNo: employee.employeeNo,
@@ -174,7 +178,7 @@ async function issueSensitiveToken(employee, purpose) {
     createdAt: Date.now(),
     expiresAt,
   });
-  return { token, expiresAt, expiresInSeconds: Math.floor(SENSITIVE_TOKEN_TTL_MS / 1000) };
+  return { token, expiresAt, expiresInSeconds: Math.floor(ttlMs / 1000) };
 }
 
 function accountMatchesToken(account, tokenData) {
