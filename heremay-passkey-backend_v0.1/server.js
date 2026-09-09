@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import { createHash, randomBytes } from 'node:crypto';
 import { Firestore } from '@google-cloud/firestore';
 import { google } from 'googleapis';
 import {
@@ -15,6 +16,7 @@ app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 8080);
+const SERVICE_VERSION = '1.1.0';
 const RP_NAME = process.env.RP_NAME || '和美智慧校園';
 const RP_ID = process.env.RP_ID || 'jack159966-ai.github.io';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://jack159966-ai.github.io')
@@ -22,6 +24,8 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://jack159966-ai.g
 const LOGIN_SHEET_ID = process.env.LOGIN_SHEET_ID || '1qF7NhSzpg5MAskTEXSWPt1Z__jGfbEdF8Gr5AUBmFYQ';
 const LOGIN_SHEET_TAB = process.env.LOGIN_SHEET_TAB || '員工登入資料';
 const CHALLENGE_TTL_MS = 5 * 60 * 1000;
+const SENSITIVE_TOKEN_TTL_MS = 5 * 60 * 1000;
+const SENSITIVE_PURPOSES = new Set(['attendance','attendance_admin','salary','salary_admin']);
 
 app.use(cors({
   origin(origin, cb) {
@@ -138,7 +142,39 @@ async function listPasskeys(userId) {
   return snap.docs.map(doc => ({ docId: doc.id, ...doc.data() }));
 }
 
-app.get('/health', (_req,res) => res.json({ ok:true, service:'heremay-passkey' }));
+function normalizeSensitivePurpose(value) {
+  const purpose = clean(value);
+  if (!SENSITIVE_PURPOSES.has(purpose)) throw new Error('不支援的敏感操作');
+  return purpose;
+}
+
+function sensitiveTokenHash(token) {
+  return createHash('sha256').update(clean(token)).digest('hex');
+}
+
+async function issueSensitiveToken(employee, purpose) {
+  purpose = normalizeSensitivePurpose(purpose);
+  const token = randomBytes(32).toString('base64url');
+  const expiresAt = Date.now() + SENSITIVE_TOKEN_TTL_MS;
+  await db.collection('sensitiveTokens').doc(sensitiveTokenHash(token)).set({
+    userId: userDocId(employee),
+    employeeNo: employee.employeeNo,
+    account: employee.account,
+    role: employee.role,
+    purpose,
+    createdAt: Date.now(),
+    expiresAt,
+  });
+  return { token, expiresAt, expiresInSeconds: Math.floor(SENSITIVE_TOKEN_TTL_MS / 1000) };
+}
+
+function accountMatchesToken(account, tokenData) {
+  const wanted = clean(account).toLowerCase();
+  return !!wanted && [tokenData.userId, tokenData.employeeNo, tokenData.account]
+    .map(v => clean(v).toLowerCase()).filter(Boolean).includes(wanted);
+}
+
+app.get('/health', (_req,res) => res.json({ ok:true, service:'heremay-passkey', version:SERVICE_VERSION }));
 
 app.post('/auth/passkey/register/options', async (req,res) => {
   try {
@@ -274,6 +310,117 @@ app.post('/auth/passkey/login/verify', async (req,res) => {
   } catch (err) {
     console.error(err);
     res.status(400).json({ ok:false, message:err?.message || '快速登入失敗' });
+  }
+});
+
+app.post('/auth/step-up/password', async (req,res) => {
+  try {
+    const account = clean(req.body?.account);
+    const password = clean(req.body?.password);
+    const purpose = normalizeSensitivePurpose(req.body?.purpose);
+    if (!account || !/^\d{6}$/.test(password)) return res.status(400).json({ ok:false, message:'請輸入本人 6 位數密碼' });
+    const employee = await lookupEmployee(account);
+    if (!employee || !employee.canLogin || !employee.role) return res.status(401).json({ ok:false, message:'帳號不可登入' });
+    if (employee.password !== password) return res.status(401).json({ ok:false, message:'密碼錯誤' });
+    const grant = await issueSensitiveToken(employee, purpose);
+    res.json({ ok:true, ...grant, role:employee.role, employee:publicEmployee(employee) });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ ok:false, message:err?.message || '無法完成二次驗證' });
+  }
+});
+
+app.post('/auth/step-up/passkey/options', async (req,res) => {
+  try {
+    const account = clean(req.body?.account);
+    const purpose = normalizeSensitivePurpose(req.body?.purpose);
+    const employee = await lookupEmployee(account);
+    if (!employee || !employee.canLogin || !employee.role) return res.status(401).json({ ok:false, message:'帳號不可登入' });
+    const userId = userDocId(employee);
+    const passkeys = await listPasskeys(userId);
+    if (!passkeys.length) return res.status(404).json({ ok:false, message:'此帳號尚未設定快速登入，請改用密碼' });
+    const options = await generateAuthenticationOptions({
+      rpID: RP_ID,
+      userVerification: 'required',
+      allowCredentials: passkeys.map(p => ({ id:p.credentialId, transports:p.transports || [] })),
+    });
+    await saveChallenge(userId, `stepup_${purpose}`, options.challenge);
+    res.json({ ok:true, publicKey:options });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ ok:false, message:err?.message || '無法啟動快速驗證' });
+  }
+});
+
+app.post('/auth/step-up/passkey/verify', async (req,res) => {
+  try {
+    const account = clean(req.body?.account);
+    const purpose = normalizeSensitivePurpose(req.body?.purpose);
+    const response = req.body?.credential;
+    if (!account || !response?.id) return res.status(400).json({ ok:false, message:'資料不完整' });
+    const employee = await lookupEmployee(account);
+    if (!employee || !employee.canLogin || !employee.role) return res.status(401).json({ ok:false, message:'帳號不可登入' });
+    const userId = userDocId(employee);
+    const challenge = await loadChallenge(userId, `stepup_${purpose}`);
+    const snap = await db.collection('passkeys').doc(response.id).get();
+    if (!snap.exists) return res.status(401).json({ ok:false, message:'找不到已登錄的快速登入憑證' });
+    const stored = snap.data();
+    if (stored.userId !== userId) return res.status(401).json({ ok:false, message:'快速登入憑證不屬於此帳號' });
+    const verification = await verifyAuthenticationResponse({
+      response,
+      expectedChallenge: challenge.challenge,
+      expectedOrigin: ALLOWED_ORIGINS,
+      expectedRPID: RP_ID,
+      requireUserVerification: true,
+      credential: {
+        id: stored.credentialId,
+        publicKey: Uint8Array.from(Buffer.from(stored.publicKey, 'base64url')),
+        counter: Number(stored.counter || 0),
+        transports: stored.transports || [],
+      },
+    });
+    if (!verification.verified) return res.status(401).json({ ok:false, message:'快速驗證失敗' });
+    await snap.ref.set({
+      counter: Number(verification.authenticationInfo?.newCounter ?? stored.counter ?? 0),
+      lastUsedAt: Date.now(),
+    }, { merge:true });
+    await challenge.ref.delete();
+    const grant = await issueSensitiveToken(employee, purpose);
+    res.json({ ok:true, ...grant, role:employee.role, employee:publicEmployee(employee) });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ ok:false, message:err?.message || '快速驗證失敗' });
+  }
+});
+
+app.post('/auth/step-up/validate', async (req,res) => {
+  try {
+    const token = clean(req.body?.token);
+    const account = clean(req.body?.account);
+    const purpose = normalizeSensitivePurpose(req.body?.purpose);
+    if (!token || !account) return res.status(401).json({ ok:false, message:'缺少敏感操作憑證' });
+    const ref = db.collection('sensitiveTokens').doc(sensitiveTokenHash(token));
+    const snap = await ref.get();
+    if (!snap.exists) return res.status(401).json({ ok:false, message:'驗證憑證無效，請重新驗證' });
+    const grant = snap.data() || {};
+    if (Number(grant.expiresAt || 0) < Date.now()) {
+      await ref.delete().catch(()=>{});
+      return res.status(401).json({ ok:false, message:'驗證已超過 5 分鐘，請重新驗證' });
+    }
+    if (grant.purpose !== purpose || !accountMatchesToken(account, grant)) {
+      return res.status(403).json({ ok:false, message:'驗證帳號或用途不符' });
+    }
+    res.json({
+      ok:true,
+      employeeNo:grant.employeeNo || '',
+      account:grant.account || '',
+      role:grant.role || '',
+      purpose:grant.purpose,
+      expiresAt:Number(grant.expiresAt || 0),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ ok:false, message:err?.message || '憑證檢查失敗' });
   }
 });
 
