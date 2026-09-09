@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.7.7</title>
+  <title>和美智慧校園｜打卡與出勤 v2.7.8</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -76,7 +76,7 @@
   <header class="top">
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.7.7 返回鍵右上｜精簡功能入口</span>
+    <span class="version">v2.7.8 過去請假紀錄不可自行取消</span>
   </header>
 
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
@@ -994,8 +994,21 @@
   function addRecord(title,note){const key=`heremay.activityRecords.${employeeKey()}`,arr=JSON.parse(localStorage.getItem(key)||'[]');arr.unshift({title,note,time:new Date().toLocaleString('zh-TW',{hour12:false})});localStorage.setItem(key,JSON.stringify(arr.slice(0,30)))}
   function allPunches(){if(cloudReady)return cloudPunches;const prefix=`heremay.attendance.${employeeKey()}.`;const rows=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(prefix)){try{const x=JSON.parse(localStorage.getItem(k)||'{}');x.date=x.date||k.slice(prefix.length);rows.push(x)}catch(e){}}}return rows}
   function renderAttendance(){const now=new Date(),ym=`${now.getFullYear()}-${pad(now.getMonth()+1)}`;attendanceMonthTag.textContent=`${now.getFullYear()} 年 ${now.getMonth()+1} 月`;const punches=allPunches().filter(x=>String(x.date||'').startsWith(ym)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));const leaves=(cloudReady?cloudMyLeaves:JSON.parse(localStorage.getItem(leaveKey())||'[]')).filter(x=>String(x.date||'').startsWith(ym)&&!['已取消','駁回'].includes(x.status));workDaysCount.textContent=punches.filter(x=>x.in).length;lateCount.textContent=punches.filter(x=>Number(x.late)>0).length;lateTotal.textContent=punches.reduce((s,x)=>s+Number(x.late||0),0);leaveDaysCount.textContent=leaves.reduce((s,x)=>s+(x.period==='全天'?1:.5),0);const rows=[...punches.map(x=>({date:x.date,title:'出勤',note:`上班 ${x.in||'--:--'}｜下班 ${x.out||'--:--'}${x.late?`｜遲到 ${x.late} 分鐘`:''}`})),...leaves.map(x=>({date:x.date,title:x.type,note:`${x.period}｜${x.status}`}))].sort((a,b)=>b.date.localeCompare(a.date));attendanceMonthList.innerHTML=rows.length?rows.map(x=>`<div class="month-row"><strong>${x.date}</strong><span>${x.title}</span><span>${x.note}</span></div>`).join(''):'<div class="empty-note">本月尚無出勤或請假資料</div>'}
-  function canCancelLeave(row){return !['已取消','駁回'].includes(String(row.status||''))}
-  function cancelLeaveById(leaveId){const row=(cloudReady?cloudMyLeaves:JSON.parse(localStorage.getItem(leaveKey())||'[]')).find(x=>String(x.leaveId||'')===String(leaveId||''));if(!row||!canCancelLeave(row)){toastMsg('找不到這筆有效請假，請重新整理後再試');return}if(!confirm(`確定取消 ${row.date} ${row.period}的${row.type}嗎？`))return;postAttendance('cancelLeave',{leaveId,employeeId:employeeKey(),reason:'員工自行取消'},'cancelLeave')}
+  function canCancelLeave(row){
+    const status=String(row.status||'');
+    const leaveDate=String(row.date||'').slice(0,10);
+    return !['已取消','駁回','已駁回'].includes(status) && !!leaveDate && leaveDate>=todayKey();
+  }
+  function cancelLeaveById(leaveId){
+    const row=(cloudReady?cloudMyLeaves:JSON.parse(localStorage.getItem(leaveKey())||'[]')).find(x=>String(x.leaveId||'')===String(leaveId||''));
+    if(row&&String(row.date||'').slice(0,10)<todayKey()){
+      toastMsg('過去日期的請假已成為考勤紀錄，不能自行取消');
+      return;
+    }
+    if(!row||!canCancelLeave(row)){toastMsg('找不到這筆可取消的請假，請重新整理後再試');return}
+    if(!confirm(`確定取消 ${row.date} ${row.period}的${row.type}嗎？`))return;
+    postAttendance('cancelLeave',{leaveId,employeeId:employeeKey(),reason:'員工自行取消'},'cancelLeave');
+  }
   function leaveCardHtml(x,withCancel=true){
     const stateClass=x.status==='待審核'?'pending':'';
     const cancelBtn=withCancel&&canCancelLeave(x)?`<button class="cancel-leave" onclick="cancelLeaveById('${String(x.leaveId||'').replace(/'/g,"\'")}')">取消這筆已送出的請假</button>`:'';
