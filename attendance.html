@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.7.5</title>
+  <title>和美智慧校園｜打卡與出勤 v2.7.6</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -76,7 +76,7 @@
   <header class="top">
     <button class="back" onclick="goBack()">← 返回</button>
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
-    <span class="version">v2.7.5 已請假隱藏重複申請</span>
+    <span class="version">v2.7.6 修正重複狀況回報欄</span>
   </header>
 
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
@@ -1132,21 +1132,18 @@
   }
 
   function openAttendanceReport(){
-    const sel=document.getElementById('reportReason');
-    if(sel)sel.innerHTML=abnormalReasonOptions();
     document.getElementById('reportNote').value='';
     document.getElementById('attendanceReportModal').classList.add('show');
   }
   function closeAttendanceReport(){document.getElementById('attendanceReportModal').classList.remove('show')}
   async function submitAttendanceReport(){
     const type=String(document.getElementById('reportType').value||'其他');
-    const reason=String(document.getElementById('reportReason').value||'其他');
     const note=String(document.getElementById('reportNote').value||'').trim().slice(0,15);
     const s=workSchedule();
     const payload={
       type:'出勤狀況',
       title:`${employeeNameText()}｜${type}`,
-      content:[type,reason,note,s.name].filter(Boolean).join('｜'),
+      content:[type,note,s.name].filter(Boolean).join('｜'),
       department:attendanceDepartment(),
       reporter:employeeNameText(),
       employeeId:employeeKey(),
@@ -1179,7 +1176,6 @@
       <h2>⚠️ 出勤狀況回報</h2>
       <div class="form-row">
         <select class="input wide" id="reportType"><option>會遲到</option><option>臨時請假</option><option>忘記打卡</option><option>班別臨時更換</option><option>其他</option></select>
-        <select class="input wide" id="reportReason"></select>
         <input class="input wide" id="reportNote" maxlength="15" placeholder="補充說明，15字內">
       </div>
       <div class="hint">這只是先通知主管，不會自動完成請假、補卡或修改考勤。</div>
