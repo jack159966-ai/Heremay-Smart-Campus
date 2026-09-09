@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>和美智慧校園｜出缺勤統計 v1.5.3</title>
+<title>和美智慧校園｜出缺勤統計 v1.5.4</title>
 <style>
 :root{--blue:#1768ac;--navy:#17324d;--line:#d7e0e9;--soft:#f3f7fb;--red:#b42318;--amber:#a15c00;--green:#16734a}
 *{box-sizing:border-box}body{margin:0;background:#edf3f8;color:#1e2936;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif}
@@ -35,6 +35,7 @@ th{background:#f5f8fb;color:#40556b;position:sticky;top:0;z-index:1}.name{text-a
 .modal-card{width:min(620px,96vw);background:#fff;border-radius:18px;padding:18px}.modal-card h3{margin:0 0 12px}
 .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.form-grid .full{grid-column:1/-1}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
 .small{font-size:11px;color:#68798a}.hidden{display:none}
+.auth-account{margin:10px 0 12px;border:1px solid var(--line);border-radius:12px;padding:11px;background:var(--soft);line-height:1.6;font-weight:800}.auth-stack{display:grid;gap:9px}.auth-stack button{width:100%}.auth-password{display:none;margin-top:10px}.auth-password.show{display:block}.auth-password input{width:100%;text-align:center;font-size:20px;font-weight:900;letter-spacing:5px}.auth-error{min-height:20px;margin-top:8px;color:var(--red);font-size:12px;font-weight:900}
 @media(max-width:850px){header,main{display:none}body:after{content:"此功能僅限電腦操作";display:flex;min-height:100vh;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#66788a}}
 @media print{
  @page{size:A4 portrait;margin:12mm 10mm 12mm 14mm}
@@ -77,7 +78,7 @@ th{background:#f5f8fb;color:#40556b;position:sticky;top:0;z-index:1}.name{text-a
 <body>
 <header>
  <div class="wrap">
-  <div><h1>出缺勤統計</h1><p>v1.5.3｜分年分月統計、整天未打卡、半天假、主管撤銷請假、出勤補正與 PDF</p></div>
+  <div><h1>出缺勤統計</h1><p>v1.5.4｜主管敏感操作每次重新驗證</p></div>
   <button class="light no-print" onclick="location.href='admin.html'">返回主管首頁</button>
  </div>
 </header>
@@ -143,8 +144,21 @@ th{background:#f5f8fb;color:#40556b;position:sticky;top:0;z-index:1}.name{text-a
  </div>
 </div>
 
+<div id="sensitiveAuthModal" class="modal">
+ <div class="modal-card" style="width:min(480px,96vw)">
+  <h3>🔐 請確認主管本人操作</h3>
+  <div class="auth-account">目前登入：<strong id="sensitiveAuthName">—</strong><br>帳號：<span id="sensitiveAuthAccount">—</span></div>
+  <div class="auth-stack"><button class="primary" id="sensitivePasskeyBtn" onclick="verifySensitiveWithPasskey()">使用 Face ID／快速登入</button><button class="light" onclick="showSensitivePassword()">改用 6 位數密碼</button></div>
+  <div class="auth-password" id="sensitivePasswordBox"><input id="sensitivePassword" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" onkeydown="if(event.key==='Enter')verifySensitiveWithPassword()"><button class="primary" style="width:100%;margin-top:9px" onclick="verifySensitiveWithPassword()">確認密碼</button></div>
+  <div class="auth-error" id="sensitiveAuthError"></div>
+  <div class="small">每次補正出勤或撤銷請假都會重新驗證；只能使用目前登入的主管帳號。</div>
+  <div class="actions"><button class="light" onclick="cancelSensitiveAuth()">取消</button></div>
+ </div>
+</div>
+
 <script>
 const SERVICE_URL='https://script.google.com/macros/s/AKfycbzQIkRS3hLLiDMQj6WV6SyeEmFHO80f_Sl9qHciPkWpXZfuzggmfdTRLjtbvhhMZ624Zw/exec';
+const PASSKEY_API_BASE='https://heremay-passkey-backend-943533867342.asia-east1.run.app';
 const UNPAID_TYPES=['事假','病假','生理假','家庭照顧假','扣薪假'];
 const ATTENDANCE_RULES={
   kindergarten:{
@@ -161,6 +175,24 @@ const ATTENDANCE_RULES={
 };
 
 let data={employees:[],punches:[],leaves:[]}, selected=null, detailMode='month';
+let sensitiveGrant=null,sensitiveAuthPending=null;
+
+function currentOperator(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'null')||{}}catch(e){return{}}}
+function operatorAccount(){const e=currentOperator();return String(localStorage.getItem('heremay.lastFaceAccount')||e.account||e.loginAccount||e.username||e.employeeId||e.id||e['員工編號']||'').trim()}
+function operatorName(){const e=currentOperator();return String(e.name||e['姓名']||'主管').trim()}
+function bytesToBase64url(bytes){let binary='';bytes.forEach(b=>binary+=String.fromCharCode(b));return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function base64urlToBytes(value){const padding='='.repeat((4-value.length%4)%4),binary=atob((value+padding).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(binary,c=>c.charCodeAt(0))}
+function normalizePublicKeyOptions(options){const copy=typeof structuredClone==='function'?structuredClone(options):JSON.parse(JSON.stringify(options));if(copy.challenge)copy.challenge=base64urlToBytes(copy.challenge);if(Array.isArray(copy.allowCredentials))copy.allowCredentials=copy.allowCredentials.map(x=>({...x,id:base64urlToBytes(x.id)}));return copy}
+function credentialToJSON(credential){const r=credential.response,j={id:credential.id,rawId:bytesToBase64url(new Uint8Array(credential.rawId)),type:credential.type,clientExtensionResults:credential.getClientExtensionResults(),response:{}};if(r.clientDataJSON)j.response.clientDataJSON=bytesToBase64url(new Uint8Array(r.clientDataJSON));if(r.authenticatorData)j.response.authenticatorData=bytesToBase64url(new Uint8Array(r.authenticatorData));if(r.signature)j.response.signature=bytesToBase64url(new Uint8Array(r.signature));if(r.userHandle)j.response.userHandle=bytesToBase64url(new Uint8Array(r.userHandle));return j}
+async function sensitiveApiPost(path,body){const c=new AbortController(),timer=setTimeout(()=>c.abort(),15000);try{const response=await fetch(`${PASSKEY_API_BASE}${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{}),signal:c.signal});const result=await response.json().catch(()=>({}));if(!response.ok||!result.ok)throw new Error(result.message||`驗證服務錯誤 HTTP ${response.status}`);return result}catch(e){if(e&&e.name==='AbortError')throw new Error('驗證連線逾時');throw e}finally{clearTimeout(timer)}}
+function sensitiveFields(){return sensitiveGrant&&sensitiveGrant.token?{sensitiveToken:sensitiveGrant.token,sensitivePurpose:'attendance_admin',authAccount:operatorAccount()}: {}}
+function setSensitiveAuthState(busy,message=''){document.getElementById('sensitivePasskeyBtn').disabled=busy;document.getElementById('sensitiveAuthError').textContent=message}
+function requireSensitiveAuth(){if(sensitiveAuthPending)return sensitiveAuthPending.promise;const account=operatorAccount();if(!account){alert('找不到目前登入的主管帳號，請返回首頁重新登入。');return Promise.resolve(false)}let resolvePromise;const promise=new Promise(resolve=>resolvePromise=resolve);sensitiveAuthPending={promise,resolve:resolvePromise};document.getElementById('sensitiveAuthName').textContent=operatorName();document.getElementById('sensitiveAuthAccount').textContent=account;document.getElementById('sensitivePassword').value='';document.getElementById('sensitivePasswordBox').classList.remove('show');setSensitiveAuthState(false,'');document.getElementById('sensitiveAuthModal').classList.add('show');return promise}
+function finishSensitiveAuth(grant){sensitiveGrant={token:grant.token,expiresAt:Number(grant.expiresAt||0)};document.getElementById('sensitiveAuthModal').classList.remove('show');const p=sensitiveAuthPending;sensitiveAuthPending=null;if(p)p.resolve(true)}
+function cancelSensitiveAuth(){document.getElementById('sensitiveAuthModal').classList.remove('show');const p=sensitiveAuthPending;sensitiveAuthPending=null;if(p)p.resolve(false)}
+function showSensitivePassword(){document.getElementById('sensitivePasswordBox').classList.add('show');setTimeout(()=>document.getElementById('sensitivePassword').focus(),50)}
+async function verifySensitiveWithPassword(){const password=String(document.getElementById('sensitivePassword').value||'');if(!/^\d{6}$/.test(password)){setSensitiveAuthState(false,'請輸入本人 6 位數密碼');return}setSensitiveAuthState(true,'正在確認密碼…');try{finishSensitiveAuth(await sensitiveApiPost('/auth/step-up/password',{account:operatorAccount(),password,purpose:'attendance_admin'}))}catch(e){setSensitiveAuthState(false,e.message||'驗證失敗')}}
+async function verifySensitiveWithPasskey(){if(!window.PublicKeyCredential||!navigator.credentials){showSensitivePassword();setSensitiveAuthState(false,'此裝置不支援快速登入，請使用密碼');return}setSensitiveAuthState(true,'正在啟動快速登入…');try{const options=await sensitiveApiPost('/auth/step-up/passkey/options',{account:operatorAccount(),purpose:'attendance_admin'});const credential=await navigator.credentials.get({publicKey:normalizePublicKeyOptions(options.publicKey)});finishSensitiveAuth(await sensitiveApiPost('/auth/step-up/passkey/verify',{account:operatorAccount(),purpose:'attendance_admin',credential:credentialToJSON(credential)}))}catch(e){setSensitiveAuthState(false,e.message||'快速登入失敗')}}
 
 function pad(n){return String(n).padStart(2,'0')}
 function fmtMin(n){n=Math.max(0,Math.round(Number(n)||0));return n>=60?`${Math.floor(n/60)}時${n%60?`${n%60}分`:''}`:`${n}分`}
@@ -447,8 +479,10 @@ function openEdit(date){
 }
 function closeEdit(){document.getElementById('editModal').classList.remove('show')}
 async function saveAdjustment(){
- const payload={employeeId:document.getElementById('eEmployeeId').value,employeeName:selected.employeeName,pool:selected.pool,date:document.getElementById('eDate').value,scheduledIn:document.getElementById('eScheduledIn').value,scheduledOut:document.getElementById('eScheduledOut').value,actualIn:document.getElementById('eActualIn').value,actualOut:document.getElementById('eActualOut').value,requiredMinutes:Number(document.getElementById('eRequired').value||0),otherShortage:Number(document.getElementById('eOther').value||0),adminNote:document.getElementById('eNote').value};
+ let payload={employeeId:document.getElementById('eEmployeeId').value,employeeName:selected.employeeName,pool:selected.pool,date:document.getElementById('eDate').value,scheduledIn:document.getElementById('eScheduledIn').value,scheduledOut:document.getElementById('eScheduledOut').value,actualIn:document.getElementById('eActualIn').value,actualOut:document.getElementById('eActualOut').value,requiredMinutes:Number(document.getElementById('eRequired').value||0),otherShortage:Number(document.getElementById('eOther').value||0),adminNote:document.getElementById('eNote').value};
  if(!confirm(`確定儲存 ${payload.employeeName} ${payload.date} 的出勤補正嗎？`))return;
+ if(!await requireSensitiveAuth())return;
+ payload={...payload,...sensitiveFields()};
  try{
   const r=await jsonpRetry(`${SERVICE_URL}?action=saveAttendanceAdjustment&payload=${encodeURIComponent(JSON.stringify(payload))}`,2);
   if(!r.ok)throw new Error(r.message||'儲存失敗');
@@ -463,7 +497,8 @@ async function adminCancelLeave(leaveId,date,leaveType){
  if(!String(reason).trim()){alert('請填寫撤銷原因。');return}
  if(!confirm(`確定由主管撤銷 ${selected.employeeName} ${date} 的${leaveType}嗎？\n\n原申請會保留，狀態改為已取消。`))return;
  const employeeId=selected.employeeId;
- const payload={leaveId,employeeId,reason:`主管撤銷：${String(reason).trim()}`,cancelledBy:'主管',operatorRole:'admin'};
+ if(!await requireSensitiveAuth())return;
+ const payload={leaveId,employeeId,reason:`主管撤銷：${String(reason).trim()}`,cancelledBy:operatorName(),operatorRole:'admin',...sensitiveFields()};
  try{
   const r=await jsonpRetry(`${SERVICE_URL}?action=cancelLeave&payload=${encodeURIComponent(JSON.stringify(payload))}`,2);
   if(!r.ok)throw new Error(r.message||'撤銷失敗');
