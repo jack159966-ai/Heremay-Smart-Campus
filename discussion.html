@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v3.11</title>
+<title>和美智慧校園｜討論區 v3.12</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -309,16 +309,30 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
   }
 }
 
+/* v3.12：截圖風險提示，依目前登入者動態顯示姓名、帳號與時間 */
+.securityWatermark{
+  position:fixed;inset:-18vh -22vw;z-index:95;pointer-events:none;
+  overflow:hidden;display:grid;grid-template-columns:repeat(3,minmax(280px,1fr));
+  gap:90px 34px;align-content:center;transform:rotate(-22deg);
+  opacity:.075;color:#173f5b;font-size:13px;font-weight:900;
+  letter-spacing:.5px;white-space:nowrap;user-select:none
+}
+.securityWatermark span{text-align:center}
+@media(max-width:520px){
+  .securityWatermark{grid-template-columns:repeat(2,minmax(230px,1fr));gap:78px 18px;font-size:12px}
+}
+
 </style>
 </head>
 <body>
+<div class="securityWatermark" id="securityWatermark" aria-hidden="true"></div>
 <main class="phone">
 <header class="top">
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一主題｜結案可封存</p></div>
   <button class="back" onclick="goBack()">← 返回</button>
 </header>
 <div class="version-refresh-row">
-  <span class="version">討論區 v3.11</span>
+  <span class="version">討論區 v3.12</span>
   <button class="refreshBtn" id="refreshDiscussionBtn" type="button" onclick="refreshDiscussionPage()">🔄 同步／檢查最新版</button>
 </div>
 
@@ -442,6 +456,19 @@ let employee=readEmployee();
 let currentUser=employee.name||employee['姓名']||'同仁';
 let currentUserId=employee.employeeId||employee.id||employee['員工編號']||'';
 
+function updateSecurityWatermark(){
+  const box=document.getElementById('securityWatermark');
+  if(!box)return;
+  const account=employee.account||employee.loginAccount||employee.username||currentUserId||'未取得帳號';
+  const stamp=new Date().toLocaleString('zh-TW',{hour12:false});
+  const label=`和美內部資料｜${currentUser}（${account}）｜${stamp}`;
+  box.replaceChildren(...Array.from({length:24},()=>{
+    const span=document.createElement('span');
+    span.textContent=label;
+    return span;
+  }));
+}
+
 function readEmployee(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'null')||{}}catch(e){return{}}}
 function isGuest(){const t=[employee.role,employee.identityCategory,employee.jobTitle,employee.group,employee.homeType].filter(Boolean).join('｜');return /外聘|協作|專科/.test(t)||new URLSearchParams(location.search).get('guest')==='1'}
 function userLabel(){return [employee.jobTitle||employee.title||'',employee.group||employee.department||''].filter(Boolean).join('｜')||(isGuest()?'外聘協作人員':'和美同仁')}
@@ -506,6 +533,7 @@ async function loadEmployeeDirectory(){
     const me=employeeDirectory.find(x=>x.name===currentUser);
     if(me) currentUserId=me.employeeId||'';
   }
+  updateSecurityWatermark();
   return employeeDirectory;
 }
 
@@ -1680,7 +1708,7 @@ async function refreshDiscussionPage(){
       await Promise.all(keys.map(key=>caches.delete(key)));
     }
     const url=new URL(location.href);
-    url.searchParams.set('v','3.11');
+    url.searchParams.set('v','3.12');
     url.searchParams.set('refresh',Date.now());
     setTimeout(()=>location.replace(url.toString()),500);
   }catch(error){
@@ -1691,6 +1719,8 @@ async function refreshDiscussionPage(){
   }
 }
 
+updateSecurityWatermark();
+setInterval(updateSecurityWatermark,60000);
 init();
 </script>
 </body>
