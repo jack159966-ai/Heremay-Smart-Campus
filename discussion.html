@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v3.9</title>
+<title>和美智慧校園｜討論區 v3.10</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
 button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:auto;padding:16px 15px 40px}
 .top{display:flex;gap:10px;align-items:flex-start}.back{border:0;background:#fff;border-radius:14px;padding:10px 12px;font-weight:900;color:#3d7399;box-shadow:var(--shadow);cursor:pointer;white-space:nowrap}
-.title{flex:1}.title h1{margin:0;color:#245c84;font-size:24px}.title p{margin:4px 0 0;color:var(--muted);font-size:13px;font-weight:750}.version{font-size:11px;font-weight:900;color:#fff;background:var(--blue);border-radius:999px;padding:5px 8px}
+.title{flex:1}.title h1{margin:0;color:#245c84;font-size:24px}.title p{margin:4px 0 0;color:var(--muted);font-size:13px;font-weight:750}.version-refresh-row{display:flex;align-items:center;gap:10px;margin:12px 0 2px}.version{flex:1;font-size:13px;font-weight:900;color:#567386}.refreshBtn{border:1px solid #b9dff2;background:linear-gradient(135deg,#fff,#e7f5fc);color:#2d6489;border-radius:16px;padding:11px 13px;font-size:14px;font-weight:900;cursor:pointer}.refreshBtn[disabled]{opacity:.65;cursor:wait}
 .card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:15px;margin-top:14px;box-shadow:var(--shadow)}
 .userline{display:flex;justify-content:space-between;gap:10px;align-items:center}.userline strong{font-size:18px;color:#245c84}.userline span{display:block;color:var(--muted);font-size:12px;font-weight:750;margin-top:3px}
 .primary{border:0;border-radius:14px;padding:11px 14px;background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;font-weight:950;cursor:pointer}
@@ -315,9 +315,12 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 <main class="phone">
 <header class="top">
   <div class="title"><h1>討論區</h1><p>公務交流｜一事一主題｜結案可封存</p></div>
-  <span class="version">v3.9</span>
   <button class="back" onclick="goBack()">← 返回</button>
 </header>
+<div class="version-refresh-row">
+  <span class="version">討論區 v3.10</span>
+  <button class="refreshBtn" id="refreshDiscussionBtn" type="button" onclick="refreshDiscussionPage()">🔄 同步／檢查最新版</button>
+</div>
 
 <section class="card userline">
   <div><strong id="userName">讀取登入資料中…</strong><span id="userRole"></span></div>
@@ -1640,6 +1643,36 @@ async function init(){
     }
   }catch(err){
     roomList.innerHTML=`<div class="empty">⚠️ ${esc(err.message)}<br>請稍後重新整理。</div>`;
+  }
+}
+
+async function refreshDiscussionPage(){
+  const btn=document.getElementById('refreshDiscussionBtn');
+  btn.disabled=true;
+  btn.textContent='🔄 正在檢查最新版…';
+  toastMsg('正在清除舊版並檢查最新版…');
+  try{
+    if('serviceWorker' in navigator){
+      const registrations=await navigator.serviceWorker.getRegistrations();
+      for(const registration of registrations){
+        await registration.update().catch(()=>{});
+        if(registration.waiting)registration.waiting.postMessage({type:'SKIP_WAITING'});
+        if(registration.active)registration.active.postMessage({type:'CLEAR_CACHES'});
+      }
+    }
+    if('caches' in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.map(key=>caches.delete(key)));
+    }
+    const url=new URL(location.href);
+    url.searchParams.set('v','3.10');
+    url.searchParams.set('refresh',Date.now());
+    setTimeout(()=>location.replace(url.toString()),500);
+  }catch(error){
+    console.warn('討論區更新失敗：',error);
+    btn.disabled=false;
+    btn.textContent='🔄 同步／檢查最新版';
+    toastMsg('⚠️ 更新未完成，請檢查網路後再試');
   }
 }
 
