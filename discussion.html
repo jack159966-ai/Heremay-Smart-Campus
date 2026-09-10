@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v3.10</title>
+<title>和美智慧校園｜討論區 v3.11</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -318,7 +318,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
   <button class="back" onclick="goBack()">← 返回</button>
 </header>
 <div class="version-refresh-row">
-  <span class="version">討論區 v3.10</span>
+  <span class="version">討論區 v3.11</span>
   <button class="refreshBtn" id="refreshDiscussionBtn" type="button" onclick="refreshDiscussionPage()">🔄 同步／檢查最新版</button>
 </div>
 
@@ -1308,6 +1308,21 @@ function appendSentMessageLocally({messageId,text,attachments,createdAt}){
   wrap.dataset.authorName=currentUser||'';
   wrap.innerHTML=`<div class="msgHead"><strong>${esc(currentUser||'同仁')}</strong><span class="time">${fmt(createdAt)}</span>${delBtn}</div>${textHtml}${attachHtml}`;
   messageList.appendChild(wrap);
+  // 同步更新檔案區使用的本機訊息清單；附件上傳完成後不必再等雲端重讀。
+  currentRoomMessages.push({
+    messageId:messageId,
+    roomId:currentRoomId,
+    authorId:currentUserId||'',
+    authorName:currentUser||'',
+    text:text||'',
+    createdAt:createdAt,
+    attachments:(attachments||[]).map(a=>({
+      ...a,
+      uploaderId:a.uploaderId||currentUserId||'',
+      uploaderName:a.uploaderName||currentUser||'',
+      uploadedAt:a.uploadedAt||createdAt
+    }))
+  });
   wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
@@ -1665,7 +1680,7 @@ async function refreshDiscussionPage(){
       await Promise.all(keys.map(key=>caches.delete(key)));
     }
     const url=new URL(location.href);
-    url.searchParams.set('v','3.10');
+    url.searchParams.set('v','3.11');
     url.searchParams.set('refresh',Date.now());
     setTimeout(()=>location.replace(url.toString()),500);
   }catch(error){
