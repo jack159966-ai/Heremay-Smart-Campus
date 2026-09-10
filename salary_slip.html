@@ -2,16 +2,28 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>和美智慧校園｜我的薪資條 v1.3</title>
+<title>和美智慧校園｜我的薪資條 v1.4</title>
 <style>
 body{margin:0;background:#fff4f8;color:#442334;font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif}.wrap{max-width:760px;margin:auto;padding:16px}header{background:linear-gradient(135deg,#f06b9b,#df4f84);color:#fff;border-radius:18px;padding:18px}h1{margin:0;font-size:23px}header p{margin:6px 0 0;font-weight:700}.top{display:flex;justify-content:space-between;align-items:center;gap:10px}.back{border:0;border-radius:10px;padding:9px 12px;background:#fff;color:#c23f73;font-weight:900}.status{margin:12px 0;padding:11px;background:#fff;border:1px solid #f0cbd8;border-radius:12px;font-weight:800}.list{display:grid;gap:10px}.item{background:#fff;border:1px solid #efc9d7;border-radius:14px;padding:14px;display:flex;justify-content:space-between;align-items:center;gap:12px}.item h3{margin:0}.item p{margin:4px 0 0;color:#806171}.item button{border:0;border-radius:10px;padding:9px 12px;background:#df4f84;color:#fff;font-weight:900}.modal{position:fixed;inset:0;background:rgba(54,24,39,.68);display:none;align-items:center;justify-content:center;padding:14px}.modal.show{display:flex}.card{width:min(700px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;padding:16px}.slip{border:1px solid #111;padding:14px}.slip h2{text-align:center;margin:0 0 4px}.meta{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:10px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #111;padding:8px;text-align:left}.total{font-weight:900;font-size:17px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}.actions button{border:0;border-radius:10px;padding:9px 12px;font-weight:900}.print{background:#df4f84;color:#fff}.close{background:#eee}
+.auth-modal{position:fixed;inset:0;z-index:1000;background:rgba(54,24,39,.68);display:none;align-items:center;justify-content:center;padding:16px}.auth-modal.show{display:flex}.auth-card{width:min(480px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:22px;box-sizing:border-box}.auth-card h2{margin:0 0 16px;font-size:25px}.auth-account{padding:14px;border:1px solid #efc9d7;border-radius:14px;background:#fff8fb;font-size:17px;line-height:1.7}.auth-stack{display:grid;gap:10px;margin-top:14px}.auth-card button{width:100%;border:0;border-radius:14px;padding:14px;font-size:17px;font-weight:900}.auth-primary{background:#df4f84;color:#fff}.auth-light{background:#f5eaf0;color:#70344f}.auth-password{display:none;margin-top:12px}.auth-password.show{display:block}.auth-password input{width:100%;box-sizing:border-box;border:1px solid #e6b9ca;border-radius:12px;padding:13px;font-size:20px;text-align:center;letter-spacing:4px}.auth-small{margin-top:8px;color:#806171;font-size:14px;font-weight:700;line-height:1.55}.auth-error{min-height:24px;margin-top:8px;color:#bd2f61;font-weight:900}
 @media print{@page{size:A4 portrait;margin:14mm}body{background:#fff}.wrap,.actions{display:none!important}.modal{position:static!important;display:block!important;background:#fff!important;padding:0!important}.card{width:auto!important;max-height:none!important;overflow:visible!important;padding:0!important}.slip{border:1px solid #000}}
 </style></head>
 <body>
 <div class="wrap"><header><div class="top"><div><h1>我的薪資條</h1><p>僅顯示已由園方正式發放的薪資資料</p></div><button class="back" onclick="location.href='teacher.html'">返回首頁</button></div></header><div id="status" class="status">正在讀取薪資條……</div><div id="list" class="list"></div></div>
 <div id="modal" class="modal"><div class="card"><div id="slip" class="slip"></div><div class="actions"><button class="close" onclick="closeModal()">關閉</button><button class="print" onclick="window.print()">列印／另存 PDF</button></div></div></div>
+<div id="salaryAuthModal" class="auth-modal"><div class="auth-card">
+ <h2>🔐 請確認本人操作</h2>
+ <div class="auth-account">目前登入：<strong id="salaryAuthName">—</strong><br>帳號：<strong id="salaryAuthAccount">—</strong></div>
+ <div class="auth-stack"><button class="auth-primary" id="salaryPasskeyBtn" onclick="verifySalaryWithPasskey()">使用 Face ID／快速登入</button><button class="auth-light" onclick="showSalaryPassword()">改用 6 位數密碼</button></div>
+ <div class="auth-password" id="salaryPasswordBox"><input id="salaryPassword" type="text" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="請輸入 6 位數字" oninput="sanitizeSalaryPassword()" onkeydown="if(event.key==='Enter')verifySalaryWithPassword()"><div id="salaryPasswordCount" class="auth-small" style="text-align:center">已輸入 0／6 位</div><button class="auth-primary" style="margin-top:9px" onclick="verifySalaryWithPassword()">確認密碼</button></div>
+ <div class="auth-error" id="salaryAuthError"></div>
+ <div class="auth-small">薪資資料屬於個人敏感資料；只能使用目前登入者的帳號驗證，不能切換其他人。</div>
+ <button class="auth-light" style="margin-top:14px" onclick="cancelSalaryAuth()">取消並返回首頁</button>
+</div></div>
 <script>
-const SERVICE_URL='https://script.google.com/macros/s/AKfycbzQIkRS3hLLiDMQj6WV6SyeEmFHO80f_Sl9qHciPkWpXZfuzggmfdTRLjtbvhhMZ624Zw/exec';let slips=[];
+const SERVICE_URL='https://script.google.com/macros/s/AKfycbzQIkRS3hLLiDMQj6WV6SyeEmFHO80f_Sl9qHciPkWpXZfuzggmfdTRLjtbvhhMZ624Zw/exec';
+const PASSKEY_API_BASE='https://heremay-passkey-backend-943533867342.asia-east1.run.app';
+let slips=[],salaryAuthPending=null,salarySessionUnlocked=false;
 function money(n){return new Intl.NumberFormat('zh-TW',{style:'currency',currency:'TWD',maximumFractionDigits:0}).format(Number(n)||0)}
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function jsonp(url){return new Promise((resolve,reject)=>{const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script');window[cb]=r=>{resolve(r);delete window[cb];s.remove()};s.onerror=()=>reject(new Error('連線失敗'));s.src=url+(url.includes('?')?'&':'?')+'callback='+cb;document.body.appendChild(s)})}
@@ -30,6 +42,22 @@ function currentIdentity(){
 
  return {employeeId,account,employeeName,loginAccount,objectId};
 }
+function bytesToBase64url(bytes){let binary='';bytes.forEach(b=>binary+=String.fromCharCode(b));return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function base64urlToBytes(value){const padding='='.repeat((4-value.length%4)%4),binary=atob((value+padding).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(binary,c=>c.charCodeAt(0))}
+function normalizePublicKeyOptions(options){const copy=typeof structuredClone==='function'?structuredClone(options):JSON.parse(JSON.stringify(options));if(copy.challenge)copy.challenge=base64urlToBytes(copy.challenge);if(Array.isArray(copy.allowCredentials))copy.allowCredentials=copy.allowCredentials.map(x=>({...x,id:base64urlToBytes(x.id)}));return copy}
+function credentialToJSON(credential){const r=credential.response,j={id:credential.id,rawId:bytesToBase64url(new Uint8Array(credential.rawId)),type:credential.type,clientExtensionResults:credential.getClientExtensionResults(),response:{}};if(r.clientDataJSON)j.response.clientDataJSON=bytesToBase64url(new Uint8Array(r.clientDataJSON));if(r.authenticatorData)j.response.authenticatorData=bytesToBase64url(new Uint8Array(r.authenticatorData));if(r.signature)j.response.signature=bytesToBase64url(new Uint8Array(r.signature));if(r.userHandle)j.response.userHandle=bytesToBase64url(new Uint8Array(r.userHandle));return j}
+async function salaryApiPost(path,body){const c=new AbortController(),timer=setTimeout(()=>c.abort(),15000);try{const response=await fetch(`${PASSKEY_API_BASE}${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{}),signal:c.signal});const result=await response.json().catch(()=>({}));if(!response.ok||!result.ok)throw new Error(result.message||`驗證服務錯誤 HTTP ${response.status}`);return result}catch(e){if(e&&e.name==='AbortError')throw new Error('驗證連線逾時');throw e}finally{clearTimeout(timer)}}
+function salaryAccount(){return currentIdentity().account}
+function setSalaryAuthState(busy,message=''){document.getElementById('salaryPasskeyBtn').disabled=busy;document.getElementById('salaryAuthError').textContent=message}
+function requireSalaryAuth(){if(salarySessionUnlocked)return Promise.resolve(true);if(salaryAuthPending)return salaryAuthPending.promise;const who=currentIdentity();if(!who.account){alert('找不到目前登入帳號，請返回首頁重新登入。');location.href='teacher.html';return Promise.resolve(false)}let resolvePromise;const promise=new Promise(resolve=>resolvePromise=resolve);salaryAuthPending={promise,resolve:resolvePromise};document.getElementById('salaryAuthName').textContent=who.employeeName||who.account;document.getElementById('salaryAuthAccount').textContent=who.account;document.getElementById('salaryPassword').value='';document.getElementById('salaryPasswordCount').textContent='已輸入 0／6 位';document.getElementById('salaryPasswordBox').classList.remove('show');setSalaryAuthState(false,'');document.getElementById('salaryAuthModal').classList.add('show');return promise}
+function finishSalaryAuth(){salarySessionUnlocked=true;document.getElementById('salaryAuthModal').classList.remove('show');const p=salaryAuthPending;salaryAuthPending=null;if(p)p.resolve(true)}
+function cancelSalaryAuth(){document.getElementById('salaryAuthModal').classList.remove('show');const p=salaryAuthPending;salaryAuthPending=null;if(p)p.resolve(false);location.href='teacher.html'}
+function showSalaryPassword(){document.getElementById('salaryPasswordBox').classList.add('show');setTimeout(()=>document.getElementById('salaryPassword').focus(),50)}
+function normalizeDigits(value){return String(value||'').normalize('NFKC').replace(/[^0-9]/g,'').slice(0,6)}
+function sanitizeSalaryPassword(){const input=document.getElementById('salaryPassword'),password=normalizeDigits(input.value);input.value=password;document.getElementById('salaryPasswordCount').textContent=`已輸入 ${password.length}／6 位`;document.getElementById('salaryAuthError').textContent=''}
+async function verifySalaryWithPassword(){const password=normalizeDigits(document.getElementById('salaryPassword').value);if(password.length!==6){setSalaryAuthState(false,`目前只有 ${password.length} 位，請輸入完整 6 位數密碼`);return}setSalaryAuthState(true,'正在確認密碼…');try{await salaryApiPost('/auth/step-up/password',{account:salaryAccount(),password,purpose:'salary_slip'});finishSalaryAuth()}catch(e){setSalaryAuthState(false,e.message||'驗證失敗')}}
+async function verifySalaryWithPasskey(){if(!window.PublicKeyCredential||!navigator.credentials){showSalaryPassword();setSalaryAuthState(false,'此裝置不支援快速登入，請使用密碼');return}setSalaryAuthState(true,'正在啟動快速登入…');try{const options=await salaryApiPost('/auth/step-up/passkey/options',{account:salaryAccount(),purpose:'salary_slip'});const credential=await navigator.credentials.get({publicKey:normalizePublicKeyOptions(options.publicKey)});await salaryApiPost('/auth/step-up/passkey/verify',{account:salaryAccount(),purpose:'salary_slip',credential:credentialToJSON(credential)});finishSalaryAuth()}catch(e){setSalaryAuthState(false,e.message||'快速登入失敗')}}
+async function startSalaryPage(){if(!await requireSalaryAuth())return;await init()}
 async function init(){
  const who=currentIdentity();
  if(!who.employeeId&&!who.account&&!who.employeeName){
@@ -78,9 +106,10 @@ function openSlip(i){
  document.getElementById('modal').classList.add('show')
 }
 function closeModal(){document.getElementById('modal').classList.remove('show')}
-init();
-window.addEventListener('pageshow',()=>init());
+window.addEventListener('pageshow',()=>startSalaryPage());
 window.addEventListener('storage',e=>{
- if(e.key==='heremay.currentEmployee'||e.key==='heremay.lastFaceAccount') init();
+ if(e.key==='heremay.currentEmployee'||e.key==='heremay.lastFaceAccount'){
+  salarySessionUnlocked=false;slips=[];document.getElementById('list').innerHTML='';startSalaryPage();
+ }
 });
 </script></body></html>
