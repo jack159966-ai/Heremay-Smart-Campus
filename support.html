@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜庶務人員首頁 v13.11</title>
+  <title>和美智慧校園｜庶務人員首頁 v13.12</title>
   <style>
     :root{
       --bg1:#f1fff6;
@@ -581,7 +581,7 @@
     </header>
 
     <div class="version-refresh-row">
-      <div class="page-version">庶務人員首頁 v13.11</div>
+      <div class="page-version">庶務人員首頁 v13.12</div>
       <button class="refresh-version-btn" type="button" onclick="refreshLatestVersion()">🔄 檢查並重新整理最新版</button>
     </div>
 
@@ -649,18 +649,12 @@
         <span class="tag">粉綠版</span>
       </div>
       <div class="grid">
-        <button class="btn primary" onclick="window.location.href='attendance.html'">
+        <button class="btn primary" onclick="openAttendanceArea()">
           <div class="icon"><img src="assets/attendance-statistics.jpg?v=20260906b" alt="打卡與出勤"></div>
           <div>
             <strong>打卡 / 出勤</strong>
-            <span>上班、下班、請假與出勤狀態</span>
+            <span>驗證後打卡、請假與查看薪資條</span>
           </div>
-        </button>
-
-        <button class="btn" onclick="window.location.href='salary_slip.html'">
-          <div class="icon"><img src="assets/salary-slip.jpg?v=20260906b" alt="薪資條"></div>
-          <strong>我的薪資條</strong>
-          <span>查看園方已發放的個人薪資明細</span>
         </button>
 
         <button class="btn" onclick="openFeature('工作清單')">
@@ -710,7 +704,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.11｜功能圖示更新版</div>
+<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.12｜打卡區入口驗證版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -791,6 +785,10 @@
   </div>
 
   <script>
+    function openAttendanceArea(){
+      sessionStorage.removeItem('heremay.attendanceAreaGrant');
+      window.location.href='attendance.html?v=2.9.1';
+    }
     const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
 
     let currentUser = '庶務人員';

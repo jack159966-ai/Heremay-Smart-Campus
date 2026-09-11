@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>和美智慧校園｜外聘兼任教師首頁 v1.0</title>
+  <title>和美智慧校園｜外聘兼任教師首頁 v1.1</title>
   <style>
     :root{
       --bg1:#fffaf1;--bg2:#fff4df;--card:#fff;--line:#f2d5a3;
@@ -99,7 +99,13 @@
 
     <section class="section">
       <div class="grid">
-        <button class="btn hasDiscussionUnread" id="discussionHomeCard" onclick="location.href='discussion.html'">
+        <button class="btn" onclick="openAttendanceArea()">
+          <div class="icon">📊</div>
+          <strong>打卡／出勤</strong>
+          <span>驗證後打卡、請假與查看薪資條</span>
+        </button>
+
+        <button class="btn hasDiscussionUnread" id="discussionHomeCard" onclick="location.href='discussion.html?v=3.12'">
           <span class="discussionCardUnreadDot" aria-hidden="true"></span>
           <div class="icon">💬</div>
           <strong>討論區</strong>
@@ -121,10 +127,14 @@
       </div>
     </section>
 
-    <div class="footer">外聘兼任教師首頁 v1.0｜parttime.html</div>
+    <div class="footer">外聘兼任教師首頁 v1.1｜打卡區入口驗證版</div>
   </main>
 
   <script>
+    function openAttendanceArea(){
+      sessionStorage.removeItem('heremay.attendanceAreaGrant');
+      location.href='attendance.html?v=2.9.1';
+    }
     const DISCUSSION_NOTIFY_URL = 'https://script.google.com/macros/s/AKfycbxuvqWI2FlvCk5ZdEfhSNMF6O79pElfx2p4PZBIk-xT1zw0NVorhzX8wNPF9oOHxY2x/exec';
 
     function getHomeEmployee(){
