@@ -16,7 +16,7 @@ app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 8080);
-const SERVICE_VERSION = '1.1.2';
+const SERVICE_VERSION = '1.1.3';
 const RP_NAME = process.env.RP_NAME || '和美智慧校園';
 const RP_ID = process.env.RP_ID || 'jack159966-ai.github.io';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://jack159966-ai.github.io')
@@ -24,6 +24,7 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://jack159966-ai.g
 const LOGIN_SHEET_ID = process.env.LOGIN_SHEET_ID || '1qF7NhSzpg5MAskTEXSWPt1Z__jGfbEdF8Gr5AUBmFYQ';
 const LOGIN_SHEET_TAB = process.env.LOGIN_SHEET_TAB || '員工登入資料';
 const CHALLENGE_TTL_MS = 5 * 60 * 1000;
+// 通行憑證仍只有 5 分鐘；打卡區保持在前景時才可安全續期。
 const SENSITIVE_TOKEN_TTL_MS = 5 * 60 * 1000;
 const ADMIN_SENSITIVE_TOKEN_TTL_MS = 8 * 60 * 60 * 1000;
 const SENSITIVE_PURPOSES = new Set(['attendance','attendance_admin','salary','salary_admin']);
@@ -418,7 +419,7 @@ app.post('/auth/step-up/validate', async (req,res) => {
     const grant = snap.data() || {};
     if (Number(grant.expiresAt || 0) < Date.now()) {
       await ref.delete().catch(()=>{});
-      return res.status(401).json({ ok:false, message:'驗證已超過 5 分鐘，請重新驗證' });
+      return res.status(401).json({ ok:false, message:'打卡區驗證已失效，請重新驗證' });
     }
     if (grant.purpose !== purpose || !accountMatchesToken(account, grant)) {
       return res.status(403).json({ ok:false, message:'驗證帳號或用途不符' });
@@ -434,6 +435,33 @@ app.post('/auth/step-up/validate', async (req,res) => {
   } catch (err) {
     console.error(err);
     res.status(400).json({ ok:false, message:err?.message || '憑證檢查失敗' });
+  }
+});
+
+app.post('/auth/step-up/refresh', async (req,res) => {
+  try {
+    const token = clean(req.body?.token);
+    const account = clean(req.body?.account);
+    const purpose = normalizeSensitivePurpose(req.body?.purpose);
+    if (!token || !account) return res.status(401).json({ ok:false, message:'缺少打卡區憑證' });
+    const ref = db.collection('sensitiveTokens').doc(sensitiveTokenHash(token));
+    const snap = await ref.get();
+    if (!snap.exists) return res.status(401).json({ ok:false, message:'打卡區憑證已失效' });
+    const grant = snap.data() || {};
+    if (Number(grant.expiresAt || 0) < Date.now()) {
+      await ref.delete().catch(()=>{});
+      return res.status(401).json({ ok:false, message:'打卡區憑證已失效' });
+    }
+    if (grant.purpose !== purpose || !accountMatchesToken(account, grant)) {
+      return res.status(403).json({ ok:false, message:'驗證帳號或用途不符' });
+    }
+    const ttlMs = purpose.endsWith('_admin') ? ADMIN_SENSITIVE_TOKEN_TTL_MS : SENSITIVE_TOKEN_TTL_MS;
+    const expiresAt = Date.now() + ttlMs;
+    await ref.set({ expiresAt, lastRefreshedAt:Date.now() }, { merge:true });
+    res.json({ ok:true, token, expiresAt, expiresInSeconds:Math.floor(ttlMs / 1000) });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ ok:false, message:err?.message || '無法續用打卡區驗證' });
   }
 });
 
