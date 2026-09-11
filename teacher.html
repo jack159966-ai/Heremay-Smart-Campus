@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.10</title>
+  <title>和美智慧校園｜教保人員首頁 v15.11</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -598,7 +598,7 @@
     </header>
 
     <div class="version-refresh-row">
-      <div class="page-version">教保人員首頁 v15.10</div>
+      <div class="page-version">教保人員首頁 v15.11</div>
       <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
     </div>
 
@@ -666,27 +666,21 @@
         <span class="tag">粉紅版</span>
       </div>
       <div class="grid">
-        <button class="btn primary" onclick="window.location.href='attendance.html'">
+        <button class="btn primary" onclick="openAttendanceArea()">
           <div class="icon"><img src="assets/attendance-statistics.jpg?v=20260906b" alt="打卡與出勤"></div>
           <div>
             <strong>打卡 / 出勤</strong>
-            <span>上班、下班、請假與出勤狀態</span>
+            <span>驗證後打卡、請假與查看薪資條</span>
           </div>
         </button>
 
-        <button class="btn" onclick="window.location.href='salary_slip.html'">
-          <div class="icon"><img src="assets/salary-slip.jpg?v=20260906b" alt="薪資條"></div>
-          <strong>我的薪資條</strong>
-          <span>查看園方已發放的個人薪資明細</span>
-        </button>
-
         
 
         
 
         
 
-        <button class="btn" id="discussionHomeCard" onclick="window.location.href='discussion.html?v=3.11'">
+        <button class="btn" id="discussionHomeCard" onclick="window.location.href='discussion.html?v=3.12'">
           <span class="discussionCardUnreadDot" aria-hidden="true"></span>
           <div class="icon"><img src="assets/discussion.jpg?v=20260906b" alt="討論區"></div>
           <strong>討論區</strong>
@@ -730,7 +724,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.10｜討論區即時附件版</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.11｜打卡區入口驗證版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -794,6 +788,10 @@
   </div>
 
   <script>
+    function openAttendanceArea(){
+      sessionStorage.removeItem('heremay.attendanceAreaGrant');
+      window.location.href='attendance.html?v=2.9.0';
+    }
     const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
     // Google 雲端投稿頁部署完成後，只需更換這個網址。
     const MEDIA_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbzs1cNvsDJFhu0J_8qAepgL-a6MGIPnyVFNw5JFAespotS4uKtEf4EaYIY7oKzGDMak/exec';

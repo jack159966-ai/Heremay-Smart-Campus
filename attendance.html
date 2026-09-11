@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.8.1</title>
+  <title>和美智慧校園｜打卡與出勤 v2.9.0</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -81,7 +81,7 @@
   <header class="top">
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.8.1 每次敏感操作重新驗證</span>
+    <span class="version">v2.9.0 進入時驗證一次</span>
   </header>
 
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
@@ -91,6 +91,12 @@
   <section class="card who">
     <div class="avatar" id="avatar">👩‍🏫</div>
     <div><strong id="employeeName">測試員工</strong><span id="employeeInfo">尚未取得登入資料</span></div>
+  </section>
+
+  <section class="card salary">
+    <h3>💰 我的薪資條</h3>
+    <p>您已通過打卡區本人驗證，可直接查看園方已發放的薪資明細。</p>
+    <button class="access-btn" type="button" onclick="openSalarySlip()">查看我的薪資條</button>
   </section>
 
   <section class="card">
@@ -170,7 +176,7 @@
 <div class="modal" id="periodModal" onclick="closePeriodModal(event)"><div class="sheet" onclick="event.stopPropagation()"><h3 id="modalDate">選擇請假時段</h3><div class="leave-people"><h4 id="leavePoolTitle">當日請假狀況</h4><div id="dayLeavePeople"></div><div class="quota-line"><span id="amQuota"></span><span id="pmQuota"></span></div></div><div id="alreadyLeaveNote" class="warning" style="display:none;margin-top:10px"></div><div class="choice" id="periodChoiceBox"><button id="fullDayChoice" onclick="setDatePeriod('全天')">全天</button><button id="amChoice" onclick="setDatePeriod('上午')">上午</button><button id="pmChoice" onclick="setDatePeriod('下午')">下午</button></div><button class="close" onclick="hidePeriodModal()">取消</button></div></div>
 <div class="modal" id="sensitiveAuthModal">
   <div class="sheet" onclick="event.stopPropagation()">
-    <h2>🔐 請確認本人操作</h2>
+    <h2>🔐 請驗證後進入打卡區</h2>
     <div class="auth-account">目前登入：<strong id="sensitiveAuthName">—</strong><br>帳號：<span id="sensitiveAuthAccount">—</span></div>
     <div class="auth-actions">
       <button class="auth-primary" id="sensitivePasskeyBtn" type="button" onclick="verifySensitiveWithPasskey()">使用 Face ID／快速登入</button>
@@ -181,14 +187,15 @@
       <button class="auth-primary" style="margin-top:9px" type="button" onclick="verifySensitiveWithPassword()">確認密碼</button>
     </div>
     <div class="auth-error" id="sensitiveAuthError"></div>
-    <div class="auth-note">每次打卡、請假、取消請假或出勤回報都會重新驗證。帳號固定為目前登入者，不能切換他人帳號。</div>
-    <button class="close" type="button" onclick="cancelSensitiveAuth()">取消</button>
+    <div class="auth-note">進入時只驗證一次；通過後可打卡、請假、取消請假與查看薪資條。離開打卡區後即失效。</div>
+    <button class="close" type="button" onclick="cancelSensitiveAuth()">取消並返回首頁</button>
   </div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
   const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzQIkRS3hLLiDMQj6WV6SyeEmFHO80f_Sl9qHciPkWpXZfuzggmfdTRLjtbvhhMZ624Zw/exec';
   const PASSKEY_API_BASE = 'https://heremay-passkey-backend-943533867342.asia-east1.run.app';
+  const ATTENDANCE_SESSION_KEY = 'heremay.attendanceAreaGrant';
   const ATTENDANCE_RULES = {
     earlyToleranceMinutes: 30,
     lateToleranceMinutes: 30,
@@ -231,6 +238,8 @@
   let pendingDate = '';
   let sensitiveGrant = null;
   let sensitiveAuthPending = null;
+  let sensitiveRefreshTimer = null;
+  let preserveGrantForAreaNavigation = false;
 
   function bytesToBase64url(bytes){
     let binary='';bytes.forEach(b=>binary+=String.fromCharCode(b));
@@ -275,6 +284,37 @@
   function hasSensitiveGrant(){
     return !!(sensitiveGrant&&sensitiveGrant.token&&sensitiveGrant.account===employeeKey()&&Number(sensitiveGrant.expiresAt||0)>Date.now()+3000);
   }
+  function restoreAttendanceSession(){
+    try{
+      const saved=JSON.parse(sessionStorage.getItem(ATTENDANCE_SESSION_KEY)||'null');
+      if(saved&&saved.token&&saved.account===employeeKey()&&Number(saved.expiresAt||0)>Date.now()+3000){
+        sensitiveGrant=saved;
+        scheduleSensitiveRefresh();
+        return true;
+      }
+    }catch(error){}
+    sessionStorage.removeItem(ATTENDANCE_SESSION_KEY);
+    return false;
+  }
+  function clearAttendanceSession(){
+    sensitiveGrant=null;
+    sessionStorage.removeItem(ATTENDANCE_SESSION_KEY);
+    if(sensitiveRefreshTimer){clearTimeout(sensitiveRefreshTimer);sensitiveRefreshTimer=null}
+  }
+  function scheduleSensitiveRefresh(){
+    if(sensitiveRefreshTimer)clearTimeout(sensitiveRefreshTimer);
+    if(!hasSensitiveGrant()||document.visibilityState!=='visible')return;
+    sensitiveRefreshTimer=setTimeout(refreshSensitiveSession,3*60*1000);
+  }
+  async function refreshSensitiveSession(){
+    if(!hasSensitiveGrant()||document.visibilityState!=='visible')return;
+    try{
+      const grant=await sensitiveApiPost('/auth/step-up/refresh',{token:sensitiveGrant.token,account:employeeKey(),purpose:'attendance'});
+      sensitiveGrant={token:grant.token,expiresAt:Number(grant.expiresAt||0),account:employeeKey()};
+      sessionStorage.setItem(ATTENDANCE_SESSION_KEY,JSON.stringify(sensitiveGrant));
+      scheduleSensitiveRefresh();
+    }catch(error){clearAttendanceSession()}
+  }
   function sensitiveAuthFields(){
     return hasSensitiveGrant()?{sensitiveToken:sensitiveGrant.token,sensitivePurpose:'attendance',authAccount:employeeKey()}:{};
   }
@@ -283,6 +323,7 @@
     const error=document.getElementById('sensitiveAuthError');if(error)error.textContent=message;
   }
   function requireSensitiveAuth(){
+    if(hasSensitiveGrant())return Promise.resolve(true);
     if(sensitiveAuthPending)return sensitiveAuthPending.promise;
     let resolvePromise;
     const promise=new Promise(resolve=>{resolvePromise=resolve});
@@ -297,6 +338,8 @@
   }
   function finishSensitiveAuth(grant){
     sensitiveGrant={token:grant.token,expiresAt:Number(grant.expiresAt||0),account:employeeKey()};
+    sessionStorage.setItem(ATTENDANCE_SESSION_KEY,JSON.stringify(sensitiveGrant));
+    scheduleSensitiveRefresh();
     document.getElementById('sensitiveAuthModal').classList.remove('show');
     const pending=sensitiveAuthPending;sensitiveAuthPending=null;
     if(pending)pending.resolve(true);
@@ -306,6 +349,8 @@
     document.getElementById('sensitiveAuthModal').classList.remove('show');
     const pending=sensitiveAuthPending;sensitiveAuthPending=null;
     if(pending)pending.resolve(false);
+    clearAttendanceSession();
+    location.href=localStorage.getItem('heremay.currentRole')==='support'?'support.html':'teacher.html';
   }
   function showSensitivePassword(){
     document.getElementById('sensitivePasswordBox').classList.add('show');
@@ -489,7 +534,7 @@
       latest.employeeId||latest.id||latest['員工編號']||''
     ).trim();
     const newId=employeeKey();
-    if(oldId!==newId)sensitiveGrant=null;
+    if(oldId!==newId)clearAttendanceSession()
     if(loginAccount && objectAccount && loginAccount!==objectAccount){
       console.warn('登入帳號與 currentEmployee 不一致，改以登入帳號為準：',loginAccount,objectAccount);
     }
@@ -1298,16 +1343,29 @@
   }
 
   function toastMsg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2800)}
-  function goBack(){const role=localStorage.getItem('heremay.currentRole');location.href=role==='support'?'support.html':'teacher.html'}
-  initUser();updateClock();setInterval(updateClock,1000);loadPunch();renderOfflineQueue();renderCalendar();renderMyLeaves();renderRecords();renderAttendance();loadCloudData(false);setTimeout(()=>checkPunchAccess(false),600);setTimeout(()=>syncOfflinePunches(false),1500);
+  function openSalarySlip(){preserveGrantForAreaNavigation=true;location.href='salary_slip.html?from=attendance'}
+  function goBack(){clearAttendanceSession();const role=localStorage.getItem('heremay.currentRole');location.href=role==='support'?'support.html':'teacher.html'}
+  async function startAttendanceArea(){
+    initUser();
+    if(!restoreAttendanceSession()&&!await requireSensitiveAuth())return;
+    updateClock();setInterval(updateClock,1000);loadPunch();renderOfflineQueue();renderCalendar();renderMyLeaves();renderRecords();renderAttendance();loadCloudData(false);setTimeout(()=>checkPunchAccess(false),600);setTimeout(()=>syncOfflinePunches(false),1500);
+  }
+  startAttendanceArea();
   window.addEventListener('pageshow',event=>refreshLoggedInEmployee(Boolean(event.persisted)));
   window.addEventListener('online',()=>syncOfflinePunches(false));
   window.addEventListener('storage',event=>{
     if(event.key==='heremay.currentEmployee'||event.key==='heremay.lastFaceAccount')refreshLoggedInEmployee(true);
   });
   document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState==='visible')refreshLoggedInEmployee(false);
+    if(document.visibilityState==='hidden'){
+      if(!preserveGrantForAreaNavigation)clearAttendanceSession();
+      return;
+    }
+    preserveGrantForAreaNavigation=false;
+    refreshLoggedInEmployee(false);
+    if(!restoreAttendanceSession())requireSensitiveAuth();
   });
+  window.addEventListener('pagehide',()=>{if(!preserveGrantForAreaNavigation)clearAttendanceSession()});
 </script>
 
 
