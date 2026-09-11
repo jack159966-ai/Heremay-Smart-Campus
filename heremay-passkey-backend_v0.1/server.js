@@ -16,7 +16,7 @@ app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 8080);
-const SERVICE_VERSION = '1.1.3';
+const SERVICE_VERSION = '1.1.4';
 const RP_NAME = process.env.RP_NAME || '和美智慧校園';
 const RP_ID = process.env.RP_ID || 'jack159966-ai.github.io';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://jack159966-ai.github.io')
@@ -56,10 +56,12 @@ function roleFromHome(home, category) {
   if (h === '中階主管首頁') return 'leader';
   if (h === '教保首頁') return 'teacher';
   if (h === '庶務首頁') return 'support';
+  if (h === '兼任首頁') return 'parttime';
   const c = clean(category);
   if (c === '管理層') return 'admin';
   if (c === '庶務人員') return 'support';
   if (c === '教保人員') return 'teacher';
+  if (c === '外聘教師' || c === '外聘兼任教師' || c === '兼職人員' || c === '臨時人員') return 'parttime';
   return '';
 }
 
