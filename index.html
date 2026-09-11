@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜Heremay Smart Campus v1.4.7</title>
+  <title>和美智慧校園｜Heremay Smart Campus v1.4.8</title>
 
   <!-- 手機桌面圖示與 PWA 設定 -->
   <meta name="theme-color" content="#eef9ff" />
@@ -315,7 +315,7 @@
 
     <footer>
       資料安全・隱私保護・安心使用<br />
-      <span id="versionText">Heremay Smart Campus v1.4.7</span>
+      <span id="versionText">Heremay Smart Campus v1.4.8</span>
     </footer>
   </main>
 
@@ -336,7 +336,7 @@
 
 
   <script>
-    const APP_VERSION = '1.4.7';
+    const APP_VERSION = '1.4.8';
 
     /*
       正式登入架構說明
@@ -727,18 +727,18 @@
 
       if(!account || !password){
         showToast('首次設定請先輸入帳號與密碼。');
-        return;
+        return false;
       }
 
       if(!window.PublicKeyCredential || !navigator.credentials){
         showToast('這個瀏覽器不支援快速登入。');
-        return;
+        return false;
       }
 
       if(CONFIG.TEMP_DEMO_MODE && !CONFIG.PASSKEY_API_BASE){
         localStorage.setItem('heremay.lastFaceAccount', account);
         showToast('入口頁已準備完成；登入伺服器完成後即可正式設定快速登入。');
-        return;
+        return true;
       }
 
       try{
@@ -761,6 +761,7 @@
         localStorage.setItem('heremay.lastFaceAccount', account);
         document.getElementById('password').value = '';
         showToast('快速登入設定完成。');
+        return true;
       }catch(err){
         console.error(err);
         if(err.name === 'NotAllowedError'){
@@ -768,7 +769,27 @@
         }else{
           showToast(`設定失敗：${err.message || err.name}`);
         }
+        return false;
       }
+    }
+
+    async function offerPasskeySetupAfterLogin(account){
+      if(!window.PublicKeyCredential || !navigator.credentials || !CONFIG.PASSKEY_API_BASE) return;
+
+      try{
+        // 能取得登入選項，代表這個帳號已設定過，不再重複詢問。
+        await apiPost('/auth/passkey/login/options', { account });
+        return;
+      }catch(err){
+        const message = String(err?.message || '');
+        // 網路或服務異常不阻擋一般登入；只有確定尚未設定時才詢問。
+        if(!message.includes('尚未設定快速登入')) return;
+      }
+
+      const wantsSetup = window.confirm(
+        '此帳號尚未設定快速登入。\n\n是否現在啟用 Face ID、指紋或手機解鎖？\n完成後，下次可直接使用「快速登入」。'
+      );
+      if(wantsSetup) await registerFaceLogin();
     }
 
     async function faceLogin(){
@@ -930,6 +951,7 @@
           localStorage.removeItem('heremay.currentEmployee');
         }
 
+        await offerPasskeySetupAfterLogin(account);
         document.getElementById('password').value = '';
         goRole(result.role, result.employee);
       }catch(err){
