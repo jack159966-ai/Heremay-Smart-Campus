@@ -119,6 +119,10 @@
     .notice{background:#fff8ec;border:1px solid #efd39d;color:#76551e;border-radius:14px;padding:11px 13px;line-height:1.55;margin-bottom:12px}
     .section-box{background:#f8fbff;border:1px solid var(--line);border-radius:16px;padding:12px}
     .section-title{font-weight:900;color:var(--primary-dark);margin-bottom:8px}
+    .calendar-connect{margin-top:14px;background:#f8fbff;border:1px solid var(--line);border-radius:16px;padding:14px}
+    .connect-status{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    .connect-steps{margin:10px 0 0;padding-left:22px;color:var(--muted);line-height:1.75}
+    .connect-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;margin-top:12px}
     .tag{display:inline-block;font-size:.78rem;padding:4px 8px;border-radius:999px;background:#edf5fc;color:var(--primary-dark);margin:5px 5px 0 0}
     .alarm-mask{position:fixed;inset:0;background:rgba(25,38,55,.72);display:none;align-items:center;justify-content:center;padding:18px;z-index:110}
     .alarm-mask.show{display:flex}.alarm-card{width:min(520px,100%);background:#fff;border-radius:24px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.28);text-align:center}.alarm-icon{font-size:64px}.alarm-card h2{color:var(--danger)}
@@ -182,6 +186,7 @@
       .day-title-time{grid-column:1;grid-row:1;font-size:.78rem}
       .day-title-name{grid-column:1;grid-row:2;white-space:normal}
       .day-row-actions{grid-column:2;grid-row:1/3}
+      .connect-row{grid-template-columns:1fr}
     }
   </style>
 </head>
@@ -200,7 +205,7 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v2.12.4</span>
+      <span class="pill" id="versionStatus">版本 v2.13.0</span>
       <span class="pill" id="timezoneStatus">時區檢查中</span>
     </div>
   </section>
@@ -251,6 +256,21 @@
         <button class="btn" type="button" onclick="downloadBackup()">下載備份</button>
       </div>
       <div class="hint">通知、鈴聲測試與備份集中在這裡。</div>
+      <div class="calendar-connect">
+        <div class="section-title">📅 我的 Google 私人行事曆（自由選擇）</div>
+        <div class="connect-status"><span class="pill warn" id="personalCalendarStatus">檢查中…</span><strong id="personalCalendarName"></strong></div>
+        <div class="hint">不連結也能正常使用和美 APP；私人行程只會保存在 APP 內。連結後，才會同步到您自己選擇的 Google 日曆。</div>
+        <ol class="connect-steps">
+          <li>開啟 Google 日曆的「設定和共用」。</li>
+          <li>將自己的日曆分享給 <strong id="systemCalendarEmail">系統帳號載入中…</strong>，權限選擇「變更活動」。 <button class="btn" type="button" onclick="copySystemCalendarEmail()">複製系統帳號</button></li>
+          <li>在「整合日曆」複製日曆 ID，貼到下方並測試連結。</li>
+        </ol>
+        <div class="connect-row">
+          <div class="field"><label>我的日曆 ID</label><input id="personalCalendarId" autocomplete="off" placeholder="例如：您的 Gmail 地址"></div>
+          <button class="btn primary" id="connectCalendarBtn" type="button" onclick="savePersonalCalendarConnection()">測試並連結</button>
+        </div>
+        <div class="actions"><button class="btn danger" id="disconnectCalendarBtn" type="button" onclick="disconnectPersonalCalendar()" style="display:none">解除私人日曆連結</button></div>
+      </div>
     </div>
   </section>
 
@@ -381,6 +401,7 @@
               <label class="check"><input type="checkbox" name="瀏覽器通知" checked> 發送瀏覽器通知</label>
               <label class="check"><input type="checkbox" name="同步Google日曆" checked> 同步 Google 日曆</label>
             </div>
+            <div class="hint" id="calendarSyncHint">公務行程同步到主管共用日曆；私人行程是否同步由本人決定。</div>
           </div>
         </div>
 
@@ -429,7 +450,7 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v2.12.4｜2026-09-12｜新增右上角返回上頁</div>
+  <div class="version">行事曆 v2.13.0｜2026-09-12｜主管自助連結私人 Google 日曆</div>
 </main>
 
 <div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
@@ -438,8 +459,8 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='2.12.4';
-const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null,shareTargets:[],calendarCursor:new Date(),selectedDate:new Date(),calendarView:'month',currentUser:null};
+const APP_VERSION='2.13.0';
+const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null,shareTargets:[],calendarCursor:new Date(),selectedDate:new Date(),calendarView:'month',currentUser:null,calendarConnection:null};
 const FIRED_KEY='heremay_calendar_fired_v290';
 
 function readCurrentEmployee(){
@@ -500,6 +521,60 @@ async function postAction(action,payload){
   const res=await fetch(API_URL,{method:'POST',body});
   return await res.json();
 }
+
+function renderCalendarConnection(){
+  const info=state.calendarConnection||{};
+  const status=document.getElementById('personalCalendarStatus');
+  const name=document.getElementById('personalCalendarName');
+  const input=document.getElementById('personalCalendarId');
+  const email=document.getElementById('systemCalendarEmail');
+  const disconnect=document.getElementById('disconnectCalendarBtn');
+  if(email)email.textContent=info.systemEmail||'無法取得系統帳號';
+  if(input&&!input.matches(':focus'))input.value=info.calendarId||'';
+  if(info.connected){
+    status.textContent='已連結';status.className='pill ok';
+    name.textContent=info.calendarName||'Google 日曆';
+    disconnect.style.display='';
+  }else{
+    status.textContent='尚未連結';status.className='pill warn';
+    name.textContent='';disconnect.style.display='none';
+  }
+  updateVisibilityUI();
+}
+
+async function copySystemCalendarEmail(){
+  const email=state.calendarConnection?.systemEmail||'';
+  if(!email){showToast('尚未取得系統帳號');return}
+  try{await navigator.clipboard.writeText(email);showToast('系統帳號已複製')}
+  catch(_){showToast('請長按系統帳號後手動複製')}
+}
+
+async function savePersonalCalendarConnection(){
+  const input=document.getElementById('personalCalendarId');
+  const calendarId=String(input.value||'').trim();
+  if(!calendarId){showToast('請先貼上日曆 ID');input.focus();return}
+  const btn=document.getElementById('connectCalendarBtn');
+  const old=btn.textContent;btn.disabled=true;btn.textContent='正在測試權限…';
+  try{
+    const result=await postAction('saveCalendarConnection',{...currentActor(),calendarId});
+    if(!result.ok)throw new Error(result.message||'連結失敗');
+    state.calendarConnection={...(state.calendarConnection||{}),...result,systemEmail:state.calendarConnection?.systemEmail||''};
+    renderCalendarConnection();
+    showToast(`已連結「${result.calendarName}」${result.synced?`，並補同步 ${result.synced} 筆行程`:''}`);
+  }catch(err){showToast('連結失敗：'+err.message)}
+  finally{btn.disabled=false;btn.textContent=old}
+}
+
+async function disconnectPersonalCalendar(){
+  if(!confirm('確定解除私人 Google 日曆連結嗎？APP 內行程會保留，Google 日曆中的既有活動不會刪除。'))return;
+  try{
+    const result=await postAction('disconnectCalendar',currentActor());
+    if(!result.ok)throw new Error(result.message||'解除失敗');
+    state.calendarConnection={...(state.calendarConnection||{}),connected:false,calendarId:'',calendarName:''};
+    renderCalendarConnection();showToast(result.message||'已解除連結');
+  }catch(err){showToast('解除失敗：'+err.message)}
+}
+
 async function syncAll(){
   const status=document.getElementById('cloudStatus');
   status.textContent='同步中…';
@@ -509,6 +584,8 @@ async function syncAll(){
     const data=await jsonp('syncAll',currentActor());
     if(!data.ok) throw new Error(data.message||'同步失敗');
     state.events=Array.isArray(data.events)?data.events:[];
+    state.calendarConnection=data.calendarConnection||null;
+    renderCalendarConnection();
     localStorage.setItem('heremay.calendar.sharedEvents',JSON.stringify(state.events));
     renderEvents();
     status.textContent='雲端已同步';
@@ -1214,6 +1291,10 @@ function updateVisibilityUI(){
   if(hint)hint.textContent=isPrivate?'私人行程只有自己看得到；需要時可另分享給園長或主任（謝秉儒）。':'公務行程由負責人、園長與主任共同查看。';
   if(!isPrivate)setShareTargets([]);
   else document.getElementById('shareSummaryText').textContent=state.shareTargets.length?'另分享給：'+state.shareTargets.join('、'):'僅自己';
+  const syncHint=document.getElementById('calendarSyncHint');
+  if(syncHint)syncHint.textContent=isPrivate
+    ?(state.calendarConnection?.connected?`私人行程將同步到「${state.calendarConnection.calendarName||'我的 Google 日曆'}」。`:'尚未連結私人 Google 日曆；行程仍會保存在 APP 內。')
+    :'公務行程將同步到「和美主管公務行事曆」。';
 }
 
 function openShareLevel1(){
@@ -1715,7 +1796,7 @@ function downloadBackup(){
 
 
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js?v=2123',{updateViaCache:'none'})
+  navigator.serviceWorker.register('./sw.js?v=2130',{updateViaCache:'none'})
     .then(reg=>{
       reg.update().catch(()=>{});
       if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -1723,8 +1804,8 @@ if('serviceWorker' in navigator){
     .catch(error=>console.warn('Service Worker 註冊失敗',error));
 
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(!sessionStorage.getItem('heremay_sw_reloaded_2123')){
-      sessionStorage.setItem('heremay_sw_reloaded_2123','1');
+    if(!sessionStorage.getItem('heremay_sw_reloaded_2130')){
+      sessionStorage.setItem('heremay_sw_reloaded_2130','1');
       location.reload();
     }
   });
