@@ -205,7 +205,7 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v2.13.1</span>
+      <span class="pill" id="versionStatus">版本 v2.13.2</span>
       <span class="pill" id="timezoneStatus">時區檢查中</span>
     </div>
   </section>
@@ -450,7 +450,7 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v2.13.1｜2026-09-12｜修正手機連結私人 Google 日曆</div>
+  <div class="version">行事曆 v2.13.2｜2026-09-12｜主管帳號可作為日曆唯一身分</div>
 </main>
 
 <div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
@@ -459,7 +459,7 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='2.13.1';
+const APP_VERSION='2.13.2';
 const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null,shareTargets:[],calendarCursor:new Date(),selectedDate:new Date(),calendarView:'month',currentUser:null,calendarConnection:null};
 const FIRED_KEY='heremay_calendar_fired_v290';
 
@@ -471,10 +471,11 @@ function readCurrentEmployee(){
 }
 function currentActor(){
   const user=state.currentUser||readCurrentEmployee()||{};
+  const loginAccount=String(localStorage.getItem('heremay.lastFaceAccount')||'').trim();
   return {
-    userId:String(user.employeeId||user.id||user['員工編號']||'').trim(),
-    userName:String(user.name||user['姓名']||'').trim(),
-    userTitle:String(user.jobTitle||user.title||user.position||user['職稱']||'').trim()
+    userId:String(user.employeeId||user.id||user['員工編號']||loginAccount).trim(),
+    userName:String(user.name||user['姓名']||loginAccount).trim(),
+    userTitle:String(user.jobTitle||user.title||user.position||user['職稱']||localStorage.getItem('heremay.currentRole')||'主管').trim()
   };
 }
 
@@ -1796,7 +1797,7 @@ function downloadBackup(){
 
 
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js?v=2131',{updateViaCache:'none'})
+  navigator.serviceWorker.register('./sw.js?v=2132',{updateViaCache:'none'})
     .then(reg=>{
       reg.update().catch(()=>{});
       if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
@@ -1804,8 +1805,8 @@ if('serviceWorker' in navigator){
     .catch(error=>console.warn('Service Worker 註冊失敗',error));
 
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(!sessionStorage.getItem('heremay_sw_reloaded_2131')){
-      sessionStorage.setItem('heremay_sw_reloaded_2131','1');
+    if(!sessionStorage.getItem('heremay_sw_reloaded_2132')){
+      sessionStorage.setItem('heremay_sw_reloaded_2132','1');
       location.reload();
     }
   });
@@ -1813,7 +1814,7 @@ if('serviceWorker' in navigator){
 
 window.addEventListener('load',()=>{
   state.currentUser=readCurrentEmployee();
-  if(!state.currentUser){
+  if(!currentActor().userId){
     showToast('尚未取得登入身分，請由主管首頁重新進入');
   }
   document.getElementById('routineSelect')?.addEventListener('change',()=>applyRoutineDefaults(true));
