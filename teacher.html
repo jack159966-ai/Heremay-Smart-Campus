@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.11</title>
+  <title>和美智慧校園｜教保人員首頁 v15.12</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -578,6 +578,9 @@
   background:#fff3f3;border:1px solid #f2caca;color:#b33b3b;font-weight:900
 }
 .groupbuyNotice.show{display:block}
+.messageCenterCard{position:relative}
+.messageUnreadBadge{display:none;position:absolute;right:10px;top:9px;min-width:25px;height:25px;padding:0 7px;border-radius:14px;background:#df4b4b;color:#fff;font-size:14px;font-weight:900;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(223,75,75,.14)}
+.messageCenterCard.hasUnread .messageUnreadBadge{display:flex}
 
 </style>
 </head>
@@ -598,7 +601,7 @@
     </header>
 
     <div class="version-refresh-row">
-      <div class="page-version">教保人員首頁 v15.11</div>
+      <div class="page-version">教保人員首頁 v15.12</div>
       <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
     </div>
 
@@ -666,6 +669,12 @@
         <span class="tag">粉紅版</span>
       </div>
       <div class="grid">
+        <button class="btn messageCenterCard" id="messageCenterCard" onclick="openMessageCenter()">
+          <span class="messageUnreadBadge" id="messageUnreadBadge" aria-label="未讀訊息"></span>
+          <div class="icon">🔔</div>
+          <strong>訊息中心</strong>
+          <span>查看投稿進度、公告與各功能通知</span>
+        </button>
         <button class="btn primary" onclick="openAttendanceArea()">
           <div class="icon"><img src="assets/attendance-statistics.jpg?v=20260906b" alt="打卡與出勤"></div>
           <div>
@@ -724,7 +733,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.11｜打卡區入口驗證版</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.12｜統一訊息中心第一版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -795,10 +804,56 @@
     const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
     // Google 雲端投稿頁部署完成後，只需更換這個網址。
     const MEDIA_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbzs1cNvsDJFhu0J_8qAepgL-a6MGIPnyVFNw5JFAespotS4uKtEf4EaYIY7oKzGDMak/exec';
+    const MESSAGE_CENTER_URL = 'https://script.google.com/macros/s/AKfycbwhJsU-5QiZ3uDd9UCnECd16jpHG_LoweHRIC7TrSf_AH-bDLPUFVeAGB2urQo25zzoVg/exec';
 
     let currentUser = '教保人員';
     let currentEmployee = null;
     let pendingAckId = null;
+
+    function messageIdentity(){
+      const emp=currentEmployee||{};
+      return {
+        employeeId:String(emp.employeeId||emp.id||emp['員工編號']||'').trim(),
+        account:String(emp.account||localStorage.getItem('heremay.lastFaceAccount')||'').trim(),
+        name:String(emp.name||currentUser||'').trim(),
+        groups:[emp.group,emp.department,currentDepartment()].filter(Boolean).join(',')
+      };
+    }
+
+    function openMessageCenter(){
+      const p=new URLSearchParams(messageIdentity());
+      p.set('back',location.href);
+      window.location.href=MESSAGE_CENTER_URL+'?'+p.toString();
+    }
+
+    function messageCenterJsonp(action,params={}){
+      return new Promise((resolve,reject)=>{
+        const cb='hm_message_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+        const script=document.createElement('script');
+        const timer=setTimeout(()=>cleanup(new Error('訊息中心連線逾時')),12000);
+        function cleanup(error){clearTimeout(timer);try{delete window[cb]}catch(e){}script.remove();if(error)reject(error)}
+        window[cb]=data=>{cleanup();data&&data.ok?resolve(data):reject(new Error(data?.error||'訊息中心連線失敗'))};
+        script.onerror=()=>cleanup(new Error('訊息中心連線失敗'));
+        script.src=MESSAGE_CENTER_URL+'?'+new URLSearchParams({...messageIdentity(),...params,action,callback:cb,_:Date.now()}).toString();
+        document.head.appendChild(script);
+      });
+    }
+
+    let previousMessageUnread=null;
+    async function refreshMessageUnread(){
+      const identity=messageIdentity();
+      if(!identity.employeeId&&!identity.account)return;
+      try{
+        const result=await messageCenterJsonp('unreadCount');
+        const count=Number(result.unread||0);
+        const card=document.getElementById('messageCenterCard');
+        const badge=document.getElementById('messageUnreadBadge');
+        card?.classList.toggle('hasUnread',count>0);
+        if(badge)badge.textContent=count>99?'99+':String(count);
+        if(previousMessageUnread!==null&&count>previousMessageUnread)beep();
+        previousMessageUnread=count;
+      }catch(err){console.warn('訊息中心未讀提示：',err.message)}
+    }
 
 
     const ANNOUNCEMENT_KEY='heremay.announcements';
@@ -1506,6 +1561,9 @@
     applyFeaturePermissions();
     loadCloudStaffData();
     window.addEventListener('pageshow',loadCloudStaffData);
+    window.addEventListener('pageshow',()=>setTimeout(refreshMessageUnread,350));
+    setTimeout(refreshMessageUnread,900);
+    setInterval(refreshMessageUnread,60000);
 
     Object.values(notices).forEach(notice => {
       notice.total = notice.total.map(name =>
