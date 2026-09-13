@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.12</title>
+  <title>和美智慧校園｜教保人員首頁 v15.13</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -601,7 +601,7 @@
     </header>
 
     <div class="version-refresh-row">
-      <div class="page-version">教保人員首頁 v15.12</div>
+      <div class="page-version">教保人員首頁 v15.13</div>
       <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
     </div>
 
@@ -733,7 +733,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.12｜統一訊息中心第一版</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.13｜無 Google 橫幅訊息中心</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -805,6 +805,7 @@
     // Google 雲端投稿頁部署完成後，只需更換這個網址。
     const MEDIA_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbzs1cNvsDJFhu0J_8qAepgL-a6MGIPnyVFNw5JFAespotS4uKtEf4EaYIY7oKzGDMak/exec';
     const MESSAGE_CENTER_URL = 'https://script.google.com/macros/s/AKfycbwhJsU-5QiZ3uDd9UCnECd16jpHG_LoweHRIC7TrSf_AH-bDLPUFVeAGB2urQo25zzoVg/exec';
+    const MESSAGE_CENTER_PAGE = 'message_center.html';
 
     let currentUser = '教保人員';
     let currentEmployee = null;
@@ -823,7 +824,7 @@
     function openMessageCenter(){
       const p=new URLSearchParams(messageIdentity());
       p.set('back',location.href);
-      window.location.href=MESSAGE_CENTER_URL+'?'+p.toString();
+      window.location.href=MESSAGE_CENTER_PAGE+'?'+p.toString();
     }
 
     function messageCenterJsonp(action,params={}){
