@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <style>
+    :root{--pink:#e9558a;--pink2:#ff8db5;--line:#f3bfd2;--ink:#4f3040;--muted:#886f7b}
+    *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei",sans-serif;background:linear-gradient(#fff5f9,#ffeaf2);color:var(--ink)}
+    .wrap{width:min(680px,100%);margin:auto;padding:18px}.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:18px;box-shadow:0 12px 30px rgba(230,82,137,.15)}
+    h1{margin:0 0 6px;color:#732b47}.sub{color:var(--muted);font-weight:700;margin-bottom:16px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{display:block;font-weight:900;margin:12px 0 6px}input,textarea,select{width:100%;border:1px solid var(--line);border-radius:15px;padding:12px;font-size:16px}textarea{min-height:170px;resize:vertical}
+    .hint{background:#fff7dc;border:1px solid #f3d77b;border-radius:16px;padding:11px;line-height:1.55;font-weight:750;margin:12px 0}.files{display:grid;gap:8px;margin-top:10px}.file{background:#fff7fa;border:1px solid var(--line);border-radius:13px;padding:9px;font-weight:750;font-size:13px}
+    button{width:100%;border:0;border-radius:17px;padding:14px;background:linear-gradient(135deg,var(--pink),var(--pink2));color:white;font-size:17px;font-weight:900;margin-top:16px;cursor:pointer}button:disabled{opacity:.6;cursor:wait}.status{display:none;margin-top:14px;border-radius:16px;padding:12px;font-weight:850;line-height:1.5}.status.show{display:block}.ok{background:#eaf9f0;color:#23714b}.err{background:#fff0f1;color:#a53e4c}
+    @media(max-width:560px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="wrap"><section class="card">
+  <h1>📸 班級素材投稿</h1>
+  <div class="sub">文章、照片與影片會直接保存到 Google Drive。</div>
+  <div class="hint">年輕老師可以協助上傳，只要把「文章作者」改成這次輪值提供文章的老師即可。</div>
+  <div class="grid">
+    <div><label>文章作者</label><input id="author" placeholder="例如：王老師"></div>
+    <div><label>班級</label><input id="className" placeholder="例如：大象班"></div>
+  </div>
+  <div class="grid">
+    <div><label>協助上傳者</label><input id="uploader" readonly></div>
+    <div><label>部門</label><input id="department" readonly></div>
+  </div>
+  <label>文章標題（可留白）</label><input id="title" placeholder="例如：快樂的戶外探索">
+  <label>文章內容</label><textarea id="content" placeholder="請輸入粉專文章內容"></textarea>
+  <label>照片或影片（1～30個）</label><input id="mediaFiles" type="file" accept="image/*,video/*" multiple>
+  <div class="files" id="fileList"></div>
+  <button id="submitBtn" onclick="submitForm()">送出投稿</button>
+  <div id="status" class="status"></div>
+</section></div>
+<script>
+const initialParams = <?!= params ?>;
+const MAX_FILES = 30;
+const MAX_SINGLE_FILE_MB = 25;
+const author = document.getElementById('author');
+const className = document.getElementById('className');
+const uploader = document.getElementById('uploader');
+const department = document.getElementById('department');
+const filesInput = document.getElementById('mediaFiles');
+
+author.value = initialParams.author || initialParams.name || '';
+className.value = initialParams.class || '';
+uploader.value = initialParams.uploader || initialParams.name || '';
+department.value = initialParams.department || '';
+
+filesInput.addEventListener('change',()=>{
+  const files=[...filesInput.files];
+  document.getElementById('fileList').innerHTML=files.map(f=>`<div class="file">${escapeHtml(f.name)}｜${(f.size/1024/1024).toFixed(1)} MB</div>`).join('');
+});
+
+async function submitForm(){
+  const files=[...filesInput.files];
+  if(!author.value.trim()||!className.value.trim()||!document.getElementById('content').value.trim()) return showStatus('請填寫文章作者、班級與文章內容。',false);
+  if(!files.length) return showStatus('請至少選擇一張照片或一段影片。',false);
+  if(files.length>MAX_FILES) return showStatus(`一次最多上傳 ${MAX_FILES} 個檔案。`,false);
+  const tooLarge=files.find(f=>f.size>MAX_SINGLE_FILE_MB*1024*1024);
+  if(tooLarge) return showStatus(`${tooLarge.name} 超過 ${MAX_SINGLE_FILE_MB} MB，請先縮小或分次上傳。`,false);
+
+  const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent='正在上傳到 Google Drive…';
+  showStatus('正在讀取檔案並傳送，請保持畫面開啟。',true);
+  try{
+    const encoded=[];
+    for(const f of files){encoded.push({name:f.name,type:f.type,dataUrl:await readAsDataURL(f)});}
+    const payload={
+      author:author.value.trim(),className:className.value.trim(),uploader:uploader.value.trim(),
+      employeeId:initialParams.employeeId||'',department:department.value.trim(),
+      title:document.getElementById('title').value.trim(),content:document.getElementById('content').value.trim(),files:encoded
+    };
+    google.script.run.withSuccessHandler(r=>{
+      btn.disabled=false;btn.textContent='送出投稿';
+      showStatus(`✅ ${r.message}<br>投稿編號：${r.submissionId}<br>共 ${r.fileCount} 個檔案。`,true);
+      document.getElementById('title').value='';document.getElementById('content').value='';filesInput.value='';document.getElementById('fileList').innerHTML='';
+    }).withFailureHandler(err=>{btn.disabled=false;btn.textContent='送出投稿';showStatus('上傳失敗：'+(err.message||err),false);}).saveSubmission(payload);
+  }catch(err){btn.disabled=false;btn.textContent='送出投稿';showStatus('檔案讀取失敗：'+err.message,false);}
+}
+function readAsDataURL(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error(file.name+' 讀取失敗'));r.readAsDataURL(file);});}
+function showStatus(msg,ok){const box=document.getElementById('status');box.className='status show '+(ok?'ok':'err');box.innerHTML=msg;}
+function escapeHtml(v){return String(v).replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));}
+</script>
+</body>
+</html>
