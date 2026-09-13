@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.35</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.36</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -583,6 +583,7 @@
 .hasGroupbuyUnread{position:relative}
 .bottomSquareBtn.hasGroupbuyUnread .groupbuyCardUnreadDot{display:block}
 .messageCenterCard{position:relative}
+.messageCenterCard .sqIcon{font-size:38px!important;background:#edf4ff;border-radius:20px}
 .messageUnreadBadge{display:none;position:absolute;right:11px;top:10px;min-width:25px;height:25px;padding:0 7px;border-radius:14px;background:#df4b4b;color:#fff;font-size:14px;font-weight:900;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(223,75,75,.14);z-index:3}
 .messageCenterCard.hasUnread .messageUnreadBadge{display:flex}
 
@@ -612,7 +613,7 @@
     </header>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.35</div>
+      <div class="versionStamp">主管工作台 v24.36</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -741,7 +742,7 @@ function adminMessageIdentity(){
 function openMessageCenter(){const p=new URLSearchParams(adminMessageIdentity());p.set('back',location.href);location.href=MESSAGE_CENTER_PAGE+'?'+p.toString()}
 function adminMessageJsonp(action){return new Promise((resolve,reject)=>{const cb='hm_admin_msg_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script'),timer=setTimeout(()=>done(new Error('訊息中心連線逾時')),12000);function done(err){clearTimeout(timer);try{delete window[cb]}catch(e){}s.remove();if(err)reject(err)}window[cb]=r=>{done();r&&r.ok?resolve(r):reject(new Error(r?.error||'訊息中心連線失敗'))};s.onerror=()=>done(new Error('訊息中心連線失敗'));s.src=MESSAGE_CENTER_URL+'?'+new URLSearchParams({...adminMessageIdentity(),action,callback:cb,_:Date.now()}).toString();document.head.appendChild(s)})}
 let previousAdminMessageUnread=null;
-async function refreshAdminMessageUnread(){const id=adminMessageIdentity();if(!id.employeeId&&!id.account)return;try{const r=await adminMessageJsonp('unreadCount'),n=Number(r.unread||0),card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');card?.classList.toggle('hasUnread',n>0);if(badge)badge.textContent=n>99?'99+':String(n);if(previousAdminMessageUnread!==null&&n>previousAdminMessageUnread)beep();previousAdminMessageUnread=n}catch(e){console.warn('訊息中心未讀提示：',e.message)}}
+async function refreshAdminMessageUnread(){const id=adminMessageIdentity();if(!id.employeeId&&!id.account&&!id.groups)return;try{const r=await adminMessageJsonp('unreadCount'),n=Number(r.unread||0),card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');card?.classList.toggle('hasUnread',n>0);if(badge)badge.textContent=n>99?'99+':String(n);if(previousAdminMessageUnread!==null&&n>previousAdminMessageUnread)beep();previousAdminMessageUnread=n}catch(e){console.warn('訊息中心未讀提示：',e.message)}}
 
 function openMediaAdminInbox(){
   if(!MEDIA_ADMIN_URL || MEDIA_ADMIN_URL.includes('PASTE_GOOGLE_APPS_SCRIPT')){
