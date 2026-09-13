@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜庶務人員首頁 v13.12</title>
+  <title>和美智慧校園｜庶務人員首頁 v13.13</title>
   <style>
     :root{
       --bg1:#f1fff6;
@@ -557,6 +557,9 @@
 }
 .groupbuyNotice.show{display:block}
 
+.messageCenterCard{position:relative}
+.messageUnreadBadge{display:none;position:absolute;right:10px;top:9px;min-width:25px;height:25px;padding:0 7px;border-radius:14px;background:#df4b4b;color:#fff;font-size:14px;font-weight:900;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(223,75,75,.14)}
+.messageCenterCard.hasUnread .messageUnreadBadge{display:flex}
 </style>
 </head>
 <body>
@@ -581,7 +584,7 @@
     </header>
 
     <div class="version-refresh-row">
-      <div class="page-version">庶務人員首頁 v13.12</div>
+      <div class="page-version">庶務人員首頁 v13.13</div>
       <button class="refresh-version-btn" type="button" onclick="refreshLatestVersion()">🔄 檢查並重新整理最新版</button>
     </div>
 
@@ -649,6 +652,12 @@
         <span class="tag">粉綠版</span>
       </div>
       <div class="grid">
+        <button class="btn messageCenterCard" id="messageCenterCard" onclick="openMessageCenter()">
+          <span class="messageUnreadBadge" id="messageUnreadBadge" aria-label="未讀訊息"></span>
+          <div class="icon">🔔</div>
+          <strong>訊息中心</strong>
+          <span>查看公務交辦與各功能通知</span>
+        </button>
         <button class="btn primary" onclick="openAttendanceArea()">
           <div class="icon"><img src="assets/attendance-statistics.jpg?v=20260906b" alt="打卡與出勤"></div>
           <div>
@@ -704,7 +713,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.12｜打卡區入口驗證版</div>
+<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.13｜統一訊息中心第一版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -790,10 +799,18 @@
       window.location.href='attendance.html?v=2.9.1';
     }
     const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
+    const MESSAGE_CENTER_URL = 'https://script.google.com/macros/s/AKfycbwhJsU-5QiZ3uDd9UCnECd16jpHG_LoweHRIC7TrSf_AH-bDLPUFVeAGB2urQo25zzoVg/exec';
+    const MESSAGE_CENTER_PAGE = 'message_center.html';
 
     let currentUser = '庶務人員';
     let currentEmployee = null;
     let pendingAckId = null;
+
+    function supportMessageIdentity(){const emp=currentEmployee||{};return {employeeId:String(emp.employeeId||emp.id||emp['員工編號']||'').trim(),account:String(emp.account||localStorage.getItem('heremay.lastFaceAccount')||'').trim(),name:String(emp.name||currentUser||'庶務人員').trim(),groups:[emp.group,emp.department,'庶務部'].filter(Boolean).join(',')}}
+    function openMessageCenter(){const p=new URLSearchParams(supportMessageIdentity());p.set('back',location.href);location.href=MESSAGE_CENTER_PAGE+'?'+p.toString()}
+    function supportMessageJsonp(action){return new Promise((resolve,reject)=>{const cb='hm_support_msg_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script'),timer=setTimeout(()=>done(new Error('訊息中心連線逾時')),12000);function done(err){clearTimeout(timer);try{delete window[cb]}catch(e){}s.remove();if(err)reject(err)}window[cb]=r=>{done();r&&r.ok?resolve(r):reject(new Error(r?.error||'訊息中心連線失敗'))};s.onerror=()=>done(new Error('訊息中心連線失敗'));s.src=MESSAGE_CENTER_URL+'?'+new URLSearchParams({...supportMessageIdentity(),action,callback:cb,_:Date.now()}).toString();document.head.appendChild(s)})}
+    let previousSupportMessageUnread=null;
+    async function refreshSupportMessageUnread(){const id=supportMessageIdentity();if(!id.employeeId&&!id.account)return;try{const r=await supportMessageJsonp('unreadCount'),n=Number(r.unread||0),card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');card?.classList.toggle('hasUnread',n>0);if(badge)badge.textContent=n>99?'99+':String(n);if(previousSupportMessageUnread!==null&&n>previousSupportMessageUnread)beep();previousSupportMessageUnread=n}catch(e){console.warn('訊息中心未讀提示：',e.message)}}
 
 
     const ANNOUNCEMENT_KEY='heremay.announcements';
@@ -1390,6 +1407,9 @@
     }
 
     loadCurrentEmployee();
+    window.addEventListener('pageshow',()=>setTimeout(refreshSupportMessageUnread,350));
+    setTimeout(refreshSupportMessageUnread,900);
+    setInterval(refreshSupportMessageUnread,60000);
     loadCloudStaffData();
     window.addEventListener('pageshow',loadCloudStaffData);
 
