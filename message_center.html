@@ -43,9 +43,22 @@
       s.src=MESSAGE_SERVICE_URL+'?'+q.toString(); document.head.appendChild(s);
     });
   }
-  async function load(){
+  async function load(attempt=0){
     if(!identity.employeeId&&!identity.account&&!identity.groups){showError('尚未取得登入身分，請從校園首頁進入。');return;}
-    try{const r=await api('list',{limit:100});items=r.items||[];render(r.unread||0);notifyNewest();}catch(e){showError(e.message);}
+    try{
+      const r=await api('list',{limit:100});
+      items=r.items||[];
+      render(r.unread||0);
+      notifyNewest();
+    }catch(e){
+      if(attempt<2){
+        document.getElementById('count').textContent='正在重新連線…';
+        document.getElementById('list').innerHTML='<div class="loading">連線較慢，正在自動重試（'+(attempt+1)+'/2）…</div>';
+        setTimeout(()=>load(attempt+1),900);
+        return;
+      }
+      showError(e.message);
+    }
   }
   function render(unread){
     document.getElementById('count').textContent=unread?'未讀 '+unread+' 則':'目前沒有未讀訊息';
