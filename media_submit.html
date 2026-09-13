@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>班級素材投稿</title>
   <style>
-    :root{--banner-height:86px;--pink:#e9558a;--ink:#9b2452}
+    :root{--pink:#e9558a;--ink:#9b2452}
     *{box-sizing:border-box}
     html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#fff5f9}
     .frame-wrap{position:fixed;inset:0;overflow:hidden}
-    iframe{position:absolute;top:calc(-1 * var(--banner-height));left:0;width:100%;height:calc(100dvh + var(--banner-height));border:0;background:#fff5f9}
+    iframe{position:absolute;inset:0;width:100%;height:100dvh;border:0;background:#fff5f9}
     .back{position:fixed;z-index:10;top:16px;right:max(16px,calc((100vw - 680px)/2 + 34px));width:auto;margin:0;padding:9px 13px;border:2px solid #b72f62;border-radius:12px;background:#fff;color:var(--ink);font-family:"Microsoft JhengHei",sans-serif;font-size:15px;font-weight:900;line-height:1;box-shadow:0 4px 10px rgba(183,47,98,.16);cursor:pointer}
     .back:active{transform:scale(.97)}
     @media(max-width:560px){.back{top:14px;right:32px;padding:8px 10px;font-size:14px}}
