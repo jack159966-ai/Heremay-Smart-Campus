@@ -1,0 +1,83 @@
+﻿<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>訊息中心</title>
+  <style>
+    :root{--blue:#4774b3;--ink:#23344e;--muted:#728096;--line:#d8e4f2;--bg:#edf5fc;--card:#fff;--new:#fff9e9}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
+    .app{max-width:760px;margin:auto;min-height:100vh;padding:env(safe-area-inset-top) 18px calc(28px + env(safe-area-inset-bottom))}
+    header{display:flex;align-items:center;justify-content:space-between;padding:22px 4px 16px}h1{margin:0;font-size:28px}.back,.action{border:0;border-radius:18px;background:#e2edf9;color:var(--blue);font-size:18px;font-weight:700;padding:14px 18px}
+    .person{color:var(--muted);padding:0 5px 15px}.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px}.count{font-weight:800;color:var(--blue)}
+    .list{display:grid;gap:12px}.item{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 3px 14px #5b789314}.item.new{background:var(--new);border-color:#f1d89d}.top{display:flex;gap:10px;align-items:flex-start}.dot{width:10px;height:10px;border-radius:50%;background:#e39c2e;margin-top:8px;flex:0 0 auto}.item:not(.new) .dot{background:#b8c5d3}.title{font-size:20px;font-weight:800;line-height:1.35;flex:1}.time{font-size:13px;color:var(--muted);white-space:nowrap}.body{margin:10px 0 0 20px;color:#526178;line-height:1.65;white-space:pre-wrap}.meta{margin:10px 0 0 20px;font-size:13px;color:#8794a5}.open{display:inline-block;margin:12px 0 0 20px;color:#fff;background:var(--blue);padding:10px 15px;border-radius:13px;text-decoration:none;font-weight:700}
+    .empty,.loading,.error{text-align:center;padding:55px 20px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:22px}.error{color:#b55252}.sound{font-size:14px;color:var(--muted);margin-left:auto}
+    @media(max-width:480px){.app{padding-left:12px;padding-right:12px}h1{font-size:25px}.time{display:none}.title{font-size:18px}}
+  </style>
+</head>
+<body>
+<main class="app">
+  <header><h1>🔔 訊息中心</h1><button class="back" onclick="goBack()">返回</button></header>
+  <div class="person" id="person"></div>
+  <div class="toolbar"><span class="count" id="count">讀取中…</span><button class="action" id="allRead" onclick="markAllRead()" hidden>全部已讀</button><span class="sound">新訊息會播放提示聲</span></div>
+  <section class="list" id="list"><div class="loading">正在讀取訊息…</div></section>
+</main>
+<script>
+  const PARAMS = Object.fromEntries(new URLSearchParams(location.search).entries());
+  const MESSAGE_SERVICE_URL = 'https://script.google.com/macros/s/AKfycbwhJsU-5QiZ3uDd9UCnECd16jpHG_LoweHRIC7TrSf_AH-bDLPUFVeAGB2urQo25zzoVg/exec';
+  const identity = {
+    employeeId: String(PARAMS.employeeId || ''), account: String(PARAMS.account || PARAMS.email || ''),
+    name: String(PARAMS.name || ''), groups: String(PARAMS.groups || PARAMS.group || '')
+  };
+  let items = [];
+  document.getElementById('person').textContent = identity.name ? identity.name + ' 的訊息' : '我的訊息';
+
+  function api(action, extra){
+    return new Promise((resolve,reject)=>{
+      const fn='mc_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+      const q=new URLSearchParams(Object.assign({},identity,extra||{},{action,callback:fn}));
+      const s=document.createElement('script'); let timer;
+      window[fn]=data=>{clearTimeout(timer);delete window[fn];s.remove();data&&data.ok?resolve(data):reject(new Error((data&&data.error)||'連線失敗'));};
+      s.onerror=()=>{clearTimeout(timer);delete window[fn];s.remove();reject(new Error('連線失敗'));};
+      timer=setTimeout(()=>{delete window[fn];s.remove();reject(new Error('連線逾時'));},15000);
+      s.src=MESSAGE_SERVICE_URL+'?'+q.toString(); document.head.appendChild(s);
+    });
+  }
+  async function load(){
+    if(!identity.employeeId&&!identity.account&&!identity.groups){showError('尚未取得登入身分，請從校園首頁進入。');return;}
+    try{const r=await api('list',{limit:100});items=r.items||[];render(r.unread||0);notifyNewest();}catch(e){showError(e.message);}
+  }
+  function render(unread){
+    document.getElementById('count').textContent=unread?'未讀 '+unread+' 則':'目前沒有未讀訊息';
+    document.getElementById('allRead').hidden=!unread;
+    const box=document.getElementById('list');
+    if(!items.length){box.innerHTML='<div class="empty">目前還沒有訊息</div>';return;}
+    box.innerHTML=items.map(x=>`<article class="item ${x.isRead?'':'new'}" onclick="readOne('${esc(x.id)}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${html(x.createdAt)}</time></div>${x.message?`<div class="body">${html(x.message)}</div>`:''}<div class="meta">${html(x.source||'系統')}${x.senderName?'・'+html(x.senderName):''}</div>${x.link?`<a class="open" href="${attr(x.link)}" onclick="event.stopPropagation();readOne('${esc(x.id)}')">查看內容</a>`:''}</article>`).join('');
+  }
+  async function readOne(id){
+    const x=items.find(v=>v.id===id);if(!x||x.isRead)return;
+    x.isRead=true;render(items.filter(v=>!v.isRead).length);
+    try{await api('markRead',{notificationId:id});}catch(e){x.isRead=false;render(items.filter(v=>!v.isRead).length);}
+  }
+  async function markAllRead(){
+    try{await api('markAllRead');items.forEach(x=>x.isRead=true);render(0);}catch(e){showError(e.message);}
+  }
+  function notifyNewest(){
+    const x=items.find(v=>!v.isRead&&v.sound);if(!x)return;
+    const key='heremay.messageCenter.lastSound';if(localStorage.getItem(key)===x.id)return;
+    localStorage.setItem(key,x.id);beep();
+  }
+  function beep(){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const c=new C(),o=c.createOscillator(),g=c.createGain();o.frequency.value=740;g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.12,c.currentTime+.02);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.32);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.34);}catch(e){}}
+  function goBack(){
+    if(PARAMS.back){location.href=PARAMS.back;return;}
+    if(history.length>1){history.back();return;}
+    location.href='teacher.html';
+  }
+  function showError(m){document.getElementById('count').textContent='讀取失敗';document.getElementById('list').innerHTML='<div class="error">'+html(m)+'</div>';}
+  function html(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function attr(v){return html(v).replace(/`/g,'&#96;')}
+  function esc(v){return String(v||'').replace(/['\\]/g,'\\$&')}
+  load();
+</script>
+</body>
+</html>
