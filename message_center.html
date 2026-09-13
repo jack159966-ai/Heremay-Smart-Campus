@@ -65,12 +65,27 @@
     document.getElementById('allRead').hidden=!unread;
     const box=document.getElementById('list');
     if(!items.length){box.innerHTML='<div class="empty">目前還沒有訊息</div>';return;}
-    box.innerHTML=items.map(x=>`<article class="item ${x.isRead?'':'new'}" onclick="readOne('${esc(x.id)}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${html(x.createdAt)}</time></div>${x.message?`<div class="body">${html(x.message)}</div>`:''}<div class="meta">${html(x.source||'系統')}${x.senderName?'・'+html(x.senderName):''}</div>${x.link?`<a class="open" href="${attr(x.link)}" onclick="event.stopPropagation();readOne('${esc(x.id)}')">查看內容</a>`:''}</article>`).join('');
+    box.innerHTML=items.map(x=>`<article class="item ${x.isRead?'':'new'}" onclick="readOne('${esc(x.id)}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${html(x.createdAt)}</time></div>${x.message?`<div class="body">${html(x.message)}</div>`:''}<div class="meta">${html(x.source||'系統')}${x.senderName?'・'+html(x.senderName):''}</div>${x.link?`<a class="open" href="${attr(x.link)}" onclick="openLinkedItem(event,'${esc(x.id)}','${esc(x.link)}')">查看內容</a>`:''}</article>`).join('');
   }
   async function readOne(id){
-    const x=items.find(v=>v.id===id);if(!x||x.isRead)return;
+    const x=items.find(v=>v.id===id);if(!x||x.isRead)return true;
     x.isRead=true;render(items.filter(v=>!v.isRead).length);
-    try{await api('markRead',{notificationId:id});}catch(e){x.isRead=false;render(items.filter(v=>!v.isRead).length);}
+    try{await api('markRead',{notificationId:id});return true;}catch(e){x.isRead=false;render(items.filter(v=>!v.isRead).length);return false;}
+  }
+  async function openLinkedItem(event,id,link){
+    event.preventDefault();event.stopPropagation();
+    const button=event.currentTarget;
+    const original=button.textContent;
+    button.textContent='正在開啟…';
+    button.style.pointerEvents='none';
+    let marked=await readOne(id);
+    if(!marked){
+      await new Promise(resolve=>setTimeout(resolve,800));
+      marked=await readOne(id);
+    }
+    button.textContent=original;
+    button.style.pointerEvents='';
+    location.href=link;
   }
   async function markAllRead(){
     try{await api('markAllRead');items.forEach(x=>x.isRead=true);render(0);}catch(e){showError(e.message);}
