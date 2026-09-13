@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.34</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.35</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -582,6 +582,9 @@
 }
 .hasGroupbuyUnread{position:relative}
 .bottomSquareBtn.hasGroupbuyUnread .groupbuyCardUnreadDot{display:block}
+.messageCenterCard{position:relative}
+.messageUnreadBadge{display:none;position:absolute;right:11px;top:10px;min-width:25px;height:25px;padding:0 7px;border-radius:14px;background:#df4b4b;color:#fff;font-size:14px;font-weight:900;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(223,75,75,.14);z-index:3}
+.messageCenterCard.hasUnread .messageUnreadBadge{display:flex}
 
 </style>
 </head>
@@ -609,7 +612,7 @@
     </header>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.34</div>
+      <div class="versionStamp">主管工作台 v24.35</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -666,6 +669,10 @@
 
 
     <section class="bottomToolGrid">
+      <button class="bottomSquareBtn messageCenterCard" id="messageCenterCard" type="button" onclick="openMessageCenter()">
+        <span class="messageUnreadBadge" id="messageUnreadBadge" aria-label="未讀訊息"></span>
+        <span class="sqIcon">🔔</span><strong>訊息中心</strong><span>查看投稿進度與系統通知</span>
+      </button>
       <button class="bottomSquareBtn" type="button" onclick="location.href='leave_admin.html'">
         <span class="sqIcon"><img src="assets/leave-management.jpg?v=20260906b" alt="請假管理"></span><strong>請假管理</strong><span>近期與每月請假</span>
       </button>
@@ -720,10 +727,21 @@
 
 <script>
 const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
+const MESSAGE_CENTER_URL = 'https://script.google.com/macros/s/AKfycbwhJsU-5QiZ3uDd9UCnECd16jpHG_LoweHRIC7TrSf_AH-bDLPUFVeAGB2urQo25zzoVg/exec';
+const MESSAGE_CENTER_PAGE = 'message_center.html';
 // Google 雲端主管收件匣部署完成後，只需更換這個網址。
 const MEDIA_ADMIN_URL = 'media_admin.html?v=1.0.2';
 
 let currentAdminEmployee = null;
+
+function adminMessageIdentity(){
+  const emp=currentAdminEmployee||readCurrentEmployee()||{};
+  return {employeeId:String(emp.employeeId||emp.id||emp['員工編號']||'').trim(),account:String(emp.account||localStorage.getItem('heremay.lastFaceAccount')||'').trim(),name:String(emp.name||'主管').trim(),groups:[emp.group,emp.department,'主管'].filter(Boolean).join(',')};
+}
+function openMessageCenter(){const p=new URLSearchParams(adminMessageIdentity());p.set('back',location.href);location.href=MESSAGE_CENTER_PAGE+'?'+p.toString()}
+function adminMessageJsonp(action){return new Promise((resolve,reject)=>{const cb='hm_admin_msg_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script'),timer=setTimeout(()=>done(new Error('訊息中心連線逾時')),12000);function done(err){clearTimeout(timer);try{delete window[cb]}catch(e){}s.remove();if(err)reject(err)}window[cb]=r=>{done();r&&r.ok?resolve(r):reject(new Error(r?.error||'訊息中心連線失敗'))};s.onerror=()=>done(new Error('訊息中心連線失敗'));s.src=MESSAGE_CENTER_URL+'?'+new URLSearchParams({...adminMessageIdentity(),action,callback:cb,_:Date.now()}).toString();document.head.appendChild(s)})}
+let previousAdminMessageUnread=null;
+async function refreshAdminMessageUnread(){const id=adminMessageIdentity();if(!id.employeeId&&!id.account)return;try{const r=await adminMessageJsonp('unreadCount'),n=Number(r.unread||0),card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');card?.classList.toggle('hasUnread',n>0);if(badge)badge.textContent=n>99?'99+':String(n);if(previousAdminMessageUnread!==null&&n>previousAdminMessageUnread)beep();previousAdminMessageUnread=n}catch(e){console.warn('訊息中心未讀提示：',e.message)}}
 
 function openMediaAdminInbox(){
   if(!MEDIA_ADMIN_URL || MEDIA_ADMIN_URL.includes('PASTE_GOOGLE_APPS_SCRIPT')){
@@ -1754,6 +1772,9 @@ async function refreshDiscussionUnreadNotice(){
 window.addEventListener('pageshow',refreshDiscussionUnreadNotice);
 setTimeout(refreshDiscussionUnreadNotice,700);
 setInterval(refreshDiscussionUnreadNotice,60000);
+window.addEventListener('pageshow',()=>setTimeout(refreshAdminMessageUnread,350));
+setTimeout(refreshAdminMessageUnread,1000);
+setInterval(refreshAdminMessageUnread,60000);
 
 </script>
 </body>
