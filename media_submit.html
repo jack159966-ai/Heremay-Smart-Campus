@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>班級素材投稿</title>
+  <style>
+    :root{--banner-height:86px;--pink:#e9558a;--ink:#9b2452}
+    *{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#fff5f9}
+    .frame-wrap{position:fixed;inset:0;overflow:hidden}
+    iframe{position:absolute;top:calc(-1 * var(--banner-height));left:0;width:100%;height:calc(100dvh + var(--banner-height));border:0;background:#fff5f9}
+    .back{position:fixed;z-index:10;top:16px;right:max(16px,calc((100vw - 680px)/2 + 34px));width:auto;margin:0;padding:9px 13px;border:2px solid #b72f62;border-radius:12px;background:#fff;color:var(--ink);font-family:"Microsoft JhengHei",sans-serif;font-size:15px;font-weight:900;line-height:1;box-shadow:0 4px 10px rgba(183,47,98,.16);cursor:pointer}
+    .back:active{transform:scale(.97)}
+    @media(max-width:560px){.back{top:14px;right:32px;padding:8px 10px;font-size:14px}}
+  </style>
+</head>
+<body>
+  <div class="frame-wrap">
+    <iframe id="submissionFrame" title="班級素材投稿" allow="camera; microphone" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </div>
+  <button type="button" class="back" onclick="goBack()">← 返回上頁</button>
+  <script>
+    const SERVICE_URL='https://script.google.com/macros/s/AKfycbzs1cNvsDJFhu0J_8qAepgL-a6MGIPnyVFNw5JFAespotS4uKtEf4EaYIY7oKzGDMak/exec';
+    const query=location.search.replace(/^\?/, '');
+    document.getElementById('submissionFrame').src=SERVICE_URL+(query?'?'+query:'');
+
+    function goBack(){
+      const p=new URLSearchParams(location.search);
+      const back=p.get('back');
+      if(back){location.href=back;return;}
+      if(history.length>1){history.back();return;}
+      location.href='teacher.html';
+    }
+  </script>
+</body>
+</html>
