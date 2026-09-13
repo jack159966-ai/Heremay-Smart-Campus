@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.37</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.38</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -613,7 +613,7 @@
     </header>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.37</div>
+      <div class="versionStamp">主管工作台 v24.38</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -1773,7 +1773,14 @@ async function refreshDiscussionUnreadNotice(){
 window.addEventListener('pageshow',refreshDiscussionUnreadNotice);
 setTimeout(refreshDiscussionUnreadNotice,700);
 setInterval(refreshDiscussionUnreadNotice,60000);
-window.addEventListener('pageshow',()=>setTimeout(refreshAdminMessageUnread,350));
+function scheduleAdminMessageUnreadRefresh(){
+  [350,2500,6000].forEach(delay=>setTimeout(refreshAdminMessageUnread,delay));
+}
+window.addEventListener('pageshow',scheduleAdminMessageUnreadRefresh);
+window.addEventListener('focus',()=>setTimeout(refreshAdminMessageUnread,300));
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible')scheduleAdminMessageUnreadRefresh();
+});
 setTimeout(refreshAdminMessageUnread,1000);
 setInterval(refreshAdminMessageUnread,60000);
 
