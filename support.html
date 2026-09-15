@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜庶務人員首頁 v13.14</title>
+  <title>和美智慧校園｜庶務人員首頁 v13.15</title>
   <style>
     :root{
       --bg1:#f1fff6;
@@ -560,6 +560,9 @@
 .messageCenterCard{position:relative}
 .btn .messageUnreadBadge{display:none;position:absolute;right:10px;top:9px;min-width:25px;height:25px;padding:0 7px;border-radius:14px;background:#df4b4b;color:#fff!important;-webkit-text-fill-color:#fff!important;text-shadow:0 1px 2px rgba(88,0,0,.45);font-size:14px;font-weight:900;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(223,75,75,.14)}
 .messageCenterCard.hasUnread .messageUnreadBadge{display:flex}
+.homeMessageCenter{width:100%;position:relative;border:1px solid #9bd7b5;border-radius:20px;background:linear-gradient(135deg,#dcf7e8,#f0fcf5 58%,#fff);padding:15px 17px;display:flex;align-items:center;gap:13px;text-align:left;cursor:pointer;box-shadow:0 8px 20px rgba(43,132,83,.14)}
+.homeMessageCenter .messageUnreadBadge{display:none;position:absolute;right:13px;top:9px;min-width:27px;height:27px;padding:0 7px;border-radius:14px;background:#df4b4b;color:#fff;font-size:15px;font-weight:900;align-items:center;justify-content:center}.homeMessageCenter.hasUnread .messageUnreadBadge{display:flex}.homeMessageCenter .hmIcon{font-size:36px}.homeMessageCenter strong{font-size:21px;color:#236b43}.homeMessageCenter small{display:block;margin-top:3px;color:#557663;font-weight:800}.homeMessageCenter .hmArrow{margin-left:auto;font-size:28px;color:#2f8754}
+.privateMessageCard{position:relative}.privateUnreadBadge{display:none;position:absolute;right:10px;top:9px;min-width:25px;height:25px;padding:0 7px;border-radius:14px;background:#df4b4b;color:#fff;font-weight:900;align-items:center;justify-content:center}.privateMessageCard.hasUnread .privateUnreadBadge{display:flex}
 </style>
 </head>
 <body>
@@ -583,8 +586,12 @@
       </div>
     </header>
 
+    <section class="section">
+      <button class="homeMessageCenter messageCenterCard" id="messageCenterCard" onclick="openMessageCenter()"><span class="messageUnreadBadge" id="messageUnreadBadge" aria-label="未讀訊息"></span><span class="hmIcon">🔔</span><span><strong>訊息中心</strong><small>公告、討論、登記與私訊通知</small></span><span class="hmArrow">›</span></button>
+    </section>
+
     <div class="version-refresh-row">
-      <div class="page-version">庶務人員首頁 v13.14</div>
+      <div class="page-version">庶務人員首頁 v13.15</div>
       <button class="refresh-version-btn" type="button" onclick="refreshLatestVersion()">🔄 檢查並重新整理最新版</button>
     </div>
 
@@ -600,50 +607,31 @@
 
     <section class="section">
       <div class="section-title">
-        <span>今日提醒事項</span>
-        <span class="tag">依時間排序</span>
+        <span>三日內工作</span>
+        <span class="tag">依到期時間排序</span>
       </div>
       <div class="reminder">
-        <div class="rtime">08:00</div>
+        <div class="rtime">今天<br>08:00</div>
         <div class="rbody">工作區域與設備安全確認
           <div class="rnote">廚房、清潔間、垃圾集中區</div>
         </div>
       </div>
       <div class="reminder">
-        <div class="rtime">11:30</div>
+        <div class="rtime">今天<br>11:30</div>
         <div class="rbody">午餐出餐與餐後整理
           <div class="rnote">留意餐具、地面與廚餘處理</div>
         </div>
       </div>
       <div class="reminder">
-        <div class="rtime">15:30</div>
+        <div class="rtime">今天<br>15:30</div>
         <div class="rbody">下午清潔與用品補充
           <div class="rnote">廁所、走廊、公共區域與耗材補充</div>
         </div>
       </div>
-    </section>
-
-    <section class="section">
-      <div class="section-title">
-        <span>即將到期</span>
-        <span class="tag">1天 / 3天</span>
-      </div>
-      <div class="due-grid">
-        <div class="due">
-          <h3>未來一天</h3>
-          <ul>
-            <li>清潔用品補貨登記</li>
-            <li>廚房設備異常回報</li>
-          </ul>
-        </div>
-        <div class="due">
-          <h3>未來三天</h3>
-          <ul>
-            <li>庫存盤點完成</li>
-            <li>大掃除區域確認</li>
-          </ul>
-        </div>
-      </div>
+      <div class="reminder"><div class="rtime">明天</div><div class="rbody">清潔用品補貨登記<div class="rnote">請於期限前完成確認</div></div></div>
+      <div class="reminder"><div class="rtime">明天</div><div class="rbody">廚房設備異常確認<div class="rnote">三日內工作</div></div></div>
+      <div class="reminder"><div class="rtime">後天</div><div class="rbody">庫存盤點完成<div class="rnote">三日內工作</div></div></div>
+      <div class="reminder"><div class="rtime">後天</div><div class="rbody">大掃除區域確認<div class="rnote">三日內工作</div></div></div>
     </section>
 
     <section class="section">
@@ -652,12 +640,7 @@
         <span class="tag">粉綠版</span>
       </div>
       <div class="grid">
-        <button class="btn messageCenterCard" id="messageCenterCard" onclick="openMessageCenter()">
-          <span class="messageUnreadBadge" id="messageUnreadBadge" aria-label="未讀訊息"></span>
-          <div class="icon">🔔</div>
-          <strong>訊息中心</strong>
-          <span>查看公務交辦與各功能通知</span>
-        </button>
+        <button class="btn privateMessageCard" id="privateMessageCard" onclick="openPrivateMessage()"><span class="privateUnreadBadge" id="privateUnreadBadge"></span><div class="icon">💬</div><strong>私訊</strong><span>一對一聯繫與快捷回覆</span></button>
         <button class="btn primary" onclick="openAttendanceArea()">
           <div class="icon"><img src="assets/attendance-statistics.jpg?v=20260906b" alt="打卡與出勤"></div>
           <div>
@@ -676,12 +659,6 @@
           <div class="icon"><img src="assets/support-staff.jpg?v=20260906b" alt="清潔與廚務事項"></div>
           <strong>清潔 / 廚務事項</strong>
           <span>廚房、餐具、清潔區域與消毒紀錄</span>
-        </button>
-
-        <button class="btn" onclick="openReportCenter()">
-          <div class="icon"><img src="assets/feedback.jpg?v=20260906b" alt="報修與採購回報"></div>
-          <strong>報修 / 採購回報</strong>
-          <span>回報設備故障、耗材不足或需要協助事項</span>
         </button>
 
         <button class="btn" id="discussionHomeCard" onclick="window.location.href='discussion.html'">
@@ -713,7 +690,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.14｜訊息中心紅點數字清晰版</div>
+<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.15｜首頁訊息與三日工作整合版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -808,9 +785,11 @@
 
     function supportMessageIdentity(){const emp=currentEmployee||{};return {employeeId:String(emp.employeeId||emp.id||emp['員工編號']||'').trim(),account:String(emp.account||localStorage.getItem('heremay.lastFaceAccount')||'').trim(),name:String(emp.name||currentUser||'庶務人員').trim(),groups:[emp.group,emp.department,'庶務部'].filter(Boolean).join(',')}}
     function openMessageCenter(){const p=new URLSearchParams(supportMessageIdentity());p.set('back',location.href);location.href=MESSAGE_CENTER_PAGE+'?'+p.toString()}
+    function openPrivateMessage(){window.location.href='private_message.html?back='+encodeURIComponent(location.href)}
     function supportMessageJsonp(action){return new Promise((resolve,reject)=>{const cb='hm_support_msg_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script'),timer=setTimeout(()=>done(new Error('訊息中心連線逾時')),12000);function done(err){clearTimeout(timer);try{delete window[cb]}catch(e){}s.remove();if(err)reject(err)}window[cb]=r=>{done();r&&r.ok?resolve(r):reject(new Error(r?.error||'訊息中心連線失敗'))};s.onerror=()=>done(new Error('訊息中心連線失敗'));s.src=MESSAGE_CENTER_URL+'?'+new URLSearchParams({...supportMessageIdentity(),action,callback:cb,_:Date.now()}).toString();document.head.appendChild(s)})}
     let previousSupportMessageUnread=null;
     async function refreshSupportMessageUnread(){const id=supportMessageIdentity();if(!id.employeeId&&!id.account)return;try{const r=await supportMessageJsonp('unreadCount'),n=Number(r.unread||0),card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');card?.classList.toggle('hasUnread',n>0);if(badge)badge.textContent=n>99?'99+':String(n);if(previousSupportMessageUnread!==null&&n>previousSupportMessageUnread)beep();previousSupportMessageUnread=n}catch(e){console.warn('訊息中心未讀提示：',e.message)}}
+    async function refreshSupportPrivateUnread(){try{const r=await supportMessageJsonp('unreadPrivateCount'),n=Number(r.unread||0),c=document.getElementById('privateMessageCard'),b=document.getElementById('privateUnreadBadge');c?.classList.toggle('hasUnread',n>0);if(b)b.textContent=n>99?'99+':String(n)}catch(e){console.warn('私訊未讀提示：',e.message)}}
 
 
     const ANNOUNCEMENT_KEY='heremay.announcements';
@@ -1407,9 +1386,11 @@
     }
 
     loadCurrentEmployee();
-    window.addEventListener('pageshow',()=>setTimeout(refreshSupportMessageUnread,350));
+    window.addEventListener('pageshow',()=>{setTimeout(refreshSupportMessageUnread,350);setTimeout(refreshSupportPrivateUnread,450)});
     setTimeout(refreshSupportMessageUnread,900);
     setInterval(refreshSupportMessageUnread,60000);
+    setTimeout(refreshSupportPrivateUnread,1000);
+    setInterval(refreshSupportPrivateUnread,60000);
     loadCloudStaffData();
     window.addEventListener('pageshow',loadCloudStaffData);
 
