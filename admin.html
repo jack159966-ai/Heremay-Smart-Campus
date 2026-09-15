@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.38</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.39</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -586,6 +586,10 @@
 .messageCenterCard .sqIcon{font-size:38px!important;background:#edf4ff;border-radius:20px}
 .bottomSquareBtn .messageUnreadBadge{display:none;position:absolute;right:11px;top:10px;min-width:27px;height:27px;padding:0 7px;border-radius:14px;background:#df3f46;color:#fff;font-size:16px;font-weight:950;line-height:1;align-items:center;justify-content:center;text-shadow:0 1px 1px rgba(90,0,0,.35);box-shadow:0 0 0 4px rgba(223,75,75,.14);z-index:3}
 .messageCenterCard.hasUnread .messageUnreadBadge{display:flex}
+.homeMessageCenter{width:100%;position:relative;border:1px solid #8fb7ff;border-radius:20px;background:linear-gradient(135deg,#dbe8ff,#eef4ff 55%,#fff);padding:16px 18px;display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;box-shadow:0 8px 22px rgba(47,104,216,.18)}
+.homeMessageCenter .messageUnreadBadge{display:none;position:absolute;right:14px;top:10px;min-width:29px;height:29px;padding:0 8px;border-radius:15px;background:#df3f46;color:#fff;font-size:16px;font-weight:950;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(223,75,75,.14)}
+.homeMessageCenter.hasUnread .messageUnreadBadge{display:flex}.homeMessageCenterIcon{font-size:38px}.homeMessageCenter strong{display:block;font-size:23px;color:#0f3f98}.homeMessageCenter small{display:block;margin-top:3px;color:#506b8b;font-size:14px;font-weight:800}.homeMessageCenterArrow{margin-left:auto;font-size:30px;color:#1f57bd}
+.privateMessageCard{position:relative}.privateUnreadBadge{display:none;position:absolute;right:11px;top:10px;min-width:25px;height:25px;padding:0 7px;border-radius:14px;background:#df3f46;color:#fff;font-size:14px;font-weight:950;align-items:center;justify-content:center}.privateMessageCard.hasUnread .privateUnreadBadge{display:flex}
 
 </style>
 </head>
@@ -612,32 +616,27 @@
       
     </header>
 
+    <section class="dashCard">
+      <button class="homeMessageCenter messageCenterCard" id="messageCenterCard" type="button" onclick="openMessageCenter()">
+        <span class="messageUnreadBadge" id="messageUnreadBadge" aria-label="未讀訊息"></span>
+        <span class="homeMessageCenterIcon">🔔</span><span><strong>訊息中心</strong><small>公告、投稿、討論、登記與私訊通知</small></span><span class="homeMessageCenterArrow">›</span>
+      </button>
+    </section>
+
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.38</div>
+      <div class="versionStamp">主管工作台 v24.39</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
     </div>
 
     <section class="dashCard">
-      <h2 class="dashTitle"><img class="dashTitleIcon" src="assets/todo-list.jpg?v=20260906b" alt="">今天待辦 <span class="count" id="todayCount">0 件</span></h2>
+      <h2 class="dashTitle"><img class="dashTitleIcon" src="assets/todo-list.jpg?v=20260906b" alt="">三日內工作 <span class="count" id="todayCount">0 件</span></h2>
       <div class="taskList" id="todayList"></div>
+      <div id="tomorrowList"></div>
+      <div id="afterTomorrowList"></div>
       <button class="completedToggle" id="completedToggle" type="button" onclick="toggleCompleted()">已完成 0 件⌄</button>
       <div class="completedList taskList" id="completedList"></div>
-    </section>
-
-    <section class="dashCard">
-      <h2 class="dashTitle"><img class="dashTitleIcon" src="assets/schedule.jpg?v=20260906b" alt="">明天／後天</h2>
-      <div class="futureGrid">
-        <article class="futureBox">
-          <h3 id="tomorrowTitle">明天</h3>
-          <div id="tomorrowList"></div>
-        </article>
-        <article class="futureBox">
-          <h3 id="afterTomorrowTitle">後天</h3>
-          <div id="afterTomorrowList"></div>
-        </article>
-      </div>
     </section>
 
     <section class="dashCard">
@@ -648,11 +647,6 @@
       </button>
     </section>
 
-
-    <section class="dashCard">
-      <h2 class="dashTitle"><img class="dashTitleIcon" src="assets/feedback.jpg?v=20260906b" alt="">同仁反饋 <span class="count" id="adminReportCount">0 件</span></h2>
-      <div id="adminReportList"></div>
-    </section>
 
     <section class="dashCard">
       <h2 class="dashTitle"><img class="dashTitleIcon announcementIcon" src="assets/announcement.jpg?v=20260906c" alt="">公布欄 <span class="count" id="adminNoticeCount">0 則</span></h2>
@@ -670,10 +664,7 @@
 
 
     <section class="bottomToolGrid">
-      <button class="bottomSquareBtn messageCenterCard" id="messageCenterCard" type="button" onclick="openMessageCenter()">
-        <span class="messageUnreadBadge" id="messageUnreadBadge" aria-label="未讀訊息"></span>
-        <span class="sqIcon">🔔</span><strong>訊息中心</strong><span>查看投稿進度與系統通知</span>
-      </button>
+      <button class="bottomSquareBtn privateMessageCard" id="privateMessageCard" type="button" onclick="openPrivateMessage()"><span class="privateUnreadBadge" id="privateUnreadBadge"></span><span class="sqIcon">💬</span><strong>私訊</strong><span>一對一聯繫與快捷回覆</span></button>
       <button class="bottomSquareBtn" type="button" onclick="location.href='leave_admin.html'">
         <span class="sqIcon"><img src="assets/leave-management.jpg?v=20260906b" alt="請假管理"></span><strong>請假管理</strong><span>近期與每月請假</span>
       </button>
@@ -740,9 +731,11 @@ function adminMessageIdentity(){
   return {employeeId:String(emp.employeeId||emp.id||emp['員工編號']||'').trim(),account:String(emp.account||localStorage.getItem('heremay.lastFaceAccount')||'').trim(),name:String(emp.name||'主管').trim(),groups:[emp.group,emp.department,'主管'].filter(Boolean).join(',')};
 }
 function openMessageCenter(){const p=new URLSearchParams(adminMessageIdentity());p.set('back',location.href);location.href=MESSAGE_CENTER_PAGE+'?'+p.toString()}
+function openPrivateMessage(){location.href='private_message.html?back='+encodeURIComponent(location.href)}
 function adminMessageJsonp(action){return new Promise((resolve,reject)=>{const cb='hm_admin_msg_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script'),timer=setTimeout(()=>done(new Error('訊息中心連線逾時')),12000);function done(err){clearTimeout(timer);try{delete window[cb]}catch(e){}s.remove();if(err)reject(err)}window[cb]=r=>{done();r&&r.ok?resolve(r):reject(new Error(r?.error||'訊息中心連線失敗'))};s.onerror=()=>done(new Error('訊息中心連線失敗'));s.src=MESSAGE_CENTER_URL+'?'+new URLSearchParams({...adminMessageIdentity(),action,callback:cb,_:Date.now()}).toString();document.head.appendChild(s)})}
 let previousAdminMessageUnread=null;
 async function refreshAdminMessageUnread(){const id=adminMessageIdentity();if(!id.employeeId&&!id.account&&!id.groups)return;try{const r=await adminMessageJsonp('unreadCount'),n=Number(r.unread||0),card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');card?.classList.toggle('hasUnread',n>0);if(badge)badge.textContent=n>99?'99+':String(n);if(previousAdminMessageUnread!==null&&n>previousAdminMessageUnread)beep();previousAdminMessageUnread=n}catch(e){console.warn('訊息中心未讀提示：',e.message)}}
+async function refreshAdminPrivateUnread(){try{const r=await adminMessageJsonp('unreadPrivateCount'),n=Number(r.unread||0),c=document.getElementById('privateMessageCard'),b=document.getElementById('privateUnreadBadge');c?.classList.toggle('hasUnread',n>0);if(b)b.textContent=n>99?'99+':String(n)}catch(e){console.warn('私訊未讀提示：',e.message)}}
 
 function openMediaAdminInbox(){
   if(!MEDIA_ADMIN_URL || MEDIA_ADMIN_URL.includes('PASTE_GOOGLE_APPS_SCRIPT')){
@@ -1064,7 +1057,7 @@ function renderToday(){
   if(pendingBox) pendingBox.innerHTML=pending.length?pending.map(r=>taskMarkup(r,false)).join(''):'<div class="hintBox">今天目前沒有待辦事項。</div>';
   if(doneBox) doneBox.innerHTML=done.map(r=>taskMarkup(r,true)).join('');
   const count=document.getElementById('todayCount');
-  if(count) count.textContent=`${pending.length} 件`;
+  if(count) count.textContent=`${pending.length+tomorrowItems.length+afterTomorrowItems.length} 件`;
   const toggle=document.getElementById('completedToggle');
   if(toggle) toggle.textContent=`已完成 ${done.length} 件⌄`;
 }
@@ -1072,13 +1065,13 @@ function toggleCompleted(){
   document.getElementById('completedList')?.classList.toggle('show');
 }
 function renderFuture(){
-  const render=(list,id)=>{
+  const render=(list,id,dayLabel)=>{
     const box=document.getElementById(id);
     if(!box) return;
-    box.innerHTML=list.length?list.map(x=>`<div class="futureItem"><time>${x.time}</time><span>${x.title}</span></div>`).join(''):'<div class="hintBox">目前沒有安排。</div>';
+    box.innerHTML=list.map(x=>`<div class="futureItem"><time>${dayLabel}<br>${x.time}</time><span>${x.title}</span></div>`).join('');
   };
-  render(tomorrowItems,'tomorrowList');
-  render(afterTomorrowItems,'afterTomorrowList');
+  render(tomorrowItems,'tomorrowList','明天');
+  render(afterTomorrowItems,'afterTomorrowList','後天');
 }
 renderToday(); renderFuture();
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.remove('show');void t.offsetWidth;t.classList.add('show')}
@@ -1774,15 +1767,17 @@ window.addEventListener('pageshow',refreshDiscussionUnreadNotice);
 setTimeout(refreshDiscussionUnreadNotice,700);
 setInterval(refreshDiscussionUnreadNotice,60000);
 function scheduleAdminMessageUnreadRefresh(){
-  [350,2500,6000].forEach(delay=>setTimeout(refreshAdminMessageUnread,delay));
+  [350,2500,6000].forEach(delay=>{setTimeout(refreshAdminMessageUnread,delay);setTimeout(refreshAdminPrivateUnread,delay+100)});
 }
 window.addEventListener('pageshow',scheduleAdminMessageUnreadRefresh);
-window.addEventListener('focus',()=>setTimeout(refreshAdminMessageUnread,300));
+window.addEventListener('focus',()=>{setTimeout(refreshAdminMessageUnread,300);setTimeout(refreshAdminPrivateUnread,400)});
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible')scheduleAdminMessageUnreadRefresh();
 });
 setTimeout(refreshAdminMessageUnread,1000);
 setInterval(refreshAdminMessageUnread,60000);
+setTimeout(refreshAdminPrivateUnread,1100);
+setInterval(refreshAdminPrivateUnread,60000);
 
 </script>
 </body>
