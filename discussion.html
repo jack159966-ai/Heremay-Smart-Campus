@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v3.13</title>
+<title>和美智慧校園｜討論區 v3.14</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -332,7 +332,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
   <button class="back" onclick="goBack()">← 返回</button>
 </header>
 <div class="version-refresh-row">
-  <span class="version">討論區 v3.13</span>
+  <span class="version">討論區 v3.14</span>
   <button class="refreshBtn" id="refreshDiscussionBtn" type="button" onclick="refreshDiscussionPage()">🔄 同步／檢查最新版</button>
 </div>
 
@@ -449,6 +449,61 @@ let currentMode='active';
 let currentRoomId='';
 let currentIsManager=false;
 let currentRoomMessages=[];
+
+// v3.14：討論內容本機快取。只保存文字與附件索引，不下載照片或大型檔案。
+const DISCUSSION_CACHE_DB='heremay-discussion-cache';
+const DISCUSSION_CACHE_STORE='room-messages';
+const DISCUSSION_CACHE_MAX_AGE=30*24*60*60*1000;
+function discussionCacheUserKey(){
+  return String(currentUserId||currentUser||'guest').trim();
+}
+function discussionCacheKey(roomId){
+  return discussionCacheUserKey()+'::'+String(roomId||'').trim();
+}
+function openDiscussionCache(){
+  return new Promise((resolve,reject)=>{
+    if(!('indexedDB' in window)){resolve(null);return;}
+    const req=indexedDB.open(DISCUSSION_CACHE_DB,1);
+    req.onupgradeneeded=()=>{
+      const db=req.result;
+      if(!db.objectStoreNames.contains(DISCUSSION_CACHE_STORE))db.createObjectStore(DISCUSSION_CACHE_STORE,{keyPath:'key'});
+    };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error||new Error('本機快取無法開啟'));
+  });
+}
+async function readRoomCache(roomId){
+  try{
+    const db=await openDiscussionCache();if(!db)return null;
+    return await new Promise(resolve=>{
+      const req=db.transaction(DISCUSSION_CACHE_STORE,'readonly').objectStore(DISCUSSION_CACHE_STORE).get(discussionCacheKey(roomId));
+      req.onsuccess=()=>{
+        const saved=req.result;
+        resolve(saved&&Date.now()-Number(saved.cachedAt||0)<=DISCUSSION_CACHE_MAX_AGE?saved:null);
+      };
+      req.onerror=()=>resolve(null);
+    });
+  }catch(e){return null;}
+}
+async function writeRoomCache(roomId,messages){
+  try{
+    const db=await openDiscussionCache();if(!db)return;
+    const tx=db.transaction(DISCUSSION_CACHE_STORE,'readwrite');
+    tx.objectStore(DISCUSSION_CACHE_STORE).put({key:discussionCacheKey(roomId),roomId:String(roomId),userKey:discussionCacheUserKey(),messages:Array.isArray(messages)?messages:[],cachedAt:Date.now()});
+  }catch(e){console.warn('討論內容快取寫入失敗：',e);}
+}
+function renderRoomMessages(msgs){
+  const safe=Array.isArray(msgs)?msgs:[];
+  messageList.innerHTML=safe.length?safe.map(m=>{
+    const attachments=Array.isArray(m.attachments)?m.attachments:[];
+    const attachHtml=attachments.length
+      ? `<div class="attachmentList">${attachments.map(a=>`<a class="attachmentLink" href="${esc(a.url)}" target="_blank" rel="noopener">📎 ${esc(a.name)}</a>`).join('')}</div>`
+      : '';
+    const delBtn='';
+    const textHtml=String(m.text||'').trim()?`<p>${esc(m.text)}</p>`:'';
+    return `<div class="msg" data-message-id="${esc(m.messageId||'')}" data-author-id="${esc(m.authorId||'')}" data-author-name="${esc(m.authorName||'')}"><div class="msgHead"><strong>${esc(m.authorName||'同仁')}</strong><span class="time">${fmt(m.createdAt)}</span>${delBtn}</div>${textHtml}${attachHtml}</div>`;
+  }).join(''):'<div class="empty">這個主題還沒有留言</div>';
+}
 let fileViewMode='gallery';
 let previewImages=[];
 let previewIndex=0;
@@ -874,7 +929,13 @@ async function openRoom(id){
   }else{
     roomParticipants.innerHTML='<span class="pill">尚未取得參與人員資料</span>';
   }
-  messageList.innerHTML='<div class="loadingBox">正在讀取留言…</div>';
+  const cached=await readRoomCache(id);
+  if(cached&&Array.isArray(cached.messages)){
+    currentRoomMessages=cached.messages;
+    renderRoomMessages(currentRoomMessages);
+  }else{
+    messageList.innerHTML='<div class="loadingBox">正在讀取留言…</div>';
+  }
   composerBox.style.display=r.status==='已封存'?'none':'block';
   archiveBtn.style.display=(!isGuest()&&r.status!=='已封存')?'block':'none';
   if(memberEditBtn){
@@ -891,15 +952,8 @@ async function openRoom(id){
     });
     const msgs=data?.ok&&Array.isArray(data.messages)?data.messages:[];
     currentRoomMessages=msgs;
-    messageList.innerHTML=msgs.length?msgs.map(m=>{
-      const attachments=Array.isArray(m.attachments)?m.attachments:[];
-      const attachHtml=attachments.length
-        ? `<div class="attachmentList">${attachments.map(a=>`<a class="attachmentLink" href="${esc(a.url)}" target="_blank" rel="noopener">📎 ${esc(a.name)}</a>`).join('')}</div>`
-        : '';
-      const delBtn='';
-      const textHtml=String(m.text||'').trim()?`<p>${esc(m.text)}</p>`:'';
-      return `<div class="msg" data-message-id="${esc(m.messageId||'')}" data-author-id="${esc(m.authorId||'')}" data-author-name="${esc(m.authorName||'')}"><div class="msgHead"><strong>${esc(m.authorName||'同仁')}</strong><span class="time">${fmt(m.createdAt)}</span>${delBtn}</div>${textHtml}${attachHtml}</div>`;
-    }).join(''):'<div class="empty">這個主題還沒有留言</div>';
+    renderRoomMessages(msgs);
+    writeRoomCache(id,msgs);
     // v3.6：只有後端確實找到參與紀錄並完成寫入，才把這棟樓顯示為已讀。
     if(data?.readState?.marked){
       r.unread=false;
@@ -908,7 +962,10 @@ async function openRoom(id){
     }else{
       toastMsg('⚠️ 留言已開啟，但雲端未能標記已讀，請通知主管檢查參與名單');
     }
-  }catch(err){messageList.innerHTML=`<div class="empty">留言讀取失敗：${esc(err.message)}</div>`}
+  }catch(err){
+    if(cached&&Array.isArray(cached.messages))toastMsg('目前顯示手機內資料，雲端稍後再同步');
+    else messageList.innerHTML=`<div class="empty">留言讀取失敗：${esc(err.message)}</div>`;
+  }
 }
 function closeRoom(){currentRoomId='';currentRoomMessages=[];roomView.classList.remove('show');listView.classList.remove('hide');renderRooms()}
 
@@ -1351,6 +1408,7 @@ function appendSentMessageLocally({messageId,text,attachments,createdAt}){
       uploadedAt:a.uploadedAt||createdAt
     }))
   });
+  writeRoomCache(currentRoomId,currentRoomMessages);
   wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
@@ -1602,6 +1660,8 @@ async function batchDeleteSelected(){
       userName:currentUser
     });
     selectedMsgs.forEach(({el})=>el.remove());
+    currentRoomMessages=currentRoomMessages.filter(msg=>!ids.includes(String(msg.messageId||'')));
+    writeRoomCache(currentRoomId,currentRoomMessages);
     toggleCleanupMode(false);
     toastMsg(`✅ 已刪除 ${r.deletedCount||ids.length} 則（${((performance.now()-t0)/1000).toFixed(1)}秒）`);
   }catch(err){
@@ -1648,6 +1708,8 @@ async function deleteMessage(messageId){
       userName:currentUser
     });
     if(el)el.remove();
+    currentRoomMessages=currentRoomMessages.filter(msg=>String(msg.messageId||'')!==String(messageId));
+    writeRoomCache(currentRoomId,currentRoomMessages);
     toastMsg('✅ 留言已刪除');
   }catch(err){
     if(el)el.style.display='';
@@ -1713,7 +1775,7 @@ async function refreshDiscussionPage(){
       await Promise.all(keys.map(key=>caches.delete(key)));
     }
     const url=new URL(location.href);
-    url.searchParams.set('v','3.13');
+    url.searchParams.set('v','3.14');
     url.searchParams.set('refresh',Date.now());
     setTimeout(()=>location.replace(url.toString()),500);
   }catch(error){
