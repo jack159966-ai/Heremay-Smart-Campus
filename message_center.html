@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>訊息中心</title>
+  <title>訊息中心 v1.3</title>
   <style>
     :root{--blue:#4774b3;--ink:#23344e;--muted:#728096;--line:#d8e4f2;--bg:#edf5fc;--card:#fff;--new:#fff9e9}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -61,11 +61,13 @@
     }
   }
   function render(unread){
+    const unreadItems=items.filter(x=>!x.isRead);
+    unread=unreadItems.length;
     document.getElementById('count').textContent=unread?'未讀 '+unread+' 則':'目前沒有未讀訊息';
     document.getElementById('allRead').hidden=!unread;
     const box=document.getElementById('list');
-    if(!items.length){box.innerHTML='<div class="empty">目前還沒有訊息</div>';return;}
-    box.innerHTML=items.map(x=>`<article class="item ${x.isRead?'':'new'}" onclick="readOne('${esc(x.id)}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${html(x.createdAt)}</time></div>${x.message?`<div class="body">${html(x.message)}</div>`:''}<div class="meta">${html(x.source||'系統')}${x.senderName?'・'+html(x.senderName):''}</div>${x.link?`<a class="open" href="${attr(x.link)}" onclick="openLinkedItem(event,'${esc(x.id)}','${esc(x.link)}')">查看內容</a>`:''}</article>`).join('');
+    if(!unreadItems.length){box.innerHTML='<div class="empty">目前沒有未讀訊息</div>';return;}
+    box.innerHTML=unreadItems.map(x=>`<article class="item new" onclick="readOne('${esc(x.id)}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${html(x.createdAt)}</time></div>${x.message?`<div class="body">${html(x.message)}</div>`:''}<div class="meta">${html(x.source||'系統')}${x.senderName?'・'+html(x.senderName):''}</div>${x.link?`<a class="open" href="${attr(x.link)}" onclick="openLinkedItem(event,'${esc(x.id)}','${esc(x.link)}')">查看內容</a>`:''}</article>`).join('');
   }
   async function readOne(id){
     const x=items.find(v=>v.id===id);if(!x||x.isRead)return true;
