@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { Firestore } from '@google-cloud/firestore';
 import { google } from 'googleapis';
 import {
@@ -16,7 +16,7 @@ app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 8080);
-const SERVICE_VERSION = '1.1.4';
+const SERVICE_VERSION = '1.2.0';
 const RP_NAME = process.env.RP_NAME || '和美智慧校園';
 const RP_ID = process.env.RP_ID || 'jack159966-ai.github.io';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://jack159966-ai.github.io')
@@ -49,6 +49,12 @@ const sheets = google.sheets({ version: 'v4', auth });
 
 function clean(v) { return String(v ?? '').trim(); }
 function yes(v) { return ['是','true','1','yes','y'].includes(clean(v).toLowerCase()) || clean(v)==='是'; }
+function identityKey(employeeNo, name) {
+  return `${clean(employeeNo).toLowerCase()}::${clean(name).toLowerCase()}`;
+}
+function conversationKey(a, b) { return [a, b].sort().join('||'); }
+
+let employeeCache = { expiresAt:0, items:[] };
 
 function roleFromHome(home, category) {
   const h = clean(home);
@@ -100,6 +106,51 @@ async function lookupEmployee(account) {
   };
   employee.role = roleFromHome(employee.homeType, employee.category);
   return employee;
+}
+
+async function listEmployees() {
+  if (employeeCache.expiresAt > Date.now() && employeeCache.items.length) return employeeCache.items;
+  const result = await sheets.spreadsheets.values.get({
+    spreadsheetId: LOGIN_SHEET_ID,
+    range: `'${LOGIN_SHEET_TAB.replaceAll("'", "''")}'!A1:M500`,
+    valueRenderOption: 'FORMATTED_VALUE',
+  });
+  const rows = result.data.values || [];
+  if (rows.length < 2) return [];
+  const headers = rows[0].map(clean);
+  const idx = Object.fromEntries(headers.map((h,i)=>[h,i]));
+  const get = (row, h) => clean(row[idx[h]]);
+  const items = rows.slice(1).map(row => {
+    const employee = {
+      employeeNo:get(row,'員工編號'), name:get(row,'姓名'), account:get(row,'登入帳號'),
+      title:get(row,'職稱'), category:get(row,'身分類別'), department:get(row,'編組'),
+      homeType:get(row,'首頁類型'), canLogin:yes(get(row,'是否可登入')),
+      announcementAdmin:yes(get(row,'公告管理')), scheduleAdmin:yes(get(row,'排班管理')),
+      classCode:get(row,'班別'), rank:get(row,'職級'),
+    };
+    employee.role = roleFromHome(employee.homeType, employee.category);
+    return employee;
+  }).filter(e => e.employeeNo && e.name && e.canLogin && e.role);
+  employeeCache = { expiresAt:Date.now() + 60_000, items };
+  return items;
+}
+
+async function requireRosterIdentity(employeeNo, name) {
+  const key = identityKey(employeeNo, name);
+  const employee = (await listEmployees()).find(e => identityKey(e.employeeNo, e.name) === key);
+  if (!employee) throw new Error('找不到登入者資料，請重新登入');
+  return employee;
+}
+
+function privateMessageJson(doc) {
+  const x = doc.data ? doc.data() : doc;
+  return {
+    id:doc.id || x.id, createdAt:Number(x.createdAt || 0),
+    senderId:clean(x.senderId), senderName:clean(x.senderName),
+    receiverId:clean(x.receiverId), receiverName:clean(x.receiverName),
+    messageType:clean(x.messageType || 'text'), message:clean(x.message),
+    readAt:Number(x.readAt || 0), recalled:Boolean(x.recalled),
+  };
 }
 
 function publicEmployee(e) {
@@ -464,6 +515,141 @@ app.post('/auth/step-up/refresh', async (req,res) => {
   } catch (err) {
     console.error(err);
     res.status(400).json({ ok:false, message:err?.message || '無法續用打卡區驗證' });
+  }
+});
+
+// 私訊改由 Cloud Run + Firestore 處理，避免 Apps Script 在 iPhone 上無法回傳結果。
+app.get('/api/private/contacts', async (req,res) => {
+  try {
+    const me = await requireRosterIdentity(req.query.employeeId, req.query.name);
+    const myKey = identityKey(me.employeeNo, me.name);
+    const items = (await listEmployees())
+      .filter(e => identityKey(e.employeeNo, e.name) !== myKey)
+      .map(e => ({
+        employeeId:e.employeeNo, name:e.name, title:e.title,
+        department:e.department, classCode:e.classCode, role:e.role,
+      }))
+      .sort((a,b) => `${a.department}|${a.name}`.localeCompare(`${b.department}|${b.name}`, 'zh-Hant'));
+    res.json({ ok:true, items });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ ok:false, message:err?.message || '無法讀取聯絡人' });
+  }
+});
+
+app.get('/api/private/threads', async (req,res) => {
+  try {
+    const me = await requireRosterIdentity(req.query.employeeId, req.query.name);
+    const myKey = identityKey(me.employeeNo, me.name);
+    const snap = await db.collection('privateMessages')
+      .where('participantKeys','array-contains',myKey).limit(1000).get();
+    const grouped = new Map();
+    snap.docs.forEach(doc => {
+      const x = privateMessageJson(doc);
+      if (x.recalled) return;
+      const mine = identityKey(x.senderId, x.senderName) === myKey;
+      const peerId = mine ? x.receiverId : x.senderId;
+      const peerName = mine ? x.receiverName : x.senderName;
+      const peerKey = identityKey(peerId, peerName);
+      const old = grouped.get(peerKey) || { peerId, peerName, lastMessage:'', lastAt:0, unread:0 };
+      if (x.createdAt >= old.lastAt) {
+        old.lastAt = x.createdAt;
+        old.lastMessage = x.message || '訊息';
+      }
+      if (!mine && !x.readAt) old.unread += 1;
+      grouped.set(peerKey, old);
+    });
+    const items = [...grouped.values()].sort((a,b)=>b.lastAt-a.lastAt);
+    res.json({ ok:true, items });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ ok:false, message:err?.message || '無法讀取對話' });
+  }
+});
+
+app.get('/api/private/messages', async (req,res) => {
+  try {
+    const me = await requireRosterIdentity(req.query.employeeId, req.query.name);
+    const peer = await requireRosterIdentity(req.query.peerId, req.query.peerName);
+    const myKey = identityKey(me.employeeNo, me.name);
+    const peerKey = identityKey(peer.employeeNo, peer.name);
+    const snap = await db.collection('privateMessages')
+      .where('conversationKey','==',conversationKey(myKey, peerKey)).limit(500).get();
+    const items = snap.docs.map(privateMessageJson)
+      .filter(x=>!x.recalled).sort((a,b)=>a.createdAt-b.createdAt);
+    res.json({ ok:true, items });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ ok:false, message:err?.message || '無法讀取訊息' });
+  }
+});
+
+app.post('/api/private/messages', async (req,res) => {
+  try {
+    const me = await requireRosterIdentity(req.body?.senderId, req.body?.senderName);
+    const peer = await requireRosterIdentity(req.body?.receiverId, req.body?.receiverName);
+    const message = clean(req.body?.message);
+    if (!message) return res.status(400).json({ ok:false, message:'請輸入訊息' });
+    if (message.length > 1000) return res.status(400).json({ ok:false, message:'訊息不可超過 1000 字' });
+    const senderKey = identityKey(me.employeeNo, me.name);
+    const receiverKey = identityKey(peer.employeeNo, peer.name);
+    if (senderKey === receiverKey) return res.status(400).json({ ok:false, message:'不能傳送給自己' });
+    const id = randomUUID();
+    const data = {
+      id, createdAt:Date.now(), senderId:me.employeeNo, senderName:me.name,
+      receiverId:peer.employeeNo, receiverName:peer.name,
+      senderKey, receiverKey, participantKeys:[senderKey, receiverKey],
+      conversationKey:conversationKey(senderKey, receiverKey),
+      messageType:req.body?.quickReply ? 'quick' : 'text', message,
+      readAt:0, recalled:false,
+    };
+    await db.collection('privateMessages').doc(id).create(data);
+    res.status(201).json({ ok:true, item:privateMessageJson(data) });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ ok:false, message:err?.message || '訊息傳送失敗' });
+  }
+});
+
+app.post('/api/private/read', async (req,res) => {
+  try {
+    const me = await requireRosterIdentity(req.body?.employeeId, req.body?.name);
+    const peer = await requireRosterIdentity(req.body?.peerId, req.body?.peerName);
+    const myKey = identityKey(me.employeeNo, me.name);
+    const peerKey = identityKey(peer.employeeNo, peer.name);
+    const snap = await db.collection('privateMessages')
+      .where('conversationKey','==',conversationKey(myKey, peerKey)).limit(500).get();
+    const unread = snap.docs.filter(doc => {
+      const x = doc.data() || {};
+      return clean(x.receiverKey) === myKey && !Number(x.readAt || 0) && !x.recalled;
+    });
+    if (unread.length) {
+      const batch = db.batch();
+      const readAt = Date.now();
+      unread.forEach(doc => batch.set(doc.ref, { readAt }, { merge:true }));
+      await batch.commit();
+    }
+    res.json({ ok:true, updated:unread.length });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ ok:false, message:err?.message || '無法更新已讀狀態' });
+  }
+});
+
+app.get('/api/private/unread', async (req,res) => {
+  try {
+    const me = await requireRosterIdentity(req.query.employeeId, req.query.name);
+    const myKey = identityKey(me.employeeNo, me.name);
+    const snap = await db.collection('privateMessages')
+      .where('participantKeys','array-contains',myKey).limit(1000).get();
+    const count = snap.docs.reduce((n,doc) => {
+      const x = doc.data() || {};
+      return n + (clean(x.receiverKey) === myKey && !Number(x.readAt || 0) && !x.recalled ? 1 : 0);
+    }, 0);
+    res.json({ ok:true, count });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ ok:false, message:err?.message || '無法讀取未讀數量' });
   }
 });
 
