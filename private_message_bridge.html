@@ -5,9 +5,13 @@
 <script>
 try{
   const payload=JSON.parse(decodeURIComponent(location.hash.slice(1)));
-  window.parent.postMessage({type:'HEREMAY_PRIVATE_API_RESULT',payload},location.origin);
+  const message={type:'HEREMAY_PRIVATE_API_RESULT',payload};
+  window.parent.postMessage(message,'*');
+  if(window.top!==window.parent)window.top.postMessage(message,'*');
 }catch(error){
-  window.parent.postMessage({type:'HEREMAY_PRIVATE_API_RESULT',payload:{requestId:'',result:{ok:false,error:'私訊回傳解析失敗'}}},location.origin);
+  const message={type:'HEREMAY_PRIVATE_API_RESULT',payload:{requestId:'',result:{ok:false,error:'私訊回傳解析失敗'}}};
+  window.parent.postMessage(message,'*');
+  if(window.top!==window.parent)window.top.postMessage(message,'*');
 }
 </script>
 </body>
