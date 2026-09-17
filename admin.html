@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.45</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.46</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -624,7 +624,7 @@
     </section>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.45</div>
+      <div class="versionStamp">主管工作台 v24.46</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -737,7 +737,8 @@ function adminMessageJsonp(action){return new Promise((resolve,reject)=>{const c
 let previousAdminMessageUnread=null;
 const adminUnreadState={general:0,private:0,discussion:0,groupbuy:0};
 function renderAdminTotalUnread(){
-  const n=Object.values(adminUnreadState).reduce((sum,x)=>sum+Math.max(0,Number(x)||0),0);
+  // 訊息中心的一張來源卡算一則；同一來源內有多筆時由來源卡自己的紅點顯示數量。
+  const n=Math.max(0,Number(adminUnreadState.general)||0)+['private','discussion','groupbuy'].reduce((sum,key)=>sum+(Number(adminUnreadState[key])>0?1:0),0);
   const card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');
   card?.classList.toggle('hasUnread',n>0);
   if(badge){badge.textContent=n>99?'99+':String(n);badge.setAttribute('aria-label',n>0?`共 ${n} 則未讀訊息`:'目前沒有未讀訊息')}
