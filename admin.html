@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.39</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.40</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -587,9 +587,9 @@
 .bottomSquareBtn .messageUnreadBadge{display:none;position:absolute;right:11px;top:10px;min-width:27px;height:27px;padding:0 7px;border-radius:14px;background:#df3f46;color:#fff;font-size:16px;font-weight:950;line-height:1;align-items:center;justify-content:center;text-shadow:0 1px 1px rgba(90,0,0,.35);box-shadow:0 0 0 4px rgba(223,75,75,.14);z-index:3}
 .messageCenterCard.hasUnread .messageUnreadBadge{display:flex}
 .homeMessageCenter{width:100%;position:relative;border:1px solid #8fb7ff;border-radius:20px;background:linear-gradient(135deg,#dbe8ff,#eef4ff 55%,#fff);padding:16px 18px;display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;box-shadow:0 8px 22px rgba(47,104,216,.18)}
-.homeMessageCenter .messageUnreadBadge{display:none;position:absolute;right:14px;top:10px;min-width:29px;height:29px;padding:0 8px;border-radius:15px;background:#df3f46;color:#fff;font-size:16px;font-weight:950;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(223,75,75,.14)}
+.homeMessageCenter .messageUnreadBadge{display:none;position:absolute;right:14px;top:10px;min-width:29px;height:29px;padding:0 8px;border-radius:15px;background:#d92d2d;color:#fff!important;font-size:17px;font-weight:950;line-height:1;align-items:center;justify-content:center;text-shadow:0 1px 2px rgba(80,0,0,.5);box-shadow:0 0 0 4px rgba(217,45,45,.16)}
 .homeMessageCenter.hasUnread .messageUnreadBadge{display:flex}.homeMessageCenterIcon{font-size:38px}.homeMessageCenter strong{display:block;font-size:23px;color:#0f3f98}.homeMessageCenter small{display:block;margin-top:3px;color:#506b8b;font-size:14px;font-weight:800}.homeMessageCenterArrow{margin-left:auto;font-size:30px;color:#1f57bd}
-.privateMessageCard{position:relative}.privateUnreadBadge{display:none;position:absolute;right:11px;top:10px;min-width:25px;height:25px;padding:0 7px;border-radius:14px;background:#df3f46;color:#fff;font-size:14px;font-weight:950;align-items:center;justify-content:center}.privateMessageCard.hasUnread .privateUnreadBadge{display:flex}
+.privateMessageCard{position:relative}.bottomSquareBtn .privateUnreadBadge{display:none;position:absolute;right:11px;top:10px;min-width:27px;height:27px;padding:0 7px;border-radius:14px;background:#d92d2d;color:#fff!important;font-size:16px;font-weight:950;line-height:1;align-items:center;justify-content:center;text-shadow:0 1px 2px rgba(80,0,0,.5);box-shadow:0 0 0 4px rgba(217,45,45,.16);z-index:3}.bottomSquareBtn.privateMessageCard.hasUnread .privateUnreadBadge{display:flex}
 
 </style>
 </head>
@@ -624,7 +624,7 @@
     </section>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.39</div>
+      <div class="versionStamp">主管工作台 v24.40</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -721,6 +721,7 @@
 const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
 const MESSAGE_CENTER_URL = 'https://script.google.com/macros/s/AKfycbwhJsU-5QiZ3uDd9UCnECd16jpHG_LoweHRIC7TrSf_AH-bDLPUFVeAGB2urQo25zzoVg/exec';
 const MESSAGE_CENTER_PAGE = 'message_center.html';
+const PRIVATE_MESSAGE_API = 'https://heremay-passkey-backend-943533867342.asia-east1.run.app';
 // Google 雲端主管收件匣部署完成後，只需更換這個網址。
 const MEDIA_ADMIN_URL = 'media_admin.html?v=1.0.2';
 
@@ -734,8 +735,26 @@ function openMessageCenter(){const p=new URLSearchParams(adminMessageIdentity())
 function openPrivateMessage(){location.href='private_message.html?back='+encodeURIComponent(location.href)}
 function adminMessageJsonp(action){return new Promise((resolve,reject)=>{const cb='hm_admin_msg_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script'),timer=setTimeout(()=>done(new Error('訊息中心連線逾時')),12000);function done(err){clearTimeout(timer);try{delete window[cb]}catch(e){}s.remove();if(err)reject(err)}window[cb]=r=>{done();r&&r.ok?resolve(r):reject(new Error(r?.error||'訊息中心連線失敗'))};s.onerror=()=>done(new Error('訊息中心連線失敗'));s.src=MESSAGE_CENTER_URL+'?'+new URLSearchParams({...adminMessageIdentity(),action,callback:cb,_:Date.now()}).toString();document.head.appendChild(s)})}
 let previousAdminMessageUnread=null;
-async function refreshAdminMessageUnread(){const id=adminMessageIdentity();if(!id.employeeId&&!id.account&&!id.groups)return;try{const r=await adminMessageJsonp('unreadCount'),n=Number(r.unread||0),card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');card?.classList.toggle('hasUnread',n>0);if(badge)badge.textContent=n>99?'99+':String(n);if(previousAdminMessageUnread!==null&&n>previousAdminMessageUnread)beep();previousAdminMessageUnread=n}catch(e){console.warn('訊息中心未讀提示：',e.message)}}
-async function refreshAdminPrivateUnread(){try{const r=await adminMessageJsonp('unreadPrivateCount'),n=Number(r.unread||0),c=document.getElementById('privateMessageCard'),b=document.getElementById('privateUnreadBadge');c?.classList.toggle('hasUnread',n>0);if(b)b.textContent=n>99?'99+':String(n)}catch(e){console.warn('私訊未讀提示：',e.message)}}
+const adminUnreadState={general:0,private:0,discussion:0,groupbuy:0};
+function renderAdminTotalUnread(){
+  const n=Object.values(adminUnreadState).reduce((sum,x)=>sum+Math.max(0,Number(x)||0),0);
+  const card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');
+  card?.classList.toggle('hasUnread',n>0);
+  if(badge){badge.textContent=n>99?'99+':String(n);badge.setAttribute('aria-label',n>0?`共 ${n} 則未讀訊息`:'目前沒有未讀訊息')}
+  if(previousAdminMessageUnread!==null&&n>previousAdminMessageUnread)beep();
+  previousAdminMessageUnread=n;
+}
+async function refreshAdminMessageUnread(){const id=adminMessageIdentity();if(!id.employeeId&&!id.account&&!id.groups)return;try{const r=await adminMessageJsonp('unreadCount');adminUnreadState.general=Math.max(0,Number(r.unread)||0);renderAdminTotalUnread()}catch(e){console.warn('訊息中心未讀提示：',e.message)}}
+async function refreshAdminPrivateUnread(){
+  const id=adminMessageIdentity(),employeeId=id.employeeId||id.account,name=id.name;
+  const c=document.getElementById('privateMessageCard'),b=document.getElementById('privateUnreadBadge');
+  if(!employeeId||!name){adminUnreadState.private=0;c?.classList.remove('hasUnread');if(b)b.textContent='';renderAdminTotalUnread();return}
+  try{
+    const q=new URLSearchParams({employeeId,name,_:Date.now()}),response=await fetch(PRIVATE_MESSAGE_API+'/api/private/unread?'+q,{cache:'no-store'});
+    const r=await response.json();if(!response.ok||!r?.ok)throw new Error(r?.message||'私訊未讀讀取失敗');
+    const n=Math.max(0,Number(r.count)||0);adminUnreadState.private=n;c?.classList.toggle('hasUnread',n>0);if(b)b.textContent=n>0?(n>99?'99+':String(n)):'';renderAdminTotalUnread();
+  }catch(e){console.warn('私訊未讀提示：',e.message)}
+}
 
 function openMediaAdminInbox(){
   if(!MEDIA_ADMIN_URL || MEDIA_ADMIN_URL.includes('PASTE_GOOGLE_APPS_SCRIPT')){
@@ -1628,6 +1647,8 @@ function adminGroupbuyTargetMatches(c){
 function setAdminGroupbuyUnread(show){
   document.getElementById('groupbuyUnreadNotice')?.classList.toggle('show',!!show);
   document.getElementById('groupbuyHomeCard')?.classList.toggle('hasGroupbuyUnread',!!show);
+  adminUnreadState.groupbuy=show?Math.max(1,latestGroupbuyUnreadIds.length):0;
+  renderAdminTotalUnread();
 }
 
     let latestGroupbuyUnreadIds=[];
@@ -1752,12 +1773,15 @@ async function refreshDiscussionUnreadNotice(){
   try{
     const result=await discussionJsonp('getUnreadSummary',{userId,userName});
     const hasUnread=!!result?.hasUnread;
+    const unreadCount=Math.max(0,Number(result?.unreadCount)||0);
 
     const notice=document.getElementById('discussionUnreadNotice');
     const card=document.getElementById('discussionHomeCard');
 
     if(notice)notice.classList.toggle('show',hasUnread);
     if(card)card.classList.toggle('hasDiscussionUnread',hasUnread);
+    adminUnreadState.discussion=hasUnread?Math.max(1,unreadCount):0;
+    renderAdminTotalUnread();
   }catch(err){
     console.warn('討論區未讀提示：',err.message);
   }
