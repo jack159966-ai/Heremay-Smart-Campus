@@ -16,7 +16,7 @@ app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 8080);
-const SERVICE_VERSION = '1.2.0';
+const SERVICE_VERSION = '1.2.1';
 const RP_NAME = process.env.RP_NAME || '和美智慧校園';
 const RP_ID = process.env.RP_ID || 'jack159966-ai.github.io';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://jack159966-ai.github.io')
@@ -139,6 +139,12 @@ async function requireRosterIdentity(employeeNo, name) {
   const key = identityKey(employeeNo, name);
   const employee = (await listEmployees()).find(e => identityKey(e.employeeNo, e.name) === key);
   if (!employee) throw new Error('找不到登入者資料，請重新登入');
+  return employee;
+}
+
+function privateIdentity(employeeNo, name) {
+  const employee = { employeeNo:clean(employeeNo), name:clean(name) };
+  if (!employee.employeeNo || !employee.name) throw new Error('登入身分不完整，請重新登入');
   return employee;
 }
 
@@ -521,7 +527,7 @@ app.post('/auth/step-up/refresh', async (req,res) => {
 // 私訊改由 Cloud Run + Firestore 處理，避免 Apps Script 在 iPhone 上無法回傳結果。
 app.get('/api/private/contacts', async (req,res) => {
   try {
-    const me = await requireRosterIdentity(req.query.employeeId, req.query.name);
+    const me = privateIdentity(req.query.employeeId, req.query.name);
     const myKey = identityKey(me.employeeNo, me.name);
     const items = (await listEmployees())
       .filter(e => identityKey(e.employeeNo, e.name) !== myKey)
@@ -539,7 +545,7 @@ app.get('/api/private/contacts', async (req,res) => {
 
 app.get('/api/private/threads', async (req,res) => {
   try {
-    const me = await requireRosterIdentity(req.query.employeeId, req.query.name);
+    const me = privateIdentity(req.query.employeeId, req.query.name);
     const myKey = identityKey(me.employeeNo, me.name);
     const snap = await db.collection('privateMessages')
       .where('participantKeys','array-contains',myKey).limit(1000).get();
@@ -569,8 +575,8 @@ app.get('/api/private/threads', async (req,res) => {
 
 app.get('/api/private/messages', async (req,res) => {
   try {
-    const me = await requireRosterIdentity(req.query.employeeId, req.query.name);
-    const peer = await requireRosterIdentity(req.query.peerId, req.query.peerName);
+    const me = privateIdentity(req.query.employeeId, req.query.name);
+    const peer = privateIdentity(req.query.peerId, req.query.peerName);
     const myKey = identityKey(me.employeeNo, me.name);
     const peerKey = identityKey(peer.employeeNo, peer.name);
     const snap = await db.collection('privateMessages')
@@ -586,8 +592,8 @@ app.get('/api/private/messages', async (req,res) => {
 
 app.post('/api/private/messages', async (req,res) => {
   try {
-    const me = await requireRosterIdentity(req.body?.senderId, req.body?.senderName);
-    const peer = await requireRosterIdentity(req.body?.receiverId, req.body?.receiverName);
+    const me = privateIdentity(req.body?.senderId, req.body?.senderName);
+    const peer = privateIdentity(req.body?.receiverId, req.body?.receiverName);
     const message = clean(req.body?.message);
     if (!message) return res.status(400).json({ ok:false, message:'請輸入訊息' });
     if (message.length > 1000) return res.status(400).json({ ok:false, message:'訊息不可超過 1000 字' });
@@ -613,8 +619,8 @@ app.post('/api/private/messages', async (req,res) => {
 
 app.post('/api/private/read', async (req,res) => {
   try {
-    const me = await requireRosterIdentity(req.body?.employeeId, req.body?.name);
-    const peer = await requireRosterIdentity(req.body?.peerId, req.body?.peerName);
+    const me = privateIdentity(req.body?.employeeId, req.body?.name);
+    const peer = privateIdentity(req.body?.peerId, req.body?.peerName);
     const myKey = identityKey(me.employeeNo, me.name);
     const peerKey = identityKey(peer.employeeNo, peer.name);
     const snap = await db.collection('privateMessages')
@@ -638,7 +644,7 @@ app.post('/api/private/read', async (req,res) => {
 
 app.get('/api/private/unread', async (req,res) => {
   try {
-    const me = await requireRosterIdentity(req.query.employeeId, req.query.name);
+    const me = privateIdentity(req.query.employeeId, req.query.name);
     const myKey = identityKey(me.employeeNo, me.name);
     const snap = await db.collection('privateMessages')
       .where('participantKeys','array-contains',myKey).limit(1000).get();
