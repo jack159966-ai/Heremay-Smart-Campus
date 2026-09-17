@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.16</title>
+  <title>和美智慧校園｜教保人員首頁 v15.17</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -582,8 +582,8 @@
 .btn .messageUnreadBadge{display:none;position:absolute;right:10px;top:9px;min-width:25px;height:25px;padding:0 7px;border-radius:14px;background:#df4b4b;color:#fff!important;-webkit-text-fill-color:#fff!important;text-shadow:0 1px 2px rgba(88,0,0,.45);font-size:14px;font-weight:900;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(223,75,75,.14)}
 .messageCenterCard.hasUnread .messageUnreadBadge{display:flex}
 .homeMessageCenter{width:100%;position:relative;border:1px solid #f0a8bf;border-radius:20px;background:linear-gradient(135deg,#ffe3ec,#fff4f7 58%,#fff);padding:15px 17px;display:flex;align-items:center;gap:13px;text-align:left;cursor:pointer;box-shadow:0 8px 20px rgba(193,70,111,.14)}
-.homeMessageCenter .messageUnreadBadge{display:none;position:absolute;right:13px;top:9px;min-width:27px;height:27px;padding:0 7px;border-radius:14px;background:#df4b4b;color:#fff;font-size:15px;font-weight:900;align-items:center;justify-content:center}.homeMessageCenter.hasUnread .messageUnreadBadge{display:flex}.homeMessageCenter .hmIcon{font-size:36px}.homeMessageCenter strong{font-size:21px;color:#8b294d}.homeMessageCenter small{display:block;margin-top:3px;color:#835367;font-weight:800}.homeMessageCenter .hmArrow{margin-left:auto;font-size:28px;color:#b63c68}
-.privateMessageCard{position:relative}.privateUnreadBadge{display:none;position:absolute;right:10px;top:9px;min-width:25px;height:25px;padding:0 7px;border-radius:14px;background:#df4b4b;color:#fff;font-weight:900;align-items:center;justify-content:center}.privateMessageCard.hasUnread .privateUnreadBadge{display:flex}
+.homeMessageCenter .messageUnreadBadge{display:none;position:absolute;right:13px;top:9px;min-width:29px;height:29px;padding:0 8px;border-radius:15px;background:#c91f28;color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:17px;font-weight:950;line-height:1;align-items:center;justify-content:center;text-shadow:0 1px 2px rgba(70,0,0,.65);box-shadow:0 0 0 4px rgba(201,31,40,.17)}.homeMessageCenter.hasUnread .messageUnreadBadge{display:flex}.homeMessageCenter .hmIcon{font-size:36px}.homeMessageCenter strong{font-size:21px;color:#8b294d}.homeMessageCenter small{display:block;margin-top:3px;color:#835367;font-weight:800}.homeMessageCenter .hmArrow{margin-left:auto;font-size:28px;color:#b63c68}
+.privateMessageCard{position:relative}.privateMessageCard .icon{font-size:38px!important}.btn .privateUnreadBadge{display:none!important;position:absolute;right:10px;top:9px;min-width:27px;height:27px;padding:0 7px;border-radius:14px;background:#c91f28;color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:16px;font-weight:950;line-height:1;align-items:center;justify-content:center;text-shadow:0 1px 2px rgba(70,0,0,.65);box-shadow:0 0 0 4px rgba(201,31,40,.17);z-index:3}.btn.privateMessageCard.hasUnread .privateUnreadBadge:not([hidden]){display:flex!important}.privateUnreadBadge[hidden]{display:none!important}
 
 </style>
 </head>
@@ -608,7 +608,7 @@
     </section>
 
     <div class="version-refresh-row">
-      <div class="page-version">教保人員首頁 v15.16</div>
+      <div class="page-version">教保人員首頁 v15.17</div>
       <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
     </div>
 
@@ -657,7 +657,7 @@
         <span class="tag">粉紅版</span>
       </div>
       <div class="grid">
-        <button class="btn privateMessageCard" id="privateMessageCard" onclick="openPrivateMessage()"><span class="privateUnreadBadge" id="privateUnreadBadge"></span><div class="icon">💬</div><strong>私訊</strong><span>一對一聯繫與快捷回覆</span></button>
+        <button class="btn privateMessageCard" id="privateMessageCard" onclick="openPrivateMessage()"><span class="privateUnreadBadge" id="privateUnreadBadge" hidden></span><div class="icon">💬</div><strong>私訊</strong><span>一對一聯繫與快捷回覆</span></button>
         <button class="btn primary" onclick="openAttendanceArea()">
           <div class="icon"><img src="assets/attendance-statistics.jpg?v=20260906b" alt="打卡與出勤"></div>
           <div>
@@ -716,7 +716,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.16｜首頁訊息與三日工作整合版</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.17｜首頁訊息與三日工作整合版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -789,6 +789,7 @@
     const MEDIA_SUBMISSION_URL = 'media_submit.html';
     const MESSAGE_CENTER_URL = 'https://script.google.com/macros/s/AKfycbwhJsU-5QiZ3uDd9UCnECd16jpHG_LoweHRIC7TrSf_AH-bDLPUFVeAGB2urQo25zzoVg/exec';
     const MESSAGE_CENTER_PAGE = 'message_center.html';
+    const PRIVATE_MESSAGE_API = 'https://heremay-passkey-backend-943533867342.asia-east1.run.app';
 
     let currentUser = '教保人員';
     let currentEmployee = null;
@@ -825,21 +826,36 @@
     }
 
     let previousMessageUnread=null;
+    const teacherUnreadState={general:0,private:0,discussion:0,groupbuy:0};
+    function renderTeacherTotalUnread(){
+      const count=Object.values(teacherUnreadState).reduce((sum,x)=>sum+Math.max(0,Number(x)||0),0);
+      const card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');
+      card?.classList.toggle('hasUnread',count>0);
+      if(badge){badge.textContent=count>99?'99+':String(count);badge.setAttribute('aria-label',count>0?`共 ${count} 則未讀訊息`:'目前沒有未讀訊息')}
+      if(previousMessageUnread!==null&&count>previousMessageUnread)beep();
+      previousMessageUnread=count;
+    }
     async function refreshMessageUnread(){
       const identity=messageIdentity();
       if(!identity.employeeId&&!identity.account)return;
       try{
         const result=await messageCenterJsonp('unreadCount');
         const count=Number(result.unread||0);
-        const card=document.getElementById('messageCenterCard');
-        const badge=document.getElementById('messageUnreadBadge');
-        card?.classList.toggle('hasUnread',count>0);
-        if(badge)badge.textContent=count>99?'99+':String(count);
-        if(previousMessageUnread!==null&&count>previousMessageUnread)beep();
-        previousMessageUnread=count;
+        teacherUnreadState.general=Math.max(0,count);
+        renderTeacherTotalUnread();
       }catch(err){console.warn('訊息中心未讀提示：',err.message)}
     }
-    async function refreshPrivateUnread(){try{const r=await messageCenterJsonp('unreadPrivateCount'),n=Number(r.unread||0),c=document.getElementById('privateMessageCard'),b=document.getElementById('privateUnreadBadge');c?.classList.toggle('hasUnread',n>0);if(b)b.textContent=n>99?'99+':String(n)}catch(e){console.warn('私訊未讀提示：',e.message)}}
+    async function refreshPrivateUnread(){
+      const id=messageIdentity(),employeeId=id.employeeId||id.account,name=id.name;
+      const c=document.getElementById('privateMessageCard'),b=document.getElementById('privateUnreadBadge');
+      const showPrivateBadge=n=>{const show=n>0;c?.classList.toggle('hasUnread',show);if(b){b.hidden=!show;b.textContent=show?(n>99?'99+':String(n)):'';b.style.setProperty('display',show?'flex':'none','important')}};
+      if(!employeeId||!name){teacherUnreadState.private=0;showPrivateBadge(0);renderTeacherTotalUnread();return}
+      try{
+        const q=new URLSearchParams({employeeId,name,_:Date.now()}),response=await fetch(PRIVATE_MESSAGE_API+'/api/private/unread?'+q,{cache:'no-store'});
+        const r=await response.json();if(!response.ok||!r?.ok)throw new Error(r?.message||'私訊未讀讀取失敗');
+        const n=Math.max(0,Number(r.count)||0);teacherUnreadState.private=n;showPrivateBadge(n);renderTeacherTotalUnread();
+      }catch(e){console.warn('私訊未讀提示：',e.message)}
+    }
 
 
     const ANNOUNCEMENT_KEY='heremay.announcements';
@@ -1117,6 +1133,8 @@
       const notice=document.getElementById('groupbuyNotice');
       card?.classList.toggle('hasGroupbuyUnread',!!show);
       notice?.classList.toggle('show',!!show);
+      teacherUnreadState.groupbuy=show?Math.max(1,latestGroupbuyUnreadIds.length):0;
+      renderTeacherTotalUnread();
     }
 
     function openGroupbuyAndAcknowledge(){
@@ -1611,13 +1629,17 @@ function clearDiscussionUnreadVisual(){
   const card=document.getElementById('discussionHomeCard');
   if(notice)notice.classList.remove('show');
   if(card)card.classList.remove('hasDiscussionUnread');
+  teacherUnreadState.discussion=0;
+  renderTeacherTotalUnread();
 }
 
-function applyDiscussionUnreadVisual(hasUnread){
+function applyDiscussionUnreadVisual(hasUnread,unreadCount=0){
   const notice=document.getElementById('discussionUnreadNotice');
   const card=document.getElementById('discussionHomeCard');
   if(notice)notice.classList.toggle('show',!!hasUnread);
   if(card)card.classList.toggle('hasDiscussionUnread',!!hasUnread);
+  teacherUnreadState.discussion=hasUnread?Math.max(1,Number(unreadCount)||0):0;
+  renderTeacherTotalUnread();
 }
 
 function readRecentDiscussionState(){
@@ -1683,7 +1705,7 @@ async function refreshDiscussionUnreadNotice(forceNetwork=false){
   if(!forceNetwork){
     const recent=readRecentDiscussionState();
     if(recent){
-      applyDiscussionUnreadVisual(Number(recent.unreadCount||0)>0);
+      applyDiscussionUnreadVisual(Number(recent.unreadCount||0)>0,Number(recent.unreadCount||0));
       return;
     }
   }
@@ -1720,7 +1742,7 @@ async function refreshDiscussionUnreadNotice(forceNetwork=false){
       if(newestUnreadUpdate && newestUnreadUpdate<=allReadAt)unreadCount=0;
     }
 
-    applyDiscussionUnreadVisual(unreadCount>0);
+    applyDiscussionUnreadVisual(unreadCount>0,unreadCount);
 
     const state={
       unreadCount,
