@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.17</title>
+  <title>和美智慧校園｜教保人員首頁 v15.18</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -533,7 +533,7 @@
     }
   
 .discussionUnreadNotice{
-  display:none;
+  display:none!important;
   align-items:center;
   gap:10px;
   margin:10px 0 14px;
@@ -608,7 +608,7 @@
     </section>
 
     <div class="version-refresh-row">
-      <div class="page-version">教保人員首頁 v15.17</div>
+      <div class="page-version">教保人員首頁 v15.18</div>
       <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
     </div>
 
@@ -716,7 +716,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.17｜首頁訊息與三日工作整合版</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.18｜首頁訊息與三日工作整合版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -798,9 +798,9 @@
     function messageIdentity(){
       const emp=currentEmployee||{};
       return {
-        employeeId:String(emp.employeeId||emp.id||emp['員工編號']||'').trim(),
+        employeeId:String(emp.employeeId||emp.employeeNo||emp.id||emp['員工編號']||'').trim(),
         account:String(emp.account||localStorage.getItem('heremay.lastFaceAccount')||'').trim(),
-        name:String(emp.name||currentUser||'').trim(),
+        name:String(emp.name||emp['姓名']||currentUser||'').trim(),
         groups:[emp.group,emp.department,currentDepartment()].filter(Boolean).join(',')
       };
     }

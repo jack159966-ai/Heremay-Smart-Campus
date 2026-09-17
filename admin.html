@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.42</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.43</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -531,7 +531,7 @@
     @media(max-width:520px){.bottomToolGrid{gap:10px}.bottomSquareBtn{min-height:150px;border-radius:20px;padding:16px 8px}.bottomSquareBtn .sqIcon{width:60px;height:60px}.bottomSquareBtn .sqAvatar{width:60px;height:60px;border-radius:16px}.bottomSquareBtn strong{font-size:18px}.bottomSquareBtn span{display:block;font-size:12px}}
   
 .discussionUnreadNotice{
-  display:none;
+  display:none!important;
   align-items:center;
   gap:10px;
   margin:10px 0 14px;
@@ -624,7 +624,7 @@
     </section>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.42</div>
+      <div class="versionStamp">主管工作台 v24.43</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -729,7 +729,7 @@ let currentAdminEmployee = null;
 
 function adminMessageIdentity(){
   const emp=currentAdminEmployee||readCurrentEmployee()||{};
-  return {employeeId:String(emp.employeeId||emp.id||emp['員工編號']||'').trim(),account:String(emp.account||localStorage.getItem('heremay.lastFaceAccount')||'').trim(),name:String(emp.name||'主管').trim(),groups:[emp.group,emp.department,'主管'].filter(Boolean).join(',')};
+  return {employeeId:String(emp.employeeId||emp.employeeNo||emp.id||emp['員工編號']||'').trim(),account:String(emp.account||localStorage.getItem('heremay.lastFaceAccount')||'').trim(),name:String(emp.name||emp['姓名']||'主管').trim(),groups:[emp.group,emp.department,'主管'].filter(Boolean).join(',')};
 }
 function openMessageCenter(){const p=new URLSearchParams(adminMessageIdentity());p.set('back',location.href);location.href=MESSAGE_CENTER_PAGE+'?'+p.toString()}
 function openPrivateMessage(){location.href='private_message.html?back='+encodeURIComponent(location.href)}
