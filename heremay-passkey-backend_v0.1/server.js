@@ -16,7 +16,7 @@ app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 8080);
-const SERVICE_VERSION = '1.2.1';
+const SERVICE_VERSION = '1.2.2';
 const RP_NAME = process.env.RP_NAME || '和美智慧校園';
 const RP_ID = process.env.RP_ID || 'jack159966-ai.github.io';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://jack159966-ai.github.io')
@@ -547,10 +547,19 @@ app.get('/api/private/threads', async (req,res) => {
   try {
     const me = privateIdentity(req.query.employeeId, req.query.name);
     const myKey = identityKey(me.employeeNo, me.name);
-    const snap = await db.collection('privateMessages')
-      .where('participantKeys','array-contains',myKey).limit(1000).get();
+    // 歷史對話與「直接寄給我的訊息」分開查詢後合併。
+    // 這能避免訊息量增加後，未讀數量抓得到、對話清單卻漏掉最新寄件人的情況。
+    const [historySnap, incomingSnap] = await Promise.all([
+      db.collection('privateMessages')
+        .where('participantKeys','array-contains',myKey).limit(1000).get(),
+      db.collection('privateMessages')
+        .where('receiverKey','==',myKey).limit(1000).get(),
+    ]);
+    const docs = new Map();
+    historySnap.docs.forEach(doc => docs.set(doc.id, doc));
+    incomingSnap.docs.forEach(doc => docs.set(doc.id, doc));
     const grouped = new Map();
-    snap.docs.forEach(doc => {
+    docs.forEach(doc => {
       const x = privateMessageJson(doc);
       if (x.recalled) return;
       const mine = identityKey(x.senderId, x.senderName) === myKey;
@@ -647,7 +656,7 @@ app.get('/api/private/unread', async (req,res) => {
     const me = privateIdentity(req.query.employeeId, req.query.name);
     const myKey = identityKey(me.employeeNo, me.name);
     const snap = await db.collection('privateMessages')
-      .where('participantKeys','array-contains',myKey).limit(1000).get();
+      .where('receiverKey','==',myKey).limit(1000).get();
     const count = snap.docs.reduce((n,doc) => {
       const x = doc.data() || {};
       return n + (clean(x.receiverKey) === myKey && !Number(x.readAt || 0) && !x.recalled ? 1 : 0);
