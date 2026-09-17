@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>訊息中心 v1.3</title>
+  <title>訊息中心 v1.4</title>
   <style>
     :root{--blue:#4774b3;--ink:#23344e;--muted:#728096;--line:#d8e4f2;--bg:#edf5fc;--card:#fff;--new:#fff9e9}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -30,6 +30,12 @@
     name: String(PARAMS.name || ''), groups: String(PARAMS.groups || PARAMS.group || '')
   };
   let items = [];
+  const marking = new Set();
+  const moduleAlerts=[
+    {type:'private',count:Number(PARAMS.privateUnread)||0,title:'有新的私訊',message:'點此查看尚未讀取的私人訊息'},
+    {type:'discussion',count:Number(PARAMS.discussionUnread)||0,title:'討論區有新內容',message:'點此查看新的議題或回覆'},
+    {type:'groupbuy',count:Number(PARAMS.groupbuyUnread)||0,title:'登記中心有新內容',message:'點此查看新的團購／登記事項'}
+  ].filter(x=>x.count>0);
   document.getElementById('person').textContent = identity.name ? identity.name + ' 的訊息' : '我的訊息';
 
   function api(action, extra){
@@ -62,17 +68,43 @@
   }
   function render(unread){
     const unreadItems=items.filter(x=>!x.isRead);
-    unread=unreadItems.length;
+    unread=unreadItems.length+moduleAlerts.reduce((n,x)=>n+x.count,0);
     document.getElementById('count').textContent=unread?'未讀 '+unread+' 則':'目前沒有未讀訊息';
-    document.getElementById('allRead').hidden=!unread;
+    document.getElementById('allRead').hidden=!unreadItems.length;
     const box=document.getElementById('list');
-    if(!unreadItems.length){box.innerHTML='<div class="empty">目前沒有未讀訊息</div>';return;}
-    box.innerHTML=unreadItems.map(x=>`<article class="item new" onclick="readOne('${esc(x.id)}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${html(x.createdAt)}</time></div>${x.message?`<div class="body">${html(x.message)}</div>`:''}<div class="meta">${html(x.source||'系統')}${x.senderName?'・'+html(x.senderName):''}</div>${x.link?`<a class="open" href="${attr(x.link)}" onclick="openLinkedItem(event,'${esc(x.id)}','${esc(x.link)}')">查看內容</a>`:''}</article>`).join('');
+    if(!unreadItems.length&&!moduleAlerts.length){box.innerHTML='<div class="empty">目前沒有未讀訊息</div>';return;}
+    const modules=moduleAlerts.map(x=>`<article class="item new" onclick="openModuleAlert('${x.type}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${x.count} 則</time></div><div class="body">${html(x.message)}</div><div class="meta">和美智慧校園</div><button class="open" type="button">查看內容</button></article>`).join('');
+    const notifications=unreadItems.map(x=>`<article class="item new" onclick="readOne('${esc(x.id)}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${html(x.createdAt)}</time></div>${x.message?`<div class="body">${html(x.message)}</div>`:''}<div class="meta">${html(x.source||'系統')}${x.senderName?'・'+html(x.senderName):''}</div>${x.link?`<a class="open" href="${attr(x.link)}" onclick="openLinkedItem(event,'${esc(x.id)}','${esc(x.link)}')">查看內容</a>`:''}</article>`).join('');
+    box.innerHTML=modules+notifications;
+  }
+  function openModuleAlert(type){
+    if(type==='private'){location.href='private_message.html?back='+encodeURIComponent(PARAMS.back||'admin.html');return;}
+    if(type==='discussion'){location.href='discussion.html';return;}
+    if(type==='groupbuy'){
+      let tokens=[];try{tokens=JSON.parse(sessionStorage.getItem('heremay.messageCenter.groupbuyTokens')||'[]')||[]}catch(e){}
+      const keys=[];if(identity.employeeId)keys.push('heremay.groupbuy.seenIds.id.'+identity.employeeId);if(identity.name)keys.push('heremay.groupbuy.seenIds.name.'+identity.name);
+      keys.forEach(key=>{let old=[];try{old=JSON.parse(localStorage.getItem(key)||'[]')||[]}catch(e){}localStorage.setItem(key,JSON.stringify([...new Set([...old,...tokens])].slice(-500)))});
+      let ids=[];try{ids=JSON.parse(sessionStorage.getItem('heremay.messageCenter.groupbuyIds')||'[]')||[]}catch(e){}sessionStorage.setItem('heremay.groupbuy.entryNewIds',JSON.stringify(ids));
+      location.href='groupbuy.html?v=1.9.12';
+    }
   }
   async function readOne(id){
     const x=items.find(v=>v.id===id);if(!x||x.isRead)return true;
-    x.isRead=true;render(items.filter(v=>!v.isRead).length);
-    try{await api('markRead',{notificationId:id});return true;}catch(e){x.isRead=false;render(items.filter(v=>!v.isRead).length);return false;}
+    if(marking.has(id))return false;
+    marking.add(id);
+    for(let attempt=0;attempt<3;attempt++){
+      try{
+        await api('markRead',{notificationId:id,_:Date.now()});
+        x.isRead=true;render(items.filter(v=>!v.isRead).length);
+        marking.delete(id);
+        return true;
+      }catch(e){
+        if(attempt<2)await new Promise(resolve=>setTimeout(resolve,700*(attempt+1)));
+      }
+    }
+    marking.delete(id);
+    showError('已讀狀態尚未同步，請稍後再點一次。');
+    return false;
   }
   async function openLinkedItem(event,id,link){
     event.preventDefault();event.stopPropagation();
