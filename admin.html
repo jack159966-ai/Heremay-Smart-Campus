@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.46</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.47</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -624,7 +624,7 @@
     </section>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.46</div>
+      <div class="versionStamp">主管工作台 v24.47</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -723,7 +723,7 @@ const MESSAGE_CENTER_URL = 'https://script.google.com/macros/s/AKfycbwhJsU-5QiZ3
 const MESSAGE_CENTER_PAGE = 'message_center.html';
 const PRIVATE_MESSAGE_API = 'https://heremay-passkey-backend-943533867342.asia-east1.run.app';
 // Google 雲端主管收件匣部署完成後，只需更換這個網址。
-const MEDIA_ADMIN_URL = 'media_admin.html?v=1.0.2';
+const MEDIA_ADMIN_URL = 'media_admin.html?v=1.0.3';
 
 let currentAdminEmployee = null;
 
@@ -765,8 +765,10 @@ function openMediaAdminInbox(){
   }
 
   const adminName = String(currentAdminEmployee?.name || '主管').trim();
+  const adminId = String(currentAdminEmployee?.employeeId || currentAdminEmployee?.employeeNo || currentAdminEmployee?.id || currentAdminEmployee?.['員工編號'] || '').trim();
   const params = new URLSearchParams();
   if(adminName) params.set('admin', adminName);
+  if(adminId) params.set('adminId', adminId);
 
   const separator = MEDIA_ADMIN_URL.includes('?') ? '&' : '?';
   location.href = `${MEDIA_ADMIN_URL}${separator}${params.toString()}`;

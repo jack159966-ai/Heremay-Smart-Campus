@@ -42,7 +42,7 @@
       </div>
       <button class="back" type="button" onclick="location.href='admin.html'">返回主管首頁</button>
       <div class="versionbar">
-        <span class="version">粉專收件匣 v1.0.2</span>
+        <span class="version">粉專收件匣 v1.0.3</span>
         <button class="refresh" type="button" onclick="refreshLatestVersion()">🔄 檢查並重新整理最新版</button>
       </div>
     </header>
@@ -53,7 +53,9 @@
     const incoming=new URLSearchParams(location.search);
     const target=new URL(GAS_ADMIN_URL);
     const admin=String(incoming.get('admin')||'').trim();
+    const adminId=String(incoming.get('adminId')||'').trim();
     if(admin) target.searchParams.set('admin',admin);
+    if(adminId) target.searchParams.set('adminId',adminId);
     document.getElementById('mediaInbox').src=target.toString();
 
     async function refreshLatestVersion(){
