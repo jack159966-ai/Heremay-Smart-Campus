@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.18</title>
+  <title>和美智慧校園｜教保人員首頁 v15.19</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -608,7 +608,7 @@
     </section>
 
     <div class="version-refresh-row">
-      <div class="page-version">教保人員首頁 v15.18</div>
+      <div class="page-version">教保人員首頁 v15.19</div>
       <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
     </div>
 
@@ -716,7 +716,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.18｜首頁訊息與三日工作整合版</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.19｜訊息中心未讀同步版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -808,6 +808,11 @@
     function openMessageCenter(){
       const p=new URLSearchParams(messageIdentity());
       p.set('back',location.href);
+      p.set('privateUnread',String(Math.max(0,Number(teacherUnreadState.private)||0)));
+      p.set('discussionUnread',String(Math.max(0,Number(teacherUnreadState.discussion)||0)));
+      p.set('groupbuyUnread',String(Math.max(0,Number(teacherUnreadState.groupbuy)||0)));
+      sessionStorage.setItem('heremay.messageCenter.groupbuyIds',JSON.stringify(latestGroupbuyUnreadIds||[]));
+      sessionStorage.setItem('heremay.messageCenter.groupbuyTokens',JSON.stringify(latestGroupbuyUnreadTokens||[]));
       window.location.href=MESSAGE_CENTER_PAGE+'?'+p.toString();
     }
     function openPrivateMessage(){window.location.href='private_message.html?back='+encodeURIComponent(location.href)}
@@ -828,7 +833,12 @@
     let previousMessageUnread=null;
     const teacherUnreadState={general:0,private:0,discussion:0,groupbuy:0};
     function renderTeacherTotalUnread(){
-      const count=Object.values(teacherUnreadState).reduce((sum,x)=>sum+Math.max(0,Number(x)||0),0);
+      // 訊息中心內，私訊、討論與登記各以一張來源卡呈現，
+      // 同一來源內即使有多筆，首頁總數也只計為一則。
+      const count=Math.max(0,Number(teacherUnreadState.general)||0)
+        +['private','discussion','groupbuy'].reduce(
+          (sum,key)=>sum+(Number(teacherUnreadState[key])>0?1:0),0
+        );
       const card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');
       card?.classList.toggle('hasUnread',count>0);
       if(badge){badge.textContent=count>99?'99+':String(count);badge.setAttribute('aria-label',count>0?`共 ${count} 則未讀訊息`:'目前沒有未讀訊息')}
@@ -1078,6 +1088,21 @@
 
     const GROUPBUY_SERVICE_URL='https://script.google.com/macros/s/AKfycbyGOxpeqwRU3_Q2HcoQHsMr_PvUkoLkpRwPPCLs5K6iWRye7fVeQdNkMAvc1oBvqFFrpw/exec';
     let latestGroupbuyUnreadIds=[];
+    let latestGroupbuyUnreadTokens=[];
+
+    function groupbuyActivityToken(c){
+      const id=String(c?.id||c?.campaignId||c?.campaignID||'').trim();
+      if(!id)return '';
+      const activity={
+        updatedAt:c.updatedAt||c.modifiedAt||c.lastUpdatedAt||c.lastActivityAt||c.updateTime||'',
+        responseCount:c.responseCount??c.entryCount??c.registrationCount??c.orderCount??c.totalEntries??c.totalOrders??'',
+        entries:Array.isArray(c.entries)?c.entries:undefined,
+        registrations:Array.isArray(c.registrations)?c.registrations:undefined,
+        orders:Array.isArray(c.orders)?c.orders:undefined,
+        responses:Array.isArray(c.responses)?c.responses:undefined
+      };
+      return id+'@'+JSON.stringify(activity);
+    }
 
     function groupbuyTargetMatches(c){
       const targets=Array.isArray(c.targets)?c.targets:[];
@@ -1142,7 +1167,7 @@
         'heremay.groupbuy.entryNewIds',
         JSON.stringify(latestGroupbuyUnreadIds||[])
       );
-      saveGroupbuySeenIds(latestGroupbuyUnreadIds||[]);
+      saveGroupbuySeenIds(latestGroupbuyUnreadTokens||latestGroupbuyUnreadIds||[]);
       setGroupbuyUnread(false);
       location.href='groupbuy.html?v=1.9.12';
     }
@@ -1165,14 +1190,19 @@
             const campaigns=Array.isArray(result?.data)?result.data:[];
             const seen=getGroupbuySeenIds();
 
-            latestGroupbuyUnreadIds=campaigns
-              .filter(c=>{
+            const unreadCampaigns=campaigns.filter(c=>{
                 const status=String(c.status||'open');
                 if(status==='closed'||status==='cancelled'||c.deleted)return false;
                 if(!groupbuyTargetMatches(c))return false;
-                return !seen.has(String(c.id||''));
-              })
-              .map(c=>String(c.id||''))
+                const token=groupbuyActivityToken(c);
+                return token&&!seen.has(token);
+              });
+
+            latestGroupbuyUnreadIds=unreadCampaigns
+              .map(c=>String(c.id||c.campaignId||c.campaignID||''))
+              .filter(Boolean);
+            latestGroupbuyUnreadTokens=unreadCampaigns
+              .map(groupbuyActivityToken)
               .filter(Boolean);
 
             const hasUnread=latestGroupbuyUnreadIds.length>0;
