@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.20</title>
+  <title>和美智慧校園｜教保人員首頁 v15.21</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -608,7 +608,7 @@
     </section>
 
     <div class="version-refresh-row">
-      <div class="page-version">教保人員首頁 v15.20</div>
+      <div class="page-version">教保人員首頁 v15.21</div>
       <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
     </div>
 
@@ -716,7 +716,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.20｜粉專投稿身分修正版</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.21｜私訊紅點提示音修正版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -832,7 +832,7 @@
 
     let previousMessageUnread=null;
     const teacherUnreadState={general:0,private:0,discussion:0,groupbuy:0};
-    function renderTeacherTotalUnread(){
+    function renderTeacherTotalUnread(suppressSound=false){
       // 訊息中心內，私訊、討論與登記各以一張來源卡呈現，
       // 同一來源內即使有多筆，首頁總數也只計為一則。
       const count=Math.max(0,Number(teacherUnreadState.general)||0)
@@ -842,7 +842,7 @@
       const card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');
       card?.classList.toggle('hasUnread',count>0);
       if(badge){badge.textContent=count>99?'99+':String(count);badge.setAttribute('aria-label',count>0?`共 ${count} 則未讀訊息`:'目前沒有未讀訊息')}
-      if(previousMessageUnread!==null&&count>previousMessageUnread)beep();
+      if(!suppressSound&&previousMessageUnread!==null&&count>previousMessageUnread)beep();
       previousMessageUnread=count;
     }
     async function refreshMessageUnread(){
@@ -863,7 +863,12 @@
       try{
         const q=new URLSearchParams({employeeId,name,_:Date.now()}),response=await fetch(PRIVATE_MESSAGE_API+'/api/private/unread?'+q,{cache:'no-store'});
         const r=await response.json();if(!response.ok||!r?.ok)throw new Error(r?.message||'私訊未讀讀取失敗');
-        const n=Math.max(0,Number(r.count)||0);teacherUnreadState.private=n;showPrivateBadge(n);renderTeacherTotalUnread();
+        const n=Math.max(0,Number(r.count)||0);
+        const soundKey='heremay.teacher.lastPrivateUnread.'+employeeId;
+        const previousPrivate=Math.max(0,Number(localStorage.getItem(soundKey))||0);
+        teacherUnreadState.private=n;showPrivateBadge(n);renderTeacherTotalUnread(true);
+        if(n>previousPrivate)beep();
+        localStorage.setItem(soundKey,String(n));
       }catch(e){console.warn('私訊未讀提示：',e.message)}
     }
 
@@ -1062,9 +1067,19 @@
     updateClock();
     setInterval(updateClock, 1000 * 20);
 
+    let notificationAudioContext=null;
+    function unlockNotificationSound(){
+      try{
+        if(!notificationAudioContext)notificationAudioContext=new (window.AudioContext||window.webkitAudioContext)();
+        if(notificationAudioContext.state==='suspended')notificationAudioContext.resume();
+      }catch(e){}
+    }
+    window.addEventListener('pointerdown',unlockNotificationSound,{once:true,passive:true});
+    window.addEventListener('touchstart',unlockNotificationSound,{once:true,passive:true});
     function beep(){
       try{
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        unlockNotificationSound();
+        const ctx = notificationAudioContext || new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain);
