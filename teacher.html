@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.19</title>
+  <title>和美智慧校園｜教保人員首頁 v15.20</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -608,7 +608,7 @@
     </section>
 
     <div class="version-refresh-row">
-      <div class="page-version">教保人員首頁 v15.19</div>
+      <div class="page-version">教保人員首頁 v15.20</div>
       <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
     </div>
 
@@ -716,7 +716,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.19｜訊息中心未讀同步版</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.20｜粉專投稿身分修正版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -1244,7 +1244,14 @@
         currentEmployee?.group ||
         ''
       ).trim();
-      const employeeId = String(currentEmployee?.employeeId || '').trim();
+      // 員工主檔的新舊欄位名稱都支援，避免投稿只留下姓名、沒有員工編號。
+      const employeeId = String(
+        currentEmployee?.employeeId ||
+        currentEmployee?.employeeNo ||
+        currentEmployee?.id ||
+        currentEmployee?.['員工編號'] ||
+        ''
+      ).trim();
       const department = currentDepartment();
 
       if(authorName) params.set('author', authorName);
