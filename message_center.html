@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>訊息中心 v1.5</title>
+  <title>訊息中心 v1.4</title>
   <style>
     :root{--blue:#4774b3;--ink:#23344e;--muted:#728096;--line:#d8e4f2;--bg:#edf5fc;--card:#fff;--new:#fff9e9}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -30,13 +30,6 @@
     name: String(PARAMS.name || ''), groups: String(PARAMS.groups || PARAMS.group || '')
   };
   let items = [];
-  const marking = new Set();
-  const cacheKey='heremay.messageCenter.cache.'+[identity.employeeId,identity.account,identity.name].filter(Boolean).join('|');
-  const moduleAlerts=[
-    {type:'private',count:Number(PARAMS.privateUnread)||0,title:'有新的私訊',message:'點此查看尚未讀取的私人訊息'},
-    {type:'discussion',count:Number(PARAMS.discussionUnread)||0,title:'討論區有新內容',message:'點此查看新的議題或回覆'},
-    {type:'groupbuy',count:Number(PARAMS.groupbuyUnread)||0,title:'登記中心有新內容',message:'點此查看新的團購／登記事項'}
-  ].filter(x=>x.count>0);
   document.getElementById('person').textContent = identity.name ? identity.name + ' 的訊息' : '我的訊息';
 
   function api(action, extra){
@@ -46,7 +39,7 @@
       const s=document.createElement('script'); let timer;
       window[fn]=data=>{clearTimeout(timer);delete window[fn];s.remove();data&&data.ok?resolve(data):reject(new Error((data&&data.error)||'連線失敗'));};
       s.onerror=()=>{clearTimeout(timer);delete window[fn];s.remove();reject(new Error('連線失敗'));};
-      timer=setTimeout(()=>{delete window[fn];s.remove();reject(new Error('連線逾時'));},30000);
+      timer=setTimeout(()=>{delete window[fn];s.remove();reject(new Error('連線逾時'));},15000);
       s.src=MESSAGE_SERVICE_URL+'?'+q.toString(); document.head.appendChild(s);
     });
   }
@@ -55,70 +48,31 @@
     try{
       const r=await api('list',{limit:100});
       items=r.items||[];
-      try{localStorage.setItem(cacheKey,JSON.stringify(items))}catch(e){}
       render(r.unread||0);
       notifyNewest();
     }catch(e){
-      if(attempt<1){
+      if(attempt<2){
         document.getElementById('count').textContent='正在重新連線…';
         document.getElementById('list').innerHTML='<div class="loading">連線較慢，正在自動重試（'+(attempt+1)+'/2）…</div>';
-        setTimeout(()=>load(attempt+1),1200);
+        setTimeout(()=>load(attempt+1),900);
         return;
       }
-      if(!items.length)showError(e.message);
+      showError(e.message);
     }
   }
   function render(unread){
     const unreadItems=items.filter(x=>!x.isRead);
-    unread=unreadItems.length+moduleAlerts.length;
+    unread=unreadItems.length;
     document.getElementById('count').textContent=unread?'未讀 '+unread+' 則':'目前沒有未讀訊息';
-    document.getElementById('allRead').hidden=!unreadItems.length;
+    document.getElementById('allRead').hidden=!unread;
     const box=document.getElementById('list');
-    if(!unreadItems.length&&!moduleAlerts.length){box.innerHTML='<div class="empty">目前沒有未讀訊息</div>';return;}
-    const modules=moduleAlerts.map(x=>`<article class="item new" onclick="openModuleAlert('${x.type}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${x.count} 則</time></div><div class="body">${html(x.message)}</div><div class="meta">和美智慧校園</div><button class="open" type="button">查看內容</button></article>`).join('');
-    const notifications=unreadItems.map(x=>{const link=notificationLink(x);return`<article class="item new" onclick="openNotification('${esc(x.id)}','${esc(link)}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${html(x.createdAt)}</time></div>${x.message?`<div class="body">${html(x.message)}</div>`:''}<div class="meta">${html(x.source||'系統')}${x.senderName?'・'+html(x.senderName):''}</div>${link?`<button class="open" type="button">查看內容</button>`:''}</article>`}).join('');
-    box.innerHTML=modules+notifications;
-  }
-  function notificationLink(x){
-    if(x.link)return String(x.link);
-    const text=[x.source,x.title,x.message].join(' ');
-    if(/粉專|投稿/.test(text))return 'media_admin.html?v=1.0.2';
-    if(/討論/.test(text))return 'discussion.html';
-    if(/團購|登記/.test(text))return 'groupbuy.html?v=1.9.12';
-    return '';
-  }
-  async function openNotification(id,link){
-    const marked=await readOne(id);
-    if(marked&&link)location.href=link;
-  }
-  function openModuleAlert(type){
-    if(type==='private'){location.href='private_message.html?back='+encodeURIComponent(PARAMS.back||'admin.html');return;}
-    if(type==='discussion'){location.href='discussion.html';return;}
-    if(type==='groupbuy'){
-      let tokens=[];try{tokens=JSON.parse(sessionStorage.getItem('heremay.messageCenter.groupbuyTokens')||'[]')||[]}catch(e){}
-      const keys=[];if(identity.employeeId)keys.push('heremay.groupbuy.seenIds.id.'+identity.employeeId);if(identity.name)keys.push('heremay.groupbuy.seenIds.name.'+identity.name);
-      keys.forEach(key=>{let old=[];try{old=JSON.parse(localStorage.getItem(key)||'[]')||[]}catch(e){}localStorage.setItem(key,JSON.stringify([...new Set([...old,...tokens])].slice(-500)))});
-      let ids=[];try{ids=JSON.parse(sessionStorage.getItem('heremay.messageCenter.groupbuyIds')||'[]')||[]}catch(e){}sessionStorage.setItem('heremay.groupbuy.entryNewIds',JSON.stringify(ids));
-      location.href='groupbuy.html?v=1.9.12';
-    }
+    if(!unreadItems.length){box.innerHTML='<div class="empty">目前沒有未讀訊息</div>';return;}
+    box.innerHTML=unreadItems.map(x=>`<article class="item new" onclick="readOne('${esc(x.id)}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${html(x.createdAt)}</time></div>${x.message?`<div class="body">${html(x.message)}</div>`:''}<div class="meta">${html(x.source||'系統')}${x.senderName?'・'+html(x.senderName):''}</div>${x.link?`<a class="open" href="${attr(x.link)}" onclick="openLinkedItem(event,'${esc(x.id)}','${esc(x.link)}')">查看內容</a>`:''}</article>`).join('');
   }
   async function readOne(id){
     const x=items.find(v=>v.id===id);if(!x||x.isRead)return true;
-    if(marking.has(id))return false;
-    marking.add(id);
-    for(let attempt=0;attempt<3;attempt++){
-      try{
-        await api('markRead',{notificationId:id,_:Date.now()});
-        x.isRead=true;try{localStorage.setItem(cacheKey,JSON.stringify(items))}catch(e){}render(items.filter(v=>!v.isRead).length);
-        marking.delete(id);
-        return true;
-      }catch(e){
-        if(attempt<2)await new Promise(resolve=>setTimeout(resolve,700*(attempt+1)));
-      }
-    }
-    marking.delete(id);
-    showError('已讀狀態尚未同步，請稍後再點一次。');
-    return false;
+    x.isRead=true;render(items.filter(v=>!v.isRead).length);
+    try{await api('markRead',{notificationId:id});return true;}catch(e){x.isRead=false;render(items.filter(v=>!v.isRead).length);return false;}
   }
   async function openLinkedItem(event,id,link){
     event.preventDefault();event.stopPropagation();
@@ -126,6 +80,13 @@
     const original=button.textContent;
     button.textContent='正在開啟…';
     button.style.pointerEvents='none';
+    const destination=buildAuthenticatedLink(link);
+    if(!destination){
+      button.textContent=original;
+      button.style.pointerEvents='';
+      showError('主管身分資料不完整，請返回主管首頁後重新進入訊息中心。');
+      return;
+    }
     let marked=await readOne(id);
     if(!marked){
       await new Promise(resolve=>setTimeout(resolve,800));
@@ -133,10 +94,32 @@
     }
     button.textContent=original;
     button.style.pointerEvents='';
-    location.href=link;
+    location.href=destination;
+  }
+  function buildAuthenticatedLink(link){
+    try{
+      const url=new URL(link,location.href);
+      const file=url.pathname.split('/').pop().toLowerCase();
+
+      // 所有校園內頁都延續訊息中心已取得的登入身分。
+      if(identity.employeeId)url.searchParams.set('employeeId',identity.employeeId);
+      if(identity.account)url.searchParams.set('account',identity.account);
+      if(identity.name)url.searchParams.set('name',identity.name);
+      if(identity.groups)url.searchParams.set('groups',identity.groups);
+
+      // 粉專主管收件匣沿用既有的 admin / adminId 參數名稱。
+      if(file==='media_admin.html'){
+        if(!identity.name||!(identity.employeeId||identity.account))return '';
+        url.searchParams.set('admin',identity.name);
+        url.searchParams.set('adminId',identity.employeeId||identity.account);
+      }
+      return url.toString();
+    }catch(e){
+      return '';
+    }
   }
   async function markAllRead(){
-    try{await api('markAllRead');items.forEach(x=>x.isRead=true);try{localStorage.setItem(cacheKey,JSON.stringify(items))}catch(e){}render(0);}catch(e){showError(e.message);}
+    try{await api('markAllRead');items.forEach(x=>x.isRead=true);render(0);}catch(e){showError(e.message);}
   }
   function notifyNewest(){
     const x=items.find(v=>!v.isRead&&v.sound);if(!x)return;
@@ -153,7 +136,6 @@
   function html(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   function attr(v){return html(v).replace(/`/g,'&#96;')}
   function esc(v){return String(v||'').replace(/['\\]/g,'\\$&')}
-  try{const cached=JSON.parse(localStorage.getItem(cacheKey)||'[]');if(Array.isArray(cached)&&cached.length){items=cached;render(items.filter(x=>!x.isRead).length)}}catch(e){}
   load();
 </script>
 </body>
