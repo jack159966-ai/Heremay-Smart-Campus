@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#d85f8b">
+  <title>班級素材投稿｜和美智慧校園</title>
+  <style>
+    :root{--pink:#d85f8b;--pink2:#f39ab8;--ink:#432737;--muted:#806574;--line:#efd4df;--bg:#fff6f9;--ok:#2e8b62}
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(145deg,#ffeef5,#fffafc 45%,#f8e9f1);color:var(--ink);font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif}
+    .page{width:min(760px,100%);min-height:100vh;margin:auto;padding:18px 14px 42px}
+    header{padding:20px;border-radius:24px;background:linear-gradient(135deg,var(--pink),var(--pink2));color:#fff;box-shadow:0 12px 30px #a9476a33}
+    h1{font-size:26px;margin:0 0 6px}.sub{font-weight:700;opacity:.95;line-height:1.5}
+    form{margin-top:14px;padding:18px;background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:0 10px 28px #7e3d5618}
+    label{display:block;font-weight:900;margin:14px 0 7px}
+    input,select,textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px 13px;background:#fff;font:inherit;color:var(--ink)}
+    textarea{min-height:210px;line-height:1.65;resize:vertical}
+    .hint{font-size:14px;color:var(--muted);font-weight:700;line-height:1.55;margin-top:6px}
+    .counter{text-align:right;font-size:13px;color:var(--muted);margin-top:5px}
+    .photo-button{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border:2px dashed var(--pink2);border-radius:16px;background:var(--bg);color:#8b3656;font-weight:900;cursor:pointer}
+    #photos{position:absolute;left:-9999px}
+    .preview{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+    .photo{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#f3e4ea}
+    .photo img{width:100%;height:100%;object-fit:cover}.photo b{position:absolute;left:5px;top:5px;background:#0009;color:#fff;border-radius:999px;padding:2px 7px;font-size:12px}
+    .submit{width:100%;margin-top:18px;border:0;border-radius:16px;padding:15px;background:linear-gradient(135deg,var(--pink),var(--pink2));color:#fff;font-size:18px;font-weight:900;cursor:pointer}
+    .submit:disabled{opacity:.55;cursor:wait}
+    .status{display:none;margin-top:14px;padding:13px;border-radius:14px;font-weight:800;line-height:1.55}.status.show{display:block}.status.ok{background:#e6f6ef;color:#1f6d4d}.status.error{background:#ffe8eb;color:#9a253d}
+    .network-warning{margin-top:14px;padding:14px 16px;border:2px solid #e6ad3e;border-radius:16px;background:#fff4d8;color:#714b00;font-weight:900;line-height:1.65}
+    .history{margin-top:16px;padding:18px;background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:0 10px 28px #7e3d5618}.history-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.history h2{margin:0;font-size:21px}.refresh{border:0;border-radius:11px;padding:9px 12px;background:var(--bg);color:#8b3656;font-weight:900;cursor:pointer}.history-item{margin-top:11px;padding:13px;border-radius:14px;background:#fff8fb;border:1px solid var(--line)}.history-top{display:flex;justify-content:space-between;gap:10px;font-weight:900}.history-meta{margin-top:5px;color:var(--muted);font-size:13px;font-weight:700}.history-state{white-space:nowrap;color:#8b3656}.history-state.received{color:#23638d}.history-state.published{color:var(--ok)}
+    .back{display:inline-block;margin:16px 5px 0;color:#7e3552;font-weight:900;text-decoration:none}
+    @media(max-width:430px){.preview{grid-template-columns:repeat(2,1fr)}h1{font-size:23px}}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>📸 班級素材投稿</h1>
+      <div class="sub">文章、3～30張照片或2分鐘內短影音，直接送到管理人員素材收件匣。</div>
+    </header>
+    <div class="network-warning">⚠️ 本功能僅限連接 HEREMAY Wi-Fi 使用。離開和美園內網路將無法投稿；若主管與教師皆不在園內，特殊狀況請改用 LINE 傳送。</div>
+
+    <form id="submissionForm">
+      <input id="uploader" name="uploader" type="hidden">
+      <input id="employeeId" name="employeeId" type="hidden">
+      <input id="department" name="department" type="hidden">
+      <label for="className">班級</label>
+      <select id="className" name="className" required>
+        <option value="">請選擇班級</option>
+        <option>A1</option><option>A2</option><option>A3</option>
+        <option>B1</option><option>B2</option><option>B3</option>
+        <option>C1</option><option>C2</option><option>C3</option>
+        <option>Y1</option><option>Y2</option><option>Y3</option>
+        <option>P1</option><option>P2</option><option>P3</option><option>P4</option><option>P5</option>
+      </select>
+
+      <label for="author">投稿人</label>
+      <input id="author" name="author" maxlength="50" autocomplete="name" placeholder="請輸入姓名" required>
+
+      <label for="title">活動主題</label>
+      <input id="title" name="title" maxlength="100" placeholder="例如：A1 班戶外種植活動" required>
+
+      <label for="article">臉書文章</label>
+      <textarea id="article" name="article" maxlength="5000" placeholder="請輸入準備提供給粉絲專頁的完整文章……" required></textarea>
+      <div class="counter"><span id="articleCount">0</span> / 5000</div>
+
+      <label>活動照片</label>
+      <label class="photo-button" for="photos">📷 選擇 3～30 張照片</label>
+      <input id="photos" name="photos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" multiple required>
+      <div class="hint" id="photoHint">一般建議 3～10 張，大型活動最多 30 張；照片依選取順序保存原始檔，每張最多 20MB。</div>
+      <div class="preview" id="preview"></div>
+
+      <label>短影音（選填）</label>
+      <input id="video" name="video" type="file" accept="video/mp4,video/quicktime,.mp4,.mov,.m4v">
+      <div class="hint" id="videoHint">可上傳1部不超過2分鐘的MP4或MOV影片，檔案最多500MB。</div>
+
+      <button class="submit" id="submitButton" type="submit">送出班級素材</button>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+    </form>
+    <section class="history">
+      <div class="history-head"><h2>📬 我的投稿紀錄</h2><button class="refresh" type="button" onclick="loadMySubmissions()">更新狀態</button></div>
+      <div class="hint" id="historyList">目前沒有這部裝置的投稿紀錄。</div>
+    </section>
+    <a class="back" href="javascript:history.back()">← 返回教保人員首頁</a>
+    <div class="hint" style="text-align:center;margin-top:18px">版本 v1.1｜2026-09-24</div>
+  </main>
+
+  <script>
+    const form = document.getElementById('submissionForm');
+    const photosInput = document.getElementById('photos');
+    const preview = document.getElementById('preview');
+    const statusBox = document.getElementById('status');
+    const submitButton = document.getElementById('submitButton');
+    const article = document.getElementById('article');
+    const videoInput = document.getElementById('video');
+    const params = new URLSearchParams(location.search);
+    const historyList = document.getElementById('historyList');
+    const historyKey = 'heremay-media-submission-history-v1';
+
+    document.getElementById('author').value = params.get('name') || '';
+    document.getElementById('className').value = params.get('class') || '';
+    document.getElementById('uploader').value = params.get('name') || '';
+    document.getElementById('employeeId').value = params.get('employeeId') || params.get('id') || '';
+    document.getElementById('department').value = params.get('department') || params.get('group') || '';
+
+    article.addEventListener('input', () => {
+      document.getElementById('articleCount').textContent = article.value.length;
+    });
+
+    photosInput.addEventListener('change', () => {
+      const files = [...photosInput.files];
+      preview.replaceChildren();
+      document.getElementById('photoHint').textContent = `已選擇 ${files.length} 張照片；允許 3～30 張${files.length > 10 ? '（大型活動投稿）' : ''}。`;
+      files.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'photo';
+        const img = document.createElement('img');
+        const badge = document.createElement('b');
+        badge.textContent = index + 1;
+        item.append(img, badge);
+        preview.append(item);
+        if (file.type !== 'image/heic' && file.type !== 'image/heif') {
+          const url = URL.createObjectURL(file);
+          img.src = url;
+          img.onload = () => URL.revokeObjectURL(url);
+        } else {
+          img.alt = `HEIC 照片 ${index + 1}`;
+        }
+      });
+    });
+
+    videoInput.addEventListener('change', () => {
+      const file = videoInput.files[0];
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        URL.revokeObjectURL(url);
+        if (video.duration > 120.5) {
+          videoInput.value = '';
+          showStatus('影片超過2分鐘，請先裁切後再上傳。', 'error');
+        } else {
+          document.getElementById('videoHint').textContent = `已選擇：${file.name}（約${Math.ceil(video.duration)}秒）`;
+        }
+      };
+      video.onerror = () => URL.revokeObjectURL(url);
+      video.src = url;
+    });
+
+    function showStatus(message, type) {
+      statusBox.className = `status show ${type}`;
+      statusBox.textContent = message;
+      statusBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function readHistory(){
+      try{return JSON.parse(localStorage.getItem(historyKey)||'[]').filter(item=>item&&item.token)}catch{return []}
+    }
+
+    function saveHistory(entry){
+      const history=readHistory().filter(item=>item.token!==entry.token);
+      history.unshift(entry);
+      localStorage.setItem(historyKey,JSON.stringify(history.slice(0,50)));
+    }
+
+    async function loadMySubmissions(){
+      const signedInName=(params.get('name')||'').trim();
+      const history=readHistory().filter(item=>!signedInName||item.author===signedInName);
+      if(!history.length){
+        historyList.className='hint';
+        historyList.textContent=signedInName?'目前沒有您的投稿紀錄。':'目前沒有這部裝置的投稿紀錄。';
+        return;
+      }
+      historyList.className='hint';historyList.textContent='正在更新投稿狀態…';
+      try{
+        const response=await fetch('/api/submission-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tokens:history.map(item=>item.token)})});
+        const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.message||'讀取失敗');
+        const stateClass=status=>status==='已發布'?'published':status==='已收到'||status==='整理中'?'received':'';
+        historyList.className='';
+        historyList.innerHTML=result.submissions.length?result.submissions.map(item=>`<div class="history-item"><div class="history-top"><span>${escapeHtml(item.className)}｜${escapeHtml(item.title)}</span><span class="history-state ${stateClass(item.status)}">${escapeHtml(item.status)}</span></div><div class="history-meta">${escapeHtml(item.author)} 投稿｜${escapeHtml(item.createdAtTaipei)}｜${escapeHtml(item.id)}</div></div>`).join(''):'<div class="hint">找不到投稿資料，請向管理人員確認。</div>';
+      }catch(error){historyList.className='hint';historyList.textContent=`狀態更新失敗：${error.message}`}
+    }
+
+    function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const count = photosInput.files.length;
+      if (!videoInput.files.length && (count < 3 || count > 30)) {
+        showStatus('請選擇3～30張照片，或上傳一部2分鐘內短影音。', 'error');
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = '正在上傳，請勿關閉畫面…';
+      statusBox.className = 'status';
+      try {
+        const submittedAuthor=document.getElementById('author').value.trim();
+        const response = await fetch('/api/submissions', { method: 'POST', body: new FormData(form) });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.ok) throw new Error(result.message || '投稿失敗');
+        showStatus(`${result.message}。${result.cloudSyncQueued ? '主管通知已排入傳送。' : '素材已安全存入 NAS。'}投稿編號：${result.id}`, 'ok');
+        saveHistory({token:result.trackingToken,id:result.id,author:submittedAuthor});
+        loadMySubmissions();
+        form.reset();
+        preview.replaceChildren();
+        document.getElementById('articleCount').textContent = '0';
+        document.getElementById('photoHint').textContent = '一般建議 3～10 張，大型活動最多 30 張；照片依選取順序保存原始檔，每張最多 20MB。';
+        document.getElementById('author').value = params.get('name') || '';
+        document.getElementById('className').value = params.get('class') || '';
+      } catch (error) {
+        showStatus(`投稿失敗：${error.message}`, 'error');
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = '送出班級素材';
+      }
+    });
+    loadMySubmissions();
+  </script>
+</body>
+</html>
