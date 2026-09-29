@@ -1,9 +1,9 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>訊息中心 v1.5｜2026-09-29</title>
+  <title>訊息中心 v1.5.2｜2026-09-29</title>
   <style>
     :root{--blue:#4774b3;--ink:#23344e;--muted:#728096;--line:#d8e4f2;--bg:#edf5fc;--card:#fff;--new:#fff9e9}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -89,8 +89,17 @@
       if(submissionId){try{mediaUrl.searchParams.set('submissionId',decodeURIComponent(submissionId));}catch(e){mediaUrl.searchParams.set('submissionId',submissionId);}}
     }
     const destination=buildAuthenticatedLink(isMedia?mediaUrl.toString():(x.link||''));
+    if(isMedia && !destination){
+      document.getElementById('count').textContent='無法開啟投稿，通知仍保留';
+      return;
+    }
+    if(destination){
+      // 先確認可導向的網址，再沿用既有的已讀同步；同步失敗時保留未讀。
+      await readOne(id);
+      location.assign(destination);
+      return;
+    }
     await readOne(id);
-    if(destination){location.href=destination;return;}
     // 沒有目標網址的系統通知只需標記已讀。
   }
   function buildAuthenticatedLink(link){
@@ -106,10 +115,10 @@
       if(identity.groups)url.searchParams.set('groups',identity.groups);
 
       // 粉專主管收件匣沿用既有的 admin / adminId 參數名稱。
-      if(file==='media_admin.html'||(isMediaInbox(url))){
-        if(!identity.name||!(identity.employeeId||identity.account))return '';
-        url.searchParams.set('admin',identity.name);
-        url.searchParams.set('adminId',identity.employeeId||identity.account);
+      if(file==='media_admin.html'||isMediaInbox(url)){
+        // NAS 收件匣另有管理員驗證；缺少首頁員工編號時仍須能開啟收件匣。
+        if(identity.name)url.searchParams.set('admin',identity.name);
+        if(identity.employeeId||identity.account)url.searchParams.set('adminId',identity.employeeId||identity.account);
       }
       return url.toString();
     }catch(e){
@@ -130,7 +139,7 @@
   async function enableSound(){
     try{const C=window.AudioContext||window.webkitAudioContext;if(!C)throw new Error('此瀏覽器不支援網頁提示音');audioContext=audioContext||new C();await audioContext.resume();soundReady=audioContext.state==='running';if(!soundReady)throw new Error('聲音未啟用');document.getElementById('soundButton').textContent='🔊 提示音已開啟';document.getElementById('soundStatus').textContent='保持頁面開啟，收到新訊息時會響鈴';beep();}catch(e){document.getElementById('soundStatus').textContent=e.message;}
   }
-  function beep(){if(!soundReady||document.hidden)return;try{const c=audioContext,o=c.createOscillator(),g=c.createGain();o.frequency.value=740;g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.12,c.currentTime+.02);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.32);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.34);if(navigator.vibrate)navigator.vibrate([180,100,180]);}catch(e){}}
+  function beep(){if(!soundReady||document.hidden)return;try{const c=audioContext;[740,988,1175].forEach((frequency,i)=>{const o=c.createOscillator(),g=c.createGain(),start=c.currentTime+i*.32;o.type='sine';o.frequency.value=frequency;g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(.38,start+.03);g.gain.exponentialRampToValueAtTime(.0001,start+.28);o.connect(g);g.connect(c.destination);o.start(start);o.stop(start+.29);});if(navigator.vibrate)navigator.vibrate([180,100,180]);}catch(e){}}
   function goBack(){
     if(PARAMS.back){location.href=PARAMS.back;return;}
     if(history.length>1){history.back();return;}
