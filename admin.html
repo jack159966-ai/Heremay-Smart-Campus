@@ -625,7 +625,7 @@
     </section>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.49｜2026-09-29</div>
+      <div class="versionStamp">主管工作台 v24.50｜2026-09-29</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -753,13 +753,14 @@ function playAdminMessageChime(){
   if(!adminMessageSoundReady||document.hidden)return;
   try{
     const c=adminMessageAudio;
-    [740,988].forEach((frequency,i)=>{
-      const o=c.createOscillator(),g=c.createGain(),start=c.currentTime+i*.18;
+    [740,988,1175].forEach((frequency,i)=>{
+      const o=c.createOscillator(),g=c.createGain(),start=c.currentTime+i*.32;
+      o.type='sine';
       o.frequency.value=frequency;
       g.gain.setValueAtTime(.0001,start);
-      g.gain.exponentialRampToValueAtTime(.14,start+.02);
-      g.gain.exponentialRampToValueAtTime(.0001,start+.16);
-      o.connect(g);g.connect(c.destination);o.start(start);o.stop(start+.18);
+      g.gain.exponentialRampToValueAtTime(.38,start+.03);
+      g.gain.exponentialRampToValueAtTime(.0001,start+.28);
+      o.connect(g);g.connect(c.destination);o.start(start);o.stop(start+.29);
     });
     if(navigator.vibrate)navigator.vibrate([180,100,180]);
   }catch(e){}
