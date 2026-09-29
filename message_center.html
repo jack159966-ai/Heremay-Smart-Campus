@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>訊息中心 v1.4</title>
+  <title>訊息中心 v1.5｜2026-09-29</title>
   <style>
     :root{--blue:#4774b3;--ink:#23344e;--muted:#728096;--line:#d8e4f2;--bg:#edf5fc;--card:#fff;--new:#fff9e9}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -19,7 +19,8 @@
 <main class="app">
   <header><h1>🔔 訊息中心</h1><button class="back" onclick="goBack()">返回</button></header>
   <div class="person" id="person"></div>
-  <div class="toolbar"><span class="count" id="count">讀取中…</span><button class="action" id="allRead" onclick="markAllRead()" hidden>全部已讀</button><span class="sound">新訊息會播放提示聲</span></div>
+  <div class="toolbar"><span class="count" id="count">讀取中…</span><button class="action" id="allRead" onclick="markAllRead()" hidden>全部已讀</button></div>
+  <div class="toolbar"><button class="action" id="soundButton" onclick="enableSound()">🔊 開啟提示音</button><span class="sound" id="soundStatus">開啟頁面後點一次，即可播放新訊息提示音</span></div>
   <section class="list" id="list"><div class="loading">正在讀取訊息…</div></section>
 </main>
 <script>
@@ -30,6 +31,8 @@
     name: String(PARAMS.name || ''), groups: String(PARAMS.groups || PARAMS.group || '')
   };
   let items = [];
+  let audioContext=null, soundReady=false, loadedOnce=false, loading=false;
+  const MEDIA_INBOX='https://heremay-8t.myqnapcloud.com:9444/admin.html';
   document.getElementById('person').textContent = identity.name ? identity.name + ' 的訊息' : '我的訊息';
 
   function api(action, extra){
@@ -45,11 +48,14 @@
   }
   async function load(attempt=0){
     if(!identity.employeeId&&!identity.account&&!identity.groups){showError('尚未取得登入身分，請從校園首頁進入。');return;}
+    if(loading)return;
+    loading=true;
     try{
       const r=await api('list',{limit:100});
       items=r.items||[];
       render(r.unread||0);
-      notifyNewest();
+      notifyNewest(loadedOnce);
+      loadedOnce=true;
     }catch(e){
       if(attempt<2){
         document.getElementById('count').textContent='正在重新連線…';
@@ -58,7 +64,7 @@
         return;
       }
       showError(e.message);
-    }
+    }finally{loading=false;}
   }
   function render(unread){
     const unreadItems=items.filter(x=>!x.isRead);
@@ -67,37 +73,29 @@
     document.getElementById('allRead').hidden=!unread;
     const box=document.getElementById('list');
     if(!unreadItems.length){box.innerHTML='<div class="empty">目前沒有未讀訊息</div>';return;}
-    box.innerHTML=unreadItems.map(x=>`<article class="item new" onclick="readOne('${esc(x.id)}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${html(x.createdAt)}</time></div>${x.message?`<div class="body">${html(x.message)}</div>`:''}<div class="meta">${html(x.source||'系統')}${x.senderName?'・'+html(x.senderName):''}</div>${x.link?`<a class="open" href="${attr(x.link)}" onclick="openLinkedItem(event,'${esc(x.id)}','${esc(x.link)}')">查看內容</a>`:''}</article>`).join('');
+    box.innerHTML=unreadItems.map(x=>`<article class="item new" onclick="openMessage('${esc(x.id)}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${html(x.createdAt)}</time></div>${x.message?`<div class="body">${html(x.message)}</div>`:''}<div class="meta">${html(x.source||'系統')}${x.senderName?'・'+html(x.senderName):''}</div><button class="open" onclick="event.stopPropagation();openMessage('${esc(x.id)}')">${x.link||/粉專|投稿|素材/.test([x.source,x.title].join(' '))?'查看內容':'標記已讀'}</button></article>`).join('');
   }
   async function readOne(id){
     const x=items.find(v=>v.id===id);if(!x||x.isRead)return true;
     x.isRead=true;render(items.filter(v=>!v.isRead).length);
     try{await api('markRead',{notificationId:id});return true;}catch(e){x.isRead=false;render(items.filter(v=>!v.isRead).length);return false;}
   }
-  async function openLinkedItem(event,id,link){
-    event.preventDefault();event.stopPropagation();
-    const button=event.currentTarget;
-    const original=button.textContent;
-    button.textContent='正在開啟…';
-    button.style.pointerEvents='none';
-    const destination=buildAuthenticatedLink(link);
-    if(!destination){
-      button.textContent=original;
-      button.style.pointerEvents='';
-      showError('主管身分資料不完整，請返回主管首頁後重新進入訊息中心。');
-      return;
+  async function openMessage(id){
+    const x=items.find(v=>v.id===id);if(!x)return;
+    const isMedia=/粉專|投稿|素材/.test([x.source,x.title].join(' '));
+    const mediaUrl=new URL(MEDIA_INBOX);
+    if(isMedia){
+      const submissionId=x.submissionId||x.link?.match(/(?:submissionId|id)=([^&#]+)/)?.[1]||[x.title,x.message].join(' ').match(/\b\d{8}-\d{6}-[a-z0-9]+\b/i)?.[0];
+      if(submissionId){try{mediaUrl.searchParams.set('submissionId',decodeURIComponent(submissionId));}catch(e){mediaUrl.searchParams.set('submissionId',submissionId);}}
     }
-    let marked=await readOne(id);
-    if(!marked){
-      await new Promise(resolve=>setTimeout(resolve,800));
-      marked=await readOne(id);
-    }
-    button.textContent=original;
-    button.style.pointerEvents='';
-    location.href=destination;
+    const destination=buildAuthenticatedLink(isMedia?mediaUrl.toString():(x.link||''));
+    await readOne(id);
+    if(destination){location.href=destination;return;}
+    // 沒有目標網址的系統通知只需標記已讀。
   }
   function buildAuthenticatedLink(link){
     try{
+      if(!link)return '';
       const url=new URL(link,location.href);
       const file=url.pathname.split('/').pop().toLowerCase();
 
@@ -108,7 +106,7 @@
       if(identity.groups)url.searchParams.set('groups',identity.groups);
 
       // 粉專主管收件匣沿用既有的 admin / adminId 參數名稱。
-      if(file==='media_admin.html'){
+      if(file==='media_admin.html'||(isMediaInbox(url))){
         if(!identity.name||!(identity.employeeId||identity.account))return '';
         url.searchParams.set('admin',identity.name);
         url.searchParams.set('adminId',identity.employeeId||identity.account);
@@ -118,15 +116,21 @@
       return '';
     }
   }
+  function isMediaInbox(url){return url.hostname==='heremay-8t.myqnapcloud.com'&&url.pathname==='/admin.html';}
   async function markAllRead(){
     try{await api('markAllRead');items.forEach(x=>x.isRead=true);render(0);}catch(e){showError(e.message);}
   }
-  function notifyNewest(){
-    const x=items.find(v=>!v.isRead&&v.sound);if(!x)return;
-    const key='heremay.messageCenter.lastSound';if(localStorage.getItem(key)===x.id)return;
-    localStorage.setItem(key,x.id);beep();
+  function notifyNewest(allowSound){
+    const ids=items.filter(v=>!v.isRead).map(v=>v.id);
+    const key='heremay.messageCenter.seenIds';
+    let prior=[];try{prior=JSON.parse(sessionStorage.getItem(key)||'[]')}catch(e){}
+    if(allowSound&&ids.some(id=>!prior.includes(id)))beep();
+    sessionStorage.setItem(key,JSON.stringify(ids));
   }
-  function beep(){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const c=new C(),o=c.createOscillator(),g=c.createGain();o.frequency.value=740;g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.12,c.currentTime+.02);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.32);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.34);}catch(e){}}
+  async function enableSound(){
+    try{const C=window.AudioContext||window.webkitAudioContext;if(!C)throw new Error('此瀏覽器不支援網頁提示音');audioContext=audioContext||new C();await audioContext.resume();soundReady=audioContext.state==='running';if(!soundReady)throw new Error('聲音未啟用');document.getElementById('soundButton').textContent='🔊 提示音已開啟';document.getElementById('soundStatus').textContent='保持頁面開啟，收到新訊息時會響鈴';beep();}catch(e){document.getElementById('soundStatus').textContent=e.message;}
+  }
+  function beep(){if(!soundReady||document.hidden)return;try{const c=audioContext,o=c.createOscillator(),g=c.createGain();o.frequency.value=740;g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.12,c.currentTime+.02);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+.32);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.34);if(navigator.vibrate)navigator.vibrate([180,100,180]);}catch(e){}}
   function goBack(){
     if(PARAMS.back){location.href=PARAMS.back;return;}
     if(history.length>1){history.back();return;}
@@ -137,6 +141,8 @@
   function attr(v){return html(v).replace(/`/g,'&#96;')}
   function esc(v){return String(v||'').replace(/['\\]/g,'\\$&')}
   load();
+  setInterval(()=>{if(!document.hidden)load();},30000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});
 </script>
 </body>
 </html>

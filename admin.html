@@ -621,10 +621,11 @@
         <span class="messageUnreadBadge" id="messageUnreadBadge" aria-label="未讀訊息"></span>
         <span class="homeMessageCenterIcon">🔔</span><span><strong>訊息中心</strong><small>公告、投稿、討論、登記與私訊通知</small></span><span class="homeMessageCenterArrow">›</span>
       </button>
+      <button id="messageSoundButton" type="button" onclick="enableAdminMessageSound()" style="margin-top:10px;padding:10px 14px;border:1px solid #b6d4ef;border-radius:14px;background:#edf6ff;color:#24598c;font-weight:900">🔊 開啟新訊息提示音</button>
     </section>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.48</div>
+      <div class="versionStamp">主管工作台 v24.49｜2026-09-29</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -735,6 +736,34 @@ function openMessageCenter(){const p=new URLSearchParams(adminMessageIdentity())
 function openPrivateMessage(){location.href='private_message.html?back='+encodeURIComponent(location.href)}
 function adminMessageJsonp(action){return new Promise((resolve,reject)=>{const cb='hm_admin_msg_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script'),timer=setTimeout(()=>done(new Error('訊息中心連線逾時')),12000);function done(err){clearTimeout(timer);try{delete window[cb]}catch(e){}s.remove();if(err)reject(err)}window[cb]=r=>{done();r&&r.ok?resolve(r):reject(new Error(r?.error||'訊息中心連線失敗'))};s.onerror=()=>done(new Error('訊息中心連線失敗'));s.src=MESSAGE_CENTER_URL+'?'+new URLSearchParams({...adminMessageIdentity(),action,callback:cb,_:Date.now()}).toString();document.head.appendChild(s)})}
 let previousAdminMessageUnread=null;
+let adminMessageAudio=null,adminMessageSoundReady=false;
+async function enableAdminMessageSound(){
+  try{
+    const C=window.AudioContext||window.webkitAudioContext;
+    if(!C)throw new Error('此瀏覽器不支援網頁提示音');
+    adminMessageAudio=adminMessageAudio||new C();
+    await adminMessageAudio.resume();
+    adminMessageSoundReady=adminMessageAudio.state==='running';
+    if(!adminMessageSoundReady)throw new Error('聲音未啟用');
+    document.getElementById('messageSoundButton').textContent='🔊 新訊息提示音已開啟';
+    playAdminMessageChime();
+  }catch(e){showToast(e.message);}
+}
+function playAdminMessageChime(){
+  if(!adminMessageSoundReady||document.hidden)return;
+  try{
+    const c=adminMessageAudio;
+    [740,988].forEach((frequency,i)=>{
+      const o=c.createOscillator(),g=c.createGain(),start=c.currentTime+i*.18;
+      o.frequency.value=frequency;
+      g.gain.setValueAtTime(.0001,start);
+      g.gain.exponentialRampToValueAtTime(.14,start+.02);
+      g.gain.exponentialRampToValueAtTime(.0001,start+.16);
+      o.connect(g);g.connect(c.destination);o.start(start);o.stop(start+.18);
+    });
+    if(navigator.vibrate)navigator.vibrate([180,100,180]);
+  }catch(e){}
+}
 const adminUnreadState={general:0,private:0,discussion:0,groupbuy:0};
 function renderAdminTotalUnread(){
   // 訊息中心的一張來源卡算一則；同一來源內有多筆時由來源卡自己的紅點顯示數量。
@@ -742,7 +771,7 @@ function renderAdminTotalUnread(){
   const card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');
   card?.classList.toggle('hasUnread',n>0);
   if(badge){badge.textContent=n>99?'99+':String(n);badge.setAttribute('aria-label',n>0?`共 ${n} 則未讀訊息`:'目前沒有未讀訊息')}
-  if(previousAdminMessageUnread!==null&&n>previousAdminMessageUnread)beep();
+  if(previousAdminMessageUnread!==null&&n>previousAdminMessageUnread)playAdminMessageChime();
   previousAdminMessageUnread=n;
 }
 async function refreshAdminMessageUnread(){const id=adminMessageIdentity();if(!id.employeeId&&!id.account&&!id.groups)return;try{const r=await adminMessageJsonp('unreadCount');adminUnreadState.general=Math.max(0,Number(r.unread)||0);renderAdminTotalUnread()}catch(e){console.warn('訊息中心未讀提示：',e.message)}}
