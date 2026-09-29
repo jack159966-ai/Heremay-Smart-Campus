@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.48</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.52</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -621,11 +621,12 @@
         <span class="messageUnreadBadge" id="messageUnreadBadge" aria-label="未讀訊息"></span>
         <span class="homeMessageCenterIcon">🔔</span><span><strong>訊息中心</strong><small>公告、投稿、討論、登記與私訊通知</small></span><span class="homeMessageCenterArrow">›</span>
       </button>
-      <button id="messageSoundButton" type="button" onclick="enableAdminMessageSound()" style="margin-top:10px;padding:10px 14px;border:1px solid #b6d4ef;border-radius:14px;background:#edf6ff;color:#24598c;font-weight:900">🔊 開啟新訊息提示音</button>
+      <button id="pushEnableButton" type="button" onclick="enableSubmissionPush()" style="margin-top:10px;padding:10px 14px;border:1px solid #80bca2;border-radius:14px;background:#eaf8ef;color:#216642;font-weight:900">🔔 開啟鎖定畫面投稿通知</button>
+      <button id="messageSoundButton" type="button" onclick="enableAdminMessageSound()" style="margin-top:10px;padding:10px 14px;border:1px solid #b6d4ef;border-radius:14px;background:#edf6ff;color:#24598c;font-weight:900">🔊 測試新訊息提示音</button>
     </section>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.50｜2026-09-29</div>
+      <div class="versionStamp">主管工作台 v24.52｜2026-09-29</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -725,6 +726,46 @@ const MESSAGE_CENTER_PAGE = 'message_center.html';
 const PRIVATE_MESSAGE_API = 'https://heremay-passkey-backend-943533867342.asia-east1.run.app';
 // Google 雲端主管收件匣部署完成後，只需更換這個網址。
 const MEDIA_ADMIN_URL = 'https://heremay-8t.myqnapcloud.com:9444/admin.html';
+const PUSH_API_BASE = 'https://heremay-8t.myqnapcloud.com:9444';
+function pushArrayBuffer(base64Url){
+  const raw=atob(base64Url.replace(/-/g,'+').replace(/_/g,'/'));
+  return Uint8Array.from(raw,c=>c.charCodeAt(0));
+}
+async function enableSubmissionPush(){
+  const button=document.getElementById('pushEnableButton');
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)){
+    showToast('這台裝置目前不支援鎖定畫面網頁通知');return;
+  }
+  button.disabled=true;
+  try{
+    await navigator.serviceWorker.register('./sw.js');
+    const registration=await navigator.serviceWorker.ready;
+    const permission=await Notification.requestPermission();
+    if(permission!=='granted')throw new Error('請在 iPhone 設定中允許「和美智慧校園」通知');
+    const keyResponse=await fetch(PUSH_API_BASE+'/api/admin/push/public-key',{cache:'no-store'});
+    if(!keyResponse.ok)throw new Error('無法連接 NAS，請先連上 HEREMAY Wi-Fi');
+    const {publicKey}=await keyResponse.json();
+    let subscription=await registration.pushManager.getSubscription();
+    if(subscription && subscription.options.applicationServerKey &&
+       Array.from(new Uint8Array(subscription.options.applicationServerKey)).join(',')!==Array.from(pushArrayBuffer(publicKey)).join(',')) {
+      await subscription.unsubscribe();subscription=null;
+    }
+    if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:pushArrayBuffer(publicKey)});
+    const username=prompt('請輸入 NAS 管理帳號以啟用投稿推播','jack');
+    if(username===null)return;
+    const password=prompt('請輸入 NAS 管理密碼（只會傳給 NAS，不會儲存在網頁）');
+    if(password===null)return;
+    const response=await fetch(PUSH_API_BASE+'/api/admin/push/subscriptions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Basic '+btoa(unescape(encodeURIComponent(username+':'+password)))},
+      body:JSON.stringify({subscription:subscription.toJSON()})
+    });
+    if(!response.ok)throw new Error(response.status===401?'NAS 管理帳號或密碼錯誤':'訂閱失敗，請確認 NAS 設定及園內 Wi-Fi');
+    button.textContent='✅ 鎖定畫面投稿通知已開啟';
+    showToast('已開啟投稿推播；鎖定手機後也會收到新投稿通知');
+  }catch(error){showToast(error.message||'無法開啟推播');}
+  finally{button.disabled=false;}
+}
+
 
 let currentAdminEmployee = null;
 
@@ -736,8 +777,8 @@ function openMessageCenter(){const p=new URLSearchParams(adminMessageIdentity())
 function openPrivateMessage(){location.href='private_message.html?back='+encodeURIComponent(location.href)}
 function adminMessageJsonp(action){return new Promise((resolve,reject)=>{const cb='hm_admin_msg_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script'),timer=setTimeout(()=>done(new Error('訊息中心連線逾時')),12000);function done(err){clearTimeout(timer);try{delete window[cb]}catch(e){}s.remove();if(err)reject(err)}window[cb]=r=>{done();r&&r.ok?resolve(r):reject(new Error(r?.error||'訊息中心連線失敗'))};s.onerror=()=>done(new Error('訊息中心連線失敗'));s.src=MESSAGE_CENTER_URL+'?'+new URLSearchParams({...adminMessageIdentity(),action,callback:cb,_:Date.now()}).toString();document.head.appendChild(s)})}
 let previousAdminMessageUnread=null;
-let adminMessageAudio=null,adminMessageSoundReady=false;
-async function enableAdminMessageSound(){
+let adminMessageAudio=null,adminMessageSoundReady=false,pendingAdminMessageCount=0;
+async function unlockAdminMessageSound(showError=false){
   try{
     const C=window.AudioContext||window.webkitAudioContext;
     if(!C)throw new Error('此瀏覽器不支援網頁提示音');
@@ -745,12 +786,15 @@ async function enableAdminMessageSound(){
     await adminMessageAudio.resume();
     adminMessageSoundReady=adminMessageAudio.state==='running';
     if(!adminMessageSoundReady)throw new Error('聲音未啟用');
-    document.getElementById('messageSoundButton').textContent='🔊 新訊息提示音已開啟';
-    playAdminMessageChime();
-  }catch(e){showToast(e.message);}
+    if(pendingAdminMessageCount)playAdminMessageChime();
+  }catch(e){if(showError)showToast(e.message);}
+}
+async function enableAdminMessageSound(){
+  await unlockAdminMessageSound(true);
+  if(adminMessageSoundReady&&!pendingAdminMessageCount)playAdminMessageChime();
 }
 function playAdminMessageChime(){
-  if(!adminMessageSoundReady||document.hidden)return;
+  if(!adminMessageSoundReady||document.hidden)return false;
   try{
     const c=adminMessageAudio;
     [740,988,1175].forEach((frequency,i)=>{
@@ -763,8 +807,21 @@ function playAdminMessageChime(){
       o.connect(g);g.connect(c.destination);o.start(start);o.stop(start+.29);
     });
     if(navigator.vibrate)navigator.vibrate([180,100,180]);
-  }catch(e){}
+    if(pendingAdminMessageCount){
+      localStorage.setItem(adminMessageAlertKey(),String(pendingAdminMessageCount));
+      pendingAdminMessageCount=0;
+    }
+    return true;
+  }catch(e){return false;}
 }
+function adminMessageAlertKey(){return 'heremay.admin.lastAlertedMessageCount.'+(adminMessageIdentity().employeeId||adminMessageIdentity().account||'supervisor');}
+function alertNewAdminMessages(count){
+  const key=adminMessageAlertKey(),previous=Math.max(0,Number(localStorage.getItem(key))||0);
+  if(count<previous){localStorage.setItem(key,String(count));pendingAdminMessageCount=0;return;}
+  if(count>previous){pendingAdminMessageCount=count;playAdminMessageChime();}
+}
+document.addEventListener('pointerdown',()=>{if(!adminMessageSoundReady)unlockAdminMessageSound();},{capture:true});
+setTimeout(()=>unlockAdminMessageSound(),0);
 const adminUnreadState={general:0,private:0,discussion:0,groupbuy:0};
 function renderAdminTotalUnread(){
   // 訊息中心的一張來源卡算一則；同一來源內有多筆時由來源卡自己的紅點顯示數量。
@@ -772,10 +829,9 @@ function renderAdminTotalUnread(){
   const card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');
   card?.classList.toggle('hasUnread',n>0);
   if(badge){badge.textContent=n>99?'99+':String(n);badge.setAttribute('aria-label',n>0?`共 ${n} 則未讀訊息`:'目前沒有未讀訊息')}
-  if(previousAdminMessageUnread!==null&&n>previousAdminMessageUnread)playAdminMessageChime();
   previousAdminMessageUnread=n;
 }
-async function refreshAdminMessageUnread(){const id=adminMessageIdentity();if(!id.employeeId&&!id.account&&!id.groups)return;try{const r=await adminMessageJsonp('unreadCount');adminUnreadState.general=Math.max(0,Number(r.unread)||0);renderAdminTotalUnread()}catch(e){console.warn('訊息中心未讀提示：',e.message)}}
+async function refreshAdminMessageUnread(){const id=adminMessageIdentity();if(!id.employeeId&&!id.account&&!id.groups)return;try{const r=await adminMessageJsonp('unreadCount');adminUnreadState.general=Math.max(0,Number(r.unread)||0);renderAdminTotalUnread();alertNewAdminMessages(adminUnreadState.general)}catch(e){console.warn('訊息中心未讀提示：',e.message)}}
 async function refreshAdminPrivateUnread(){
   const id=adminMessageIdentity(),employeeId=id.employeeId||id.account,name=id.name;
   const c=document.getElementById('privateMessageCard'),b=document.getElementById('privateUnreadBadge');
