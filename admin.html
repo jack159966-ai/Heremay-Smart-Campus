@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.53</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.54</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -621,12 +621,10 @@
         <span class="messageUnreadBadge" id="messageUnreadBadge" aria-label="未讀訊息"></span>
         <span class="homeMessageCenterIcon">🔔</span><span><strong>訊息中心</strong><small>公告、投稿、討論、登記與私訊通知</small></span><span class="homeMessageCenterArrow">›</span>
       </button>
-      <button id="pushEnableButton" type="button" onclick="enableSubmissionPush()" style="margin-top:10px;padding:10px 14px;border:1px solid #80bca2;border-radius:14px;background:#eaf8ef;color:#216642;font-weight:900">🔔 開啟鎖定畫面投稿通知</button>
-      <button id="messageSoundButton" type="button" onclick="enableAdminMessageSound()" style="margin-top:10px;padding:10px 14px;border:1px solid #b6d4ef;border-radius:14px;background:#edf6ff;color:#24598c;font-weight:900">🔊 測試新訊息提示音</button>
     </section>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.53｜2026-09-30</div>
+      <div class="versionStamp">主管工作台 v24.54｜2026-09-30</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -713,6 +711,11 @@
       </div>
     </section>
 
+    <details style="margin-top:20px;padding:16px;border:1px solid #d8e4f2;border-radius:16px;background:#fff">
+      <summary style="cursor:pointer;font-weight:800;color:#4774b3">⚙️ 通知設定</summary>
+      <p style="color:#728096">每台裝置首次啟用一次，已啟用者不必重複操作。</p>
+      <button id="pushEnableButton" type="button" onclick="enableSubmissionPush()" style="margin-top:10px;padding:10px 14px;border:1px solid #80bca2;border-radius:14px;background:#eaf8ef;color:#216642;font-weight:900">🔔 開啟鎖定畫面投稿通知</button>
+    </details>
   </main>
 
   <div class="modalMask" id="modalMask" onclick="maskClose(event)">
