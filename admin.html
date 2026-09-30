@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.52</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.53</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -626,7 +626,7 @@
     </section>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.52｜2026-09-29</div>
+      <div class="versionStamp">主管工作台 v24.53｜2026-09-30</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -726,6 +726,7 @@ const MESSAGE_CENTER_PAGE = 'message_center.html';
 const PRIVATE_MESSAGE_API = 'https://heremay-passkey-backend-943533867342.asia-east1.run.app';
 // Google 雲端主管收件匣部署完成後，只需更換這個網址。
 const MEDIA_ADMIN_URL = 'https://heremay-8t.myqnapcloud.com:9444/admin.html';
+const PUSH_ENROLLMENT_CODE = 'kjlCoheKnBEMseQwlZuflIhBr1p6V6wRMsyYLGMicZY';
 const PUSH_API_BASE = 'https://heremay-8t.myqnapcloud.com:9444';
 function pushArrayBuffer(base64Url){
   const raw=atob(base64Url.replace(/-/g,'+').replace(/_/g,'/'));
@@ -751,15 +752,11 @@ async function enableSubmissionPush(){
       await subscription.unsubscribe();subscription=null;
     }
     if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:pushArrayBuffer(publicKey)});
-    const username=prompt('請輸入 NAS 管理帳號以啟用投稿推播','jack');
-    if(username===null)return;
-    const password=prompt('請輸入 NAS 管理密碼（只會傳給 NAS，不會儲存在網頁）');
-    if(password===null)return;
     const response=await fetch(PUSH_API_BASE+'/api/admin/push/subscriptions',{
-      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Basic '+btoa(unescape(encodeURIComponent(username+':'+password)))},
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+PUSH_ENROLLMENT_CODE},
       body:JSON.stringify({subscription:subscription.toJSON()})
     });
-    if(!response.ok)throw new Error(response.status===401?'NAS 管理帳號或密碼錯誤':'訂閱失敗，請確認 NAS 設定及園內 Wi-Fi');
+    if(!response.ok)throw new Error(response.status===401?'通知啟用碼不符，請先更新 NAS 推播設定':'訂閱失敗，請確認 NAS 設定及園內 Wi-Fi');
     button.textContent='✅ 鎖定畫面投稿通知已開啟';
     showToast('已開啟投稿推播；鎖定手機後也會收到新投稿通知');
   }catch(error){showToast(error.message||'無法開啟推播');}
