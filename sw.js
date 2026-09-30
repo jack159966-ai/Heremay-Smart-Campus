@@ -1,4 +1,4 @@
-const CACHE_NAME = 'heremay-smart-campus-v2.4.4';
+const CACHE_NAME = 'heremay-smart-campus-v2.4.5';
 const CORE_FILES = [
   './',
   './index.html'
@@ -93,4 +93,23 @@ self.addEventListener('fetch', event => {
   } else {
     event.respondWith(cacheFirst(event.request));
   }
+});
+
+self.addEventListener('push', event => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch (_) {}
+  const id = String(data.submissionId || '').replace(/[^a-zA-Z0-9-]/g, '');
+  const url = new URL('https://heremay-8t.myqnapcloud.com:9444/admin.html');
+  if (id) url.searchParams.set('submissionId', id);
+  event.waitUntil(self.registration.showNotification('和美智慧校園｜新素材投稿', {
+    body: String(data.body || '有新的班級素材投稿，點此開啟主管收件匣').slice(0, 120),
+    tag: id ? `media-${id}` : 'media-submission',
+    data: { url: url.href }
+  }));
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const url = event.notification.data?.url || 'https://heremay-8t.myqnapcloud.com:9444/admin.html';
+  event.waitUntil(self.clients.openWindow(url));
 });
