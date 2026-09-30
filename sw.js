@@ -1,4 +1,4 @@
-const CACHE_NAME = 'heremay-smart-campus-v2.4.5';
+const CACHE_NAME = 'heremay-smart-campus-v2.4.6';
 const CORE_FILES = [
   './',
   './index.html'
@@ -88,6 +88,10 @@ async function cacheFirst(request) {
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
+  // Dynamic APIs and external services must never reuse an old response.
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/') || url.pathname.includes('/api/')) return;
+
   if (isFreshFirstRequest(event.request)) {
     event.respondWith(networkFirst(event.request));
   } else {
@@ -113,3 +117,4 @@ self.addEventListener('notificationclick', event => {
   const url = event.notification.data?.url || 'https://heremay-8t.myqnapcloud.com:9444/admin.html';
   event.waitUntil(self.clients.openWindow(url));
 });
+
