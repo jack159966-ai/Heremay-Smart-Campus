@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>訊息中心 v1.5.4｜2026-09-30</title>
+  <title>訊息中心 v1.5.5｜2026-09-30</title>
   <style>
     :root{--blue:#4774b3;--ink:#23344e;--muted:#728096;--line:#d8e4f2;--bg:#edf5fc;--card:#fff;--new:#fff9e9}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -21,7 +21,7 @@
   <div class="person" id="person"></div>
   <div class="toolbar"><span class="count" id="count">讀取中…</span><button class="action" id="allRead" onclick="markAllRead()" hidden>全部已讀</button></div>
   <section class="list" id="list"><div class="loading">正在讀取訊息…</div></section>
-  <div style="text-align:center;color:#728096;font-size:12px;margin-top:20px">v1.5.4｜2026-09-30</div>
+  <div style="text-align:center;color:#728096;font-size:12px;margin-top:20px">v1.5.5｜2026-09-30</div>
 </main>
 <script>
   const PARAMS = Object.fromEntries(new URLSearchParams(location.search).entries());
@@ -31,6 +31,15 @@
     name: String(PARAMS.name || ''), groups: String(PARAMS.groups || PARAMS.group || '')
   };
   let items = [];
+  let generalVerified=false;
+  const sourceCounts={private:Math.max(0,Number(PARAMS.privateUnread)||0),discussion:Math.max(0,Number(PARAMS.discussionUnread)||0),groupbuy:Math.max(0,Number(PARAMS.groupbuyUnread)||0)};
+  function sourceCards(){return Object.entries(sourceCounts).filter(([,n])=>n>0).map(([key,n])=>{
+    const label={private:'💬 私訊',discussion:'討論區',groupbuy:'團購通知'}[key];
+    return `<article class="item new"><div class="title">${label}</div><div class="body">${n} 則未讀，請進入查看。</div><button class="open" onclick="openSource('${key}')">查看${label}</button></article>`;
+  }).join('');}
+  function openSource(key){const file={private:'private_message.html',discussion:'discussion.html',groupbuy:'groupbuy.html'}[key];if(!file)return;const url=new URL(buildAuthenticatedLink(file));url.searchParams.set('back',location.href);location.assign(url.toString());}
+  async function refreshPrivate(){if(!identity.employeeId||!identity.name)return;const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);try{const url=new URL('https://heremay-passkey-backend-943533867342.asia-east1.run.app/api/private/unread');url.searchParams.set('employeeId',identity.employeeId);url.searchParams.set('name',identity.name);const response=await fetch(url,{cache:'no-store',signal:controller.signal}),data=await response.json();if(!response.ok||!data.ok)throw new Error('私訊連線失敗');sourceCounts.private=Math.max(0,Number(data.count)||0);render();}catch(e){/* Keep the homepage count when its independent service is unavailable. */}finally{clearTimeout(timer);}}
+
   let audioContext=null, pendingSound=false, soundReady=false, loadedOnce=false, loading=false;
   const storageKey='heremay.messageCenter.v154.'+JSON.stringify(identity);
   let syncingReads=false;
@@ -53,7 +62,7 @@
   function api(action, extra){
     return new Promise((resolve,reject)=>{
       const fn='mc_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-      const q=new URLSearchParams(Object.assign({},identity,extra||{},{action,callback:fn}));
+      const q=new URLSearchParams(Object.assign({},identity,extra||{},{action,callback:fn,_:Date.now()}));
       const s=document.createElement('script'); let timer;
       window[fn]=data=>{clearTimeout(timer);delete window[fn];s.remove();data&&data.ok?resolve(data):reject(new Error((data&&data.error)||'連線失敗'));};
       s.onerror=()=>{clearTimeout(timer);delete window[fn];s.remove();reject(new Error('連線失敗'));};
@@ -67,7 +76,7 @@
     loading=true;
     try{
       const r=await api('list',{limit:100});
-      items=r.items||[];
+      items=r.items||[];generalVerified=true;
       applyPending();saveItems();
       render(r.unread||0);
       notifyNewest(loadedOnce);
@@ -76,7 +85,7 @@
     }catch(e){
       if(attempt<2){
         document.getElementById('count').textContent='正在重新連線…';
-        if(!loadedOnce)document.getElementById('list').innerHTML='<div class="loading">連線較慢，正在自動重試（'+(attempt+1)+'/2）…</div>';
+        render();
         setTimeout(()=>load(attempt+1),900);
         return;
       }
@@ -85,12 +94,12 @@
   }
   function render(unread){
     const unreadItems=items.filter(x=>!x.isRead);
-    unread=unreadItems.length;
-    document.getElementById('count').textContent=unread?'未讀 '+unread+' 則':'目前沒有未讀訊息';
-    document.getElementById('allRead').hidden=!unread;
+    unread=unreadItems.length+Object.values(sourceCounts).filter(n=>n>0).length;
+    document.getElementById('count').textContent=unread?'未讀 '+unread+' 則':(generalVerified?'目前沒有未讀訊息':'正在更新一般通知…');
+    document.getElementById('allRead').hidden=!unreadItems.length;
     const box=document.getElementById('list');
-    if(!unreadItems.length){box.innerHTML='<div class="empty">目前沒有未讀訊息</div>';return;}
-    box.innerHTML=unreadItems.map(x=>`<article class="item new" onclick="openMessage('${esc(x.id)}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${html(x.createdAt)}</time></div>${x.message?`<div class="body">${html(x.message)}</div>`:''}<div class="meta">${html(x.source||'系統')}${x.senderName?'・'+html(x.senderName):''}</div><button class="open" onclick="event.stopPropagation();openMessage('${esc(x.id)}')">${x.link||/粉專|投稿|素材/.test([x.source,x.title].join(' '))?'查看內容':'標記已讀'}</button></article>`).join('');
+    if(!unreadItems.length){box.innerHTML=sourceCards()+(generalVerified?(sourceCards()?'':'<div class="empty">目前沒有未讀訊息</div>'):'<div class="loading">正在更新一般通知；其他入口可先使用。</div>');return;}
+    box.innerHTML=sourceCards()+unreadItems.map(x=>`<article class="item new" onclick="openMessage('${esc(x.id)}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${html(x.createdAt)}</time></div>${x.message?`<div class="body">${html(x.message)}</div>`:''}<div class="meta">${html(x.source||'系統')}${x.senderName?'・'+html(x.senderName):''}</div><button class="open" onclick="event.stopPropagation();openMessage('${esc(x.id)}')">${x.link||/粉專|投稿|素材/.test([x.source,x.title].join(' '))?'查看內容':'標記已讀'}</button></article>`).join('');
   }
   async function readOne(id){
     const x=items.find(v=>v.id===id);if(!x||x.isRead)return;
@@ -101,7 +110,7 @@
     const isMedia=/粉專|投稿|素材/.test([x.source,x.title].join(' '));
     const mediaUrl=new URL(MEDIA_INBOX);
     if(isMedia){
-      const submissionId=x.submissionId||x.link?.match(/(?:submissionId|id)=([^&#]+)/)?.[1]||[x.title,x.message].join(' ').match(/\b\d{8}-\d{6}-[a-z0-9]+\b/i)?.[0];
+      const submissionId=x.submissionId||x.sourceId||x.link?.match(/(?:submissionId|id)=([^&#]+)/)?.[1]||[x.title,x.message].join(' ').match(/\b\d{8}-\d{6}-[a-z0-9]+\b/i)?.[0];
       if(submissionId){try{mediaUrl.searchParams.set('submissionId',decodeURIComponent(submissionId));}catch(e){mediaUrl.searchParams.set('submissionId',submissionId);}}
     }
     const destination=buildAuthenticatedLink(isMedia?mediaUrl.toString():(x.link||''));
@@ -169,7 +178,7 @@
     if(history.length>1){history.back();return;}
     location.href='teacher.html';
   }
-  function showError(m){document.getElementById('count').textContent='讀取失敗';document.getElementById('list').innerHTML='<div class="error">'+html(m)+'</div>';}
+  function showError(m){document.getElementById('count').textContent='一般通知更新失敗';document.getElementById('list').innerHTML=sourceCards()+'<div class="error">'+html(m)+'，請稍後重新整理。</div>';}
   function html(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   function attr(v){return html(v).replace(/`/g,'&#96;')}
   function esc(v){return String(v||'').replace(/['\\]/g,'\\$&')}
@@ -178,9 +187,9 @@
     items=cached.items;applyPending();render(0);loadedOnce=true;
     document.getElementById('count').textContent+='（快取，更新中…）';
   }
-  load();
-  setInterval(()=>{if(!document.hidden)load();},30000);
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});
+  render();refreshPrivate();load();
+  setInterval(()=>{if(!document.hidden){refreshPrivate();load();}},30000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){refreshPrivate();load();}});
 </script>
 </body>
 </html>
