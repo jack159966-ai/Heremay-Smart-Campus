@@ -1,0 +1,55 @@
+name: Sync official Taiwan holidays
+on:
+  schedule:
+    - cron: '20 22 * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - scripts/sync_official_holidays.py
+      - .github/workflows/sync-official-holidays.yml
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: official-holiday-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/sync_official_holidays.py
+      - name: Save updated data
+        run: |
+          if ! git diff --quiet -- data/official-holidays.json; then
+            git config user.name 'Heremay Holiday Sync'
+            git config user.email 'holiday-sync@users.noreply.github.com'
+            git add data/official-holidays.json
+            git commit -m 'Update official Taiwan holiday calendar'
+            git push
+          fi
+      - name: Rebuild GitHub Pages
+        id: pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          build_type=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.build_type')
+          echo "build_type=$build_type" >> "$GITHUB_OUTPUT"
+          if [ "$build_type" = "legacy" ]; then
+            gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds"
+          fi
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.pages.outputs.build_type == 'workflow'
+        with:
+          path: .
+      - uses: actions/deploy-pages@v4
+        id: deployment
+        if: steps.pages.outputs.build_type == 'workflow'
