@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.54</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.55</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -591,6 +591,7 @@
 .homeMessageCenter.hasUnread .messageUnreadBadge{display:flex}.homeMessageCenterIcon{font-size:38px}.homeMessageCenter strong{display:block;font-size:23px;color:#0f3f98}.homeMessageCenter small{display:block;margin-top:3px;color:#506b8b;font-size:14px;font-weight:800}.homeMessageCenterArrow{margin-left:auto;font-size:30px;color:#1f57bd}
 .privateMessageCard{position:relative}.privateMessageCard .sqIcon{font-size:54px!important}.bottomSquareBtn .privateUnreadBadge{display:none!important;position:absolute;right:11px;top:10px;min-width:27px;height:27px;padding:0 7px;border-radius:14px;background:#c91f28;color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:17px;font-weight:950;line-height:1;align-items:center;justify-content:center;text-shadow:0 1px 2px rgba(70,0,0,.65);box-shadow:0 0 0 4px rgba(201,31,40,.17);z-index:3}.bottomSquareBtn.privateMessageCard.hasUnread .privateUnreadBadge:not([hidden]){display:flex!important}.privateUnreadBadge[hidden]{display:none!important}
 
+.dailyQuickLinks{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}.dailyQuickLinks button{display:flex;align-items:center;gap:10px;width:100%;min-height:90px;padding:16px 12px;border:1px solid #b9cfee;border-radius:20px;background:#fff;color:#183e78;text-align:left;cursor:pointer;box-shadow:0 4px 14px #5b789314}.dailyQuickLinks button:first-child{background:#edf4ff;border-color:#8fb7ff}.dailyQuickLinks strong{display:block;font-size:21px;font-weight:900}.dailyQuickLinks small{display:block;margin-top:4px;font-size:13px;color:#60758f}.dailyIcon{width:42px;height:42px;object-fit:cover;border-radius:12px;font-size:34px;flex-shrink:0}.dailyArrow{margin-left:auto;font-size:26px}@media(max-width:380px){.dailyQuickLinks{gap:8px}.dailyQuickLinks button{gap:7px;padding:12px 9px}.dailyQuickLinks strong{font-size:18px}.dailyIcon{width:32px;height:32px;font-size:28px}.dailyArrow{display:none}}
 </style>
 </head>
 <body class="auth-pending">
@@ -624,11 +625,16 @@
     </section>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.54｜2026-09-30</div>
+      <div class="versionStamp">主管工作台 v24.55｜2026-09-30</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
     </div>
+
+    <section class="dailyQuickLinks" aria-label="每日常用功能">
+      <button type="button" onclick="location.href='calendar.html'"><span class="dailyIcon" aria-hidden="true">📅</span><span><strong>行事曆</strong><small>查看與新增行程</small></span><span class="dailyArrow" aria-hidden="true">›</span></button>
+      <button type="button" onclick="location.href='secretary.html?v=2.5.0'"><img class="dailyIcon" src="assets/secretary-avatar.jpg?v=20260906a" alt=""><span><strong>智慧秘書</strong><small>筆記、班表與專案</small></span><span class="dailyArrow" aria-hidden="true">›</span></button>
+    </section>
 
     <section class="dashCard">
       <h2 class="dashTitle"><img class="dashTitleIcon" src="assets/todo-list.jpg?v=20260906b" alt="">三日內工作 <span class="count" id="todayCount">0 件</span></h2>
@@ -667,9 +673,6 @@
       <button class="bottomSquareBtn privateMessageCard" id="privateMessageCard" type="button" onclick="openPrivateMessage()"><span class="privateUnreadBadge" id="privateUnreadBadge" hidden></span><span class="sqIcon">💬</span><strong>私訊</strong><span>一對一聯繫與快捷回覆</span></button>
       <button class="bottomSquareBtn" type="button" onclick="location.href='leave_admin.html'">
         <span class="sqIcon"><img src="assets/leave-management.jpg?v=20260906b" alt="請假管理"></span><strong>請假管理</strong><span>近期與每月請假</span>
-      </button>
-      <button class="bottomSquareBtn" type="button" onclick="location.href='secretary.html?v=2.5.0'">
-        <img class="sqAvatar" src="assets/secretary-avatar.jpg?v=20260906a" alt="智慧秘書"><strong>智慧秘書</strong><span>行事曆、班表與專案</span>
       </button>
       <button class="bottomSquareBtn" id="discussionHomeCard" type="button" onclick="location.href='discussion.html'">
         <span class="discussionCardUnreadDot" aria-hidden="true"></span>
