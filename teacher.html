@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.22</title>
+  <title>和美智慧校園｜教保人員首頁 v15.23</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -585,6 +585,14 @@
 .homeMessageCenter .messageUnreadBadge{display:none;position:absolute;right:13px;top:9px;min-width:29px;height:29px;padding:0 8px;border-radius:15px;background:#c91f28;color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:17px;font-weight:950;line-height:1;align-items:center;justify-content:center;text-shadow:0 1px 2px rgba(70,0,0,.65);box-shadow:0 0 0 4px rgba(201,31,40,.17)}.homeMessageCenter.hasUnread .messageUnreadBadge{display:flex}.homeMessageCenter .hmIcon{font-size:36px}.homeMessageCenter strong{font-size:21px;color:#8b294d}.homeMessageCenter small{display:block;margin-top:3px;color:#835367;font-weight:800}.homeMessageCenter .hmArrow{margin-left:auto;font-size:28px;color:#b63c68}
 .privateMessageCard{position:relative}.privateMessageCard .icon{font-size:38px!important}.btn .privateUnreadBadge{display:none!important;position:absolute;right:10px;top:9px;min-width:27px;height:27px;padding:0 7px;border-radius:14px;background:#c91f28;color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:16px;font-weight:950;line-height:1;align-items:center;justify-content:center;text-shadow:0 1px 2px rgba(70,0,0,.65);box-shadow:0 0 0 4px rgba(201,31,40,.17);z-index:3}.btn.privateMessageCard.hasUnread .privateUnreadBadge:not([hidden]){display:flex!important}.privateUnreadBadge[hidden]{display:none!important}
 
+
+/* 個人設定：右上返回鍵隨視窗內容捲動保持可見 */
+#personalModal .personal-header{position:sticky;top:-18px;z-index:2;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;background:#fff;margin:-18px -18px 12px;padding:18px;border-bottom:1px solid var(--line)}
+#personalModal .personal-header h2{margin:6px 0 6px;font-size:22px}
+.personal-version{font-size:12px;font-weight:800;color:#806574}
+#personalModal .campus-return{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:96px;min-height:48px;padding:12px 16px;border:1px solid #356ba9;border-radius:14px;background:#4f86c6;color:#fff;font:900 16px/1.2 "Microsoft JhengHei",sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 4px 12px #315b8520;width:auto}
+#personalModal .campus-return:focus-visible{outline:3px solid #e6ad3e;outline-offset:3px}
+@media(max-width:360px){#personalModal .personal-header h2{font-size:20px}}
 </style>
 </head>
 <body>
@@ -608,7 +616,7 @@
     </section>
 
     <div class="version-refresh-row">
-      <div class="page-version">教保人員首頁 v15.22</div>
+      <div class="page-version">教保人員首頁 v15.23</div>
       <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
     </div>
 
@@ -716,7 +724,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.22｜NAS 高速投稿入口</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.23｜NAS 高速投稿入口</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -740,7 +748,7 @@
 
   <div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
     <div class="sheet" onclick="event.stopPropagation()">
-      <h2>⚙️ 個人設定</h2>
+      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v15.23｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回教保人員首頁" title="返回教保人員首頁">← 返回</button></div>
 
       <div class="listbox">
         <h3>個人資料</h3>
@@ -775,7 +783,7 @@
         </div>
       </div>
 
-      <button class="close" onclick="hidePersonalSettings()">關閉</button>
+
     </div>
   </div>
 
@@ -1833,3 +1841,4 @@ window.addEventListener('pageshow',()=>{
 </script>
 </body>
 </html>
+
