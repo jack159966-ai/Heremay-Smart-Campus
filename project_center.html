@@ -60,19 +60,26 @@
     .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#23364d;color:#fff;padding:11px 16px;border-radius:14px;opacity:0;pointer-events:none;transition:.25s;z-index:200}.toast.show{opacity:1}
     @media(max-width:760px){.summary{grid-template-columns:1fr 1fr 1fr}.filter-row{grid-template-columns:1fr}.project-card{grid-template-columns:1fr}.project-actions{justify-content:flex-start;max-width:none}.project-menu{grid-template-columns:1fr}}
     @media(max-width:480px){.app{padding:12px 10px 40px}.logo{width:62px;height:62px}.summary{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
-  </style>
+  
+/* 統一返回鍵：固定大小、右上角、保留原返回路徑 */
+.campus-return{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:96px;min-height:48px;padding:12px 16px!important;border:1px solid #356ba9;border-radius:14px;background:#4f86c6;color:#fff;font:900 16px/1.2 "Microsoft JhengHei",sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 4px 12px #315b8520;width:auto!important}
+.campus-return:focus-visible{outline:3px solid #e6ad3e;outline-offset:3px}
+.header-main{display:flex;align-items:flex-start;gap:12px}.brand{flex:1;min-width:0}.brand>div{min-width:0}.logo{flex-shrink:0}.status{align-items:center}@media(max-width:480px){.brand{gap:8px}.logo{width:44px;height:44px}h1{font-size:20px}}
+</style>
 </head>
 <body>
 <main class="app">
   <section class="topbar">
-    <div class="brand">
+    <div class="header-main"><div class="brand">
       <img class="logo" src="assets/logo.png?v=20260723" alt="和美智慧校園 LOGO" onerror="this.src='assets/app-icon.png?v=20260723'">
       <div>
         <h1>和美智慧校園｜專案計畫中心</h1>
         <div class="subtitle">先選擇專案，再進入時間表或工作項目及人員分配表；完成後可封存供未來調閱。</div>
       </div>
     </div>
-    <div class="status"><span class="pill" id="todayText"></span><span class="pill">專案管理</span><span class="pill">版本 v2.1.0</span></div>
+    <button class="campus-return" type="button" onclick="location.href='secretary.html'" aria-label="返回智慧秘書" title="返回智慧秘書">← 返回</button>
+    </div>
+    <div class="status"><span class="pill" id="todayText"></span><span class="pill">專案管理</span><span class="pill">版本 v2.1.1</span><button class="secondary" type="button" onclick="location.reload()">重新同步</button></div>
   </section>
 
   <section class="summary">
@@ -104,11 +111,7 @@
     <div class="panel-body"><div class="project-list" id="projectList"></div></div>
   </section>
 
-  <div class="footer">
-    <button class="primary" type="button" onclick="location.href='secretary.html'">返回智慧秘書</button>
-    <button class="secondary" type="button" onclick="location.reload()">重新同步</button>
-  </div>
-  <div class="version">專案計畫中心 v2.1.0｜2026-07-23｜專案列表、歷史調閱與分頁管理</div>
+  <div class="version">專案計畫中心 v2.1.1｜2026-10-01｜專案列表、歷史調閱與分頁管理</div>
 </main>
 
 <div class="modal-mask" id="modalMask" onclick="maskClose(event)">

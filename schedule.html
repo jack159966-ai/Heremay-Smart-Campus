@@ -73,6 +73,11 @@ body{
   .head h1{font-size:22px}.head .icon{font-size:34px}.back{padding:9px 12px}
   .row{grid-template-columns:1fr}.badge{justify-self:start}
 }
+
+/* 統一返回鍵：固定大小、右上角、保留原返回路徑 */
+.campus-return{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:96px;min-height:48px;padding:12px 16px!important;border:1px solid #356ba9;border-radius:14px;background:#4f86c6;color:#fff;font:900 16px/1.2 "Microsoft JhengHei",sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 4px 12px #315b8520;width:auto!important}
+.campus-return:focus-visible{outline:3px solid #e6ad3e;outline-offset:3px}
+.head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start}.head .campus-return{margin-left:auto}@media(max-width:480px){.head{gap:8px;padding:12px}.head .icon{font-size:26px}.head h1{font-size:21px}.head p{font-size:13px;line-height:1.5}}
 </style>
 </head>
 <body>
@@ -80,7 +85,7 @@ body{
 <header class="head">
   <div class="icon">🗓️</div>
   <div><h1>我的班表</h1><p>顯示本部門目前有效的正式發布班表，方便同仁協調換班</p></div>
-  <button class="back" onclick="goBackHome()">返回</button>
+  <button class="campus-return" type="button" onclick="goBackHome()">← 返回</button>
 </header>
 
 <div class="userCard">
@@ -91,7 +96,7 @@ body{
 <div class="statusBox" id="cloudStatus">正在讀取正式班表…</div>
 <nav class="tabs" id="tabs"></nav>
 <section id="content"></section>
-<div class="footer">和美智慧校園｜正式班表以最新發布日期為準</div>
+<div class="footer">和美智慧校園｜班表介面 v1.1｜2026-10-01｜正式班表以最新發布日期為準</div>
 </main>
 
 <script>
@@ -361,3 +366,4 @@ requestPublished();
 </script>
 </body>
 </html>
+

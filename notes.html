@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#eef7ff">
-<title>Heremay 和美智慧校園｜記事本 v1.0.1</title>
+<title>Heremay 和美智慧校園｜記事本 v1.0.2</title>
 <style>
 :root{
   --bg:#f3f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce8f7;
@@ -62,6 +62,11 @@ textarea{min-height:120px;resize:vertical}
   .header{grid-template-columns:54px 1fr}.logo{width:54px;height:54px}.back{grid-column:1/3;width:100%}
   .header h1{font-size:27px}.row,.toolbar{grid-template-columns:1fr}.card{padding:14px}.noteTitle{font-size:19px}
 }
+
+/* 統一返回鍵：固定大小、右上角、保留原返回路徑 */
+.campus-return{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:96px;min-height:48px;padding:12px 16px!important;border:1px solid #356ba9;border-radius:14px;background:#4f86c6;color:#fff;font:900 16px/1.2 "Microsoft JhengHei",sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 4px 12px #315b8520;width:auto!important}
+.campus-return:focus-visible{outline:3px solid #e6ad3e;outline-offset:3px}
+.header>div:nth-child(2){min-width:0}@media(max-width:620px){.header{grid-template-columns:44px minmax(0,1fr) auto;gap:8px;align-items:start}.logo{width:44px;height:44px}.header h1{font-size:22px}.header small{font-size:12px}}
 </style>
 </head>
 <body>
@@ -69,8 +74,9 @@ textarea{min-height:120px;resize:vertical}
 <header class="header">
   <div class="logo"><img src="assets/logo.png?v=20260720-notes" alt="和美智慧校園 Logo" onerror="this.parentElement.textContent='🏰'"></div>
   <div><small>Heremay 和美智慧校園</small><h1>📒 我的記事本</h1></div>
-  <button class="back" type="button" onclick="location.href='admin.html'">← 返回主管首頁</button>
+  <button class="campus-return" type="button" onclick="location.href='admin.html'" aria-label="返回主管首頁" title="返回主管首頁">← 返回</button>
 </header>
+<div class="version" style="text-align:left;margin:0 4px 14px;font-size:14px">記事本 v1.0.2｜2026-10-01</div>
 
 <section class="card">
   <h2 id="formTitle">新增記事</h2>
@@ -114,7 +120,7 @@ textarea{min-height:120px;resize:vertical}
   <div class="stats" id="stats"></div>
   <div class="noteList" id="noteList"></div>
 </section>
-<div class="version">記事本 v1.0.1｜2026-07-20｜附件可分批累加</div>
+
 </main>
 <div class="toast" id="toast"></div>
 
