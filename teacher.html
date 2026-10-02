@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.23</title>
+  <title>和美智慧校園｜教保人員首頁 v15.24</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -593,6 +593,13 @@
 #personalModal .campus-return{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:96px;min-height:48px;padding:12px 16px;border:1px solid #356ba9;border-radius:14px;background:#4f86c6;color:#fff;font:900 16px/1.2 "Microsoft JhengHei",sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 4px 12px #315b8520;width:auto}
 #personalModal .campus-return:focus-visible{outline:3px solid #e6ad3e;outline-offset:3px}
 @media(max-width:360px){#personalModal .personal-header h2{font-size:20px}}
+
+/* 全螢幕個人設定：由外層統一捲動，避免雙層捲動 */
+body.personal-settings-open{overflow:hidden}
+#personalModal{padding:0;background:#fff6f9;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;align-items:flex-start;height:100%;height:100dvh}
+#personalModal.show{display:block}
+#personalModal>.sheet{width:min(100%,760px);margin:0 auto;min-height:100%;max-height:none;overflow:visible;border-radius:0;box-shadow:none;padding:18px 18px calc(24px + env(safe-area-inset-bottom))}
+#personalModal .personal-header{top:0;padding-top:calc(18px + env(safe-area-inset-top))}
 </style>
 </head>
 <body>
@@ -616,7 +623,7 @@
     </section>
 
     <div class="version-refresh-row">
-      <div class="page-version">教保人員首頁 v15.23</div>
+      <div class="page-version">教保人員首頁 v15.24</div>
       <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
     </div>
 
@@ -724,7 +731,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.23｜NAS 高速投稿入口</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.24｜NAS 高速投稿入口</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -748,7 +755,7 @@
 
   <div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
     <div class="sheet" onclick="event.stopPropagation()">
-      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v15.23｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回教保人員首頁" title="返回教保人員首頁">← 返回</button></div>
+      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v15.24｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回教保人員首頁" title="返回教保人員首頁">← 返回</button></div>
 
       <div class="listbox">
         <h3>個人資料</h3>
@@ -1538,11 +1545,15 @@
     });
 
     function openPersonalSettings(){
-      document.getElementById('personalModal').classList.add('show');
+      document.body.classList.add('personal-settings-open');
+      const modal=document.getElementById('personalModal');
+      modal.classList.add('show');
+      modal.scrollTop=0;
     }
 
     function hidePersonalSettings(){
       document.getElementById('personalModal').classList.remove('show');
+      document.body.classList.remove('personal-settings-open');
     }
 
     function closePersonalSettings(event){
