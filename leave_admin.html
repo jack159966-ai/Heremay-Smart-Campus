@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>和美智慧校園｜請假管理 v1.5.3</title>
+<title>和美智慧校園｜請假管理 v1.5.4</title>
 <style>
 :root{--blue:#2f68d8;--deep:#173f75;--line:#dfe8f6;--bg:#f4f8ff}
 *{box-sizing:border-box}
@@ -36,14 +36,18 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
 .reviewEmpty{background:#f5fbff;border:1px solid #d7edf8;border-radius:16px;padding:12px;color:#607987;font-weight:800}
 
 @media(max-width:620px){.grid2{grid-template-columns:1fr}.day{min-height:64px;padding:5px}.header{grid-template-columns:1fr}.header h1{font-size:23px}.headerActions{width:100%}.headerActions .back{flex:1}}
+.campus-return{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:96px;min-height:48px;padding:12px 16px!important;border:1px solid #356ba9;border-radius:14px;background:#4f86c6;color:#fff;font:900 16px/1.2 "Microsoft JhengHei",sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 4px 12px #315b8520;width:auto!important}
+.campus-return:focus-visible{outline:3px solid #e6ad3e;outline-offset:3px}
+.header{position:relative;display:block;padding-right:108px;min-height:48px}.header>.campus-return{position:absolute;right:0;top:0}.headerActions{margin-top:10px;flex-wrap:wrap}.header-version{display:block;margin-top:6px;color:#7890a6;font-size:12px;font-weight:800}@media(max-width:620px){.headerActions{width:auto}.headerActions .back{flex:0 0 auto}.header h1{font-size:23px}}
 </style>
 </head>
 <body>
 <main class="app">
   <header class="header">
-    <div><h1>🏖️ 請假管理</h1><small>主管專用｜今天、明天與每月請假總覽</small></div>
+    <button class="campus-return" type="button" onclick="location.href='admin.html'" aria-label="返回主管首頁" title="返回主管首頁">← 返回</button>
+    <div><h1>🏖️ 請假管理</h1><small>主管專用｜今天、明天與每月請假總覽</small><span class="header-version">v1.5.4｜2026-10-02</span></div>
     <div class="headerActions">
-      <button class="back" onclick="location.href='admin.html'">← 返回主管頁</button>
+      
       <button class="back" id="refreshBtn" type="button">🔄 重新整理</button>
     </div>
   </header>
@@ -71,7 +75,7 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
   </section>
 
   <div id="loadStatus" class="hint" style="margin-bottom:12px;text-align:center">準備讀取請假資料…</div>
-  <div class="version">請假管理 v1.5.3｜2026-08-21｜改用考勤主管資料 API</div>
+  <div class="version">請假管理 v1.5.4｜2026-10-02｜統一右上返回鍵</div>
 </main>
 
 <div class="mask" id="mask" onclick="if(event.target.id==='mask')closeModal()"><section class="modal" id="modal"></section></div>

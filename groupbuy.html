@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.9.12</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.9.13</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -310,14 +310,17 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
   background:#fffafb;
 }
 
+.campus-return{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:96px;min-height:48px;padding:12px 16px!important;border:1px solid #356ba9;border-radius:14px;background:#4f86c6;color:#fff;font:900 16px/1.2 "Microsoft JhengHei",sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 4px 12px #315b8520;width:auto!important}
+.campus-return:focus-visible{outline:3px solid #e6ad3e;outline-offset:3px}
+.header{position:relative;grid-template-columns:64px minmax(0,1fr);padding-right:108px;align-items:start}.header>.campus-return{position:absolute;right:4px;top:8px}.header-version{display:block;margin-top:6px;color:#7890a6;font-size:12px;font-weight:800}@media(max-width:760px){.header{grid-template-columns:44px minmax(0,1fr);gap:8px}.header .logo{width:44px;height:44px}.header h1{font-size:20px}.header small{font-size:12px}}
 </style>
 </head>
 <body>
 <main class="app">
 <header class="header">
   <div class="logo"><img src="assets/logo.png?v=20260720-groupbuy-v11" alt="和美智慧校園 Logo" onerror="this.parentElement.textContent='🏰'"></div>
-  <div><small>Heremay 和美智慧校園</small><h1>🛒 團購／報名中心</h1></div>
-  <button class="back" type="button" onclick="goBack()">← 返回上一頁</button>
+  <div><small>Heremay 和美智慧校園</small><h1>🛒 團購／報名中心</h1><span class="header-version">v1.9.13｜2026-10-02</span></div>
+  <button class="campus-return" type="button" onclick="goBack()" aria-label="返回上一頁" title="返回上一頁">← 返回</button>
 </header>
 
 <nav class="tabs">
@@ -436,7 +439,7 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.9.12｜2026-08-28｜新活動標示</div>
+<div class="version">團購／報名中心 v1.9.13｜2026-10-02｜統一右上返回鍵</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -852,7 +855,7 @@ async function cloudWrite(action,payload,successMessage){
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
-const APP_VERSION='1.9.12';
+const APP_VERSION='1.9.13';
 async function updateAppNow(){
  toast('正在檢查新版…');
  try{
