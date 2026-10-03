@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜庶務人員首頁 v13.17</title>
+  <title>和美智慧校園｜庶務人員首頁 v13.18</title>
   <style>
     :root{
       --bg1:#f1fff6;
@@ -606,7 +606,7 @@ body.personal-settings-open{overflow:hidden}
     </section>
 
     <div class="version-refresh-row">
-      <div class="page-version">庶務人員首頁 v13.17</div>
+      <div class="page-version">庶務人員首頁 v13.18</div>
       <button class="refresh-version-btn" type="button" onclick="refreshLatestVersion()">🔄 檢查並重新整理最新版</button>
     </div>
 
@@ -621,32 +621,9 @@ body.personal-settings-open{overflow:hidden}
     </section>
 
     <section class="section">
-      <div class="section-title">
-        <span>三日內工作</span>
-        <span class="tag">依到期時間排序</span>
-      </div>
-      <div class="reminder">
-        <div class="rtime">今天<br>08:00</div>
-        <div class="rbody">工作區域與設備安全確認
-          <div class="rnote">廚房、清潔間、垃圾集中區</div>
-        </div>
-      </div>
-      <div class="reminder">
-        <div class="rtime">今天<br>11:30</div>
-        <div class="rbody">午餐出餐與餐後整理
-          <div class="rnote">留意餐具、地面與廚餘處理</div>
-        </div>
-      </div>
-      <div class="reminder">
-        <div class="rtime">今天<br>15:30</div>
-        <div class="rbody">下午清潔與用品補充
-          <div class="rnote">廁所、走廊、公共區域與耗材補充</div>
-        </div>
-      </div>
-      <div class="reminder"><div class="rtime">明天</div><div class="rbody">清潔用品補貨登記<div class="rnote">請於期限前完成確認</div></div></div>
-      <div class="reminder"><div class="rtime">明天</div><div class="rbody">廚房設備異常確認<div class="rnote">三日內工作</div></div></div>
-      <div class="reminder"><div class="rtime">後天</div><div class="rbody">庫存盤點完成<div class="rnote">三日內工作</div></div></div>
-      <div class="reminder"><div class="rtime">後天</div><div class="rbody">大掃除區域確認<div class="rnote">三日內工作</div></div></div>
+      <div class="section-title"><span>三日內菜單</span><span class="tag">今天＋未來三個工作日</span></div>
+      <div id="supportMenuRows" aria-live="polite">正在讀取菜單…</div>
+      <button class="refresh-version-btn" type="button" id="supportMenuRefresh">重新讀取菜單</button>
     </section>
 
     <section class="section">
@@ -655,7 +632,7 @@ body.personal-settings-open{overflow:hidden}
         <span class="tag">粉綠版</span>
       </div>
       <div class="grid">
-<button class="btn" type="button" onclick="location.href='https://heremay-8t.myqnapcloud.com:9444/kitchen'"><div class="icon">🍽️</div><strong>廚房菜單</strong><span>接下來三個工作日與完整週菜單</span></button>
+<button class="btn" type="button" onclick="location.href='https://heremay-8t.myqnapcloud.com:9444/kitchen'"><div class="icon">🍽️</div><strong>廚房菜單</strong><span>今天與未來三個工作日菜單</span></button>
         <button class="btn privateMessageCard" id="privateMessageCard" onclick="openPrivateMessage()"><span class="privateUnreadBadge" id="privateUnreadBadge"></span><div class="icon">💬</div><strong>私訊</strong><span>一對一聯繫與快捷回覆</span></button>
         <button class="btn primary" onclick="openAttendanceArea()">
           <div class="icon"><img src="assets/attendance-statistics.jpg?v=20260906b" alt="打卡與出勤"></div>
@@ -706,7 +683,7 @@ body.personal-settings-open{overflow:hidden}
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.17｜首頁訊息與三日工作整合版</div>
+<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.18｜今天與未來三個工作日菜單</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -750,7 +727,7 @@ body.personal-settings-open{overflow:hidden}
 
   <div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
     <div class="sheet" onclick="event.stopPropagation()">
-      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v13.17｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回庶務人員首頁" title="返回庶務人員首頁">← 返回</button></div>
+      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v13.18｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回庶務人員首頁" title="返回庶務人員首頁">← 返回</button></div>
 
       <div class="listbox">
         <h3>個人資料</h3>
@@ -1495,6 +1472,40 @@ setTimeout(refreshDiscussionUnreadNotice,700);
 setInterval(refreshDiscussionUnreadNotice,60000);
 
 </script>
+<script>
+(function(){
+ const list=document.getElementById('supportMenuRows'),button=document.getElementById('supportMenuRefresh');
+ let pending=false;
+ function el(tag,text,cls){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;}
+ async function loadMenu(){
+  if(pending)return;pending=true;button.disabled=true;
+  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),12000);
+  try{
+   const response=await fetch('https://heremay-8t.myqnapcloud.com:9444/api/menus',{cache:'no-store',signal:controller.signal,credentials:'omit'});
+   if(!response.ok)throw Error('讀取失敗');
+   const data=await response.json();if(!data.ok||!Array.isArray(data.rows))throw Error('資料格式錯誤');
+   const dates=new Map(data.rows.map(r=>[r.date,r]));
+   const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+   const d=new Date(today+'T00:00:00Z');const result=[];
+   function dayRow(date){const known=dates.get(date);if(known)return known;const day=new Date(date+'T00:00:00Z').getUTCDay();return {date,weekday:'日一二三四五六'[day],closed:true,closure:day===0||day===6?'週末休假':'尚未發布菜單，請聯絡主管'};}
+   result.push(dayRow(today));let count=0;
+   for(let i=0;i<370&&count<3;i++){d.setUTCDate(d.getUTCDate()+1);if(d.getUTCDay()===0||d.getUTCDay()===6)continue;const date=d.toISOString().slice(0,10);if(dates.get(date)?.closed)continue;result.push(dayRow(date));count++;}
+   list.replaceChildren();
+   for(const r of result){
+    const item=el('div',undefined,'reminder');const time=el('div',(r.date===today?'今天\n':'')+r.date.slice(5).replace('-','/')+'\n週'+r.weekday,'rtime');time.style.whiteSpace='pre-line';
+    const body=el('div',undefined,'rbody');
+    if(r.closed)body.append(el('div',r.closure));
+    else {body.append(el('div','上午點心：'+r.morning,'rnote'));for(const c of r.lunch||[])body.append(el('div',c.label+'：'+c.text,'rnote'));body.append(el('div','下午點心：'+r.afternoon,'rnote'));if(r.prep)body.append(el('div','備料提醒：'+r.prep,'rnote'));}
+    item.append(time,body);list.append(item);
+   }
+  }catch(e){list.replaceChildren(el('p','暫時無法讀取菜單，請確認連接 HEREMAY Wi-Fi 後重試。'));}
+  finally{clearTimeout(timeout);pending=false;button.disabled=false;}
+ }
+ button.onclick=loadMenu;window.addEventListener('pageshow',loadMenu);
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadMenu();});
+})();
+</script>
 </body>
 </html>
+
 
