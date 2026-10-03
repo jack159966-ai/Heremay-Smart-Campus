@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜庶務人員首頁 v13.18</title>
+  <title>和美智慧校園｜庶務人員首頁 v13.19</title>
   <style>
     :root{
       --bg1:#f1fff6;
@@ -606,7 +606,7 @@ body.personal-settings-open{overflow:hidden}
     </section>
 
     <div class="version-refresh-row">
-      <div class="page-version">庶務人員首頁 v13.18</div>
+      <div class="page-version">庶務人員首頁 v13.19</div>
       <button class="refresh-version-btn" type="button" onclick="refreshLatestVersion()">🔄 檢查並重新整理最新版</button>
     </div>
 
@@ -621,6 +621,18 @@ body.personal-settings-open{overflow:hidden}
     </section>
 
     <section class="section">
+      <div class="grid">
+        <button class="btn primary" onclick="openAttendanceArea()">
+          <div class="icon"><img src="assets/attendance-statistics.jpg?v=20260906b" alt="打卡與出勤"></div>
+          <div>
+            <strong>打卡 / 出勤</strong>
+            <span>驗證後打卡、請假與查看薪資條</span>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <section class="section">
       <div class="section-title"><span>三日內菜單</span><span class="tag">今天＋未來三個工作日</span></div>
       <div id="supportMenuRows" aria-live="polite">正在讀取菜單…</div>
       <button class="refresh-version-btn" type="button" id="supportMenuRefresh">重新讀取菜單</button>
@@ -632,15 +644,8 @@ body.personal-settings-open{overflow:hidden}
         <span class="tag">粉綠版</span>
       </div>
       <div class="grid">
-<button class="btn" type="button" onclick="location.href='https://heremay-8t.myqnapcloud.com:9444/kitchen'"><div class="icon">🍽️</div><strong>廚房菜單</strong><span>今天與未來三個工作日菜單</span></button>
         <button class="btn privateMessageCard" id="privateMessageCard" onclick="openPrivateMessage()"><span class="privateUnreadBadge" id="privateUnreadBadge"></span><div class="icon">💬</div><strong>私訊</strong><span>一對一聯繫與快捷回覆</span></button>
-        <button class="btn primary" onclick="openAttendanceArea()">
-          <div class="icon"><img src="assets/attendance-statistics.jpg?v=20260906b" alt="打卡與出勤"></div>
-          <div>
-            <strong>打卡 / 出勤</strong>
-            <span>驗證後打卡、請假與查看薪資條</span>
-          </div>
-        </button>
+
 
         <button class="btn" onclick="openFeature('工作清單')">
           <div class="icon"><img src="assets/todo-list.jpg?v=20260906b" alt="工作清單"></div>
@@ -683,7 +688,7 @@ body.personal-settings-open{overflow:hidden}
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.18｜今天與未來三個工作日菜單</div>
+<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.19｜今天與未來三個工作日菜單</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -727,7 +732,7 @@ body.personal-settings-open{overflow:hidden}
 
   <div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
     <div class="sheet" onclick="event.stopPropagation()">
-      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v13.18｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回庶務人員首頁" title="返回庶務人員首頁">← 返回</button></div>
+      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v13.19｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回庶務人員首頁" title="返回庶務人員首頁">← 返回</button></div>
 
       <div class="listbox">
         <h3>個人資料</h3>
@@ -1507,5 +1512,6 @@ setInterval(refreshDiscussionUnreadNotice,60000);
 </script>
 </body>
 </html>
+
 
 
