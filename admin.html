@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.57</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.58</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -625,7 +625,7 @@
     </section>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.57｜2026-10-03</div>
+      <div class="versionStamp">主管工作台 v24.58｜2026-10-03</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -670,6 +670,9 @@
 
 
     <section class="bottomToolGrid">
+      <button class="bottomSquareBtn" type="button" onclick="location.href='https://heremay-8t.myqnapcloud.com:9444/work-docs?manage=1&amp;from=admin'">
+        <span class="sqIcon">📄</span><strong>庶務工作表單</strong><span>上傳 PDF，供庶務同仁查看與下載</span>
+      </button>
       <button class="bottomSquareBtn privateMessageCard" id="privateMessageCard" type="button" onclick="openPrivateMessage()"><span class="privateUnreadBadge" id="privateUnreadBadge" hidden></span><span class="sqIcon">💬</span><strong>私訊</strong><span>一對一聯繫與快捷回覆</span></button>
       <button class="bottomSquareBtn" type="button" onclick="location.href='leave_admin.html'">
         <span class="sqIcon"><img src="assets/leave-management.jpg?v=20260906b" alt="請假管理"></span><strong>請假管理</strong><span>近期與每月請假</span>
@@ -1917,5 +1920,6 @@ setInterval(refreshAdminPrivateUnread,60000);
 </script>
 </body>
 </html>
+
 
 
