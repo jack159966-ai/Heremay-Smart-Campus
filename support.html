@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜庶務人員首頁 v13.15</title>
+  <title>和美智慧校園｜庶務人員首頁 v13.16</title>
   <style>
     :root{
       --bg1:#f1fff6;
@@ -563,6 +563,21 @@
 .homeMessageCenter{width:100%;position:relative;border:1px solid #9bd7b5;border-radius:20px;background:linear-gradient(135deg,#dcf7e8,#f0fcf5 58%,#fff);padding:15px 17px;display:flex;align-items:center;gap:13px;text-align:left;cursor:pointer;box-shadow:0 8px 20px rgba(43,132,83,.14)}
 .homeMessageCenter .messageUnreadBadge{display:none;position:absolute;right:13px;top:9px;min-width:27px;height:27px;padding:0 7px;border-radius:14px;background:#df4b4b;color:#fff;font-size:15px;font-weight:900;align-items:center;justify-content:center}.homeMessageCenter.hasUnread .messageUnreadBadge{display:flex}.homeMessageCenter .hmIcon{font-size:36px}.homeMessageCenter strong{font-size:21px;color:#236b43}.homeMessageCenter small{display:block;margin-top:3px;color:#557663;font-weight:800}.homeMessageCenter .hmArrow{margin-left:auto;font-size:28px;color:#2f8754}
 .privateMessageCard{position:relative}.privateUnreadBadge{display:none;position:absolute;right:10px;top:9px;min-width:25px;height:25px;padding:0 7px;border-radius:14px;background:#df4b4b;color:#fff;font-weight:900;align-items:center;justify-content:center}.privateMessageCard.hasUnread .privateUnreadBadge{display:flex}
+/* 個人設定：右上返回鍵隨視窗內容捲動保持可見 */
+#personalModal .personal-header{position:sticky;top:-18px;z-index:2;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;background:#fff;margin:-18px -18px 12px;padding:18px;border-bottom:1px solid var(--line)}
+#personalModal .personal-header h2{margin:6px 0 6px;font-size:22px}
+.personal-version{font-size:12px;font-weight:800;color:#6d8073}
+#personalModal .campus-return{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:96px;min-height:48px;padding:12px 16px;border:1px solid #356ba9;border-radius:14px;background:#4f86c6;color:#fff;font:900 16px/1.2 "Microsoft JhengHei",sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 4px 12px #315b8520;width:auto}
+#personalModal .campus-return:focus-visible{outline:3px solid #e6ad3e;outline-offset:3px}
+@media(max-width:360px){#personalModal .personal-header h2{font-size:20px}}
+
+/* 全螢幕個人設定：由外層統一捲動，避免雙層捲動 */
+body.personal-settings-open{overflow:hidden}
+#personalModal{padding:0;background:#f1fff6;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;align-items:flex-start;height:100%;height:100dvh}
+#personalModal.show{display:block}
+#personalModal>.sheet{width:min(100%,760px);margin:0 auto;min-height:100%;max-height:none;overflow:visible;border-radius:0;box-shadow:none;padding:18px 18px calc(24px + env(safe-area-inset-bottom))}
+#personalModal .personal-header{top:0;padding-top:calc(18px + env(safe-area-inset-top))}
+
 </style>
 </head>
 <body>
@@ -591,7 +606,7 @@
     </section>
 
     <div class="version-refresh-row">
-      <div class="page-version">庶務人員首頁 v13.15</div>
+      <div class="page-version">庶務人員首頁 v13.16</div>
       <button class="refresh-version-btn" type="button" onclick="refreshLatestVersion()">🔄 檢查並重新整理最新版</button>
     </div>
 
@@ -690,7 +705,7 @@
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.15｜首頁訊息與三日工作整合版</div>
+<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.16｜首頁訊息與三日工作整合版</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -734,7 +749,7 @@
 
   <div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
     <div class="sheet" onclick="event.stopPropagation()">
-      <h2>⚙️ 個人設定</h2>
+      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v13.16｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回庶務人員首頁" title="返回庶務人員首頁">← 返回</button></div>
 
       <div class="listbox">
         <h3>個人資料</h3>
@@ -766,7 +781,7 @@
         </div>
       </div>
 
-      <button class="close" onclick="hidePersonalSettings()">關閉</button>
+
     </div>
   </div>
 
@@ -1347,11 +1362,15 @@
     }
 
     function openPersonalSettings(){
-      document.getElementById('personalModal').classList.add('show');
+      document.body.classList.add('personal-settings-open');
+      const modal=document.getElementById('personalModal');
+      modal.classList.add('show');
+      modal.scrollTop=0;
     }
 
     function hidePersonalSettings(){
       document.getElementById('personalModal').classList.remove('show');
+      document.body.classList.remove('personal-settings-open');
     }
 
     function closePersonalSettings(event){
@@ -1477,3 +1496,4 @@ setInterval(refreshDiscussionUnreadNotice,60000);
 </script>
 </body>
 </html>
+
