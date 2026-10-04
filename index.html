@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜Heremay Smart Campus v1.4.9</title>
+  <title>和美智慧校園｜Heremay Smart Campus v1.5.0</title>
 
   <!-- 手機桌面圖示與 PWA 設定 -->
   <meta name="theme-color" content="#eef9ff" />
@@ -250,6 +250,12 @@
       .school-name{font-size:25px!important;}
       .login-options{font-size:13px!important;}
     }
+    .desktop-card{margin-top:14px;padding:18px;border:1px solid var(--line);border-radius:20px;background:var(--card)}
+    .desktop-card h2{margin:0 0 6px;font-size:18px}.desktop-card p{margin:0 0 12px;font-size:14px;line-height:1.6;color:var(--muted)}
+    .desktop-actions{display:flex;flex-wrap:wrap;gap:10px}.desktop-actions button{flex:1;min-width:130px;min-height:46px;border:1px solid var(--line);border-radius:14px;background:var(--blue-soft);color:var(--ink);font-weight:700;cursor:pointer}
+    #installGuide{width:min(440px,calc(100% - 32px));max-height:85dvh;overflow:auto;border:1px solid var(--line);border-radius:24px;padding:24px;color:var(--ink);background:white}
+    #installGuide::backdrop{background:rgba(30,55,70,.45)}#installGuide h2{margin-top:0;font-size:21px}#installGuide li{margin:12px 0;line-height:1.6}#installGuide p{line-height:1.6}
+    #installGuide .close-btn{min-height:44px}#shareLink{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:16px}
   </style>
 </head>
 <body>
@@ -309,13 +315,27 @@
         <button class="update-btn" id="updateBtn" type="button" onclick="applyUpdate()">立即更新</button>
       </div>
     </section>
+    <section class="desktop-card" id="desktopCard">
+      <h2>📱 把和美放在手機桌面</h2>
+      <p id="desktopHint">加入後，點桌面圖示就能開啟和美智慧校園。</p>
+      <div class="desktop-actions">
+        <button type="button" id="installBtn" onclick="addToDesktop()">＋ 加入手機桌面</button>
+        <button type="button" onclick="shareCampus()">分享給同事</button>
+      </div>
+    </section>
     </div>
 
     <footer>
       資料安全・隱私保護・安心使用<br />
-      <span id="versionText">Heremay Smart Campus v1.4.9</span>
+      <span id="versionText">Heremay Smart Campus v1.5.0｜2026/10/04</span>
     </footer>
   </main>
+
+  <dialog id="installGuide" aria-labelledby="installGuideTitle">
+    <h2 id="installGuideTitle">加入手機桌面</h2>
+    <div id="installGuideContent"></div>
+    <button class="close-btn" type="button" onclick="document.getElementById('installGuide').close()">關閉</button>
+  </dialog>
 
   <div id="toast" class="toast"></div>
 
@@ -334,7 +354,71 @@
 
 
   <script>
-    const APP_VERSION = '1.4.9';
+    const APP_VERSION = '1.5.0';
+    const APP_UPDATED = '2026/10/04';
+    let installPrompt = null;
+    const standaloneQuery = window.matchMedia('(display-mode: standalone)');
+    function isDesktopApp(){ return standaloneQuery.matches || navigator.standalone === true; }
+    function updateDesktopCard(){
+      const installed = isDesktopApp();
+      document.getElementById('installBtn').hidden = installed;
+      document.getElementById('desktopHint').textContent = installed
+        ? '目前已從桌面開啟，也可以分享登入網址給同事。'
+        : '加入後，點桌面圖示就能開啟和美智慧校園。';
+    }
+    window.addEventListener('beforeinstallprompt', event => {
+      event.preventDefault(); installPrompt = event;
+    });
+    window.addEventListener('appinstalled', () => {
+      installPrompt = null;
+      document.getElementById('installBtn').hidden = true;
+      document.getElementById('desktopHint').textContent = '已加入桌面，下次可從桌面圖示開啟。';
+    });
+    standaloneQuery.addEventListener?.('change', updateDesktopCard);
+    function showInstallGuide(title, content){
+      document.getElementById('installGuideTitle').textContent = title;
+      document.getElementById('installGuideContent').innerHTML = content;
+      document.getElementById('installGuide').showModal();
+    }
+    async function addToDesktop(){
+      if(installPrompt){
+        const prompt = installPrompt; installPrompt = null;
+        try{ await prompt.prompt(); await prompt.userChoice; return; }
+        catch(error){ console.warn('安裝提示未完成', error); }
+      }
+      const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if(ios){
+        showInstallGuide('iPhone／iPad 加入桌面', '<ol><li>請用 <strong>Safari</strong> 開啟這個登入首頁。若從 LINE 開啟，請先選擇以 Safari 開啟。</li><li>點選 Safari 的<strong>分享</strong>圖示（方框向上箭頭；部分版本在「⋯」選單中）。</li><li>往下找到並點選<strong>加入主畫面</strong>。若沒看到，可在「編輯動作」加入。</li><li>名稱保留「和美智慧校園」；若有「作為網頁 App 開啟」，請保持開啟，再按<strong>加入</strong>。</li></ol><p>完成後，回到手機桌面就能找到和美圖示。</p>');
+      }else if(/Android/i.test(navigator.userAgent)){
+        showInstallGuide('Android 加入桌面', '<ol><li>請用 <strong>Chrome</strong> 開啟這個登入首頁。</li><li>點右上角<strong>⋮</strong>選單。</li><li>選擇<strong>加入主畫面</strong>或<strong>安裝應用程式</strong>，依畫面確認。</li></ol><p>若從 LINE 開啟，請先改用 Chrome。</p>');
+      }else{
+        showInstallGuide('加入桌面', '<p>手機使用者：請在手機開啟登入首頁，再按「加入手機桌面」。</p><p>電腦使用者：若 Chrome／Edge 網址列或選單出現「安裝」，即可依畫面完成安裝；也可將此頁加入書籤。</p>');
+      }
+    }
+    function campusEntryURL(){
+      const url = new URL('./index.html', window.location.href);
+      url.search = ''; url.hash = ''; return url.href;
+    }
+    async function shareCampus(){
+      const url = campusEntryURL();
+      if(!/^https?:/.test(url)){ showToast('請上傳網站後再分享正式登入網址。'); return; }
+      if(navigator.share){
+        try{ await navigator.share({title:'和美智慧校園',text:'開啟後點「加入手機桌面」，即可建立和美智慧校園入口。',url}); return; }
+        catch(error){ if(error.name === 'AbortError') return; }
+      }
+      try{ await navigator.clipboard.writeText(url); showToast('登入網址已複製，可貼給同事。'); }
+      catch(error){
+        showInstallGuide('複製登入網址', '<p>請長按或選取以下網址，再複製給同事。</p><input id="shareLink" readonly aria-label="登入網址" />');
+        const field = document.getElementById('shareLink'); field.value = url; field.focus(); field.select();
+      }
+    }
+    updateDesktopCard();
+    document.getElementById('installGuide').addEventListener('click', event => {
+      if(event.target === event.currentTarget){
+        const rect = event.currentTarget.getBoundingClientRect();
+        if(event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) event.currentTarget.close();
+      }
+    });
 
     /*
       正式登入架構說明
@@ -394,7 +478,7 @@
 
     async function registerUpdateSystem(){
       document.getElementById('versionText').textContent =
-        `Heremay Smart Campus v${APP_VERSION}`;
+        `Heremay Smart Campus v${APP_VERSION}｜${APP_UPDATED}`;
 
       await checkVersionFile();
 
