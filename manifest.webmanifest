@@ -11,10 +11,10 @@
   "theme_color": "#fff6fb",
   "icons": [
     {
-      "src": "assets/app-icon.png",
+      "src": "assets/android-icon-20261005.png",
       "sizes": "1254x1254",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
