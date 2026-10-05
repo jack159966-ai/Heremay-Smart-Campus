@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.9.1</title>
+  <title>和美智慧校園｜打卡與出勤 v2.9.3</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -81,7 +81,7 @@
   <header class="top">
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.9.1 進入時驗證一次</span>
+    <span class="version">v2.9.3 進入時驗證一次</span>
   </header>
 
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
@@ -374,10 +374,11 @@
   }
 
   function isFlexibleCleaner(){
-    // C 類員工為戶外清潔責任制人員；同時保留職稱文字判斷，兼容舊資料。
-    const id=String(employeeKey()||'').trim().toUpperCase();
-    const text=[employee.jobTitle,employee.title,employee['職稱'],employee.group,employee.department,employee.homeType,employee.identityCategory,employee['身分類別'],employee['編組']].filter(Boolean).join('｜');
-    return id.startsWith('C')||/戶外清潔|清潔人員|責任制清潔/.test(text);
+    // 清潔責任制依員工編號與明確職稱判斷，電子郵件不可作為分類編號。
+    const id=String(employee.employeeId||employee.id||employee['員工編號']||'').trim().toUpperCase();
+    const text=[employee.jobTitle,employee.title,employee['職稱'],employee.group,employee.department,employee.homeType,employee.identity,employee.identityCategory,employee['身分類別'],employee['編組']].filter(Boolean).join('｜');
+    if(/鐘點|計時|兼任|外聘/.test(text))return true;
+    return /^C\d+$/.test(id)||/戶外清潔|責任制清潔|清潔責任制/.test(text);
   }
   function offlineQueueKey(){return `heremay.offlinePunchQueue.${employeeKey()}`}
   function readOfflineQueue(){try{const rows=JSON.parse(localStorage.getItem(offlineQueueKey())||'[]');return Array.isArray(rows)?rows:[]}catch(e){return[]}}
@@ -559,7 +560,7 @@
     if(duty)duty.style.display='none';
     if(hint)hint.style.display='none';
     if(cleaner){
-      if(modeBox)modeBox.innerHTML='<div class="cleaner-note">🍂 戶外清潔責任制｜只記錄今天是否到班，不以工作分鐘計算薪資。</div>';
+      if(modeBox)modeBox.innerHTML='<div class="cleaner-note">🍂 出席打卡制｜只記錄今天是否到班，不以工作分鐘計算薪資。</div>';
       clockInBtn.textContent='🌿 今日到班打卡';clockOutBtn.textContent='✅ 補充打卡';
     }
   }
@@ -624,7 +625,7 @@
   function renderAttendanceMode(){
     const box=document.getElementById('attendanceModeBox');if(!box)return;
     if(isFlexibleCleaner()){
-      box.innerHTML='<div class="cleaner-note">🍂 戶外清潔人員｜週一～週六出勤，不設定固定上下班時間；當日有打卡即可認定有到班。</div>';
+      box.innerHTML='<div class="cleaner-note">🍂 出席打卡制｜不設定固定上下班時間；當日有打卡即可認定有到班。</div>';
       return;
     }
     if(attendanceDepartment()==='庶務組'){
@@ -742,7 +743,7 @@
   }
   function renderShiftInfo(){
     const s=workSchedule(),box=document.getElementById('shiftInfo');if(!box)return;
-    box.textContent=s.flexibleCleaner?'今日規則：清潔人員責任制｜只確認有到班，不以工時長短計薪':s.supplemental?'今日規則：安親部考試週星期六｜實際上下班均記為補課工時':`今日規則：${s.name}｜上班 ${s.scheduledIn}｜下班 ${s.scheduledOut}`
+    box.textContent=s.flexibleCleaner?'今日規則：出席打卡制｜只確認有到班，不以工時長短計薪':s.supplemental?'今日規則：安親部考試週星期六｜實際上下班均記為補課工時':`今日規則：${s.name}｜上班 ${s.scheduledIn}｜下班 ${s.scheduledOut}`
   }
   function minutesBetween(a,b){
     if(!a||!b)return 0;const [ah,am]=String(a).split(':').map(Number),[bh,bm]=String(b).split(':').map(Number);
