@@ -1,4 +1,4 @@
-const CACHE_NAME = 'heremay-smart-campus-v2.4.6';
+const CACHE_NAME = 'heremay-smart-campus-v2.5.0';
 const CORE_FILES = [
   './',
   './index.html'
@@ -99,22 +99,32 @@ self.addEventListener('fetch', event => {
   }
 });
 
+function campusNotificationUrl(value) {
+  const fallback = new URL('./message_center.html', self.location.href);
+  try {
+    const url = new URL(value || fallback.href, fallback.href);
+    if (url.origin === self.location.origin && url.pathname.startsWith('/Heremay-Smart-Campus/')) return url.href;
+    if (url.origin === 'https://heremay-8t.myqnapcloud.com:9444' && ['/admin','/admin.html'].includes(url.pathname)) return url.href;
+  } catch (_) {}
+  return fallback.href;
+}
 self.addEventListener('push', event => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch (_) {}
-  const id = String(data.submissionId || '').replace(/[^a-zA-Z0-9-]/g, '');
-  const url = new URL('https://heremay-8t.myqnapcloud.com:9444/admin.html');
-  if (id) url.searchParams.set('submissionId', id);
-  event.waitUntil(self.registration.showNotification('和美智慧校園｜新素材投稿', {
-    body: String(data.body || '有新的班級素材投稿，點此開啟主管收件匣').slice(0, 120),
-    tag: id ? `media-${id}` : 'media-submission',
-    data: { url: url.href }
+  const submissionId = String(data.submissionId || '').replace(/[^a-zA-Z0-9-]/g, '');
+  const id = String(data.notificationId || '').replace(/[^a-zA-Z0-9-]/g, '');
+  const legacy = new URL('https://heremay-8t.myqnapcloud.com:9444/admin.html');
+  if (submissionId) legacy.searchParams.set('submissionId', submissionId);
+  const url = campusNotificationUrl(data.url || (submissionId ? legacy.href : ''));
+  event.waitUntil(self.registration.showNotification(String(data.title || (submissionId ? '和美智慧校園｜新素材投稿' : '和美智慧校園｜新訊息')).slice(0,100), {
+    body:String(data.body || '訊息中心有新資訊，點此查看。').slice(0,180),
+    tag:id ? 'campus-'+id : submissionId ? 'media-'+submissionId : 'campus-message',
+    renotify:false,
+    ...(data.sound === false ? {silent:true} : {}),
+    data:{url}
   }));
 });
-
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  const url = event.notification.data?.url || 'https://heremay-8t.myqnapcloud.com:9444/admin.html';
-  event.waitUntil(self.clients.openWindow(url));
+  event.waitUntil(self.clients.openWindow(campusNotificationUrl(event.notification.data?.url)));
 });
-

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.59</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.60</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -625,7 +625,7 @@
     </section>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.59｜2026-10-03</div>
+      <div class="versionStamp">主管工作台 v24.60｜2026-10-03</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -734,43 +734,7 @@ const MESSAGE_CENTER_PAGE = 'message_center.html';
 const PRIVATE_MESSAGE_API = 'https://heremay-passkey-backend-943533867342.asia-east1.run.app';
 // Google 雲端主管收件匣部署完成後，只需更換這個網址。
 const MEDIA_ADMIN_URL = 'https://heremay-8t.myqnapcloud.com:9444/admin.html';
-const PUSH_ENROLLMENT_CODE = 'kjlCoheKnBEMseQwlZuflIhBr1p6V6wRMsyYLGMicZY';
-const PUSH_API_BASE = 'https://heremay-8t.myqnapcloud.com:9444';
-function pushArrayBuffer(base64Url){
-  const raw=atob(base64Url.replace(/-/g,'+').replace(/_/g,'/'));
-  return Uint8Array.from(raw,c=>c.charCodeAt(0));
-}
-async function enableSubmissionPush(){
-  const button=document.getElementById('pushEnableButton');
-  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)){
-    showToast('這台裝置目前不支援鎖定畫面網頁通知');return;
-  }
-  button.disabled=true;
-  try{
-    await navigator.serviceWorker.register('./sw.js');
-    const registration=await navigator.serviceWorker.ready;
-    const permission=await Notification.requestPermission();
-    if(permission!=='granted')throw new Error('請在 iPhone 設定中允許「和美智慧校園」通知');
-    const keyResponse=await fetch(PUSH_API_BASE+'/api/admin/push/public-key',{cache:'no-store'});
-    if(!keyResponse.ok)throw new Error('無法連接 NAS，請先連上 HEREMAY Wi-Fi');
-    const {publicKey}=await keyResponse.json();
-    let subscription=await registration.pushManager.getSubscription();
-    if(subscription && subscription.options.applicationServerKey &&
-       Array.from(new Uint8Array(subscription.options.applicationServerKey)).join(',')!==Array.from(pushArrayBuffer(publicKey)).join(',')) {
-      await subscription.unsubscribe();subscription=null;
-    }
-    if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:pushArrayBuffer(publicKey)});
-    const response=await fetch(PUSH_API_BASE+'/api/admin/push/subscriptions',{
-      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+PUSH_ENROLLMENT_CODE},
-      body:JSON.stringify({subscription:subscription.toJSON()})
-    });
-    if(!response.ok)throw new Error(response.status===401?'通知啟用碼不符，請先更新 NAS 推播設定':'訂閱失敗，請確認 NAS 設定及園內 Wi-Fi');
-    button.textContent='✅ 鎖定畫面投稿通知已開啟';
-    showToast('已開啟投稿推播；鎖定手機後也會收到新投稿通知');
-  }catch(error){showToast(error.message||'無法開啟推播');}
-  finally{button.disabled=false;}
-}
-
+function enableSubmissionPush(){return window.CampusPush.enable(document.getElementById('pushEnableButton'));}
 
 let currentAdminEmployee = null;
 
@@ -836,7 +800,7 @@ function renderAdminTotalUnread(){
   if(badge){badge.textContent=n>99?'99+':String(n);badge.setAttribute('aria-label',n>0?`共 ${n} 則未讀訊息`:'目前沒有未讀訊息')}
   previousAdminMessageUnread=n;
 }
-async function refreshAdminMessageUnread(){const id=adminMessageIdentity();if(!id.employeeId&&!id.account&&!id.groups)return;try{const r=await adminMessageJsonp('unreadCount');adminUnreadState.general=Math.max(0,Number(r.unread)||0);renderAdminTotalUnread();alertNewAdminMessages(adminUnreadState.general)}catch(e){console.warn('訊息中心未讀提示：',e.message)}}
+async function refreshAdminMessageUnread(){const id=adminMessageIdentity();if(!id.employeeId&&!id.account&&!id.groups)return;try{const r=await adminMessageJsonp('unreadCount');adminUnreadState.general=Math.max(0,Number(r.generalUnread??r.unread)||0);renderAdminTotalUnread();alertNewAdminMessages(adminUnreadState.general)}catch(e){console.warn('訊息中心未讀提示：',e.message)}}
 async function refreshAdminPrivateUnread(){
   const id=adminMessageIdentity(),employeeId=id.employeeId||id.account,name=id.name;
   const c=document.getElementById('privateMessageCard'),b=document.getElementById('privateUnreadBadge');
@@ -1917,8 +1881,10 @@ setTimeout(refreshAdminPrivateUnread,1100);
 setInterval(refreshAdminPrivateUnread,60000);
 
 </script>
+<script src="./campus-push.js?v=1.0.0"></script>
 </body>
 </html>
+
 
 
 

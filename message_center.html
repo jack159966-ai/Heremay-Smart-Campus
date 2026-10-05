@@ -93,7 +93,7 @@
     }finally{loading=false;}
   }
   function render(unread){
-    const unreadItems=items.filter(x=>!x.isRead);
+    const unreadItems=items.filter(x=>!x.isRead&&x.source!=='私訊');
     unread=unreadItems.length+Object.values(sourceCounts).filter(n=>n>0).length;
     document.getElementById('count').textContent=unread?'未讀 '+unread+' 則':(generalVerified?'目前沒有未讀訊息':'正在更新一般通知…');
     document.getElementById('allRead').hidden=!unreadItems.length;
@@ -193,3 +193,4 @@
 </script>
 </body>
 </html>
+

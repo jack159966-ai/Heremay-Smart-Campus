@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜庶務人員首頁 v13.20</title>
+  <title>和美智慧校園｜庶務人員首頁 v13.21</title>
   <style>
     :root{
       --bg1:#f1fff6;
@@ -603,7 +603,7 @@ body.personal-settings-open{overflow:hidden}
     </header>
 
     <div class="version-refresh-row">
-      <div class="page-version">庶務人員首頁 v13.20</div>
+      <div class="page-version">庶務人員首頁 v13.21</div>
       <button class="refresh-version-btn" type="button" onclick="refreshLatestVersion()">🔄 檢查並重新整理最新版</button>
     </div>
 
@@ -679,7 +679,7 @@ body.personal-settings-open{overflow:hidden}
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.20｜今天與未來三個工作日菜單</div>
+<div class="footer">📌 公告請按「我已收到」；確認狀態由主管端統一追蹤。<br>庶務人員首頁 v13.21｜今天與未來三個工作日菜單</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -723,7 +723,7 @@ body.personal-settings-open{overflow:hidden}
 
   <div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
     <div class="sheet" onclick="event.stopPropagation()">
-      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v13.20｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回庶務人員首頁" title="返回庶務人員首頁">← 返回</button></div>
+      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v13.21｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回庶務人員首頁" title="返回庶務人員首頁">← 返回</button></div>
 
       <div class="listbox">
         <h3>個人資料</h3>
@@ -772,12 +772,15 @@ body.personal-settings-open{overflow:hidden}
     let currentEmployee = null;
     let pendingAckId = null;
 
-    function supportMessageIdentity(){const emp=currentEmployee||{};return {employeeId:String(emp.employeeId||emp.id||emp['員工編號']||'').trim(),account:String(emp.account||localStorage.getItem('heremay.lastFaceAccount')||'').trim(),name:String(emp.name||currentUser||'庶務人員').trim(),groups:[emp.group,emp.department,'庶務部'].filter(Boolean).join(',')}}
+    function supportMessageIdentity(){const emp=currentEmployee||{};return {employeeId:String(emp.employeeId||emp.employeeNo||emp.id||emp['員工編號']||'').trim(),account:String(emp.account||localStorage.getItem('heremay.lastFaceAccount')||'').trim(),name:String(emp.name||currentUser||'庶務人員').trim(),groups:[emp.group,emp.department,'庶務部'].filter(Boolean).join(',')}}
     function openMessageCenter(){const p=new URLSearchParams(supportMessageIdentity());p.set('back',location.href);location.href=MESSAGE_CENTER_PAGE+'?'+p.toString()}
     function openPrivateMessage(){window.location.href='private_message.html?back='+encodeURIComponent(location.href)}
     function supportMessageJsonp(action){return new Promise((resolve,reject)=>{const cb='hm_support_msg_'+Date.now()+'_'+Math.random().toString(36).slice(2),s=document.createElement('script'),timer=setTimeout(()=>done(new Error('訊息中心連線逾時')),12000);function done(err){clearTimeout(timer);try{delete window[cb]}catch(e){}s.remove();if(err)reject(err)}window[cb]=r=>{done();r&&r.ok?resolve(r):reject(new Error(r?.error||'訊息中心連線失敗'))};s.onerror=()=>done(new Error('訊息中心連線失敗'));s.src=MESSAGE_CENTER_URL+'?'+new URLSearchParams({...supportMessageIdentity(),action,callback:cb,_:Date.now()}).toString();document.head.appendChild(s)})}
     let previousSupportMessageUnread=null;
-    async function refreshSupportMessageUnread(){const id=supportMessageIdentity();if(!id.employeeId&&!id.account)return;try{const r=await supportMessageJsonp('unreadCount'),n=Number(r.unread||0),card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');card?.classList.toggle('hasUnread',n>0);if(badge)badge.textContent=n>99?'99+':String(n);if(previousSupportMessageUnread!==null&&n>previousSupportMessageUnread)beep();previousSupportMessageUnread=n}catch(e){console.warn('訊息中心未讀提示：',e.message)}}
+    let supportPrivateUnread=0;
+    async function refreshSupportMessageUnread(){const id=supportMessageIdentity();if(!id.employeeId&&!id.account)return;try{const r=await supportMessageJsonp('unreadCount');
+      try{const url=new URL('https://heremay-passkey-backend-943533867342.asia-east1.run.app/api/private/unread');url.searchParams.set('employeeId',id.employeeId);url.searchParams.set('name',id.name);const response=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(10000)}),data=await response.json();if(response.ok&&data.ok)supportPrivateUnread=Math.max(0,Number(data.count)||0)}catch(ignore){}
+      const n=Number(r.generalUnread??r.unread??0)+supportPrivateUnread,card=document.getElementById('messageCenterCard'),badge=document.getElementById('messageUnreadBadge');card?.classList.toggle('hasUnread',n>0);if(badge)badge.textContent=n>99?'99+':String(n);if(previousSupportMessageUnread!==null&&n>previousSupportMessageUnread)beep();previousSupportMessageUnread=n}catch(e){console.warn('訊息中心未讀提示：',e.message)}}
     async function refreshSupportPrivateUnread(){try{const r=await supportMessageJsonp('unreadPrivateCount'),n=Number(r.unread||0),c=document.getElementById('privateMessageCard'),b=document.getElementById('privateUnreadBadge');c?.classList.toggle('hasUnread',n>0);if(b)b.textContent=n>99?'99+':String(n)}catch(e){console.warn('私訊未讀提示：',e.message)}}
 
 
@@ -957,7 +960,7 @@ body.personal-settings-open{overflow:hidden}
 
     function groupbuySeenKey(){
       const emp=currentEmployee||{};
-      const id=String(emp.employeeId||emp.id||emp['員工編號']||currentUser||'user').trim();
+      const id=String(emp.employeeId||emp.employeeNo||emp.id||emp['員工編號']||currentUser||'user').trim();
       return 'heremay.groupbuy.lastSeen.'+id;
     }
 
@@ -996,7 +999,7 @@ body.personal-settings-open{overflow:hidden}
     function groupbuySeenIdKeys(){
       const emp=readGroupbuyEmployee();
       const ids=[];
-      const employeeId=String(emp.employeeId||emp.id||emp['員工編號']||'').trim();
+      const employeeId=String(emp.employeeId||emp.employeeNo||emp.id||emp['員工編號']||'').trim();
       const name=String(emp.name||'').trim();
       if(employeeId)ids.push('heremay.groupbuy.seenIds.id.'+employeeId);
       if(name)ids.push('heremay.groupbuy.seenIds.name.'+name);
@@ -1501,8 +1504,10 @@ setInterval(refreshDiscussionUnreadNotice,60000);
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadMenu();});
 })();
 </script>
+<script src="./campus-push.js?v=1.0.0"></script>
 </body>
 </html>
+
 
 
 
