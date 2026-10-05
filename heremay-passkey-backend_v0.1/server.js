@@ -1,4 +1,5 @@
 import express from 'express';
+import { installPushRelay } from './push-relay.js';
 import cors from 'cors';
 import helmet from 'helmet';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
@@ -16,7 +17,7 @@ app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 8080);
-const SERVICE_VERSION = '1.2.2';
+const SERVICE_VERSION = '1.3.0';
 const RP_NAME = process.env.RP_NAME || '和美智慧校園';
 const RP_ID = process.env.RP_ID || 'jack159966-ai.github.io';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://jack159966-ai.github.io')
@@ -599,6 +600,8 @@ app.get('/api/private/messages', async (req,res) => {
   }
 });
 
+const campusRelay = installPushRelay(app, { db, lookupEmployee, listEmployees });
+
 app.post('/api/private/messages', async (req,res) => {
   try {
     const me = privateIdentity(req.body?.senderId, req.body?.senderName);
@@ -618,7 +621,16 @@ app.post('/api/private/messages', async (req,res) => {
       messageType:req.body?.quickReply ? 'quick' : 'text', message,
       readAt:0, recalled:false,
     };
-    await db.collection('privateMessages').doc(id).create(data);
+    const batch = db.batch();
+    batch.create(db.collection('privateMessages').doc(id), data);
+    batch.create(campusRelay.outbox.doc(id), {
+      delivered:false, createdAt:data.createdAt,
+      notification:{createdAtMs:data.createdAt,eventId:'private-'+id, senderId:me.employeeNo, senderName:me.name,
+        receiverId:peer.employeeNo, receiverName:peer.name, source:'私訊', sourceId:id,
+        title:me.name+' 傳來私訊', message:'您有一則新的私訊，請開啟智慧校園查看。',
+        link:'https://jack159966-ai.github.io/Heremay-Smart-Campus/private_message.html', sound:true}
+    });
+    await batch.commit();
     res.status(201).json({ ok:true, item:privateMessageJson(data) });
   } catch (err) {
     console.error(err);
@@ -674,3 +686,4 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(PORT, () => console.log(`Heremay Passkey service listening on ${PORT}`));
+
