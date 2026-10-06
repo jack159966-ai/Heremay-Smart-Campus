@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.60</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.61</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -625,7 +625,7 @@
     </section>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.60｜2026-10-03</div>
+      <div class="versionStamp">主管工作台 v24.61｜2026-10-06</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -672,6 +672,7 @@
 
 
     <section class="bottomToolGrid">
+      <button class="bottomSquareBtn" type="button" onclick="openPersonalSettings()"><span class="sqIcon">⚙️</span><strong>個人設定</strong><span>查看登入帳號、修改個人密碼</span></button>
       <button class="bottomSquareBtn privateMessageCard" id="privateMessageCard" type="button" onclick="openPrivateMessage()"><span class="privateUnreadBadge" id="privateUnreadBadge" hidden></span><span class="sqIcon">💬</span><strong>私訊</strong><span>一對一聯繫與快捷回覆</span></button>
       <button class="bottomSquareBtn" type="button" onclick="location.href='leave_admin.html'">
         <span class="sqIcon"><img src="assets/leave-management.jpg?v=20260906b" alt="請假管理"></span><strong>請假管理</strong><span>近期與每月請假</span>
@@ -1882,6 +1883,35 @@ setInterval(refreshAdminPrivateUnread,60000);
 
 </script>
 <script src="./campus-push.js?v=1.0.0"></script>
+
+<div id="personalModal" style="display:none;position:fixed;inset:0;z-index:100;background:#f3f8ff;overflow:auto;padding:20px">
+ <div style="max-width:660px;margin:auto">
+  <div class="modalHeader"><h3>⚙️ 個人設定</h3><button class="btn" type="button" onclick="hidePersonalSettings()">← 返回</button></div>
+  <div class="panel"><h3>個人資料</h3><p>姓名：<span id="profileName"></span></p><p>職稱：<span id="profileTitle"></span></p><p>登入帳號：<span id="profileAccount"></span></p></div>
+  <div class="panel" style="margin-top:16px"><h3>修改密碼</h3>
+   <label for="oldPassword">目前密碼</label><input id="oldPassword" type="password" autocomplete="current-password">
+   <label for="newPassword">新密碼</label><input id="newPassword" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" placeholder="6 位數字">
+   <label for="confirmPassword">再次確認新密碼</label><input id="confirmPassword" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password">
+   <div class="btnRow"><button class="btn" type="button" onclick="savePasswordDemo()">儲存新密碼</button></div>
+  </div>
+ </div>
+</div>
+<script>
+function openPersonalSettings(){
+ const emp=readCurrentEmployee()||{};
+ document.getElementById('profileName').textContent=emp.name||'';
+ document.getElementById('profileTitle').textContent=emp.jobTitle||'';
+ document.getElementById('profileAccount').textContent=emp.account||localStorage.getItem('heremay.lastFaceAccount')||'';
+ document.getElementById('personalModal').style.display='block';
+ document.body.style.overflow='hidden';
+}
+function hidePersonalSettings(){
+ document.getElementById('personalModal').style.display='none';
+ document.body.style.overflow='';
+ ['oldPassword','newPassword','confirmPassword'].forEach(id=>document.getElementById(id).value='');
+}
+</script>
+<script src="./personal-password.js?v=1.0.0"></script>
 </body>
 </html>
 

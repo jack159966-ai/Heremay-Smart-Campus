@@ -739,7 +739,7 @@ body.personal-settings-open{overflow:hidden}
         <input id="oldPassword" class="input" type="password" placeholder="請輸入目前密碼">
 
         <label style="display:block;font-weight:900;color:var(--deep);margin:12px 0 5px">新密碼</label>
-        <input id="newPassword" class="input" type="password" placeholder="至少 8 個字元">
+        <input id="newPassword" class="input" type="password" placeholder="6 位數字">
 
         <label style="display:block;font-weight:900;color:var(--deep);margin:12px 0 5px">再次確認新密碼</label>
         <input id="confirmPassword" class="input" type="password" placeholder="請再次輸入新密碼">
@@ -1354,32 +1354,7 @@ body.personal-settings-open{overflow:hidden}
       if(event.target.id === 'personalModal') hidePersonalSettings();
     }
 
-    function savePasswordDemo(){
-      const oldPassword = document.getElementById('oldPassword').value;
-      const newPassword = document.getElementById('newPassword').value;
-      const confirmPassword = document.getElementById('confirmPassword').value;
 
-      if(!oldPassword || !newPassword || !confirmPassword){
-        showToast('請完整輸入目前密碼與新密碼。');
-        return;
-      }
-
-      if(newPassword.length < 8){
-        showToast('新密碼至少需要 8 個字元。');
-        return;
-      }
-
-      if(newPassword !== confirmPassword){
-        showToast('兩次輸入的新密碼不一致。');
-        return;
-      }
-
-      document.getElementById('oldPassword').value = '';
-      document.getElementById('newPassword').value = '';
-      document.getElementById('confirmPassword').value = '';
-      hidePersonalSettings();
-      showToast('✅ 修改密碼流程測試成功；正式版會寫入登入資料庫。', 3200);
-    }
 
     loadCurrentEmployee();
     window.addEventListener('pageshow',()=>{setTimeout(refreshSupportMessageUnread,350);setTimeout(refreshSupportPrivateUnread,450)});
@@ -1505,6 +1480,7 @@ setInterval(refreshDiscussionUnreadNotice,60000);
 })();
 </script>
 <script src="./campus-push.js?v=1.0.0"></script>
+<script src="./personal-password.js?v=1.0.0"></script>
 </body>
 </html>
 
