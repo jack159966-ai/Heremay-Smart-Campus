@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.25</title>
+  <title>和美智慧校園｜教保人員首頁 v15.26</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -622,8 +622,18 @@ body.personal-settings-open{overflow:hidden}
       <button class="homeMessageCenter messageCenterCard" id="messageCenterCard" onclick="openMessageCenter()"><span class="messageUnreadBadge" id="messageUnreadBadge" aria-label="未讀訊息"></span><span class="hmIcon">🔔</span><span><strong>訊息中心</strong><small>公告、投稿、討論、登記與私訊通知</small></span><span class="hmArrow">›</span></button>
     </section>
 
+    <section class="section" id="attendanceHomeSection">
+        <button class="btn primary" onclick="openAttendanceArea()">
+          <div class="icon"><img src="assets/attendance-statistics.jpg?v=20260906b" alt="打卡與出勤"></div>
+          <div>
+            <strong>打卡 / 出勤</strong>
+            <span>驗證後打卡、請假與查看薪資條</span>
+          </div>
+        </button>
+    </section>
+
     <div class="version-refresh-row">
-      <div class="page-version">教保人員首頁 v15.25</div>
+      <div class="page-version">教保人員首頁 v15.26</div>
       <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
     </div>
 
@@ -673,13 +683,7 @@ body.personal-settings-open{overflow:hidden}
       </div>
       <div class="grid">
         <button class="btn privateMessageCard" id="privateMessageCard" onclick="openPrivateMessage()"><span class="privateUnreadBadge" id="privateUnreadBadge" hidden></span><div class="icon">💬</div><strong>私訊</strong><span>一對一聯繫與快捷回覆</span></button>
-        <button class="btn primary" onclick="openAttendanceArea()">
-          <div class="icon"><img src="assets/attendance-statistics.jpg?v=20260906b" alt="打卡與出勤"></div>
-          <div>
-            <strong>打卡 / 出勤</strong>
-            <span>驗證後打卡、請假與查看薪資條</span>
-          </div>
-        </button>
+
 
         
 
@@ -731,7 +735,7 @@ body.personal-settings-open{overflow:hidden}
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.25｜NAS 高速投稿入口</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.26｜NAS 高速投稿入口</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -755,7 +759,7 @@ body.personal-settings-open{overflow:hidden}
 
   <div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
     <div class="sheet" onclick="event.stopPropagation()">
-      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v15.25｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回教保人員首頁" title="返回教保人員首頁">← 返回</button></div>
+      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v15.26｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回教保人員首頁" title="返回教保人員首頁">← 返回</button></div>
 
       <div class="listbox">
         <h3>個人資料</h3>
@@ -797,7 +801,7 @@ body.personal-settings-open{overflow:hidden}
   <script>
     function openAttendanceArea(){
       sessionStorage.removeItem('heremay.attendanceAreaGrant');
-      window.location.href='attendance.html?v=2.9.0';
+      window.location.href='attendance.html?v=2.9.4';
     }
     const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
     // 園內 HEREMAY Wi-Fi 專用的 NAS 高速投稿系統。

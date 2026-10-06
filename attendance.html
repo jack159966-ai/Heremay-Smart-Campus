@@ -81,9 +81,10 @@
   <header class="top">
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.9.3 進入時驗證一次</span>
+    <span class="version">v2.9.4 同步狀態與請假確認</span>
   </header>
 
+  <div id="attendanceDataStatus" role="status" style="padding:10px;color:#995319;font-weight:850">尚未同步，畫面可能是手機暫存資料</div>
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
     🔄 同步出勤資料／檢查最新版
   </button>
@@ -490,7 +491,9 @@
   function todayKey(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
   function punchKey(date=todayKey()){return `heremay.attendance.${employeeKey()}.${date}`}
   function leaveKey(){return `heremay.leaveRecords.${employeeKey()}`}
-  function sharedLeaveKey(){return 'heremay.sharedLeaveRecords'}
+  function sharedLeaveKey(){return `heremay.sharedLeaveRecords.${leavePool()}.${viewDate.getFullYear()}-${pad(viewDate.getMonth()+1)}`}
+  let attendanceLoadSequence=0;
+  function setDataStatus(message){document.getElementById('attendanceDataStatus').textContent=message}
   function leavePool(){
     const text=[
       employee.group,
@@ -952,7 +955,7 @@
   function dutyIn(){const s=workSchedule();postAttendance('attendanceDutyIn',{employeeId:employeeKey(),employeeName:employeeNameText(),pool:s.department,date:todayKey(),attendanceMode:s.mode,dutyType:s.dutyType,...punchMeta()},'dutyIn')}
   function dutyOut(){const s=workSchedule();const reason=s.department==='安親部'&&s.dutyType==='晚值'?(prompt('晚值結束原因','學生已全數離園')||'學生已全數離園'):'';postAttendance('attendanceDutyOut',{employeeId:employeeKey(),employeeName:employeeNameText(),pool:s.department,date:todayKey(),attendanceMode:s.mode,dutyType:s.dutyType,dutyEndReason:reason,...punchMeta()},'dutyOut')}
   function showTab(name,btn){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.getElementById(name+'Panel').classList.add('active');if(name==='records')renderRecords();if(name==='attendance')renderAttendance();if(name==='leave')renderMyLeaves()}
-  function changeMonth(n){viewDate.setMonth(viewDate.getMonth()+n);renderCalendar();loadCloudData(true)}
+  function changeMonth(n){viewDate.setDate(1);viewDate.setMonth(viewDate.getMonth()+n);cloudReady=false;cloudSharedLeaves=[];renderCalendar();loadCloudData(true)}
   function baseQuotaFor(date){
     const day=date.getDay();
     if(day===0||day===6)return {off:true,text:'休'};
@@ -1133,7 +1136,7 @@
   function closePeriodModal(e){if(e.target.id==='periodModal')hidePeriodModal()}
   function renderSelected(){selectedList.innerHTML='';[...selectedDates.entries()].sort().forEach(([d,p])=>{const el=document.createElement('div');el.className='selected-item';el.innerHTML=`<div><strong>${d}</strong><span>${p}</span></div><button class="remove" onclick="removeDate('${d}')">移除</button>`;selectedList.append(el)})}
   function removeDate(d){selectedDates.delete(d);renderCalendar()}
-  async function submitLeave(){if(!selectedDates.size){toastMsg('請先從月曆選擇日期');return}const type=leaveType.value,reasonText=reason.value.trim();if(type!=='特休'&&!reasonText){toastMsg('其他假別請填寫申請原因');return}if(!await requireSensitiveAuth()){toastMsg('已取消本人驗證，未送出請假');return}const items=[...selectedDates.entries()];submitLeaveQueue(items,type,reasonText,0,[])}
+  async function submitLeave(){if(pendingCloudAction){toastMsg('請假正在處理，請稍候');return}if(!selectedDates.size){toastMsg('請先從月曆選擇日期');return}const type=leaveType.value,reasonText=reason.value.trim();if(type!=='特休'&&!reasonText){toastMsg('其他假別請填寫申請原因');return}if(!await requireSensitiveAuth()){toastMsg('已取消本人驗證，未送出請假');return}const items=[...selectedDates.entries()];submitLeaveQueue(items,type,reasonText,0,[])}
   async function submitLeaveQueue(items,type,reasonText,index,results){
     if(index>=items.length){
       selectedDates.clear();
@@ -1199,8 +1202,33 @@
     acts.slice(0,8).forEach(x=>html+=`<div class="record"><strong>${x.title}</strong><div class="meta">${x.note}｜${x.time}</div></div>`);
     recordList.innerHTML=html||'<div class="salary">尚無紀錄</div>'
   }
-  function jsonp(url){return new Promise((resolve,reject)=>{const cb='heremayCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);const script=document.createElement('script');const timer=setTimeout(()=>{cleanup();reject(new Error('雲端讀取逾時'))},15000);function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}window[cb]=data=>{cleanup();resolve(data)};script.onerror=()=>{cleanup();reject(new Error('雲端連線失敗'))};script.src=url+(url.includes('?')?'&':'?')+'callback='+encodeURIComponent(cb)+'&_='+Date.now();document.head.append(script)})}
-  async function loadCloudData(silent=false){try{const month=`${viewDate.getFullYear()}-${pad(viewDate.getMonth()+1)}`;const url=`${SERVICE_URL}?action=getAttendanceBundle&employeeId=${encodeURIComponent(employeeKey())}&pool=${encodeURIComponent(leavePool())}&month=${encodeURIComponent(month)}`;const result=await jsonp(url);if(!result.ok)throw new Error(result.message||'讀取失敗');cloudSharedLeaves=Array.isArray(result.sharedLeaves)?result.sharedLeaves:[];cloudMyLeaves=Array.isArray(result.myLeaves)?result.myLeaves:[];cloudPunches=Array.isArray(result.punches)?result.punches:[];cloudReady=true;localStorage.setItem(sharedLeaveKey(),JSON.stringify(cloudSharedLeaves));localStorage.setItem(leaveKey(),JSON.stringify(cloudMyLeaves));renderCalendar();renderMyLeaves();renderRecords();renderAttendance();loadPunch();if(!silent)toastMsg('☁️ 已同步雲端出勤與請假資料')}catch(err){console.warn(err);if(!silent)toastMsg('⚠️ 暫時無法同步雲端，先顯示本機資料')}}
+  function jsonp(url,timeoutMs=15000){return new Promise((resolve,reject)=>{const cb='heremayCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);const script=document.createElement('script');const timer=setTimeout(()=>{cleanup();reject(new Error('雲端回應逾時，尚未確認結果'))},timeoutMs);function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}window[cb]=data=>{cleanup();resolve(data)};script.onerror=()=>{cleanup();reject(new Error('雲端連線失敗'))};script.src=url+(url.includes('?')?'&':'?')+'callback='+encodeURIComponent(cb)+'&_='+Date.now();document.head.append(script)})}
+  async function loadCloudData(silent=false){
+    const sequence=++attendanceLoadSequence;
+    const month=`${viewDate.getFullYear()}-${pad(viewDate.getMonth()+1)}`;
+    const cacheKey=sharedLeaveKey();
+    setDataStatus('正在同步；完成前請假名單可能尚未更新');
+    try{
+      const url=`${SERVICE_URL}?action=getAttendanceBundle&employeeId=${encodeURIComponent(employeeKey())}&pool=${encodeURIComponent(leavePool())}&month=${encodeURIComponent(month)}`;
+      const result=await jsonp(url,45000);
+      if(sequence!==attendanceLoadSequence)return false;
+      if(!result.ok)throw new Error(result.message||'讀取失敗');
+      cloudSharedLeaves=Array.isArray(result.sharedLeaves)?result.sharedLeaves:[];
+      cloudMyLeaves=Array.isArray(result.myLeaves)?result.myLeaves:[];
+      cloudPunches=Array.isArray(result.punches)?result.punches:[];
+      cloudReady=true;
+      try{localStorage.setItem(cacheKey,JSON.stringify(cloudSharedLeaves));localStorage.setItem(leaveKey(),JSON.stringify(cloudMyLeaves))}catch(error){console.warn('手機暫存失敗',error)}
+      renderCalendar();renderMyLeaves();renderRecords();renderAttendance();loadPunch();
+      setDataStatus(`已同步 ${month} 請假資料｜${new Date().toLocaleTimeString('zh-TW',{hour12:false})}`);
+      if(!silent)toastMsg('☁️ 已同步雲端出勤與請假資料');
+      return true;
+    }catch(err){
+      if(sequence!==attendanceLoadSequence)return false;
+      console.warn(err);setDataStatus('⚠️ 同步未完成：目前名單可能不是最新，請勿據此判斷剩餘名額');
+      if(!silent)toastMsg('⚠️ 暫時無法同步，畫面資料尚未確認');
+      return false;
+    }
+  }
   async function postAttendance(action,fields,kind,options={}){
     if(pendingCloudAction){
       toastMsg('上一項資料正在處理；可按上方同步鍵重新整理狀態');
@@ -1213,15 +1241,11 @@
     setPunchPending(kind,true);
     toastMsg('正在寫入雲端…');
 
-    pendingActionTimer=setTimeout(()=>{
-      if(!pendingCloudAction)return;
-      clearPendingAction();
-      toastMsg('⚠️ 雲端回應較慢，按鍵已恢復，請先同步資料再重試');
-    },18000);
+
 
     try{
       const url=`${SERVICE_URL}?action=${encodeURIComponent(action)}&payload=${encodeURIComponent(JSON.stringify(fields))}`;
-      const result=await jsonp(url);
+      const result=await jsonp(url,60000);
       const current=pendingCloudAction;
 
       if(pendingActionTimer){
@@ -1251,6 +1275,7 @@
         renderCalendar();
       }
 
+      if(result.leave&&kind==='submitLeave'){selectedDates.delete(String(result.leave.date));renderSelected()}
       setPunchPending(kind,false);
 
       if(current&&current.options&&typeof current.options.next==='function'){
@@ -1267,7 +1292,7 @@
         enqueueOfflinePunch(action,fields,kind,lastAccessResult);
         toastMsg('📦 網路暫時無法上傳，打卡已安全暫存在手機');
       }else{
-        toastMsg('⚠️ '+(error.message||'雲端儲存失敗'));
+        toastMsg('⚠️ '+(error.message||'雲端儲存失敗')+(kind==='submitLeave'?'；未確認的日期與原因已保留，請先同步確認紀錄':''));
       }
       await loadCloudData(true);
     }
