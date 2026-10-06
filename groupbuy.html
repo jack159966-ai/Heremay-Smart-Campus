@@ -443,10 +443,11 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
 </main>
 <div class="toast" id="toast"></div>
 
+<script src="./notification-read-sync.js?v=1.0.0"></script>
 <script>
 const SERVICE_URL='https://script.google.com/macros/s/AKfycbyGOxpeqwRU3_Q2HcoQHsMr_PvUkoLkpRwPPCLs5K6iWRye7fVeQdNkMAvc1oBvqFFrpw/exec';
 const CK='heremay.groupbuy.cloud.campaigns.v15', OK='heremay.groupbuy.cloud.orders.v15', TK='heremay.groupbuy.cloud.templates.v15';
-let pendingFiles=[], existingFiles=[], activeTemplate='drink', editingCampaignId='', openedCampaignId='', pickerCategory='drink';
+let pendingFiles=[], existingFiles=[], activeTemplate='drink', editingCampaignId='', openedCampaignId=new URLSearchParams(location.search).get('campaignId')||new URLSearchParams(location.search).get('id')||'', pickerCategory='drink';
 let selectedStatsCampaignId='';
 let cloudBusy=false;
 const SK='heremay.groupbuy.settlement.v17';
@@ -1307,6 +1308,7 @@ function renderAvailable(){
    const c=cs.find(x=>x.id===openedCampaignId);
    if(!c){openedCampaignId='';return renderAvailable()}
    box.innerHTML=`<div class="actions"><button class="btn secondary" onclick="openedCampaignId='';renderAvailable()">← 返回活動清單</button></div>${eventCard(c)}`;
+   HeremayNotificationReads.confirm(currentEmployee(),'groupbuy',c.id);
    return;
  }
  box.innerHTML=cs.length?`<div class="campaignList">${cs.map(c=>`<div class="campaignSummary ${isNewCampaign(c)?'isNewCampaign':''}"><h3>${esc(c.title)} ${isNewCampaign(c)?'<span class="newCampaignBadge">NEW 新活動</span>':''} ${c.cancelled?'<span class="badge no">已取消</span>':''}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}</div>${c.capacity>0?`<div class="counter">已報名 ${participantCount(c)}／${c.capacity} 人｜剩餘 ${remaining(c)} 人</div>`:''}<div class="summaryActions"><button class="btn" onclick="openedCampaignId='${c.id}';renderAvailable()">進入${c.template==='survey'?'調查':(c.template==='travel'||c.template==='training'?'報名':'訂購')}</button>${isHost(c)?`<button class="btn secondary" onclick="editCampaign('${c.id}')">編輯活動</button><button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="finishCampaign('${c.id}')">活動結束</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button>`:''}</div></div>`).join('')}</div>`:'<div class="empty">目前沒有可參加的活動。</div>';

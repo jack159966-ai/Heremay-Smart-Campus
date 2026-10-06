@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>訊息中心 v1.5.5｜2026-09-30</title>
+  <title>訊息中心 v1.5.6｜2026-10-06</title>
   <style>
     :root{--blue:#4774b3;--ink:#23344e;--muted:#728096;--line:#d8e4f2;--bg:#edf5fc;--card:#fff;--new:#fff9e9}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
@@ -21,8 +21,9 @@
   <div class="person" id="person"></div>
   <div class="toolbar"><span class="count" id="count">讀取中…</span><button class="action" id="allRead" onclick="markAllRead()" hidden>全部已讀</button></div>
   <section class="list" id="list"><div class="loading">正在讀取訊息…</div></section>
-  <div style="text-align:center;color:#728096;font-size:12px;margin-top:20px">v1.5.5｜2026-09-30</div>
+  <div style="text-align:center;color:#728096;font-size:12px;margin-top:20px">v1.5.6｜2026-10-06</div>
 </main>
+<script src="./notification-read-sync.js?v=1.0.0"></script>
 <script>
   const PARAMS = Object.fromEntries(new URLSearchParams(location.search).entries());
   const MESSAGE_SERVICE_URL = 'https://script.google.com/macros/s/AKfycbwhJsU-5QiZ3uDd9UCnECd16jpHG_LoweHRIC7TrSf_AH-bDLPUFVeAGB2urQo25zzoVg/exec';
@@ -47,7 +48,7 @@
   function save(key,value){try{localStorage.setItem(storageKey+key,JSON.stringify(value));}catch(e){}}
   let pendingReads=stored('.reads',[]);
   function saveItems(){save('.items',{items,updatedAt:Date.now()});}
-  function applyPending(){items.forEach(x=>{if(pendingReads.includes(x.id))x.isRead=true;});}
+  function applyPending(){pendingReads=stored('.reads',[]);items.forEach(x=>{if(pendingReads.includes(x.id))x.isRead=true;});}
   function queueRead(id){if(!pendingReads.includes(id))pendingReads.push(id);save('.reads',pendingReads);const x=items.find(v=>v.id===id);if(x)x.isRead=true;saveItems();render(0);}
   async function flushReads(){
     if(syncingReads||!pendingReads.length)return;
@@ -120,7 +121,7 @@
     }
     if(destination){
       // Persist locally before leaving; synchronize on return without delaying navigation.
-      queueRead(id);
+      if(!HeremayNotificationReads.stage(identity,storageKey,items,x))queueRead(id);
       location.assign(destination);
       return;
     }
@@ -187,6 +188,7 @@
     items=cached.items;applyPending();render(0);loadedOnce=true;
     document.getElementById('count').textContent+='（快取，更新中…）';
   }
+  window.addEventListener('pageshow',()=>{applyPending();render();flushReads();refreshPrivate();load();});
   render();refreshPrivate();load();
   setInterval(()=>{if(!document.hidden){refreshPrivate();load();}},30000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden){refreshPrivate();load();}});
