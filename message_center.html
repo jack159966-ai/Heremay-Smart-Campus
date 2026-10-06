@@ -33,13 +33,16 @@
   };
   let items = [];
   let generalVerified=false;
+  let messageSyncNote='尚未完成同步';
+  let privateLoadPromise=null;
   const sourceCounts={private:Math.max(0,Number(PARAMS.privateUnread)||0),discussion:Math.max(0,Number(PARAMS.discussionUnread)||0),groupbuy:Math.max(0,Number(PARAMS.groupbuyUnread)||0)};
   function sourceCards(){return Object.entries(sourceCounts).filter(([,n])=>n>0).map(([key,n])=>{
     const label={private:'💬 私訊',discussion:'討論區',groupbuy:'團購通知'}[key];
     return `<article class="item new"><div class="title">${label}</div><div class="body">${n} 則未讀，請進入查看。</div><button class="open" onclick="openSource('${key}')">查看${label}</button></article>`;
   }).join('');}
   function openSource(key){const file={private:'private_message.html',discussion:'discussion.html',groupbuy:'groupbuy.html'}[key];if(!file)return;const url=new URL(buildAuthenticatedLink(file));url.searchParams.set('back',location.href);location.assign(url.toString());}
-  async function refreshPrivate(){if(!identity.employeeId||!identity.name)return;const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);try{const url=new URL('https://heremay-passkey-backend-943533867342.asia-east1.run.app/api/private/unread');url.searchParams.set('employeeId',identity.employeeId);url.searchParams.set('name',identity.name);const response=await fetch(url,{cache:'no-store',signal:controller.signal}),data=await response.json();if(!response.ok||!data.ok)throw new Error('私訊連線失敗');sourceCounts.private=Math.max(0,Number(data.count)||0);render();}catch(e){/* Keep the homepage count when its independent service is unavailable. */}finally{clearTimeout(timer);}}
+  async function refreshPrivate(){if(privateLoadPromise)return privateLoadPromise;privateLoadPromise=refreshPrivateUncached().finally(()=>{privateLoadPromise=null});return privateLoadPromise}
+  async function refreshPrivateUncached(){if(!identity.employeeId||!identity.name)return;const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);try{const url=new URL('https://heremay-passkey-backend-943533867342.asia-east1.run.app/api/private/unread');url.searchParams.set('employeeId',identity.employeeId);url.searchParams.set('name',identity.name);const response=await fetch(url,{cache:'no-store',signal:controller.signal}),data=await response.json();if(!response.ok||!data.ok)throw new Error('私訊連線失敗');sourceCounts.private=Math.max(0,Number(data.count)||0);render();}catch(e){/* Keep the homepage count when its independent service is unavailable. */}finally{clearTimeout(timer);}}
 
   let audioContext=null, pendingSound=false, soundReady=false, loadedOnce=false, loading=false;
   const storageKey='heremay.messageCenter.v154.'+JSON.stringify(identity);
@@ -77,13 +80,14 @@
     loading=true;
     try{
       const r=await api('list',{limit:100});
-      items=r.items||[];generalVerified=true;
+      items=r.items||[];generalVerified=true;messageSyncNote='已同步 '+new Date().toLocaleTimeString('zh-TW',{hour12:false});
       applyPending();saveItems();
       render(r.unread||0);
       notifyNewest(loadedOnce);
       loadedOnce=true;
       flushReads();
     }catch(e){
+      messageSyncNote='更新失敗，顯示上次保存資料';
       if(attempt<2){
         document.getElementById('count').textContent='正在重新連線…';
         render();
@@ -96,7 +100,8 @@
   function render(unread){
     const unreadItems=items.filter(x=>!x.isRead&&x.source!=='私訊');
     unread=unreadItems.length+Object.values(sourceCounts).filter(n=>n>0).length;
-    document.getElementById('count').textContent=unread?'未讀 '+unread+' 則':(generalVerified?'目前沒有未讀訊息':'正在更新一般通知…');
+    document.getElementById('count').textContent=(unread?'未讀 '+unread+' 則':(generalVerified?'目前沒有未讀訊息':'一般通知尚未確認'))+'｜'+messageSyncNote;
+    try{save('.homeUnread',{state:{general:unreadItems.length,...sourceCounts},updatedAt:Date.now()})}catch(error){}
     document.getElementById('allRead').hidden=!unreadItems.length;
     const box=document.getElementById('list');
     if(!unreadItems.length){box.innerHTML=sourceCards()+(generalVerified?(sourceCards()?'':'<div class="empty">目前沒有未讀訊息</div>'):'<div class="loading">正在更新一般通知；其他入口可先使用。</div>');return;}
@@ -185,7 +190,7 @@
   function esc(v){return String(v||'').replace(/['\\]/g,'\\$&')}
   const cached=stored('.items',null);
   if(cached&&Array.isArray(cached.items)&& (identity.employeeId||identity.account||identity.groups)){
-    items=cached.items;applyPending();render(0);loadedOnce=true;
+    items=cached.items;generalVerified=true;messageSyncNote='暫存 '+new Date(cached.updatedAt).toLocaleString('zh-TW')+'，背景更新中';applyPending();render(0);loadedOnce=true;
     document.getElementById('count').textContent+='（快取，更新中…）';
   }
   window.addEventListener('pageshow',()=>{applyPending();render();flushReads();refreshPrivate();load();});

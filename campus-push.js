@@ -17,7 +17,7 @@
       if(!window.isSecureContext||!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window))throw new Error('請從支援通知的瀏覽器或手機桌面的智慧校園開啟。');
       const e=employee(),login=account(e);if(!login)throw new Error('請先登入智慧校園。');
       // Request permission directly from the user's click, before network operations.
-      if(await Notification.requestPermission()!=='granted')throw new Error('請在裝置設定中允許智慧校園通知。');
+      if(Notification.permission!=='granted' && await Notification.requestPermission()!=='granted')throw new Error('請在裝置設定中允許智慧校園通知。');
       const password=window.prompt('首次開啟訊息推播，請輸入本人登入密碼以確認收件帳號：');
       if(!password)return;
       await navigator.serviceWorker.register('./sw.js');
