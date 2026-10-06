@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.9.13</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.9.14</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -319,7 +319,7 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
 <main class="app">
 <header class="header">
   <div class="logo"><img src="assets/logo.png?v=20260720-groupbuy-v11" alt="和美智慧校園 Logo" onerror="this.parentElement.textContent='🏰'"></div>
-  <div><small>Heremay 和美智慧校園</small><h1>🛒 團購／報名中心</h1><span class="header-version">v1.9.13｜2026-10-02</span></div>
+  <div><small>Heremay 和美智慧校園</small><h1>🛒 團購／報名中心</h1><span class="header-version">v1.9.14｜2026-10-06</span></div>
   <button class="campus-return" type="button" onclick="goBack()" aria-label="返回上一頁" title="返回上一頁">← 返回</button>
 </header>
 
@@ -439,17 +439,17 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.9.13｜2026-10-02｜統一右上返回鍵</div>
+<div class="version">團購／報名中心 v1.9.14｜2026-10-06｜統一右上返回鍵</div>
 </main>
 <div class="toast" id="toast"></div>
 
-<script src="./notification-read-sync.js?v=1.0.0"></script>
+<script src="./notification-read-sync.js?v=1.1.0"></script>
 <script>
 const SERVICE_URL='https://script.google.com/macros/s/AKfycbyGOxpeqwRU3_Q2HcoQHsMr_PvUkoLkpRwPPCLs5K6iWRye7fVeQdNkMAvc1oBvqFFrpw/exec';
 const CK='heremay.groupbuy.cloud.campaigns.v15', OK='heremay.groupbuy.cloud.orders.v15', TK='heremay.groupbuy.cloud.templates.v15';
 let pendingFiles=[], existingFiles=[], activeTemplate='drink', editingCampaignId='', openedCampaignId=new URLSearchParams(location.search).get('campaignId')||new URLSearchParams(location.search).get('id')||'', pickerCategory='drink';
 let selectedStatsCampaignId='';
-let cloudBusy=false;
+let cloudBusy=false,cloudLoadPromise=null,cloudWriteBusy=false,cloudDataFresh=false;
 const SK='heremay.groupbuy.settlement.v17';
 function getSettlement(){try{return JSON.parse(localStorage.getItem(SK)||'{}')}catch(e){return {}}}
 function settlementKey(campaignId,user){return String(campaignId)+'||'+String(user)}
@@ -610,7 +610,7 @@ function jsonpCloud(action,params={}){
  return new Promise((resolve,reject)=>{
    const cb='heremayCloudCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
    const script=document.createElement('script');
-   const timer=setTimeout(()=>cleanup(new Error('雲端讀取逾時')),15000);
+   const timer=setTimeout(()=>cleanup(new Error('雲端讀取逾時（45 秒），請確認後端部署與執行紀錄')),45000);
    function cleanup(error,data){
      clearTimeout(timer);
      try{delete window[cb]}catch(e){}
@@ -618,26 +618,14 @@ function jsonpCloud(action,params={}){
      error?reject(error):resolve(data);
    }
    window[cb]=data=>cleanup(null,data);
-   const q=new URLSearchParams({action,callback:cb,...params});
+   const q=new URLSearchParams({action,callback:cb,...params,_:Date.now()});
    script.src=SERVICE_URL+'?'+q.toString();
    script.onerror=()=>cleanup(new Error('無法連線雲端服務'));
    document.head.appendChild(script);
  });
 }
 function postCloud(action,payload){
- return new Promise((resolve,reject)=>{
-   const frameName='heremayGroupbuyFrame_'+Date.now();
-   const iframe=document.createElement('iframe');
-   iframe.name=frameName;iframe.style.display='none';
-   const form=document.createElement('form');
-   form.method='POST';form.action=SERVICE_URL;form.target=frameName;form.style.display='none';
-   [['action',action],['payload',JSON.stringify(payload||{})]].forEach(([name,value])=>{
-     const input=document.createElement('input');input.type='hidden';input.name=name;input.value=value;form.appendChild(input);
-   });
-   document.body.append(iframe,form);
-   form.submit();
-   setTimeout(()=>{form.remove();iframe.remove();resolve(true)},1400);
- });
+ return postCloudResponse(action,payload,60000);
 }
 function postCloudResponse(action,payload,timeoutMs=180000){
  return new Promise((resolve,reject)=>{
@@ -647,14 +635,14 @@ function postCloudResponse(action,payload,timeoutMs=180000){
    iframe.name=frameName;iframe.style.display='none';
    const form=document.createElement('form');
    form.method='POST';form.action=SERVICE_URL;form.target=frameName;form.style.display='none';
-   const timer=setTimeout(()=>cleanup(new Error('附件上傳逾時')),timeoutMs);
+   const timer=setTimeout(()=>cleanup(new Error('操作逾時，結果尚未確認；請重新同步確認後再操作')),timeoutMs);
    function cleanup(error,data){
      clearTimeout(timer);window.removeEventListener('message',onMessage);form.remove();iframe.remove();error?reject(error):resolve(data);
    }
    function onMessage(event){
      const msg=event.data||{};
      if(msg.source!=='heremay-groupbuy'||msg.token!==token)return;
-     if(!msg.data||msg.data.ok===false)cleanup(new Error(msg.data?.message||'附件上傳失敗'));
+     if(!msg.data||msg.data.ok!==true)cleanup(new Error(msg.data?.message||'雲端操作失敗'));
      else cleanup(null,msg.data);
    }
    window.addEventListener('message',onMessage);
@@ -788,8 +776,12 @@ function normalizeCampaign(c){
  const status=c.status||(c.cancelled?'cancelled':c.closed?'closed':'open');
  return {...c,status,closed:status==='closed',cancelled:status==='cancelled'};
 }
-async function loadCloudData(showMessage=true){
- if(cloudBusy)return;
+function loadCloudData(showMessage=true){
+ if(cloudLoadPromise)return cloudLoadPromise;
+ cloudLoadPromise=loadCloudDataOnce(showMessage).finally(()=>{cloudLoadPromise=null});
+ return cloudLoadPromise;
+}
+async function loadCloudDataOnce(showMessage=true){
  cloudBusy=true;
  if(showMessage)setSyncState('busy','正在同步雲端資料…');
  try{
@@ -804,12 +796,11 @@ async function loadCloudData(showMessage=true){
      orders=result.orders||[];
      templates=result.templates||[];
    }catch(allError){
-     console.warn('整包同步失敗，改用分段同步',allError);
-     const [cRes,oRes,tRes]=await Promise.all([
-       jsonpCloud('listCampaigns'),
-       jsonpCloud('listOrders'),
-       jsonpCloud('listTemplates')
-     ]);
+     if(!String(allError.message).includes('未知的讀取動作'))throw allError;
+     console.warn('舊版後端，改用分段同步',allError);
+     const cRes=await jsonpCloud('listCampaigns');
+     const oRes=await jsonpCloud('listOrders');
+     const tRes=await jsonpCloud('listTemplates');
      if(!cRes.ok)throw new Error(cRes.message||'活動資料讀取失敗');
      if(!oRes.ok)throw new Error(oRes.message||'訂單資料讀取失敗');
      if(!tRes.ok)throw new Error(tRes.message||'模板資料讀取失敗');
@@ -818,6 +809,8 @@ async function loadCloudData(showMessage=true){
      templates=tRes.data||[];
    }
 
+   if(!Array.isArray(campaigns)||!Array.isArray(orders)||!Array.isArray(templates))throw new Error('同步資料格式異常');
+   cloudDataFresh=true;
    setC(campaigns.map(normalizeCampaign));
    setO(orders);
    setT(templates);
@@ -830,33 +823,47 @@ async function loadCloudData(showMessage=true){
      setSyncState('ok','雲端同步完成，但部分畫面資料格式異常');
      if(showMessage)toast('雲端已連線；部分舊資料正在相容處理');
    }
+   return true;
  }catch(error){
    console.error(error);
-   setSyncState('bad','雲端連線失敗，暫時顯示本機快取');
+   setSyncState('bad','同步失敗：'+error.message+'｜顯示本機快取');
    if(showMessage)toast('目前無法同步，已顯示最近資料');
-   renderAll();
+   try{renderAll()}catch(renderError){console.error(renderError)}
+   return false;
  }finally{
    cloudBusy=false;
  }
 }
 async function cloudWrite(action,payload,successMessage){
- setSyncState('busy','正在寫入雲端…');
+ if(cloudWriteBusy){toast('上一筆操作仍在處理，請稍候');return false}
+ cloudWriteBusy=true;
+ setSyncState('busy','正在寫入雲端，等待確認…');
  try{
+   if(cloudLoadPromise)await cloudLoadPromise;
    await postCloud(action,payload);
-   await new Promise(r=>setTimeout(r,700));
-   await loadCloudData(false);
+   // Update the local view only after the server has confirmed the mutation.
+   if(action==='deleteCampaign'){
+     setC(getC().filter(c=>String(c.id)!==String(payload.id)));
+     setO(getO().filter(o=>String(o.campaignId)!==String(payload.id)));
+   }else if(['finishCampaign','reopenCampaign','cancelCampaign'].includes(action)){
+     const status=action==='finishCampaign'?'closed':action==='reopenCampaign'?'open':'cancelled';
+     setC(getC().map(c=>String(c.id)===String(payload.id)?normalizeCampaign({...c,status,cancelReason:payload.reason||'',updatedAt:new Date().toISOString()}):c));
+   }
+   try{renderAll()}catch(error){console.error(error)}
    if(successMessage)toast(successMessage);
+   const synced=await loadCloudData(false);
+   if(!synced)setSyncState('bad','操作已完成；最新清單同步失敗，請稍後重新同步');
    return true;
  }catch(error){
    console.error(error);
-   setSyncState('bad','雲端寫入失敗');
-   toast('雲端寫入失敗，請稍後再試');
+   setSyncState('bad','操作未確認：'+error.message);
+   toast(error.message);
    return false;
- }
+ }finally{cloudWriteBusy=false}
 }
 function manualCloudRefresh(){loadCloudData(true)}
 
-const APP_VERSION='1.9.13';
+const APP_VERSION='1.9.14';
 async function updateAppNow(){
  toast('正在檢查新版…');
  try{
@@ -1308,7 +1315,7 @@ function renderAvailable(){
    const c=cs.find(x=>x.id===openedCampaignId);
    if(!c){openedCampaignId='';return renderAvailable()}
    box.innerHTML=`<div class="actions"><button class="btn secondary" onclick="openedCampaignId='';renderAvailable()">← 返回活動清單</button></div>${eventCard(c)}`;
-   HeremayNotificationReads.confirm(currentEmployee(),'groupbuy',c.id);
+   if(cloudDataFresh)HeremayNotificationReads.confirm(currentEmployee(),'groupbuy',c.id);
    return;
  }
  box.innerHTML=cs.length?`<div class="campaignList">${cs.map(c=>`<div class="campaignSummary ${isNewCampaign(c)?'isNewCampaign':''}"><h3>${esc(c.title)} ${isNewCampaign(c)?'<span class="newCampaignBadge">NEW 新活動</span>':''} ${c.cancelled?'<span class="badge no">已取消</span>':''}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}</div>${c.capacity>0?`<div class="counter">已報名 ${participantCount(c)}／${c.capacity} 人｜剩餘 ${remaining(c)} 人</div>`:''}<div class="summaryActions"><button class="btn" onclick="openedCampaignId='${c.id}';renderAvailable()">進入${c.template==='survey'?'調查':(c.template==='travel'||c.template==='training'?'報名':'訂購')}</button>${isHost(c)?`<button class="btn secondary" onclick="editCampaign('${c.id}')">編輯活動</button><button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="finishCampaign('${c.id}')">活動結束</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button>`:''}</div></div>`).join('')}</div>`:'<div class="empty">目前沒有可參加的活動。</div>';
@@ -1550,7 +1557,7 @@ function renderAll(){renderAvailable();renderMine();renderStats()}
 
 // 只要使用者真的進入登記中心，就視為已看過首頁提醒。
 // 不再等待雲端同步完成，避免網路慢時回首頁紅點一直留著。
-markGroupbuySeen();
+// 已讀只在個別活動成功載入後確認。
 
 document.getElementById('hostName').value=currentName();
 applyTemplate('drink',document.querySelector('.templateBtn'));
