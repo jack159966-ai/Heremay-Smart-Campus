@@ -800,7 +800,8 @@ body.personal-settings-open{overflow:hidden}
     </div>
   </div>
 
-  <script>
+  <script src="./notification-read-sync.js?v=1.1.0"></script>
+<script>
     function openAttendanceArea(){
       sessionStorage.removeItem('heremay.attendanceAreaGrant');
       window.location.href='attendance.html?v=2.9.4';
@@ -866,6 +867,13 @@ body.personal-settings-open{overflow:hidden}
         }
         try{localStorage.setItem(key+'.homeUnread',JSON.stringify({state:teacherUnreadState,updatedAt:Date.now()}))}catch(error){}
       }
+      try{
+        const key=messageCacheKey(),cache=JSON.parse(localStorage.getItem(key+'.items')||'null');
+        if(cache?.items){
+          HeremayNotificationReads.apply(identity,key,cache.items);
+          teacherUnreadState.general=cache.items.filter(item=>!item.isRead&&item.source!=='私訊'&&!/^(discussion|groupbuy|private):/.test(HeremayNotificationReads.target(item))).length;
+        }
+      }catch(error){}
       // 訊息中心內，私訊、討論與登記各以一張來源卡呈現，
       // 同一來源內即使有多筆，首頁總數也只計為一則。
       const count=Math.max(0,Number(teacherUnreadState.general)||0)
@@ -889,8 +897,9 @@ body.personal-settings-open{overflow:hidden}
           const items=Array.isArray(result.items)?result.items:[];
           const key=messageCacheKey();
           let pending=[];try{pending=JSON.parse(localStorage.getItem(key+'.reads')||'[]')}catch(error){}
-          items.forEach(item=>{if(pending.includes(item.id))item.isRead=true});
-          teacherUnreadState.general=items.filter(item=>!item.isRead&&item.source!=='私訊').length;
+          HeremayNotificationReads.apply(identity,key,items);
+          HeremayNotificationReads.flush(identity);
+          teacherUnreadState.general=items.filter(item=>!item.isRead&&item.source!=='私訊'&&!/^(discussion|groupbuy|private):/.test(HeremayNotificationReads.target(item))).length;
           try{localStorage.setItem(key+'.items',JSON.stringify({items,updatedAt:Date.now()}))}catch(error){}
           renderTeacherTotalUnread();
         }catch(err){console.warn('訊息中心未讀提示：',err.message)}
