@@ -441,6 +441,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
 
 <div class="toast" id="toast"></div>
 
+<script src="./notification-read-sync.js?v=1.0.0"></script>
 <script>
 const SERVICE_URL='https://script.google.com/macros/s/AKfycbxuvqWI2FlvCk5ZdEfhSNMF6O79pElfx2p4PZBIk-xT1zw0NVorhzX8wNPF9oOHxY2x/exec';
 let employeeDirectory=[];
@@ -956,6 +957,7 @@ async function openRoom(id){
     writeRoomCache(id,msgs);
     // v3.6：只有後端確實找到參與紀錄並完成寫入，才把這棟樓顯示為已讀。
     if(data?.readState?.marked){
+      HeremayNotificationReads.confirm({employeeId:currentUserId,name:currentUser},'discussion',id);
       r.unread=false;
       r.unreadCount=0;
       updateUnreadSummary();
