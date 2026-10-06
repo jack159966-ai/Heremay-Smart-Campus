@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v3.15</title>
+<title>和美智慧校園｜討論區 v3.16</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -332,7 +332,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
   <button class="back" onclick="goBack()">← 返回</button>
 </header>
 <div class="version-refresh-row">
-  <span class="version">討論區 v3.15</span>
+  <span class="version">討論區 v3.16</span>
   <button class="refreshBtn" id="refreshDiscussionBtn" type="button" onclick="refreshDiscussionPage()">🔄 同步／檢查最新版</button>
 </div>
 
@@ -904,7 +904,9 @@ async function createRoom(){
   }catch(err){toastMsg('⚠️ 建立失敗：'+err.message)}
 }
 
+let roomOpenSequence=0;
 async function openRoom(id){
+  const requestSequence=++roomOpenSequence;
   const r=cloudRooms.find(x=>x.roomId===id);if(!r)return;
   currentRoomId=id;listView.classList.add('hide');roomView.classList.add('show');
   roomTitle.textContent=r.title;roomMeta.innerHTML=`建立：<span class="creatorName">${esc(r.creatorName)}</span>｜${fmt(r.createdAt)}｜保存 ${esc(r.retention||'30')}${String(r.retention)==='永久'?'':'天'}`;
@@ -942,6 +944,7 @@ async function openRoom(id){
     roomParticipants.innerHTML='<span class="pill">尚未取得參與人員資料</span>';
   }
   const cached=await readRoomCache(id);
+  if(requestSequence!==roomOpenSequence||currentRoomId!==id)return;
   if(cached&&Array.isArray(cached.messages)){
     currentRoomMessages=cached.messages;
     renderRoomMessages(currentRoomMessages);
@@ -960,27 +963,38 @@ async function openRoom(id){
     const data=await jsonp('getMessages',{
       roomId:id,
       userId:currentUserId,
-      userName:currentUser
+      userName:currentUser,
+      deferRead:'1'
     });
-    const msgs=data?.ok&&Array.isArray(data.messages)?data.messages:[];
+    if(requestSequence!==roomOpenSequence||currentRoomId!==id)return;
+    if(!data?.ok||!Array.isArray(data.messages))throw new Error(data?.message||'留言資料格式異常');
+    const msgs=data.messages;
     currentRoomMessages=msgs;
     renderRoomMessages(msgs);
     writeRoomCache(id,msgs);
-    // v3.6：只有後端確實找到參與紀錄並完成寫入，才把這棟樓顯示為已讀。
-    if(data?.readState?.marked){
-      HeremayNotificationReads.confirm({employeeId:currentUserId,name:currentUser},'discussion',id);
-      r.unread=false;
-      r.unreadCount=0;
-      updateUnreadSummary();
-    }else{
-      toastMsg('⚠️ 留言已開啟，但雲端未能標記已讀，請通知主管檢查參與名單');
-    }
+    // 留言先顯示；已讀僅在後端確認成功後清除。獨立要求不阻擋畫面。
+    const reader={userId:currentUserId,userName:currentUser};
+    const identity={employeeId:currentUserId,name:currentUser};
+    (async()=>{
+      try{
+        const readState=data?.readState?.marked?data.readState:
+          await postDirect('markRoomRead',{roomId:id,...reader});
+        if(!readState?.marked)throw new Error('雲端未找到對應的參與紀錄');
+        HeremayNotificationReads.confirm(identity,'discussion',id);
+        r.unread=false;r.unreadCount=0;
+        updateUnreadSummary();
+      }catch(err){
+        if(currentRoomId===id&&requestSequence===roomOpenSequence)
+          toastMsg('留言已載入，已讀狀態尚未同步：'+err.message);
+      }
+    })();
   }catch(err){
+    if(requestSequence!==roomOpenSequence||currentRoomId!==id)return;
     if(cached&&Array.isArray(cached.messages))toastMsg('目前顯示手機內資料，雲端稍後再同步');
     else messageList.innerHTML=`<div class="empty">留言讀取失敗：${esc(err.message)}</div>`;
   }
 }
-function closeRoom(){currentRoomId='';currentRoomMessages=[];roomView.classList.remove('show');listView.classList.remove('hide');renderRooms()}
+function closeRoom(){++roomOpenSequence;currentRoomId='';currentRoomMessages=[];roomView.classList.remove('show');listView.classList.remove('hide');renderRooms()}
 
 
 
