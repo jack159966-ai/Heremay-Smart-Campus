@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>和美智慧校園｜討論區 v3.14</title>
+<title>和美智慧校園｜討論區 v3.15</title>
 <style>
 :root{--bg:#eef7fd;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;--muted:#718797;--line:#cfe3f1;--green:#2ea66b;--shadow:0 14px 34px rgba(52,105,144,.15)}
 *{box-sizing:border-box}body{margin:0;font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:linear-gradient(#f4f9ff,var(--bg));color:var(--ink);min-height:100vh}
@@ -332,7 +332,7 @@ button,input,select,textarea{font:inherit}.phone{width:min(100%,620px);margin:au
   <button class="back" onclick="goBack()">← 返回</button>
 </header>
 <div class="version-refresh-row">
-  <span class="version">討論區 v3.14</span>
+  <span class="version">討論區 v3.15</span>
   <button class="refreshBtn" id="refreshDiscussionBtn" type="button" onclick="refreshDiscussionPage()">🔄 同步／檢查最新版</button>
 </div>
 
@@ -593,12 +593,23 @@ async function loadEmployeeDirectory(){
   return employeeDirectory;
 }
 
+let roomsLoadPromise=null;
+function roomsCacheKey(){return 'heremay.discussion.rooms.'+String(currentUserId||currentUser)}
+function restoreRoomsCache(){
+  try{const saved=JSON.parse(localStorage.getItem(roomsCacheKey())||'null');if(saved&&Array.isArray(saved.rooms)&&Date.now()-saved.cachedAt<=30*86400000){cloudRooms=saved.rooms;renderRooms();return true}}catch(error){}
+  return false;
+}
 async function loadCloudRooms(){
+  if(roomsLoadPromise)return roomsLoadPromise;
+  roomsLoadPromise=loadCloudRoomsUncached().finally(()=>{roomsLoadPromise=null});return roomsLoadPromise;
+}
+async function loadCloudRoomsUncached(){
   if(!currentUserId && currentUser==='同仁') return [];
   const data=await jsonp('getRooms',{userId:currentUserId,userName:currentUser});
   if(!data?.ok) throw new Error(data?.message||'討論主題讀取失敗');
   currentIsManager=!!data.isManager;
   cloudRooms=Array.isArray(data.rooms)?data.rooms:[];
+  try{localStorage.setItem(roomsCacheKey(),JSON.stringify({rooms:cloudRooms,cachedAt:Date.now()}))}catch(error){}
   renderRooms();
   return cloudRooms;
 }
@@ -1725,7 +1736,9 @@ async function init(){
   userRole.textContent=userLabel();
   if(isGuest())newRoomBtn.style.display='none';
 
-  roomList.innerHTML='<div class="loadingBox">正在讀取討論主題…</div>';
+  const hasRoomsCache=restoreRoomsCache();
+  if(!hasRoomsCache)roomList.innerHTML='<div class="loadingBox">正在讀取討論主題…</div>';
+  else toastMsg('先顯示上次保存的討論主題，背景更新中');
 
   try{
     // 討論樓與員工名單同時讀，不再一個等完再讀下一個。
@@ -1738,7 +1751,8 @@ async function init(){
     const participantResult = results[1];
 
     if(roomResult.status==='rejected'){
-      roomList.innerHTML=`<div class="empty">⚠️ 討論主題讀取失敗：${esc(roomResult.reason?.message||'未知錯誤')}<br>請重新整理。</div>`;
+      if(hasRoomsCache)toastMsg('雲端更新失敗，目前顯示上次保存的討論主題');
+      else roomList.innerHTML=`<div class="empty">⚠️ 討論主題讀取失敗：${esc(roomResult.reason?.message||'未知錯誤')}<br>請重新整理。</div>`;
     }
 
     if(participantResult.status==='rejected'){
