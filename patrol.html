@@ -203,6 +203,7 @@ button{display:none!important}
 <section id="screenRecords" class="screen"><div class="card">
 <h2>巡堂紀錄</h2>
 <p class="muted" id="recordTip"></p>
+<div id="recordsSyncStatus" class="cloud-box" role="status">本機紀錄；尚未完成雲端核對</div>
 
 <div class="records-toolbar no-print">
   <button class="primary full" onclick="openBackfill()">＋ 補登歷史巡堂</button>
@@ -417,8 +418,17 @@ function mergeCloudRecords(items){
 
     const local=bucket[cls];
 
-    // 歷史日期以雲端試算表為準，避免手機舊快取中的空白缺失代碼擋住正確資料。
+    // 歷史與今日未同步修改均保留；缺少一筆雲端資料不能證明本機紀錄無效。
+    // 保存衝突副本，供主管核對，避免雲端讀取直接抹掉本機未上傳內容。
     if(date!==isoDate()){
+      const pending=local && local.cloudSyncSignature!==recordSyncSignature(local,sessionKey);
+      if(pending){
+        if(recordSyncSignature(local,sessionKey)!==recordSyncSignature(cloudToLocalRecord(item,sessionKey),sessionKey)){
+          data.cloudConflicts=data.cloudConflicts||{};
+          data.cloudConflicts[`${date}_${sessionKey}_${cls}`]={local:JSON.parse(JSON.stringify(local)),cloud:item,detectedAt:new Date().toISOString()};
+        }
+        return;
+      }
       bucket[cls]=cloudToLocalRecord(item,sessionKey);
       return;
     }
@@ -1319,6 +1329,7 @@ async function loadSelectedReportRange(){
 
 async function openReport(){
   show('Report');
+  renderReport();
   return await loadSelectedReportRange();
 }
 
@@ -1815,17 +1826,25 @@ function recentRecordRange(){
   return {from,to};
 }
 
+let recordsLoadSequence=0;
 async function loadRecordRangeFromCloud(){
-  if(!navigator.onLine)return false;
+  const sequence=++recordsLoadSequence;
+  const status=document.getElementById('recordsSyncStatus');
+  if(status)status.textContent='正在核對雲端；目前先顯示本機紀錄，空白不代表未巡堂';
+  if(!navigator.onLine){if(status)status.textContent='離線：本機紀錄尚未核對，請勿依空白直接補登';return false}
   try{
     const range=recordDateFilter
       ? {from:recordDateFilter,to:recordDateFilter}
       : recentRecordRange();
     const items=await fetchCloudRecordsSnapshot(range.from,range.to);
+    if(sequence!==recordsLoadSequence)return false;
     mergeCloudRecords(items);
+    const conflicts=Object.keys(data.cloudConflicts||{}).filter(key=>key.slice(0,10)>=range.from&&key.slice(0,10)<=range.to).length;
+    if(status)status.textContent=`已核對雲端 ${items.length} 筆｜${new Date().toLocaleTimeString('zh-TW',{hour12:false})}；本機未同步紀錄仍保留${conflicts?`；有 ${conflicts} 筆差異待核對`:''}`;
     return true;
   }catch(err){
     console.warn('紀錄頁按需讀取失敗',err);
+    if(sequence===recordsLoadSequence&&status)status.textContent='⚠️ 雲端核對失敗：目前為本機紀錄，空白不代表未巡堂';
     return false;
   }
 }
@@ -1834,6 +1853,7 @@ async function openRecords(){
   show('Records');
   const input=document.getElementById('recordDateFilter');
   if(input)input.value=recordDateFilter;
+  renderRecords();
   await loadRecordRangeFromCloud();
   renderRecords();
 }
@@ -1846,6 +1866,7 @@ async function refreshRecordsFromCloud(){
 
 async function applyRecordDateFilter(value){
   recordDateFilter=value||'';
+  renderRecords();
   await loadRecordRangeFromCloud();
   renderRecords();
 }
@@ -1853,6 +1874,7 @@ async function clearRecordDateFilter(){
   recordDateFilter='';
   const input=document.getElementById('recordDateFilter');
   if(input)input.value='';
+  renderRecords();
   await loadRecordRangeFromCloud();
   renderRecords();
 }

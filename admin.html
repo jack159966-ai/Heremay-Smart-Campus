@@ -1061,7 +1061,17 @@ async function deleteAdminReport(id){
  const x=cloudReports.find(r=>String(r.id)===String(id));if(!x||!confirm(`確定刪除「${x.title}」嗎？刪除後無法復原。`))return;
  try{const result=await adminPost('deleteReport',{id});if(!result.ok)throw new Error(result.message||'刪除失敗');await loadCloudDashboard();showToast('回報已刪除')}catch(err){showToast('刪除失敗：'+err.message)}
 }
+let dashboardLoadPromise=null;
 async function loadCloudDashboard(){
+ if(dashboardLoadPromise)return dashboardLoadPromise;
+ try{
+  const cached=JSON.parse(localStorage.getItem('heremay.adminDashboardCache')||'null');
+  if(cached){cloudAnnouncements=cached.announcements||[];cloudReports=cached.reports||[];cloudLeaves=cached.leaves||[];renderAdminNotices();renderAdminReports();renderAllLeaves();renderLeavesFor(dateKey(0),'todayLeaveList');renderLeavesFor(dateKey(1),'tomorrowLeaveList')}
+ }catch(error){console.warn('主管首頁暫存讀取失敗',error)}
+ dashboardLoadPromise=loadCloudDashboardUncached().finally(()=>{dashboardLoadPromise=null});
+ return dashboardLoadPromise;
+}
+async function loadCloudDashboardUncached(){
  try{
   const result=await adminJsonp('getDashboardBundle',{target:'主管'});
   if(!result.ok)throw new Error(result.message||'讀取失敗');
@@ -1070,6 +1080,7 @@ async function loadCloudDashboard(){
   cloudReports=Array.isArray(result.reports)?result.reports:[];
   cloudLeaves=Array.isArray(result.leaves)?result.leaves:[];
   localStorage.setItem('heremay.sharedLeaveRecords',JSON.stringify(cloudLeaves));
+  try{localStorage.setItem('heremay.adminDashboardCache',JSON.stringify({announcements:cloudAnnouncements,reports:cloudReports,leaves:cloudLeaves,syncedAt:new Date().toISOString()}))}catch(error){console.warn('主管首頁快取未保存',error)}
   renderAdminNotices();renderAdminReports();renderAllLeaves();
   renderLeavesFor(dateKey(0),'todayLeaveList');
   renderLeavesFor(dateKey(1),'tomorrowLeaveList');

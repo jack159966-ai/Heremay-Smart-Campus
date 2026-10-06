@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.26</title>
+  <title>和美智慧校園｜教保人員首頁 v15.27</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -633,7 +633,7 @@ body.personal-settings-open{overflow:hidden}
     </section>
 
     <div class="version-refresh-row">
-      <div class="page-version">教保人員首頁 v15.26</div>
+      <div class="page-version">教保人員首頁 v15.27</div>
       <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
     </div>
 
@@ -735,7 +735,7 @@ body.personal-settings-open{overflow:hidden}
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.26｜NAS 高速投稿入口</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.27｜NAS 高速投稿入口</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -759,7 +759,7 @@ body.personal-settings-open{overflow:hidden}
 
   <div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
     <div class="sheet" onclick="event.stopPropagation()">
-      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v15.26｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回教保人員首頁" title="返回教保人員首頁">← 返回</button></div>
+      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v15.27｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回教保人員首頁" title="返回教保人員首頁">← 返回</button></div>
 
       <div class="listbox">
         <h3>個人資料</h3>
@@ -893,7 +893,7 @@ body.personal-settings-open{overflow:hidden}
 
 
     const ANNOUNCEMENT_KEY='heremay.announcements';
-    const REPORT_KEY='heremay.reports';
+    const REPORT_KEY='heremay.reports.teacher.'+String(currentEmployee?.employeeId||currentUser);
     function currentDepartment(){
       const raw=String(
         currentEmployee?.group||
@@ -932,7 +932,19 @@ body.personal-settings-open{overflow:hidden}
       });
     }
     async function staffPost(action,payload){const body=new URLSearchParams();body.set('action',action);body.set('payload',JSON.stringify(payload));const res=await fetch(SERVICE_URL,{method:'POST',body});return await res.json()}
+    let staffLoadPromise=null;
     async function loadCloudStaffData(){
+      if(staffLoadPromise)return staffLoadPromise;
+      try{
+        const dept=currentDepartment();
+        cloudAnnouncements=JSON.parse(localStorage.getItem(ANNOUNCEMENT_KEY)||'[]').filter(x=>dept&&normalizedTargets(x).includes(dept));
+        cloudReports=JSON.parse(localStorage.getItem(REPORT_KEY)||'[]');
+        renderDynamicNotices();renderMyReports();
+      }catch(error){console.warn('首頁暫存讀取失敗',error)}
+      staffLoadPromise=loadCloudStaffDataUncached().finally(()=>{staffLoadPromise=null});
+      return staffLoadPromise;
+    }
+    async function loadCloudStaffDataUncached(){
       try{
         const [nr,rr]=await Promise.all([
           staffJsonp('getAnnouncements',{target:currentDepartment()}),
