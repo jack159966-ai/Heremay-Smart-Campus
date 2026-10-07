@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.9.3</title>
+  <title>和美智慧校園｜打卡與出勤 v2.9.5</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -81,7 +81,7 @@
   <header class="top">
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.9.4 同步狀態與請假確認</span>
+    <span class="version">v2.9.5 幼兒部晚值選項</span>
   </header>
 
   <div id="attendanceDataStatus" role="status" style="padding:10px;color:#995319;font-weight:850">尚未同步，畫面可能是手機暫存資料</div>
@@ -637,7 +637,7 @@
     }
     if(attendanceDepartment()==='幼兒部'){
       const saved=localStorage.getItem('heremay.kindergartenShift')||'正常班';
-      box.innerHTML=`<div class="mode-row"><label><strong>幼兒部今日班別</strong><select class="input" id="kindergartenShift" onchange="saveAttendanceMode()"><option>正常班</option><option>07:00早值</option><option>07:30輪值</option></select></label><div class="shift-info">幼兒部不分寒暑假｜第一次打卡前可依實際換班調整</div></div>`;
+      box.innerHTML=`<div class="mode-row"><label><strong>幼兒部今日班別</strong><select class="input" id="kindergartenShift" onchange="saveAttendanceMode()"><option>正常班</option><option>07:00早值</option><option>07:30輪值</option><option>晚值</option></select></label><div class="shift-info">幼兒部不分寒暑假｜第一次打卡前可依實際換班調整</div></div>`;
       document.getElementById('kindergartenShift').value=saved
     }else{
       const mode=localStorage.getItem('heremay.afterSchoolMode')||'學期中',duty=localStorage.getItem('heremay.afterSchoolDuty')||'一般班';
@@ -721,6 +721,10 @@
       if(mode==='07:30輪值'){
         const r=ATTENDANCE_RULES.kindergarten.earlyAB;
         return{department,mode,dutyType:'07:30輪值',name:'幼兒部'+r.label,scheduledIn:r.in,scheduledOut:r.out,requiredMinutes:r.requiredMinutes};
+      }
+      if(mode==='晚值'){
+        const r=ATTENDANCE_RULES.kindergarten.normal;
+        return{department,mode,dutyType:'晚值',name:'幼兒部晚值',scheduledIn:r.in,scheduledOut:'18:00',requiredMinutes:r.requiredMinutes};
       }
       const r=ATTENDANCE_RULES.kindergarten.normal;
       return{department,mode:'正常班',dutyType:'正常班',name:'幼兒部'+r.label,scheduledIn:r.in,scheduledOut:r.out,requiredMinutes:r.requiredMinutes};
