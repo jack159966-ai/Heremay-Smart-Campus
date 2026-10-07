@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.62</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.63</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -592,6 +592,11 @@
 .privateMessageCard{position:relative}.privateMessageCard .sqIcon{font-size:54px!important}.bottomSquareBtn .privateUnreadBadge{display:none!important;position:absolute;right:11px;top:10px;min-width:27px;height:27px;padding:0 7px;border-radius:14px;background:#c91f28;color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:17px;font-weight:950;line-height:1;align-items:center;justify-content:center;text-shadow:0 1px 2px rgba(70,0,0,.65);box-shadow:0 0 0 4px rgba(201,31,40,.17);z-index:3}.bottomSquareBtn.privateMessageCard.hasUnread .privateUnreadBadge:not([hidden]){display:flex!important}.privateUnreadBadge[hidden]{display:none!important}
 
 .dailyQuickLinks{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}.dailyQuickLinks button{display:flex;align-items:center;gap:10px;width:100%;min-height:90px;padding:16px 12px;border:1px solid #b9cfee;border-radius:20px;background:#fff;color:#183e78;text-align:left;cursor:pointer;box-shadow:0 4px 14px #5b789314}.dailyQuickLinks button:first-child{background:#edf4ff;border-color:#8fb7ff}.dailyQuickLinks strong{display:block;font-size:21px;font-weight:900}.dailyQuickLinks small{display:block;margin-top:4px;font-size:13px;color:#60758f}.dailyIcon{width:42px;height:42px;object-fit:cover;border-radius:12px;font-size:34px;flex-shrink:0}.dailyArrow{margin-left:auto;font-size:26px}@media(max-width:380px){.dailyQuickLinks{gap:8px}.dailyQuickLinks button{gap:7px;padding:12px 9px}.dailyQuickLinks strong{font-size:18px}.dailyIcon{width:32px;height:32px;font-size:28px}.dailyArrow{display:none}}
+
+/* v24.63：公布欄文字放大與加深，僅套用公告清單。 */
+#adminNoticeList .item h5{font-size:20px;font-weight:800;line-height:1.45;color:#203b50;overflow-wrap:anywhere}
+#adminNoticeList .item p{font-size:18px;font-weight:600;line-height:1.65;color:#334e60;overflow-wrap:anywhere}
+#adminNoticeList .item>div:last-child{min-width:0}
 </style>
 </head>
 <body class="auth-pending">
@@ -625,7 +630,7 @@
     </section>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.62｜2026-10-06</div>
+      <div class="versionStamp">主管工作台 v24.63｜2026-10-07</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
