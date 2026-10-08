@@ -73,8 +73,14 @@ function isManagementEmployee(employee){
 
   return homeType==='管理首頁'||role==='admin'||identity==='行政主管'||identity==='管理層'||/負責人|園長|主任/.test(jobTitle);
 }
+function isLeaderEmployee(employee){
+  if(!employee)return false;
+  const role=String(employee.role??employee.userRole??employee['角色']??'').trim().toLowerCase();
+  const homeType=String(employee.homeType??employee.home??employee['首頁類型']??'').trim();
+  return role==='leader'||homeType==='中階主管首頁';
+}
 function canManageAnnouncements(employee){
-  return isManagementEmployee(employee) || employee?.announcementAdmin === true;
+  return isManagementEmployee(employee) || isLeaderEmployee(employee) || employee?.announcementAdmin === true;
 }
 function denyAnnouncementAccess(){
   document.body.classList.remove('auth-pending');
@@ -96,6 +102,8 @@ function returnHome(){
 
   if(isManagementEmployee(employee)||homeType==='管理首頁'){
     location.href='admin.html';
+  }else if(isLeaderEmployee(employee)){
+    location.href='leader.html';
   }else if(homeType==='教保首頁'){
     location.href='teacher.html';
   }else if(homeType==='庶務首頁'){
@@ -251,3 +259,4 @@ if(requireAnnouncementAccess()){
 }
 </script>
 </body></html>
+

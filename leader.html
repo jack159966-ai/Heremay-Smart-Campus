@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜中階主管首頁 v1.6</title>
+  <title>和美智慧校園｜中階主管首頁 v1.7</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -612,13 +612,13 @@
           <div class="icon">✅</div>
           <div>
             <strong>打卡 / 出勤</strong>
-            <span>上班、下班、請假與出勤狀態</span>
+            <span>打卡、請假、出勤與查看薪資條</span>
           </div>
         </button>
     </section>
 
 
-    <div class="version-refresh-row"><span class="page-version">中階主管 v1.6</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
+    <div class="version-refresh-row"><span class="page-version">中階主管 v1.7</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
 
     <section class="repeat-alert" id="repeatAlert">
       <h2>🔔 主管再次提醒</h2>
@@ -636,33 +636,13 @@
       </div>
       <div class="grid">
 
-        <button class="btn" onclick="window.location.href='salary_slip.html'">
-          <div class="icon">🧾</div>
-          <strong>我的薪資條</strong>
-          <span>查看園方已發放的個人薪資明細</span>
-        </button>
-
-        <button class="btn" onclick="openFeature('班級事項')">
-          <div class="icon">👧</div>
-          <strong>班級事項</strong>
-          <span>今日班級交辦、幼兒狀況與待處理事項</span>
-        </button>
-
-        <button class="btn" onclick="openFeature('個別通知')">
+<button class="btn" onclick="openPrivateMessage()">
           <div class="icon">💬</div>
-          <strong>個別通知</strong>
-          <span>園方或主管給個人的通知與提醒</span>
+          <strong>私訊</strong>
+          <span>搜尋同仁並傳送私人訊息</span>
         </button>
 
-        <button class="btn" onclick="openReportCenter()">
-          <div class="icon">📣</div>
-          <strong>通知與回報</strong>
-          <span>回報報修、採購需求或現場問題</span>
-        </button>
-
-
-
-        <div class="entry-pair">
+<div class="entry-pair">
         <button class="btn" onclick="openFeature('登記中心')">
           <div class="icon">📝</div>
           <strong>登記中心</strong>
@@ -675,20 +655,11 @@
         </button>
         </div>
 
-        <div class="schedule-pair">
-        <button class="btn" onclick="window.location.href='schedule.html'">
-          <div class="icon">🗓️</div>
-          <strong>排班表</strong>
-          <span>查看本週及未來兩週的各項輪值</span>
+        <button class="btn" id="scheduleEntryBtn" onclick="openScheduleEntry()">
+          <div class="icon">🗓️</div><strong>排班管理</strong><span>查看、建立、確認與發布班表</span>
         </button>
-        <button class="btn" id="scheduleAdminBtn" style="display:none" onclick="openScheduleManagement()">
-          <div class="icon">🗂️</div>
-          <strong>排班管理</strong>
-          <span>建立、確認與發布各類班表</span>
-        </button>
-        </div>
 
-        <button class="btn" id="announcementAdminBtn" style="display:none" onclick="window.location.href='announcement.html'">
+        <button class="btn" id="announcementAdminBtn" onclick="window.location.href='announcement.html'">
           <div class="icon">📢</div>
           <strong>公告管理</strong>
           <span>發布、修改與管理園方正式公告</span>
@@ -705,7 +676,7 @@
       </div>
     </section>
 
-    <div class="footer">管理功能依個人權限顯示</div>
+    
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -922,29 +893,12 @@
       return window.matchMedia('(min-width: 821px)').matches;
     }
 
-    function applyFeaturePermissions(){
-      const announcementBtn = document.getElementById('announcementAdminBtn');
-      const scheduleBtn = document.getElementById('scheduleAdminBtn');
-
-      const canManageAnnouncements = currentEmployee?.announcementAdmin === true;
-      const canManageSchedule = currentEmployee?.scheduleAdmin === true;
-
-      if(announcementBtn){
-        announcementBtn.style.display = canManageAnnouncements ? '' : 'none';
-      }
-
-      if(scheduleBtn){
-        scheduleBtn.style.display = canManageSchedule ? '' : 'none';
-      }
+    function applyFeaturePermissions(){}
+    function openScheduleEntry(){
+      window.location.href='schedule_admin.html';
     }
-
-    function openScheduleManagement(){
-      if(currentEmployee?.scheduleAdmin !== true){
-        showToast('此帳號沒有排班管理權限。');
-        return;
-      }
-
-      window.location.href = 'schedule_admin.html';
+    function openPrivateMessage(){
+      window.location.href='private_message.html?back='+encodeURIComponent(location.href);
     }
 
     const notices = {
@@ -1391,3 +1345,4 @@
   </script>
 </body>
 </html>
+
