@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#dceeff">
-<title>和美智慧校園｜公布欄管理 v1.1.8</title>
+<title>和美智慧校園｜公布欄管理 v1.1.9</title>
 <style>
 :root{--bg:#eef7ff;--card:#fff;--primary:#4f86c6;--deep:#356ba9;--text:#23364d;--muted:#6d7d90;--line:#d9e7f3;--danger:#d65b5b;--shadow:0 10px 28px rgba(49,91,133,.13)}
 *{box-sizing:border-box}body.auth-pending .app{visibility:hidden}body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:linear-gradient(180deg,#eaf5ff,#f8fbff);color:var(--text);min-height:100vh}
@@ -49,7 +49,7 @@ button,input,textarea,select{font:inherit}.app{width:min(850px,100%);margin:auto
   <div class="actions"><button class="btn primary" id="saveNoticeBtn" onclick="saveNotice()">儲存公告</button><button class="btn" id="clearNoticeBtn" onclick="resetForm()">清除</button></div>
 </section>
 <section class="panel"><h2>目前公告</h2><div id="noticeList"></div></section>
-<div class="version">公布欄管理 v1.1.8｜推播對象精簡版</div>
+<div class="version">公布欄管理 v1.1.9｜返回對應角色首頁</div>
 </main>
 <script>
 const SERVICE_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
@@ -99,18 +99,16 @@ function denyAnnouncementAccess(){
 function returnHome(){
   const employee=readCurrentEmployee()||{};
   const homeType=String(employee.homeType??employee.home??employee['首頁類型']??'').trim();
-
-  if(isManagementEmployee(employee)||homeType==='管理首頁'){
-    location.href='admin.html';
-  }else if(isLeaderEmployee(employee)){
-    location.href='leader.html';
-  }else if(homeType==='教保首頁'){
-    location.href='teacher.html';
-  }else if(homeType==='庶務首頁'){
-    location.href='support.html';
-  }else{
-    location.href='index.html';
+  const role=String(localStorage.getItem('heremay.currentRole')||'').trim().toLowerCase();
+  const pages={admin:'admin.html',leader:'leader.html',teacher:'teacher.html',support:'support.html',parttime:'parttime.html'};
+  const identity=String(employee.identity||employee.identityCategory||employee['身分類別']||'').trim();
+  const group=String(employee.group||employee.department||employee['編組']||'').trim();
+  if(homeType==='兼任首頁'||identity==='外聘兼任教師'||group==='外聘教師'){
+    location.href=pages.parttime;
+    return;
   }
+  const homes={'管理首頁':pages.admin,'主管首頁':pages.admin,'中階主管首頁':pages.leader,'教保首頁':pages.teacher,'庶務首頁':pages.support};
+  location.href=pages[role]||homes[homeType]||(isLeaderEmployee(employee)?pages.leader:isManagementEmployee(employee)?pages.admin:'index.html');
 }
 function requireAnnouncementAccess(){
   const employee=readCurrentEmployee();
