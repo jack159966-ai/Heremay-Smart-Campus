@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜中階主管首頁 v1.3</title>
+  <title>和美智慧校園｜中階主管首頁 v1.6</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -549,6 +549,40 @@
       .primary{grid-column:span 1}
       .due-grid{grid-template-columns:1fr}
     }
+
+    /* 精簡手機首頁，常用入口優先 */
+    .phone{padding-top:calc(12px + env(safe-area-inset-top, 0px))}
+    .brand h1{font-size:21px;line-height:1.3}
+    .logo{width:40px;height:40px;font-size:24px}
+    .top{gap:8px;margin-bottom:10px}
+    .datetime{padding:6px 10px}
+    .time{font-size:22px}
+    .section{padding:12px;margin:10px 0;border-radius:18px}
+    #messageCenterHomeSection,#attendanceHomeSection{padding:0;border:0;background:none;box-shadow:none}
+    .btn.primary{min-height:64px;padding:10px 12px;border-radius:16px;gap:10px}
+    .primary strong{font-size:19px}
+    .primary .icon{width:36px;height:36px;font-size:22px;border-radius:12px}
+    .refresh-sync-btn{font-size:13px;padding:9px;margin:2px 0 8px}
+    .grid{grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+    .entry-pair,.schedule-pair{gap:8px}
+    .grid .btn{min-height:72px;padding:12px 8px;border-radius:14px;text-align:center}
+    .grid .icon{display:inline-grid;width:30px;height:30px;font-size:21px;margin-bottom:5px;border-radius:10px}
+    .grid .btn strong{font-size:16px;margin:0;line-height:1.4}
+    .grid .btn span{display:none}
+    .section-title{font-size:17px;margin-bottom:8px}
+    .footer{font-size:12px;line-height:1.6;margin-top:12px}
+
+    .version-refresh-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0}
+    .page-version{font-size:12px;font-weight:800;color:#806574;white-space:nowrap}
+    .version-refresh-row .refresh-sync-btn{width:auto;margin:0;padding:8px 10px;font-size:12px;box-shadow:none}
+    #messageCenterHomeSection .primary{background:linear-gradient(135deg,#ffe3ec,#fff4f7 58%,#fff);border:1px solid #f0a8bf}
+    .entry-arrow{margin-left:auto;font-size:28px;color:#b63c68}
+    .btn,.section,.datetime,.logo{box-shadow:none}
+    .grid .btn{background:#fff;display:flex;align-items:center;justify-content:flex-start;gap:8px;min-height:64px;text-align:left}
+    .grid .icon{flex:0 0 30px;margin:0;background:#fff1f6}
+    .grid .btn strong{font-size:15px;overflow-wrap:anywhere}
+    .board{border-width:1px;background:#fffbed}
+    .board:before{display:none}
   </style>
 </head>
 <body>
@@ -567,9 +601,24 @@
       </div>
     </header>
 
-    <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">
-      🔄 同步資料／檢查最新版
-    </button>
+    <section class="section" id="messageCenterHomeSection">
+      <button class="btn primary" style="width:100%" onclick="openMessageCenter()">
+        <div class="icon">🔔</div>
+        <div><strong>訊息中心</strong><span>公告、討論、登記與私訊通知</span></div><div class="entry-arrow" aria-hidden="true">›</div>
+      </button>
+    </section>
+    <section class="section" id="attendanceHomeSection">
+        <button class="btn primary" style="width:100%" onclick="window.location.href='attendance.html'">
+          <div class="icon">✅</div>
+          <div>
+            <strong>打卡 / 出勤</strong>
+            <span>上班、下班、請假與出勤狀態</span>
+          </div>
+        </button>
+    </section>
+
+
+    <div class="version-refresh-row"><span class="page-version">中階主管 v1.6</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
 
     <section class="repeat-alert" id="repeatAlert">
       <h2>🔔 主管再次提醒</h2>
@@ -583,65 +632,9 @@
 
     <section class="section">
       <div class="section-title">
-        <span>今日提醒事項</span>
-        <span class="tag">依時間排序</span>
-      </div>
-      <div class="reminder">
-        <div class="rtime">08:20</div>
-        <div class="rbody">晨間入園觀察與幼兒點名
-          <div class="rnote">確認請假、遲到與身體狀況</div>
-        </div>
-      </div>
-      <div class="reminder">
-        <div class="rtime">10:30</div>
-        <div class="rbody">戶外活動安全確認
-          <div class="rnote">注意飲水、防曬與活動區域</div>
-        </div>
-      </div>
-      <div class="reminder">
-        <div class="rtime">15:40</div>
-        <div class="rbody">放學交接與家長訊息確認
-          <div class="rnote">未讀通知、個別交辦事項</div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-title">
-        <span>即將到期</span>
-        <span class="tag">1天 / 3天</span>
-      </div>
-      <div class="due-grid">
-        <div class="due">
-          <h3>未來一天</h3>
-          <ul>
-            <li>午餐登記截止</li>
-            <li>親師溝通紀錄補登</li>
-          </ul>
-        </div>
-        <div class="due">
-          <h3>未來三天</h3>
-          <ul>
-            <li>主題課程照片整理</li>
-            <li>活動支援人員登記</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-title">
-        <span>中階主管工作選項</span>
-        <span class="tag">權限版</span>
+        <span>常用功能</span>
       </div>
       <div class="grid">
-        <button class="btn primary" onclick="window.location.href='attendance.html'">
-          <div class="icon">✅</div>
-          <div>
-            <strong>打卡 / 出勤</strong>
-            <span>上班、下班、請假與出勤狀態</span>
-          </div>
-        </button>
 
         <button class="btn" onclick="window.location.href='salary_slip.html'">
           <div class="icon">🧾</div>
@@ -712,7 +705,7 @@
       </div>
     </section>
 
-    <div class="footer">🔔 重要公告請點選「我已收到」；管理功能依個人權限顯示。<br>中階主管首頁 v1.3｜登記中心與班級投稿同列</div>
+    <div class="footer">管理功能依個人權限顯示</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -782,6 +775,19 @@
 
     let currentUser = '中階主管';
     let currentEmployee = null;
+
+    function openMessageCenter(){
+      const emp=currentEmployee||{};
+      const params=new URLSearchParams({
+        employeeId:String(emp.employeeId||emp.employeeNo||emp.id||emp['員工編號']||'').trim(),
+        account:String(emp.account||localStorage.getItem('heremay.lastFaceAccount')||'').trim(),
+        name:String(emp.name||emp['姓名']||currentUser||'').trim(),
+        groups:[emp.group,emp.department,currentDepartment()].filter(Boolean).join(','),
+        back:location.href
+      });
+      window.location.href='message_center.html?'+params.toString();
+    }
+
     let pendingAckId = null;
 
 
