@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.9.7</title>
+  <title>和美智慧校園｜差勤管理 v2.10.0</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -74,14 +74,14 @@
     .auth-password-box{display:none;margin-top:10px}.auth-password-box.show{display:block}.auth-password-box input{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px;background:#fbfdff;text-align:center;font-size:20px;font-weight:900;letter-spacing:5px}
     .auth-note{margin-top:10px;color:var(--muted);font-size:12px;font-weight:800;line-height:1.5}.auth-error{min-height:20px;margin-top:8px;color:#b84154;font-size:12px;font-weight:900}
 
-  </style>
+  .punch{padding:10px 8px;font-size:16px;border-radius:15px}.time{font-size:34px}.overview-grid{display:grid;gap:12px}.overview-person{padding:10px 0;border-bottom:1px solid var(--line);font-weight:850;font-size:16px}.overview-person small{display:block;color:var(--muted);font-size:13px;margin-top:4px}.dashboard-nav{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dashboard-nav button{padding:13px;font:inherit;font-weight:900;color:#245c84;border:1px solid var(--line);background:#f4faff;border-radius:14px}</style>
 </head>
 <body>
 <main class="phone">
   <header class="top">
-    <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
+    <div class="title"><h1>差勤管理</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.9.7 返回對應角色首頁</span>
+    <span class="version">v2.10.0 今明請假名單</span>
   </header>
 
   <div id="attendanceDataStatus" role="status" style="padding:10px;color:#995319;font-weight:850">尚未同步，畫面可能是手機暫存資料</div>
@@ -94,6 +94,8 @@
     <div><strong id="employeeName">測試員工</strong><span id="employeeInfo">尚未取得登入資料</span></div>
   </section>
 
+  <section class="card" id="leaveOverview"><div class="section-title"><h2>📋 今、明兩天請假人員</h2></div><div id="overviewStatus" class="hint">正在同步請假名單…</div><div class="overview-grid" id="overviewPeople"></div></section>
+  <section class="card dashboard-nav"><button onclick="openDashboardTab('leave')">🗓️ 請假表</button><button onclick="openDashboardTab('balance')">📊 查看剩餘假別</button><button onclick="openSalarySlip()">💰 薪資條</button><button onclick="openDashboardTab('attendance')">🕒 本月打卡紀錄</button></section>
   <section class="card">
     <div class="clock"><div class="date" id="dateText"></div><div class="time" id="timeText"></div><div class="status" id="todayStatus">今日尚未打卡</div></div>
     <div class="access-card">
@@ -121,7 +123,7 @@
   </section>
 
   <section class="card">
-    <div class="tabs"><button class="tab active" onclick="showTab('leave',this)">請假</button><button class="tab" onclick="showTab('attendance',this)">出勤</button><button class="tab" onclick="showTab('balance',this)">餘額</button><button class="tab" onclick="showTab('records',this)">紀錄</button></div>
+    <div class="tabs"><button class="tab active" onclick="showTab('leave',this)">請假</button><button class="tab" onclick="showTab('attendance',this)">出勤</button><button class="tab" onclick="showTab('balance',this)">剩餘假別</button><button class="tab" onclick="showTab('records',this)">紀錄</button></div>
   </section>
 
   <section class="card panel active" id="leavePanel">
@@ -131,7 +133,7 @@
     <div class="calendar" id="calendar"></div>
     <div class="selected-list" id="selectedList"></div>
     <div class="form-row">
-      <select class="input" id="leaveType"><option value="特休">特休</option><option value="事假">事假</option><option value="病假">病假</option><option value="公假">公假</option><option value="婚假">婚假</option><option value="喪假">喪假</option><option value="考試週補休">考試週補休</option></select>
+      <select class="input" id="leaveType"><option value="特休">特休</option><option value="事假">事假</option><option value="病假">病假</option><option value="公假">公假</option><option value="婚假">婚假</option><option value="產假">產假</option><option value="陪產檢及陪產假">陪產檢及陪產假</option><option value="喪假">喪假</option><option value="考試週補休">考試週補休</option></select>
       <select class="input" id="period"><option value="全天">全天</option><option value="上午">上午</option><option value="下午">下午</option></select>
       <textarea class="input wide" id="reason" rows="2" placeholder="其他假別請簡述原因；特休可不填"></textarea>
     </div>
@@ -156,9 +158,9 @@
   </section>
 
   <section class="card panel" id="balancePanel">
-    <div class="section-title"><h2>特休與補休餘額</h2><span class="tag">學年度制</span></div>
-    <div class="balance"><div class="balance-box"><b id="annualRemain">7 天</b><span>本學年度特休剩餘</span></div><div class="balance-box"><b id="compRemain">8 小時</b><span>補休剩餘</span></div></div>
-    <div class="warning">使用期間：每年 8 月 1 日至次年 7 月 31 日。特休符合餘額與開放日期時原則自動成立；同時段第 4 人起轉主管人力覆核。其他假別依規則送主管審核。</div>
+    <div class="section-title"><h2>剩餘假別</h2><span class="tag">學年度制</span></div>
+    <div class="balance"><div class="balance-box"><b id="annualRemain">尚未設定</b><span>本學年度特休剩餘</span></div><div class="balance-box"><b id="compRemain">尚未設定</b><span>補休剩餘</span></div></div>
+    <div class="warning">目前後端未提供個人假別額度，特休、補休、婚假、產假等剩餘天數尚無法計算。使用期間：每年 8 月 1 日至次年 7 月 31 日。特休符合餘額與開放日期時原則自動成立；同時段第 4 人起轉主管人力覆核。其他假別依規則送主管審核。</div>
   </section>
 
   <section class="card panel" id="recordsPanel">
@@ -228,6 +230,8 @@
   let accessChecking = false;
   let employee = readEmployee();
   let cloudSharedLeaves = [];
+  let overviewLeaves = [];
+  let overviewReady = false;
   let cloudMyLeaves = [];
   let cloudPunches = [];
   let cloudReady = false;
@@ -350,7 +354,7 @@
     const pending=sensitiveAuthPending;sensitiveAuthPending=null;
     if(pending)pending.resolve(false);
     clearAttendanceSession();
-    location.href=attendanceHomeUrl();
+    location.href=localStorage.getItem('heremay.currentRole')==='support'?'support.html':'teacher.html';
   }
   function showSensitivePassword(){
     document.getElementById('sensitivePasswordBox').classList.add('show');
@@ -978,6 +982,18 @@
   function clockOut(){const s=workSchedule();postAttendance('attendanceClockOut',{employeeId:employeeKey(),employeeName:employeeNameText(),pool:s.department,date:todayKey(),attendanceMode:s.mode,dutyType:s.dutyType,requiredMinutes:s.requiredMinutes,isSupplemental:s.supplemental?'是':'否',...punchMeta()},'clockOut')}
   function dutyIn(){const s=workSchedule();postAttendance('attendanceDutyIn',{employeeId:employeeKey(),employeeName:employeeNameText(),pool:s.department,date:todayKey(),attendanceMode:s.mode,dutyType:s.dutyType,...punchMeta()},'dutyIn')}
   function dutyOut(){const s=workSchedule();const reason=s.department==='安親部'&&s.dutyType==='晚值'?(prompt('晚值結束原因','學生已全數離園')||'學生已全數離園'):'';postAttendance('attendanceDutyOut',{employeeId:employeeKey(),employeeName:employeeNameText(),pool:s.department,date:todayKey(),attendanceMode:s.mode,dutyType:s.dutyType,dutyEndReason:reason,...punchMeta()},'dutyOut')}
+
+  function escapeOverview(value){return String(value||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function openDashboardTab(name){const btn=[...document.querySelectorAll('.tab')].find(x=>x.getAttribute('onclick').includes("'"+name+"'"));if(btn){showTab(name,btn);document.getElementById(name+'Panel').scrollIntoView({behavior:'smooth',block:'start'})}}
+  function renderOverview(){
+    const box=document.getElementById('overviewPeople');if(!box)return;
+    const d=new Date(todayKey()+'T12:00:00');d.setDate(d.getDate()+1);const tomorrow=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    box.innerHTML=[[todayKey(),'今天'],[tomorrow,'明天']].map(([date,title])=>{
+      const rows=overviewLeaves.filter(x=>String(x.date)===date&&!['已取消','駁回','已駁回'].includes(String(x.status)));
+      return `<div class="leave-people"><h4>${title} ${escapeOverview(date)}</h4>${rows.length?rows.map(x=>`<div class="overview-person">${escapeOverview(x.employeeName)}｜${escapeOverview(x.period)}<small>${escapeOverview(x.pool)}｜${escapeOverview(x.type)}｜${escapeOverview(x.status)}</small></div>`).join(''):`<div class="hint">${overviewReady?'目前無請假人員':'尚未取得名單'}</div>`}</div>`;
+    }).join('');
+  }
+
   function showTab(name,btn){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.getElementById(name+'Panel').classList.add('active');if(name==='records')renderRecords();if(name==='attendance')renderAttendance();if(name==='leave')renderMyLeaves()}
   function changeMonth(n){viewDate.setDate(1);viewDate.setMonth(viewDate.getMonth()+n);cloudReady=false;cloudSharedLeaves=[];renderCalendar();loadCloudData(true)}
   function baseQuotaFor(date){
@@ -1240,6 +1256,7 @@
       cloudSharedLeaves=Array.isArray(result.sharedLeaves)?result.sharedLeaves:[];
       cloudMyLeaves=Array.isArray(result.myLeaves)?result.myLeaves:[];
       cloudPunches=Array.isArray(result.punches)?result.punches:[];
+      overviewLeaves=Array.isArray(result.overviewLeaves)?result.overviewLeaves:[];overviewReady=Array.isArray(result.overviewLeaves);renderOverview();document.getElementById('overviewStatus').textContent=overviewReady?'已同步｜包含待審核申請，請留意狀態':'請先更新後端 attendance_api.gs 並重新部署';
       cloudReady=true;
       try{localStorage.setItem(cacheKey,JSON.stringify(cloudSharedLeaves));localStorage.setItem(leaveKey(),JSON.stringify(cloudMyLeaves))}catch(error){console.warn('手機暫存失敗',error)}
       renderCalendar();renderMyLeaves();renderRecords();renderAttendance();loadPunch();
@@ -1248,7 +1265,7 @@
       return true;
     }catch(err){
       if(sequence!==attendanceLoadSequence)return false;
-      console.warn(err);setDataStatus('⚠️ 同步未完成：目前名單可能不是最新，請勿據此判斷剩餘名額');
+      document.getElementById('overviewStatus').textContent='同步未完成，名單可能不是最新';console.warn(err);setDataStatus('⚠️ 同步未完成：目前名單可能不是最新，請勿據此判斷剩餘名額');
       if(!silent)toastMsg('⚠️ 暫時無法同步，畫面資料尚未確認');
       return false;
     }
@@ -1393,28 +1410,11 @@
 
   function toastMsg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2800)}
   function openSalarySlip(){preserveGrantForAreaNavigation=true;location.href='salary_slip.html?from=attendance'}
-  function attendanceHomeUrl(){
-    const pages={admin:'admin.html',leader:'leader.html',teacher:'teacher.html',support:'support.html',parttime:'parttime.html'};
-    const role=String(localStorage.getItem('heremay.currentRole')||'').trim();
-    let emp={};
-    try{emp=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}')||{}}catch(_){}
-    const home=String(emp.homeType||emp['首頁類型']||'').trim();
-    const identity=String(emp.identity||emp.identityCategory||emp['身分類別']||'').trim();
-    const group=String(emp.group||emp.department||emp['編組']||'').trim();
-    if(home==='兼任首頁'||identity==='外聘兼任教師'||group==='外聘教師')return pages.parttime;
-    if(pages[role])return pages[role];
-    if(home==='中階主管首頁')return pages.leader;
-    if(home==='主管首頁')return pages.admin;
-    if(home==='庶務首頁')return pages.support;
-    if(home==='教保首頁')return pages.teacher;
-    const employeeRole=String(emp.role||emp.userRole||emp['角色']||'').trim();
-    return pages[employeeRole]||'index.html';
-  }
-  function goBack(){clearAttendanceSession();location.href=attendanceHomeUrl()}
+  function goBack(){clearAttendanceSession();const role=localStorage.getItem('heremay.currentRole');location.href=role==='admin'?'admin.html':role==='manager'?'manager.html':role==='support'?'support.html':'teacher.html'}
   async function startAttendanceArea(){
     initUser();
     if(!restoreAttendanceSession()&&!await requireSensitiveAuth())return;
-    updateClock();setInterval(updateClock,1000);loadPunch();renderOfflineQueue();renderCalendar();renderMyLeaves();renderRecords();renderAttendance();loadCloudData(false);setTimeout(()=>checkPunchAccess(false),600);setTimeout(()=>syncOfflinePunches(false),1500);
+    renderOverview();updateClock();setInterval(updateClock,1000);loadPunch();renderOfflineQueue();renderCalendar();renderMyLeaves();renderRecords();renderAttendance();loadCloudData(false);setTimeout(()=>checkPunchAccess(false),600);setTimeout(()=>syncOfflinePunches(false),1500);
   }
   startAttendanceArea();
   window.addEventListener('pageshow',event=>refreshLoggedInEmployee(Boolean(event.persisted)));
