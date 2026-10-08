@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜中階主管首頁 v1.7</title>
+  <title>和美智慧校園｜中階主管首頁 v1.8</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -583,6 +583,7 @@
     .grid .btn strong{font-size:15px;overflow-wrap:anywhere}
     .board{border-width:1px;background:#fffbed}
     .board:before{display:none}
+      .board-manage-btn{display:block;width:100%;border:0;background:transparent;color:#4169d4;font:inherit;font-size:16px;font-weight:900;padding:13px 8px 2px;margin-top:8px;cursor:pointer;text-align:center}
   </style>
 </head>
 <body>
@@ -618,7 +619,7 @@
     </section>
 
 
-    <div class="version-refresh-row"><span class="page-version">中階主管 v1.7</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
+    <div class="version-refresh-row"><span class="page-version">中階主管 v1.8</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
 
     <section class="repeat-alert" id="repeatAlert">
       <h2>🔔 主管再次提醒</h2>
@@ -628,6 +629,7 @@
     <section class="section board">
       <div class="section-title"><span>📌 園方公佈欄</span><span class="tag yellow">即時公告</span></div>
       <div id="dynamicNoticeBoard"><div class="announce"><p>正在讀取公告…</p></div></div>
+      <button class="board-manage-btn" id="announcementAdminBtn" type="button" onclick="window.location.href='announcement.html'">管理公告 ›</button>
     </section>
 
     <section class="section">
@@ -659,11 +661,7 @@
           <div class="icon">🗓️</div><strong>排班管理</strong><span>查看、建立、確認與發布班表</span>
         </button>
 
-        <button class="btn" id="announcementAdminBtn" onclick="window.location.href='announcement.html'">
-          <div class="icon">📢</div>
-          <strong>公告管理</strong>
-          <span>發布、修改與管理園方正式公告</span>
-        </button>
+
 
 
 
@@ -1345,4 +1343,5 @@
   </script>
 </body>
 </html>
+
 

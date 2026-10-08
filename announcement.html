@@ -15,18 +15,18 @@ button,input,textarea,select{font:inherit}.app{width:min(850px,100%);margin:auto
 .targets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.check{display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid var(--line);border-radius:11px;padding:7px 6px;background:#f8fbff;font-weight:800;font-size:.92rem;white-space:nowrap}.check input{width:16px;height:16px;margin:0;flex:0 0 auto}
 .item{border:1px solid var(--line);border-radius:16px;padding:13px;background:#fbfdff;margin-top:10px}.item h3{margin:0;color:var(--deep)}.meta{font-size:.84rem;color:var(--muted);line-height:1.6;margin-top:7px}.empty{text-align:center;color:var(--muted);padding:24px 10px}.version{text-align:center;color:var(--muted);font-size:.8rem}
 @media(max-width:620px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.targets{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.check{padding:7px 5px;font-size:.9rem}.brand{align-items:center}.logo{width:54px;height:54px}.header-toolbar{margin-top:7px}.header-toolbar .btn{padding:7px 9px;font-size:.92rem}.header-sub{margin-top:9px;font-size:.82rem;letter-spacing:-.2px;white-space:nowrap}}
+.announcement-header{position:relative;padding-top:64px}.header-back{position:absolute;top:16px;right:16px;margin:0;white-space:nowrap}.header-sub{white-space:normal}
 </style>
 </head>
 <body class="auth-pending">
 <main class="app">
-<section class="top">
+<section class="top announcement-header">
+  <button class="btn header-back" type="button" onclick="returnHome()">← 返回</button>
   <div class="brand">
     <img class="logo" src="assets/logo.png?v=20260727" alt="Logo">
     <div class="brand-copy">
       <h1>📣 公布欄管理</h1>
-      <div class="toolbar header-toolbar">
-        <button class="btn" onclick="returnHome()">返回我的首頁</button>
-      </div>
+
     </div>
   </div>
   <div class="sub header-sub">快速發布臨時消息，並設定對象與自動下架時間</div>
@@ -259,4 +259,5 @@ if(requireAnnouncementAccess()){
 }
 </script>
 </body></html>
+
 
