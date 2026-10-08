@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜中階主管首頁 v1.10</title>
+  <title>和美智慧校園｜中階主管首頁 v1.11</title>
   <style>
     :root{
       --bg1:#fff0e6;
@@ -620,7 +620,7 @@
     </section>
 
 
-    <div class="version-refresh-row"><span class="page-version">中階主管 v1.10</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
+    <div class="version-refresh-row"><span class="page-version">中階主管 v1.11</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
 
     <section class="repeat-alert" id="repeatAlert">
       <h2>🔔 主管再次提醒</h2>
@@ -741,7 +741,7 @@
   <script>
     const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
     // Google 雲端投稿頁部署完成後，只需更換這個網址。
-    const MEDIA_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbzs1cNvsDJFhu0J_8qAepgL-a6MGIPnyVFNw5JFAespotS4uKtEf4EaYIY7oKzGDMak/exec';
+    const MEDIA_SUBMISSION_URL = 'https://heremay-8t.myqnapcloud.com:9444/';
 
     let currentUser = '中階主管';
     let currentEmployee = null;
@@ -980,7 +980,7 @@
         currentEmployee?.group ||
         ''
       ).trim();
-      const employeeId = String(currentEmployee?.employeeId || '').trim();
+      const employeeId = String(currentEmployee?.employeeId || currentEmployee?.employeeNo || currentEmployee?.id || currentEmployee?.['員工編號'] || '').trim();
       const department = currentDepartment();
 
       if(authorName) params.set('author', authorName);
@@ -988,6 +988,7 @@
       if(className) params.set('class', className);
       if(employeeId) params.set('employeeId', employeeId);
       if(department) params.set('department', department);
+      params.set('back', new URL('leader.html', location.href).href);
 
       const separator = MEDIA_SUBMISSION_URL.includes('?') ? '&' : '?';
       window.location.href = `${MEDIA_SUBMISSION_URL}${separator}${params.toString()}`;
