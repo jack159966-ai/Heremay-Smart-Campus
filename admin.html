@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.63</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.64</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -630,7 +630,7 @@
     </section>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.63｜2026-10-07</div>
+      <div class="versionStamp">主管工作台 v24.64｜2026-10-08</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -646,7 +646,7 @@
 
     <section class="dailyQuickLinks" aria-label="每日常用功能">
       <button type="button" onclick="location.href='calendar.html'"><span class="dailyIcon" aria-hidden="true">📅</span><span><strong>行事曆</strong><small>查看與新增行程</small></span><span class="dailyArrow" aria-hidden="true">›</span></button>
-      <button type="button" onclick="location.href='secretary.html?v=2.5.5'"><img class="dailyIcon" src="assets/secretary-avatar.jpg?v=20260906a" alt=""><span><strong>智慧秘書</strong><small>筆記、班表與專案</small></span><span class="dailyArrow" aria-hidden="true">›</span></button>
+      <button type="button" onclick="location.href='secretary.html?v=2.5.5'"><img class="dailyIcon" src="assets/secretary-avatar.jpg?v=20260906a" alt=""><span><strong>智慧秘書</strong><small>筆記與班表</small></span><span class="dailyArrow" aria-hidden="true">›</span></button>
     </section>
 
     <section class="dashCard">
@@ -1210,11 +1210,6 @@ function openModal(type){
       </div>`,
     secretary:`<div class="modalHeader"><h3>🤖 排程提醒已整合</h3><button class="x" onclick="closeModal()">關閉</button></div><div class="note">排程提醒已整合到「新增智慧任務」。請從智慧秘書中心點選「新增智慧任務」。</div><div class="btnRow"><button class="btn" onclick="openModal('smartTask')">前往新增智慧任務</button></div>`,
     notice:`<div class="modalHeader"><h3>📣 通知已整合</h3><button class="x" onclick="closeModal()">關閉</button></div><div class="note">通知與已收到確認已整合到「新增智慧任務」。追蹤結果請到「通知追蹤」。</div><div class="btnRow"><button class="btn" onclick="openModal('smartTask')">建立通知任務</button><button class="btn secondary" onclick="openModal('taskTrack')">查看通知追蹤</button></div>`,
-    project:`<div class="modalHeader"><h3>📁 專案計畫</h3><button class="x" onclick="closeModal()">關閉</button></div>
-      <div class="note">重大活動不是當天才處理，應該從兩、三個月前建立時程、分工、通知與追蹤。</div>
-      <div class="list">
-      ${['畢業典禮','聖誕晚會','招生與網站更新','校園修繕工程','環境安全改善'].map((x,i)=>`<div class="item"><div class="time">P${i+1}</div><div><h5>${x}</h5><p>可建立里程碑、分配負責人、設定提醒與查看進度。</p></div></div>`).join('')}
-      </div><div class="btnRow"><button class="btn">新增專案</button><button class="btn secondary">查看全部</button></div>`,
     patrol:`<div class="modalHeader"><h3>📋 巡堂管理</h3><button class="x" onclick="closeModal()">關閉</button></div>
       <div class="note">巡堂管理已接上整合版：上午／下午巡堂、拍照、通知、班級順序、缺失項目管理與週報表預覽。</div>
       <div class="btnRow"><button class="btn" onclick="location.href='patrol.html'">進入巡堂管理</button><button class="btn secondary" onclick="location.href='patrol.html#weekly'">查看週報表</button></div>`,

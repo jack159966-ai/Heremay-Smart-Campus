@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜打卡與出勤 v2.9.5</title>
+  <title>和美智慧校園｜打卡與出勤 v2.9.6</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -81,7 +81,7 @@
   <header class="top">
     <div class="title"><h1>打卡與出勤</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.9.5 幼兒部晚值選項</span>
+    <span class="version">v2.9.6 本機快速驗證優先</span>
   </header>
 
   <div id="attendanceDataStatus" role="status" style="padding:10px;color:#995319;font-weight:850">尚未同步，畫面可能是手機暫存資料</div>
@@ -365,13 +365,33 @@
   }
   async function verifySensitiveWithPasskey(){
     if(!window.PublicKeyCredential||!navigator.credentials){showSensitivePassword();setSensitiveAuthBusy(false,'此裝置不支援快速登入，請使用 6 位數密碼');return}
-    setSensitiveAuthBusy(true,'正在啟動 Face ID／快速登入…');
+    setSensitiveAuthBusy(true,'正在啟動此裝置的快速驗證…');
     try{
+      if(typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable==='function' &&
+         !await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()){
+        throw new Error('此裝置目前無法使用本機快速驗證，請使用 6 位數密碼');
+      }
       const options=await sensitiveApiPost('/auth/step-up/passkey/options',{account:employeeKey(),purpose:'attendance'});
-      const credential=await navigator.credentials.get({publicKey:normalizePublicKeyOptions(options.publicKey)});
+      if(!options.publicKey||!Array.isArray(options.publicKey.allowCredentials)||!options.publicKey.allowCredentials.length){
+        throw new Error('此帳號尚無可用的快速登入設定，請先用密碼驗證；之後回登入首頁設定快速登入');
+      }
+      const publicKey=normalizePublicKeyOptions(options.publicKey);
+      // 優先使用本機通行密鑰，避免預設引導到另一台裝置掃碼。
+      publicKey.hints=['client-device'];
+      publicKey.allowCredentials=publicKey.allowCredentials.map(item=>({...item,transports:['internal']}));
+      publicKey.userVerification='required';
+      publicKey.timeout=30000;
+      const credential=await navigator.credentials.get({publicKey});
+      if(!credential)throw new Error('未完成快速驗證，請使用 6 位數密碼');
       const grant=await sensitiveApiPost('/auth/step-up/passkey/verify',{account:employeeKey(),purpose:'attendance',credential:credentialToJSON(credential)});
       finishSensitiveAuth(grant);
-    }catch(error){setSensitiveAuthBusy(false,error.message||'快速登入失敗；可改用 6 位數密碼')}
+    }catch(error){
+      showSensitivePassword();
+      const message=error.name==='NotAllowedError'
+        ?'快速驗證未完成，或此裝置沒有對應的通行密鑰。請使用 6 位數密碼；之後可回登入首頁設定快速登入'
+        :(error.message||'快速驗證失敗，請使用 6 位數密碼');
+      setSensitiveAuthBusy(false,message);
+    }
   }
 
   function isFlexibleCleaner(){
