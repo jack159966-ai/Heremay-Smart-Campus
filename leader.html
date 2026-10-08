@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜中階主管首頁 v1.9</title>
+  <title>和美智慧校園｜中階主管首頁 v1.10</title>
   <style>
     :root{
       --bg1:#fff0e6;
@@ -580,6 +580,7 @@
     .btn,.section,.datetime,.logo{box-shadow:none}
     .grid .btn{background:#fff;display:flex;align-items:center;justify-content:flex-start;gap:8px;min-height:64px;text-align:left}
     .grid .icon{flex:0 0 30px;margin:0;background:#fff1f6}
+    .icon img{width:100%;height:100%;object-fit:contain;display:block;border-radius:12px}
     .grid .btn strong{font-size:15px;overflow-wrap:anywhere}
     .board{border-width:1px;background:#fffbed}
     .board:before{display:none}
@@ -619,7 +620,7 @@
     </section>
 
 
-    <div class="version-refresh-row"><span class="page-version">中階主管 v1.9</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
+    <div class="version-refresh-row"><span class="page-version">中階主管 v1.10</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
 
     <section class="repeat-alert" id="repeatAlert">
       <h2>🔔 主管再次提醒</h2>
@@ -644,22 +645,22 @@
           <span>搜尋同仁並傳送私人訊息</span>
         </button>
 
+        <button class="btn" onclick="openMediaSubmission()">
+          <div class="icon"><img src="assets/media-submission.jpg?v=20260906b" alt="班級素材投稿"></div>
+          <strong>班級素材投稿</strong>
+          <span>提供粉絲專頁文章與 3～30 張活動照片</span>
+        </button>
+
 <div class="entry-pair">
         <button class="btn" onclick="openFeature('登記中心')">
           <div class="icon">📝</div>
           <strong>登記中心</strong>
           <span>便當、旅遊、活動與用品需求登記</span>
         </button>
-        <button class="btn" onclick="openMediaSubmission()">
-          <div class="icon">📸</div>
-          <strong>班級素材投稿</strong>
-          <span>提供粉絲專頁文章與 3～30 張活動照片</span>
-        </button>
-        </div>
-
         <button class="btn" id="scheduleEntryBtn" onclick="openScheduleEntry()">
           <div class="icon">🗓️</div><strong>排班管理</strong><span>查看、建立、確認與發布班表</span>
         </button>
+        </div>
 
 
 
