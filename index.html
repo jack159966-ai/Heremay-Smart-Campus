@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜Heremay Smart Campus v1.5.1</title>
+  <title>和美智慧校園｜Heremay Smart Campus v1.5.2</title>
 
   <!-- 手機桌面圖示與 PWA 設定 -->
   <meta name="theme-color" content="#eef9ff" />
@@ -304,6 +304,7 @@
 
       <div class="divider">或使用快速登入</div>
       <button class="face-btn" id="faceLoginBtn" type="button" onclick="faceLogin()">🔐 快速登入</button>
+      <button class="text-btn face-setup" id="faceSetupBtn" type="button" onclick="setupThisDevice()">在這支手機設定快速登入</button>
       <p class="access-note">使用臉部、指紋或手機解鎖</p>
       <p class="access-note">此裝置保持登入後，下次可直接進入系統</p>
       </form>
@@ -333,7 +334,7 @@
 
     <footer>
       資料安全・隱私保護・安心使用<br />
-      <span id="versionText">Heremay Smart Campus v1.5.1｜2026/10/04</span>
+      <span id="versionText">Heremay Smart Campus v1.5.2｜2026/10/08</span>
     </footer>
   </main>
 
@@ -360,8 +361,8 @@
 
 
   <script>
-    const APP_VERSION = '1.5.1';
-    const APP_UPDATED = '2026/10/04';
+    const APP_VERSION = '1.5.2';
+    const APP_UPDATED = '2026/10/08';
     let installPrompt = null;
     const standaloneQuery = window.matchMedia('(display-mode: standalone)');
     function isDesktopApp(){ return standaloneQuery.matches || navigator.standalone === true; }
@@ -842,6 +843,34 @@
       });
     }
 
+    async function setupThisDevice(){
+      if(faceLoginBusy)return;
+      const account=document.getElementById('account');
+      const password=document.getElementById('password');
+      if(!account.value.trim()||!password.value){
+        showToast('請先填寫帳號與密碼，再按「在這支手機設定快速登入」。');
+        (!account.value.trim()?account:password).focus();
+        return;
+      }
+      const setupBtn=document.getElementById('faceSetupBtn');
+      const loginBtn=document.getElementById('faceLoginBtn');
+      faceLoginBusy=true;
+      setupBtn.disabled=true;
+      loginBtn.disabled=true;
+      setupBtn.textContent='正在設定，請依手機提示操作……';
+      try{
+        if(await registerFaceLogin()){
+          clearPreparedLogin();
+          showToast('這支手機已設定完成，請按「快速登入」測試。',4200);
+        }
+      }finally{
+        faceLoginBusy=false;
+        setupBtn.disabled=false;
+        loginBtn.disabled=false;
+        setupBtn.textContent='在這支手機設定快速登入';
+      }
+    }
+
     async function registerFaceLogin(){
       const account = document.getElementById('account').value.trim();
       const password = document.getElementById('password').value;
@@ -868,9 +897,10 @@
           password
         });
 
-        const credential = await navigator.credentials.create({
-          publicKey: normalizePublicKeyOptions(optionsData.publicKey)
-        });
+        const publicKey=normalizePublicKeyOptions(optionsData.publicKey);
+        publicKey.authenticatorSelection={...publicKey.authenticatorSelection,authenticatorAttachment:'platform',userVerification:'required'};
+        publicKey.hints=['client-device'];
+        const credential = await navigator.credentials.create({publicKey});
 
         const result = await apiPost('/auth/passkey/register/verify', {
           account,
@@ -1179,3 +1209,4 @@
 
 </body>
 </html>
+
