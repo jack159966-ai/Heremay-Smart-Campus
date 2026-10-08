@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#dceeff">
+<title>和美智慧校園｜公布欄管理 v1.1.9</title>
+<style>
+:root{--bg:#eef7ff;--card:#fff;--primary:#4f86c6;--deep:#356ba9;--text:#23364d;--muted:#6d7d90;--line:#d9e7f3;--danger:#d65b5b;--shadow:0 10px 28px rgba(49,91,133,.13)}
+*{box-sizing:border-box}body.auth-pending .app{visibility:hidden}body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:linear-gradient(180deg,#eaf5ff,#f8fbff);color:var(--text);min-height:100vh}
+button,input,textarea,select{font:inherit}.app{width:min(850px,100%);margin:auto;padding:16px 12px 46px}.top,.panel{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+.brand{display:flex;gap:12px;align-items:center}.logo{width:62px;height:62px;object-fit:contain;flex:0 0 auto}.brand-copy{min-width:0;flex:1}.brand h1{margin:0;color:var(--deep);font-size:1.4rem}.sub{color:var(--muted);margin:0;line-height:1.35}.header-toolbar{margin-top:8px}.header-toolbar .btn{padding:8px 11px}.header-sub{margin-top:10px;white-space:nowrap;font-size:.92rem;text-align:left}
+.toolbar,.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.btn{border:0;border-radius:13px;padding:11px 14px;font-weight:900;cursor:pointer;background:#eaf3fb;color:var(--deep)}.btn.primary{background:var(--primary);color:#fff}.btn.danger{background:#fff0f0;color:var(--danger)}.btn:disabled{opacity:.62;cursor:wait;filter:none;box-shadow:none}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.full{grid-column:1/-1}label{display:block;font-weight:900;margin-bottom:6px;color:#355d7d}input,textarea,select{width:100%;border:1px solid #cdddeb;border-radius:13px;padding:11px 12px;background:#fff}textarea{min-height:100px;resize:vertical}
+.targets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.check{display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid var(--line);border-radius:11px;padding:7px 6px;background:#f8fbff;font-weight:800;font-size:.92rem;white-space:nowrap}.check input{width:16px;height:16px;margin:0;flex:0 0 auto}
+.item{border:1px solid var(--line);border-radius:16px;padding:13px;background:#fbfdff;margin-top:10px}.item h3{margin:0;color:var(--deep)}.meta{font-size:.84rem;color:var(--muted);line-height:1.6;margin-top:7px}.empty{text-align:center;color:var(--muted);padding:24px 10px}.version{text-align:center;color:var(--muted);font-size:.8rem}
+@media(max-width:620px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.targets{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.check{padding:7px 5px;font-size:.9rem}.brand{align-items:center}.logo{width:54px;height:54px}.header-toolbar{margin-top:7px}.header-toolbar .btn{padding:7px 9px;font-size:.92rem}.header-sub{margin-top:9px;font-size:.82rem;letter-spacing:-.2px;white-space:nowrap}}
+.announcement-header{position:relative;padding-top:64px}.header-back{position:absolute;top:16px;right:16px;margin:0;white-space:nowrap}.header-sub{white-space:normal}
+</style>
+</head>
+<body class="auth-pending">
+<main class="app">
+<section class="top announcement-header">
+  <button class="btn header-back" type="button" onclick="returnHome()">← 返回</button>
+  <div class="brand">
+    <img class="logo" src="assets/logo.png?v=20260727" alt="Logo">
+    <div class="brand-copy">
+      <h1>📣 公布欄管理</h1>
+
+    </div>
+  </div>
+  <div class="sub header-sub">快速發布臨時消息，並設定對象與自動下架時間</div>
+</section>
+<section class="panel">
+  <h2 id="formTitle">新增公告</h2>
+  <input type="hidden" id="noticeId">
+  <div class="grid">
+    <div class="full"><label>公告標題</label><input id="noticeTitle" placeholder="例如：今天下午三點停水"></div>
+    <div class="full"><label>公告內容</label><textarea id="noticeContent" placeholder="簡短說明需要大家知道的事情"></textarea></div>
+    <div class="full"><label>推播對象（可複選）</label><div class="targets">
+      <label class="check"><input type="checkbox" name="target" value="主管">主管</label>
+      <label class="check"><input type="checkbox" name="target" value="幼兒部">幼兒部</label>
+      <label class="check"><input type="checkbox" name="target" value="安親部">安親部</label>
+      <label class="check"><input type="checkbox" name="target" value="庶務部">庶務部</label>
+    </div></div>
+    <div><label>下架方式</label><select id="expireMode" onchange="toggleExpire()"><option value="manual">手動刪除</option><option value="scheduled">設定時間自動下架</option></select></div>
+    <div><label>自動下架時間</label><input type="datetime-local" id="expiresAt" disabled></div>
+  </div>
+  <div class="actions"><button class="btn primary" id="saveNoticeBtn" onclick="saveNotice()">儲存公告</button><button class="btn" id="clearNoticeBtn" onclick="resetForm()">清除</button></div>
+</section>
+<section class="panel"><h2>目前公告</h2><div id="noticeList"></div></section>
+<div class="version">公布欄管理 v1.1.9｜返回對應角色首頁</div>
+</main>
+<script>
+const SERVICE_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
+const LOCAL_KEY='heremay.announcements';
+
+function readCurrentEmployee(){
+  try{
+    const raw=localStorage.getItem('heremay.currentEmployee');
+    return raw?JSON.parse(raw):null;
+  }catch(e){return null}
+}
+function isManagementEmployee(employee){
+  const loginRole=String(localStorage.getItem('heremay.currentRole')||'').trim().toLowerCase();
+  if(loginRole==='admin')return true;
+  if(!employee)return false;
+
+  const homeType=String(employee.homeType??employee.home??employee['首頁類型']??'').trim();
+  const role=String(employee.role??employee.userRole??employee['角色']??'').trim().toLowerCase();
+  const identity=String(employee.identity??employee.identityType??employee['身分類別']??'').trim();
+  const jobTitle=String(employee.jobTitle??employee.title??employee.position??employee['職稱']??'').trim();
+
+  return homeType==='管理首頁'||role==='admin'||identity==='行政主管'||identity==='管理層'||/負責人|園長|主任/.test(jobTitle);
+}
+function isLeaderEmployee(employee){
+  if(!employee)return false;
+  const role=String(employee.role??employee.userRole??employee['角色']??'').trim().toLowerCase();
+  const homeType=String(employee.homeType??employee.home??employee['首頁類型']??'').trim();
+  return role==='leader'||homeType==='中階主管首頁';
+}
+function canManageAnnouncements(employee){
+  return isManagementEmployee(employee) || isLeaderEmployee(employee) || employee?.announcementAdmin === true;
+}
+function denyAnnouncementAccess(){
+  document.body.classList.remove('auth-pending');
+  document.body.innerHTML=`
+    <main class="app">
+      <section class="top" style="text-align:center;margin-top:40px">
+        <div style="font-size:50px">🔒</div>
+        <h2 style="color:#356ba9">沒有公告發布權限</h2>
+        <p class="sub">此頁只開放主管及指定公告發布人員使用。</p>
+        <div class="toolbar" style="justify-content:center">
+          <button class="btn primary" onclick="returnHome()">返回我的首頁</button>
+        </div>
+      </section>
+    </main>`;
+}
+function returnHome(){
+  const employee=readCurrentEmployee()||{};
+  const homeType=String(employee.homeType??employee.home??employee['首頁類型']??'').trim();
+  const role=String(localStorage.getItem('heremay.currentRole')||'').trim().toLowerCase();
+  const pages={admin:'admin.html',leader:'leader.html',teacher:'teacher.html',support:'support.html',parttime:'parttime.html'};
+  const identity=String(employee.identity||employee.identityCategory||employee['身分類別']||'').trim();
+  const group=String(employee.group||employee.department||employee['編組']||'').trim();
+  if(homeType==='兼任首頁'||identity==='外聘兼任教師'||group==='外聘教師'){
+    location.href=pages.parttime;
+    return;
+  }
+  const homes={'管理首頁':pages.admin,'主管首頁':pages.admin,'中階主管首頁':pages.leader,'教保首頁':pages.teacher,'庶務首頁':pages.support};
+  location.href=pages[role]||homes[homeType]||(isLeaderEmployee(employee)?pages.leader:isManagementEmployee(employee)?pages.admin:'index.html');
+}
+function requireAnnouncementAccess(){
+  const employee=readCurrentEmployee();
+  if(!canManageAnnouncements(employee)){
+    denyAnnouncementAccess();
+    return false;
+  }
+  document.body.classList.remove('auth-pending');
+  return true;
+}
+
+function esc(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
+function currentName(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}').name||''}catch(e){return ''}}
+function jsonp(action,params={}){
+  return new Promise((resolve,reject)=>{
+    const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    const script=document.createElement('script');
+    const timer=setTimeout(()=>{cleanup();reject(new Error('雲端讀取逾時'))},15000);
+    function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}
+    window[cb]=data=>{cleanup();resolve(data)};
+    script.onerror=()=>{cleanup();reject(new Error('雲端連線失敗'))};
+    const q=new URLSearchParams({action,callback:cb,...params,_:Date.now()});
+    script.src=SERVICE_URL+'?'+q.toString();
+    document.head.appendChild(script);
+  });
+}
+async function postAction(action,payload){
+  const body=new URLSearchParams();
+  body.set('action',action);
+  body.set('payload',JSON.stringify(payload));
+  const res=await fetch(SERVICE_URL,{method:'POST',body});
+  return await res.json();
+}
+function toggleExpire(){expiresAt.disabled=expireMode.value!=='scheduled';if(expiresAt.disabled)expiresAt.value=''}
+function resetForm(){noticeId.value='';noticeTitle.value='';noticeContent.value='';document.querySelectorAll('[name=target]').forEach(x=>x.checked=false);expireMode.value='manual';toggleExpire();formTitle.textContent='新增公告'}
+let cloudNotices=[];
+let noticeSaveBusy=false;
+
+async function loadNotices(showMessage=false){
+  noticeList.innerHTML='<div class="empty">正在讀取雲端公告…</div>';
+  try{
+    const result=await jsonp('getAnnouncements');
+    if(!result.ok)throw new Error(result.message||'讀取失敗');
+    cloudNotices=Array.isArray(result.announcements)?result.announcements:(result.notices||[]);
+    localStorage.setItem(LOCAL_KEY,JSON.stringify(cloudNotices));
+    render();
+    if(showMessage)alert('雲端公告已更新');
+  }catch(err){
+    try{cloudNotices=JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]')}catch(e){cloudNotices=[]}
+    render();
+    alert('暫時無法連接雲端，先顯示本機備份：'+err.message);
+  }
+}
+async function migrateLocalNotices(){
+  if(localStorage.getItem('heremay.announcementCloudMigratedV110')==='1')return;
+  let local=[];try{local=JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]')}catch(e){}
+  if(!local.length){localStorage.setItem('heremay.announcementCloudMigratedV110','1');return}
+  const cloudIds=new Set(cloudNotices.map(x=>String(x.id)));
+  for(const x of local){
+    if(cloudIds.has(String(x.id)))continue;
+    try{
+      await postAction('saveAnnouncement',{
+        id:x.id,title:x.title,content:x.content,targets:x.targets||[],
+        createdBy:x.createdBy||currentName(),createdAt:x.createdAt||new Date().toISOString(),
+        expiresAt:x.expiresAt||'',status:x.status||'發布中'
+      });
+    }catch(e){console.warn('舊公告移轉失敗',e)}
+  }
+  localStorage.setItem('heremay.announcementCloudMigratedV110','1');
+  await loadNotices(false);
+}
+async function saveNotice(){
+ if(noticeSaveBusy)return;
+
+ const title=noticeTitle.value.trim(),content=noticeContent.value.trim(),targets=[...document.querySelectorAll('[name=target]:checked')].map(x=>x.value);
+ if(!title)return alert('請輸入公告標題');
+ if(!content)return alert('請輸入公告內容');
+ if(!targets.length)return alert('請至少選擇一個推播對象');
+ if(expireMode.value==='scheduled'&&!expiresAt.value)return alert('請設定自動下架時間');
+
+ const id=noticeId.value||'notice_'+Date.now();
+ const old=cloudNotices.find(x=>String(x.id)===String(id));
+ const saveBtn=document.getElementById('saveNoticeBtn');
+ const clearBtn=document.getElementById('clearNoticeBtn');
+ const originalText=saveBtn?.textContent||'儲存公告';
+
+ noticeSaveBusy=true;
+ if(saveBtn){
+   saveBtn.disabled=true;
+   saveBtn.textContent='⏳ 儲存公告中……';
+   saveBtn.setAttribute('aria-busy','true');
+ }
+ if(clearBtn)clearBtn.disabled=true;
+
+ try{
+   const result=await postAction(old?'updateAnnouncement':'saveAnnouncement',{
+     id,title,content,targets,createdBy:old?.createdBy||currentName(),
+     createdAt:old?.createdAt||new Date().toISOString(),
+     expiresAt:expireMode.value==='scheduled'?expiresAt.value:'',
+     status:'發布中'
+   });
+
+   if(!result.ok)throw new Error(result.message||'儲存失敗');
+
+   if(saveBtn)saveBtn.textContent='✅ 已儲存，正在更新……';
+
+   resetForm();
+   await loadNotices(false);
+   alert(result.message||'公告已儲存');
+ }catch(err){
+   alert('公告儲存失敗：'+err.message);
+ }finally{
+   noticeSaveBusy=false;
+   if(saveBtn){
+     saveBtn.disabled=false;
+     saveBtn.removeAttribute('aria-busy');
+     saveBtn.textContent=originalText;
+   }
+   if(clearBtn)clearBtn.disabled=false;
+ }
+}
+
+function editNotice(id){
+ const x=cloudNotices.find(n=>String(n.id)===String(id));if(!x)return;
+ noticeId.value=x.id;noticeTitle.value=x.title;noticeContent.value=x.content;
+ document.querySelectorAll('[name=target]').forEach(c=>c.checked=(x.targets||[]).includes(c.value));
+ expireMode.value=x.expiresAt?'scheduled':'manual';expiresAt.value=x.expiresAt?String(x.expiresAt).slice(0,16):'';
+ toggleExpire();formTitle.textContent='修改公告';scrollTo({top:0,behavior:'smooth'});
+}
+async function deleteNotice(id){
+ const x=cloudNotices.find(n=>String(n.id)===String(id));
+ if(!x||!confirm(`確定刪除「${x.title}」嗎？刪除後無法復原。`))return;
+ try{
+   const result=await postAction('deleteAnnouncement',{id});
+   if(!result.ok)throw new Error(result.message||'刪除失敗');
+   await loadNotices(false);alert(result.message||'公告已刪除');
+ }catch(err){alert('刪除失敗：'+err.message)}
+}
+function render(){
+ const box=document.getElementById('noticeList');
+ box.innerHTML=cloudNotices.length?cloudNotices.map(x=>`<article class="item"><h3>${esc(x.title)}</h3><div>${esc(x.content).replace(/\n/g,'<br>')}</div><div class="meta">對象：${(x.targets||[]).join('、')}｜發布：${x.createdAt?new Date(x.createdAt).toLocaleString('zh-TW',{hour12:false}):''}${x.expiresAt?'｜下架：'+String(x.expiresAt).replace('T',' '):'｜手動下架'}</div><div class="actions"><button class="btn" onclick="editNotice('${x.id}')">修改</button><button class="btn danger" onclick="deleteNotice('${x.id}')">刪除</button></div></article>`).join(''):'<div class="empty">目前沒有公告</div>';
+}
+if(requireAnnouncementAccess()){
+  toggleExpire();
+  (async()=>{await loadNotices(false);await migrateLocalNotices();})();
+}
+</script>
+</body></html>
+
+
