@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.9.15</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.9.16</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -321,7 +321,7 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
 <main class="app">
 <header class="header">
   <div class="logo"><img src="assets/logo.png?v=20260720-groupbuy-v11" alt="和美智慧校園 Logo" onerror="this.parentElement.textContent='🏰'"></div>
-  <div><small>Heremay 和美智慧校園</small><h1>🛒 團購／報名中心</h1><span class="header-version">v1.9.15｜2026-10-06</span></div>
+  <div><small>Heremay 和美智慧校園</small><h1>🛒 團購／報名中心</h1><span class="header-version">v1.9.16｜2026-10-06</span></div>
   <button class="campus-return" type="button" onclick="goBack()" aria-label="返回上一頁" title="返回上一頁">← 返回</button>
 </header>
 
@@ -441,7 +441,7 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.9.15｜2026-10-06｜統一右上返回鍵</div>
+<div class="version">團購／報名中心 v1.9.16｜2026-10-06｜統一右上返回鍵</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -885,7 +885,20 @@ async function checkAppUpdateSilently(){
    if(reg)await reg.update();
  }catch(e){console.warn(e)}
 }
-function goBack(){const r=String(localStorage.getItem('heremay.currentRole')||'').toLowerCase();location.href=r==='admin'?'admin.html':r==='teacher'?'teacher.html':r==='support'?'support.html':'index.html'}
+function goBack(){
+ const params = new URLSearchParams(location.search);
+ const back = params.get('back');
+ if(back){
+  try{
+   const url = new URL(back, location.href);
+   if(url.origin === location.origin && /\/(admin|leader|teacher|support)\.html$/.test(url.pathname)){
+    location.href = url.href;return;
+   }
+  }catch(_){}
+ }
+ const r=String(localStorage.getItem('heremay.currentRole')||'').toLowerCase();
+ location.href=r==='admin'?'admin.html':r==='leader'?'leader.html':r==='teacher'?'teacher.html':r==='support'?'support.html':'index.html';
+}
 function showPanel(id,btn){if(id==='stats'&&!getC().some(isHost)){toast('統計／結單只開放給活動發起人');return}document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');btn.classList.add('active');renderAll()}
 
 function applyTemplate(type,btn){

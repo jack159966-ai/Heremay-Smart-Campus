@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜中階主管首頁 v1.14</title>
+  <title>和美智慧校園｜中階主管首頁 v1.15</title>
   <style>
     :root{
       --bg1:#fff0e6;
@@ -605,7 +605,7 @@
       </div>
     </header>
 
-    <div class="version-refresh-row"><span class="page-version">中階主管 v1.14</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
+    <div class="version-refresh-row"><span class="page-version">中階主管 v1.15</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
 
     <section class="section" id="messageCenterHomeSection">
       <button class="btn primary" style="width:100%" onclick="openMessageCenter()">
@@ -649,11 +649,11 @@
           <span>搜尋同仁並傳送私人訊息</span>
         </button>
 
-        <button class="btn" onclick="openMediaSubmission()">
+        <a class="btn" id="mediaSubmissionLink" href="https://heremay-8t.myqnapcloud.com:9444/" target="_blank" rel="noopener" style="text-decoration:none">
           <div class="icon"><img src="assets/media-submission.jpg?v=20260906b" alt="班級素材投稿"></div>
           <strong>班級素材投稿</strong>
           <span>提供粉絲專頁文章與 3～30 張活動照片</span>
-        </button>
+        </a>
 
 <div class="entry-pair">
         <button class="btn" onclick="openRegistrationCenter()">
@@ -741,7 +741,7 @@
         </div>
       </div>
 
-      <button class="close" onclick="hidePersonalSettings()">關閉</button>
+
     </div>
   </div>
 
@@ -970,7 +970,7 @@
 
     function openRegistrationCenter(){
       const url = new URL('groupbuy.html', location.href);
-      url.searchParams.set('v', '1.9.12');
+      url.searchParams.set('v', '1.9.16');
       url.searchParams.set('back', new URL('leader.html', location.href).href);
       url.searchParams.set('from', 'leader');
       window.location.href = url.href;
@@ -982,7 +982,7 @@
       showToast(`已點選「${name}」：這裡之後會接到對應功能頁。`, 2200);
     }
 
-    function openMediaSubmission(){
+    function mediaSubmissionHref(){
       if(!MEDIA_SUBMISSION_URL || MEDIA_SUBMISSION_URL.includes('PASTE_GOOGLE_APPS_SCRIPT')){
         showToast('雲端投稿網址尚未設定，請先完成 Google Apps Script 部署。', 3600);
         return;
@@ -1009,7 +1009,11 @@
 
       const url = new URL(MEDIA_SUBMISSION_URL);
       params.forEach((value, key) => url.searchParams.set(key, value));
-      window.location.href = url.href;
+      return url.href;
+    }
+
+    function openMediaSubmission(){
+      window.open(mediaSubmissionHref(), '_blank', 'noopener');
     }
 
     function ackStorageKey(id){
@@ -1347,6 +1351,7 @@
     }
 
     loadCurrentEmployee();
+    document.getElementById('mediaSubmissionLink').href = mediaSubmissionHref();
     applyFeaturePermissions();
     loadCloudStaffData();
     window.addEventListener('pageshow',loadCloudStaffData);
