@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜中階主管首頁 v1.16</title>
+  <title>和美智慧校園｜中階主管首頁 v1.17</title>
   <style>
     :root{
       --bg1:#fff0e6;
@@ -605,7 +605,7 @@
       </div>
     </header>
 
-    <div class="version-refresh-row"><span class="page-version">中階主管 v1.16</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
+    <div class="version-refresh-row"><span class="page-version">中階主管 v1.17</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
 
     <section class="section" id="messageCenterHomeSection">
       <button class="btn primary" style="width:100%" onclick="openMessageCenter()">
@@ -983,6 +983,7 @@
     }
 
     function openMediaSubmission(){
+      if(!confirm('請先連上園內 HEREMAY Wi-Fi，再進入班級投稿。')) return;
       if(!MEDIA_SUBMISSION_URL || MEDIA_SUBMISSION_URL.includes('PASTE_GOOGLE_APPS_SCRIPT')){
         showToast('雲端投稿網址尚未設定，請先完成 Google Apps Script 部署。', 3600);
         return;
