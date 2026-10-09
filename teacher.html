@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.31</title>
+  <title>和美智慧校園｜教保人員首頁 v15.32</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -645,7 +645,7 @@ body.personal-settings-open{overflow:hidden}
 
     <button class="leave-roster-entry" id="leaveRosterEntry" type="button" onclick="location.href='leave_roster.html'"><span class="lr-icon">📋</span><span><strong>今明日請假名單</strong><small>今天、明天誰請假｜查看人力安排</small></span><span class="lr-arrow">›</span></button>
     <div class="version-refresh-row">
-      <div class="page-version">教保人員首頁 v15.31</div>
+      <div class="page-version">教保人員首頁 v15.32</div>
       <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
     </div>
 
@@ -747,7 +747,7 @@ body.personal-settings-open{overflow:hidden}
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.31｜NAS 高速投稿入口</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.32｜NAS 高速投稿入口</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -771,7 +771,7 @@ body.personal-settings-open{overflow:hidden}
 
   <div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
     <div class="sheet" onclick="event.stopPropagation()">
-      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v15.31｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回教保人員首頁" title="返回教保人員首頁">← 返回</button></div>
+      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v15.32｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回教保人員首頁" title="返回教保人員首頁">← 返回</button></div>
 
       <div class="listbox">
         <h3>個人資料</h3>
@@ -1318,6 +1318,7 @@ body.personal-settings-open{overflow:hidden}
     }
 
     function openMediaSubmission(){
+  if(!confirm('請先連上園內 HEREMAY Wi-Fi，再進入班級投稿。')) return;
       if(!MEDIA_SUBMISSION_URL || MEDIA_SUBMISSION_URL.includes('PASTE_GOOGLE_APPS_SCRIPT')){
         showToast('雲端投稿網址尚未設定，請先完成 Google Apps Script 部署。', 3600);
         return;

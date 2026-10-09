@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.66</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.67</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -624,7 +624,7 @@
     </header>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.66｜2026-10-09</div>
+      <div class="versionStamp">主管工作台 v24.67｜2026-10-09</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -822,6 +822,7 @@ async function refreshAdminPrivateUnread(){
 }
 
 function openMediaAdminInbox(){
+  if(!confirm('請先連上園內 HEREMAY Wi-Fi，再進入投稿收件匣。')) return;
   if(!MEDIA_ADMIN_URL || MEDIA_ADMIN_URL.includes('PASTE_GOOGLE_APPS_SCRIPT')){
     showToast('雲端收件匣網址尚未設定，請先完成 Google Apps Script 部署。');
     return;
