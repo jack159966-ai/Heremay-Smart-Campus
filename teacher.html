@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.30</title>
+  <title>和美智慧校園｜教保人員首頁 v15.31</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -611,6 +611,7 @@ body.personal-settings-open{overflow:hidden}
     #attendanceHomeSection .btn.primary strong{font-size:18px;margin-bottom:3px}
     #attendanceHomeSection .btn.primary span{font-size:12px;line-height:1.35}
   </style>
+<style>.leave-roster-entry[hidden]{display:none}.leave-roster-entry{display:flex;align-items:center;gap:12px;width:100%;padding:15px 18px;margin:12px 0;border:1px solid #b9d8db;border-radius:18px;background:#edf8f7;color:#225c62;cursor:pointer;text-align:left;font-family:inherit;box-shadow:0 4px 12px #245d6210}.leave-roster-entry .lr-icon{font-size:30px}.leave-roster-entry strong{display:block;font-size:20px}.leave-roster-entry small{display:block;margin-top:4px;font-size:14px}.leave-roster-entry .lr-arrow{margin-left:auto;font-size:27px}</style>
 </head>
 <body>
   <main class="phone">
@@ -642,8 +643,9 @@ body.personal-settings-open{overflow:hidden}
         </button>
     </section>
 
+    <button class="leave-roster-entry" id="leaveRosterEntry" type="button" onclick="location.href='leave_roster.html'"><span class="lr-icon">📋</span><span><strong>今明日請假名單</strong><small>今天、明天誰請假｜查看人力安排</small></span><span class="lr-arrow">›</span></button>
     <div class="version-refresh-row">
-      <div class="page-version">教保人員首頁 v15.30</div>
+      <div class="page-version">教保人員首頁 v15.31</div>
       <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
     </div>
 
@@ -745,7 +747,7 @@ body.personal-settings-open{overflow:hidden}
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.30｜NAS 高速投稿入口</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.31｜NAS 高速投稿入口</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -769,7 +771,7 @@ body.personal-settings-open{overflow:hidden}
 
   <div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
     <div class="sheet" onclick="event.stopPropagation()">
-      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v15.30｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回教保人員首頁" title="返回教保人員首頁">← 返回</button></div>
+      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v15.31｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回教保人員首頁" title="返回教保人員首頁">← 返回</button></div>
 
       <div class="listbox">
         <h3>個人資料</h3>
@@ -1883,6 +1885,7 @@ window.addEventListener('pageshow',()=>{
 </script>
 <script src="./campus-push.js?v=1.0.0"></script>
 <script src="./personal-password.js?v=1.0.0"></script>
+<script>(()=>{let e={};try{e=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}')||{}}catch(_){}const kind=[e.category,e.identity,e.identityType,e.jobTitle,e.title,e.group,e.department,e.homeType,e['身分類別'],e['職稱']].filter(Boolean).join(' ');if(/鐘點|庶務/.test(kind))document.getElementById('leaveRosterEntry').hidden=true})();</script>
 </body>
 </html>
 

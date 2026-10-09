@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.64</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.65</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -598,6 +598,7 @@
 #adminNoticeList .item p{font-size:18px;font-weight:600;line-height:1.65;color:#334e60;overflow-wrap:anywhere}
 #adminNoticeList .item>div:last-child{min-width:0}
 </style>
+<style>.leave-roster-entry[hidden]{display:none}.leave-roster-entry{display:flex;align-items:center;gap:12px;width:100%;padding:15px 18px;margin:12px 0;border:1px solid #b9d8db;border-radius:18px;background:#edf8f7;color:#225c62;cursor:pointer;text-align:left;font-family:inherit;box-shadow:0 4px 12px #245d6210}.leave-roster-entry .lr-icon{font-size:30px}.leave-roster-entry strong{display:block;font-size:20px}.leave-roster-entry small{display:block;margin-top:4px;font-size:14px}.leave-roster-entry .lr-arrow{margin-left:auto;font-size:27px}</style>
 </head>
 <body class="auth-pending">
   <div class="toast" id="toast"></div>
@@ -629,8 +630,9 @@
       </button>
     </section>
 
+    <button class="leave-roster-entry" id="leaveRosterEntry" type="button" onclick="location.href='leave_roster.html'"><span class="lr-icon">📋</span><span><strong>今明日請假名單</strong><small>今天、明天誰請假｜查看人力安排</small></span><span class="lr-arrow">›</span></button>
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.64｜2026-10-08</div>
+      <div class="versionStamp">主管工作台 v24.65｜2026-10-08</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -1894,6 +1896,7 @@ setInterval(refreshAdminPrivateUnread,60000);
 </script>
 <script src="./campus-push.js?v=1.0.0"></script>
 
+<script>(()=>{let e={};try{e=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}')||{}}catch(_){}const kind=[e.category,e.identity,e.identityType,e.jobTitle,e.title,e.group,e.department,e.homeType,e['身分類別'],e['職稱']].filter(Boolean).join(' ');if(/鐘點|庶務/.test(kind))document.getElementById('leaveRosterEntry').hidden=true})();</script>
 </body>
 </html>
 
