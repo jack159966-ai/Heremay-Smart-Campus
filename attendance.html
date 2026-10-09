@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜差勤管理 v2.11.0</title>
+  <title>和美智慧校園｜差勤管理 v2.11.1</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -81,7 +81,7 @@
   <header class="top">
     <div class="title"><h1>差勤管理</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.11.0 特休名額與餘額</span>
+    <span class="version">v2.11.1 特休名額與餘額</span>
   </header>
 
   <div id="attendanceDataStatus" role="status" style="padding:10px;color:#995319;font-weight:850">尚未同步，畫面可能是手機暫存資料</div>
@@ -355,7 +355,7 @@
     const pending=sensitiveAuthPending;sensitiveAuthPending=null;
     if(pending)pending.resolve(false);
     clearAttendanceSession();
-    location.href=localStorage.getItem('heremay.currentRole')==='support'?'support.html':'teacher.html';
+    location.href=attendanceHomePage();
   }
   function showSensitivePassword(){
     document.getElementById('sensitivePasswordBox').classList.add('show');
@@ -1407,7 +1407,16 @@
 
   function toastMsg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2800)}
   function openSalarySlip(){preserveGrantForAreaNavigation=true;location.href='salary_slip.html?from=attendance'}
-  function goBack(){clearAttendanceSession();const role=localStorage.getItem('heremay.currentRole');location.href=role==='admin'?'admin.html':role==='manager'?'manager.html':role==='support'?'support.html':'teacher.html'}
+  function attendanceHomePage(){
+    const home=String(employee.homeType||employee.home||employee['首頁類型']||'').trim();
+    const role=String(employee.role||localStorage.getItem('heremay.currentRole')||'').trim();
+    if(/中階主管/.test(home)||role==='leader')return 'leader.html';
+    if(/管理首頁|主管首頁/.test(home)||role==='admin')return 'admin.html';
+    if(/庶務/.test(home)||role==='support')return 'support.html';
+    if(role==='manager')return 'manager.html';
+    return 'teacher.html';
+  }
+  function goBack(){clearAttendanceSession();location.href=attendanceHomePage()}
   async function startAttendanceArea(){
     initUser();
     if(!restoreAttendanceSession()&&!await requireSensitiveAuth())return;
