@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜中階主管首頁 v1.15</title>
+  <title>和美智慧校園｜中階主管首頁 v1.16</title>
   <style>
     :root{
       --bg1:#fff0e6;
@@ -605,7 +605,7 @@
       </div>
     </header>
 
-    <div class="version-refresh-row"><span class="page-version">中階主管 v1.15</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
+    <div class="version-refresh-row"><span class="page-version">中階主管 v1.16</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
 
     <section class="section" id="messageCenterHomeSection">
       <button class="btn primary" style="width:100%" onclick="openMessageCenter()">
@@ -649,11 +649,11 @@
           <span>搜尋同仁並傳送私人訊息</span>
         </button>
 
-        <a class="btn" id="mediaSubmissionLink" href="https://heremay-8t.myqnapcloud.com:9444/" target="_blank" rel="noopener" style="text-decoration:none">
+        <button class="btn" onclick="openMediaSubmission()">
           <div class="icon"><img src="assets/media-submission.jpg?v=20260906b" alt="班級素材投稿"></div>
           <strong>班級素材投稿</strong>
           <span>提供粉絲專頁文章與 3～30 張活動照片</span>
-        </a>
+        </button>
 
 <div class="entry-pair">
         <button class="btn" onclick="openRegistrationCenter()">
@@ -982,7 +982,7 @@
       showToast(`已點選「${name}」：這裡之後會接到對應功能頁。`, 2200);
     }
 
-    function mediaSubmissionHref(){
+    function openMediaSubmission(){
       if(!MEDIA_SUBMISSION_URL || MEDIA_SUBMISSION_URL.includes('PASTE_GOOGLE_APPS_SCRIPT')){
         showToast('雲端投稿網址尚未設定，請先完成 Google Apps Script 部署。', 3600);
         return;
@@ -997,7 +997,14 @@
         currentEmployee?.group ||
         ''
       ).trim();
-      const employeeId = String(currentEmployee?.employeeId || currentEmployee?.employeeNo || currentEmployee?.id || currentEmployee?.['員工編號'] || '').trim();
+      // 員工主檔的新舊欄位名稱都支援，避免投稿只留下姓名、沒有員工編號。
+      const employeeId = String(
+        currentEmployee?.employeeId ||
+        currentEmployee?.employeeNo ||
+        currentEmployee?.id ||
+        currentEmployee?.['員工編號'] ||
+        ''
+      ).trim();
       const department = currentDepartment();
 
       if(authorName) params.set('author', authorName);
@@ -1005,15 +1012,9 @@
       if(className) params.set('class', className);
       if(employeeId) params.set('employeeId', employeeId);
       if(department) params.set('department', department);
-      params.set('back', new URL('leader.html', location.href).href);
 
-      const url = new URL(MEDIA_SUBMISSION_URL);
-      params.forEach((value, key) => url.searchParams.set(key, value));
-      return url.href;
-    }
-
-    function openMediaSubmission(){
-      window.open(mediaSubmissionHref(), '_blank', 'noopener');
+      const separator = MEDIA_SUBMISSION_URL.includes('?') ? '&' : '?';
+      window.location.href = `${MEDIA_SUBMISSION_URL}${separator}${params.toString()}`;
     }
 
     function ackStorageKey(id){
@@ -1351,7 +1352,6 @@
     }
 
     loadCurrentEmployee();
-    document.getElementById('mediaSubmissionLink').href = mediaSubmissionHref();
     applyFeaturePermissions();
     loadCloudStaffData();
     window.addEventListener('pageshow',loadCloudStaffData);
