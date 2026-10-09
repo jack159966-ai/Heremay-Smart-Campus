@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜差勤管理 v2.10.0</title>
+  <title>和美智慧校園｜差勤管理 v2.11.0</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -81,7 +81,7 @@
   <header class="top">
     <div class="title"><h1>差勤管理</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.10.0 今明請假名單</span>
+    <span class="version">v2.11.0 特休名額與餘額</span>
   </header>
 
   <div id="attendanceDataStatus" role="status" style="padding:10px;color:#995319;font-weight:850">尚未同步，畫面可能是手機暫存資料</div>
@@ -160,7 +160,7 @@
   <section class="card panel" id="balancePanel">
     <div class="section-title"><h2>剩餘假別</h2><span class="tag">學年度制</span></div>
     <div class="balance"><div class="balance-box"><b id="annualRemain">尚未設定</b><span>本學年度特休剩餘</span></div><div class="balance-box"><b id="compRemain">尚未設定</b><span>補休剩餘</span></div></div>
-    <div class="warning">目前後端未提供個人假別額度，特休、補休、婚假、產假等剩餘天數尚無法計算。使用期間：每年 8 月 1 日至次年 7 月 31 日。特休符合餘額與開放日期時原則自動成立；同時段第 4 人起轉主管人力覆核。其他假別依規則送主管審核。</div>
+    <div class="warning">特休餘額由主管設定，申請成立後自動扣除，取消後返還。補休、婚假、產假等額度尚未納入計算。使用期間：每年 8 月 1 日至次年 7 月 31 日。特休符合餘額與開放日期時原則自動成立；名額由主管設定，額滿或鎖定日期不能申請特休。其他假別依規則送主管審核。</div>
   </section>
 
   <section class="card panel" id="recordsPanel">
@@ -230,6 +230,7 @@
   let accessChecking = false;
   let employee = readEmployee();
   let cloudSharedLeaves = [];
+  let annualRules = [];
   let overviewLeaves = [];
   let overviewReady = false;
   let cloudMyLeaves = [];
@@ -997,18 +998,10 @@
   function showTab(name,btn){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.getElementById(name+'Panel').classList.add('active');if(name==='records')renderRecords();if(name==='attendance')renderAttendance();if(name==='leave')renderMyLeaves()}
   function changeMonth(n){viewDate.setDate(1);viewDate.setMonth(viewDate.getMonth()+n);cloudReady=false;cloudSharedLeaves=[];renderCalendar();loadCloudData(true)}
   function baseQuotaFor(date){
-    const day=date.getDay();
-    if(day===0||day===6)return {off:true,text:'休'};
-    if(date.getDate()===1&&date.getMonth()===7)return {off:true,text:'停休'};
-
-    const pool=leavePool();
-    if(pool==='安親部'){
-      return {off:false,amUnlimited:true,amLimit:null,pmLimit:1};
-    }
-    if(pool==='幼兒部'){
-      return {off:false,amUnlimited:false,amLimit:3,pmLimit:3};
-    }
-    return {off:false,amUnlimited:false,amLimit:3,pmLimit:3};
+    const day=date.getDay();if(day===0||day===6)return {off:true,text:'休'};
+    const key=`${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`,pool=leavePool();
+    const rule=annualRules.find(r=>r.date===key&&r.pool===pool)||annualRules.find(r=>r.date===key&&r.pool==='全部')||annualRules.find(r=>!r.date&&r.pool===pool)||annualRules.find(r=>!r.date&&r.pool==='全部')||{amLimit:2,pmLimit:2,locked:false};
+    return {off:false,amUnlimited:false,amLimit:rule.locked?0:rule.amLimit,pmLimit:rule.locked?0:rule.pmLimit,locked:rule.locked};
   }
   function normalizeLeaveRow(x){
     return {
@@ -1053,7 +1046,7 @@
   function periodUsage(date){
     const rows=leavesOn(date);
     let am=0,pm=0;
-    rows.forEach(x=>{
+    rows.filter(x=>x.type==='特休').forEach(x=>{
       const p=String(x.period||'').trim();
       if(p==='全天'){am++;pm++}
       else if(p==='上午')am++;
@@ -1086,7 +1079,7 @@
     if(n===2)return 'yellow';
     return 'blue';
   }
-  function renderCalendar(){publishSharedLeaves();const y=viewDate.getFullYear(),m=viewDate.getMonth();monthTitle.textContent=`${y} 年 ${m+1} 月｜${leavePool()}`;calendar.innerHTML='';const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();for(let i=0;i<first;i++){const e=document.createElement('div');e.className='day empty';calendar.append(e)}for(let n=1;n<=days;n++){const d=new Date(y,m,n),key=`${y}-${pad(m+1)}-${pad(n)}`,q=availability(key),el=document.createElement('button');const count=Number(q.rows?.length||0),level=leaveCountClass(count),redAlert=!q.off&&(q.amUsed>=4||q.pmUsed>=4);el.className='day'+(q.off?' off':'')+(redAlert?' alert-red':'')+(selectedDates.has(key)?' selected':'');const people=count?`<span class="mark ${level}">${count}人</span>`:(selectedDates.has(key)?'<span class="mark blue">✓</span>':'');el.innerHTML=`<span class="num">${n}</span>${people}`;el.disabled=q.off;el.onclick=()=>selectDate(key);calendar.append(el)}renderSelected()}
+  function renderCalendar(){publishSharedLeaves();const y=viewDate.getFullYear(),m=viewDate.getMonth();monthTitle.textContent=`${y} 年 ${m+1} 月｜${leavePool()}`;calendar.innerHTML='';const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();for(let i=0;i<first;i++){const e=document.createElement('div');e.className='day empty';calendar.append(e)}for(let n=1;n<=days;n++){const d=new Date(y,m,n),key=`${y}-${pad(m+1)}-${pad(n)}`,q=availability(key),el=document.createElement('button');const count=Number(q.rows?.length||0),level=leaveCountClass(count),redAlert=!q.off&&(q.amUsed>=q.amLimit||q.pmUsed>=q.pmLimit);el.className='day'+(q.off?' off':'')+(redAlert?' alert-red':'')+(selectedDates.has(key)?' selected':'');const people=count?`<span class="mark ${level}">${count}人</span>`:(selectedDates.has(key)?'<span class="mark blue">✓</span>':'');el.innerHTML=`<span class="num">${n}</span>${people}`;el.disabled=q.off;el.onclick=()=>selectDate(key);calendar.append(el)}renderSelected()}
   function selectDate(key){
     if(selectedDates.has(key)){
       selectedDates.delete(key);
@@ -1108,22 +1101,22 @@
       ?q.rows.map(x=>`<div class="person-line">${x.employeeName||'同仁'}｜${x.type}・${x.period}</div>`).join('')
       :'<div class="person-line">目前尚無同組同仁請假</div>';
 
-    if(q.amUnlimited){
+    if(q.locked){amQuota.textContent='本日已鎖定特休；其他假別可送審';amQuota.className='quota-warn'}else if(q.amUnlimited){
       amQuota.textContent=`上午：已 ${q.amUsed} 人／不限人數`;
       amQuota.className='quota-ok';
     }else if(q.amUsed>=q.amLimit){
-      amQuota.textContent=`上午：已 ${q.amUsed} 人／已達一般安全線 ${q.amLimit} 人`;
+      amQuota.textContent=`上午：已 ${q.amUsed} 人／特休名額已滿（上限 ${q.amLimit} 人）`;
       amQuota.className='quota-warn';
     }else{
-      amQuota.textContent=`上午：已 ${q.amUsed} 人／安全線前可再 ${q.am} 人`;
+      amQuota.textContent=`上午：已 ${q.amUsed} 人／特休可再 ${q.am} 人`;
       amQuota.className='quota-ok';
     }
 
     if(q.pmUsed>=q.pmLimit){
-      pmQuota.textContent=`下午：已 ${q.pmUsed} 人／已達一般安全線 ${q.pmLimit} 人`;
+      pmQuota.textContent=`下午：已 ${q.pmUsed} 人／特休名額已滿（上限 ${q.pmLimit} 人）`;
       pmQuota.className='quota-warn';
     }else{
-      pmQuota.textContent=`下午：已 ${q.pmUsed} 人／安全線前可再 ${q.pm} 人`;
+      pmQuota.textContent=`下午：已 ${q.pmUsed} 人／特休可再 ${q.pm} 人`;
       pmQuota.className='quota-ok';
     }
 
@@ -1146,10 +1139,11 @@
         alreadyNote.style.display='none';
         alreadyNote.textContent='';
       }
-      // 不因達到一般安全線而停用按鈕；第 4 人仍可申請，由後端轉主管覆核。
-      fullDayChoice.disabled=false;
-      amChoice.disabled=false;
-      pmChoice.disabled=false;
+      // 不因達到一般安全線而停用按鈕；特休額滿由後端拒絕，其他假別仍可送審。
+      const annual=leaveType.value==='特休';
+      fullDayChoice.disabled=annual&&(q.locked||q.am<=0||q.pm<=0);
+      amChoice.disabled=annual&&(q.locked||q.am<=0);
+      pmChoice.disabled=annual&&(q.locked||q.pm<=0);
     }
   }
   function isPeriodAtOrOverSafe(q,p){
@@ -1162,12 +1156,13 @@
     const mine=myActiveLeaveOn(pendingDate);
     if(mine){toastMsg(`這一天已有您送出的${mine.type}（${mine.period}），不能重複申請`);hidePeriodModal();return}
     const q=availability(pendingDate);
+    if(leaveType.value==='特休'&&(q.locked||isPeriodAtOrOverSafe(q,p))){toastMsg(q.locked?'該日已鎖定特休':'該時段特休名額已滿');return}
     period.value=p;
     selectedDates.set(pendingDate,p);
     hidePeriodModal();
     renderCalendar();
     if(isPeriodAtOrOverSafe(q,p)){
-      toastMsg(`⚠️ 已達一般安全線｜${p}仍可申請，第 4 人起需主管覆核`);
+      toastMsg(`⚠️ ${p}特休已額滿或鎖定；本次其他假別將送主管審核`);
     }else{
       toastMsg(`已選擇 ${pendingDate} ${p}`);
     }
@@ -1253,6 +1248,8 @@
       const result=await jsonp(url,45000);
       if(sequence!==attendanceLoadSequence)return false;
       if(!result.ok)throw new Error(result.message||'讀取失敗');
+      annualRules=Array.isArray(result.annualRules)?result.annualRules:[];
+      document.getElementById('annualRemain').textContent=result.annualBalance?.configured?result.annualBalance.remaining+' 天':'尚未設定';
       cloudSharedLeaves=Array.isArray(result.sharedLeaves)?result.sharedLeaves:[];
       cloudMyLeaves=Array.isArray(result.myLeaves)?result.myLeaves:[];
       cloudPunches=Array.isArray(result.punches)?result.punches:[];

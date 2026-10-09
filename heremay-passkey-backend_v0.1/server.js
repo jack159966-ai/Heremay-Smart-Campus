@@ -484,11 +484,18 @@ app.post('/auth/step-up/validate', async (req,res) => {
     if (grant.purpose !== purpose || !accountMatchesToken(account, grant)) {
       return res.status(403).json({ ok:false, message:'驗證帳號或用途不符' });
     }
+    const employee = await lookupEmployee(grant.employeeNo);
+    if (!employee || !employee.canLogin || !employee.role) return res.status(403).json({ok:false,message:'帳號已停用'});
+    assertSensitivePurposeAllowed(employee, purpose);
+    const roster = req.body?.includeRoster === true && employee.role === 'admin'
+      ? (await listEmployees()).map(e => ({employeeNo:e.employeeNo,name:e.name,department:e.department})) : undefined;
     res.json({
       ok:true,
+      employee:publicEmployee(employee),
+      roster,
       employeeNo:grant.employeeNo || '',
       account:grant.account || '',
-      role:grant.role || '',
+      role:employee.role || '',
       purpose:grant.purpose,
       expiresAt:Number(grant.expiresAt || 0),
     });
@@ -686,4 +693,3 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(PORT, () => console.log(`Heremay Passkey service listening on ${PORT}`));
-

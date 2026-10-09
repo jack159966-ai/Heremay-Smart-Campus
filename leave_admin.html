@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>和美智慧校園｜請假管理 v1.5.4</title>
+<title>和美智慧校園｜請假管理 v1.6.0</title>
 <style>
 :root{--blue:#2f68d8;--deep:#173f75;--line:#dfe8f6;--bg:#f4f8ff}
 *{box-sizing:border-box}
@@ -39,19 +39,26 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
 .campus-return{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:96px;min-height:48px;padding:12px 16px!important;border:1px solid #356ba9;border-radius:14px;background:#4f86c6;color:#fff;font:900 16px/1.2 "Microsoft JhengHei",sans-serif;white-space:nowrap;cursor:pointer;box-shadow:0 4px 12px #315b8520;width:auto!important}
 .campus-return:focus-visible{outline:3px solid #e6ad3e;outline-offset:3px}
 .header{position:relative;display:block;padding-right:108px;min-height:48px}.header>.campus-return{position:absolute;right:0;top:0}.headerActions{margin-top:10px;flex-wrap:wrap}.header-version{display:block;margin-top:6px;color:#7890a6;font-size:12px;font-weight:800}@media(max-width:620px){.headerActions{width:auto}.headerActions .back{flex:0 0 auto}.header h1{font-size:23px}}
+input,select,textarea{font:inherit;width:100%;padding:10px;border:1px solid #cfe2ff;border-radius:12px;margin:6px 0 12px}label{font-weight:800}input[type=checkbox]{width:auto}form button{margin:5px}.rule-row{padding:12px;border-bottom:1px solid #dfe8f6}
 </style>
 </head>
 <body>
 <main class="app">
   <header class="header">
     <button class="campus-return" type="button" onclick="location.href='admin.html'" aria-label="返回主管首頁" title="返回主管首頁">← 返回</button>
-    <div><h1>🏖️ 請假管理</h1><small>主管專用｜今天、明天與每月請假總覽</small><span class="header-version">v1.5.4｜2026-10-02</span></div>
+    <div><h1>🏖️ 請假管理</h1><small>主管專用｜今天、明天與每月請假總覽</small><span class="header-version">v1.6.0｜2026-10-09</span></div>
     <div class="headerActions">
       
       <button class="back" id="refreshBtn" type="button">🔄 重新整理</button>
     </div>
   </header>
 
+  <section class="card" id="authCard"><h2 class="title">主管身分驗證</h2><form id="authForm"><label>帳號<input id="adminAccount" autocomplete="username" required></label><label>密碼<input id="adminPassword" type="password" autocomplete="current-password" required></label><button class="back" type="submit">驗證並開啟管理</button></form><div id="authStatus" role="status">僅負責人、園長、主任可設定與審核。</div></section>
+  <section class="card" id="settingsCard" hidden>
+    <h2 class="title">特休名額與鎖定日期</h2><div class="hint">上午、下午分別計算人數；全天占用兩個時段。日期留白為一般每日上限。特殊日期設定會優先套用，可提高名額或鎖定特休。其他假別仍可送主管審核。</div>
+    <form id="ruleForm"><div class="grid2"><label>編組<select id="rulePool"><option>全部</option><option>幼兒部</option><option>安親部</option><option>行政組</option><option>庶務組</option><option>其他人員</option></select></label><label>特殊日期（一般設定請留白）<input type="date" id="ruleDate"></label><label>上午上限<input type="number" id="ruleAm" min="0" max="500" step="1" value="2" required></label><label>下午上限<input type="number" id="rulePm" min="0" max="500" step="1" value="2" required></label></div><label><input type="checkbox" id="ruleLocked"> 鎖定特休</label><label>說明<input id="ruleNote" placeholder="例如：孩子出席較少，鼓勵休假"></label><button class="back" type="submit">儲存設定</button><button class="back" type="button" id="removeRule">移除此設定</button></form><div id="ruleList"></div>
+  </section>
+  <section class="card" id="balanceCard" hidden><h2 class="title">調整剩餘特休</h2><form id="balanceForm"><label>學年度（8 月 1 日～次年 7 月 31 日）<input type="number" id="balanceYear" min="2000" max="2100" required></label><button class="back" type="button" id="loadYear">查看該學年度</button><label>員工<select id="balanceEmployee" required></select></label><div id="balanceCurrent" class="hint"></div><label>調整後剩餘天數<input type="number" id="balanceDays" min="0" max="500" step="0.5" required></label><label>調整理由<input id="balanceReason" placeholder="例如：中途導入系統，補登實際餘額" required></label><button class="back" type="submit">儲存剩餘天數</button></form></section>
   <section class="card">
     <h2 class="title">近期請假</h2>
     <div class="grid2">
@@ -62,8 +69,8 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
 
 
   <section class="card">
-    <h2 class="title">🔴 人力覆核待處理 <span class="count" id="reviewCount">0 筆</span></h2>
-    <div class="hint">此區只顯示已觸發人力警戒、尚待主管處理的請假。主管可先確認人力，再決定核准、調度後核准或不宜核准。</div>
+    <h2 class="title">待審核請假 <span class="count" id="reviewCount">0 筆</span></h2>
+    <div class="hint">此區顯示其他假別及既有待覆核申請。主管可先確認人力，再決定核准、調度後核准或不宜核准。</div>
     <div id="reviewList"></div>
   </section>
 
@@ -75,14 +82,14 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
   </section>
 
   <div id="loadStatus" class="hint" style="margin-bottom:12px;text-align:center">準備讀取請假資料…</div>
-  <div class="version">請假管理 v1.5.4｜2026-10-02｜統一右上返回鍵</div>
+  <div class="version">請假管理 v1.6.0｜2026-10-09｜統一右上返回鍵</div>
 </main>
 
 <div class="mask" id="mask" onclick="if(event.target.id==='mask')closeModal()"><section class="modal" id="modal"></section></div>
 
 <script>
 const SERVICE_URL='https://script.google.com/macros/s/AKfycbzQIkRS3hLLiDMQj6WV6SyeEmFHO80f_Sl9qHciPkWpXZfuzggmfdTRLjtbvhhMZ624Zw/exec';
-let leaves=[],view=new Date();
+let leaves=[],view=new Date(),adminGrant=null,management={rules:[],employees:[]};
 const pad=n=>String(n).padStart(2,'0');
 const esc=v=>String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
 function dateKey(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
@@ -94,13 +101,11 @@ async function loadData(){
   if(btn){btn.disabled=true;btn.textContent='⏳ 讀取中…'}
   if(status)status.textContent='正在連接雲端並讀取請假紀錄…';
   try{
-    const now=new Date();
-    const r=await jsonp('getAttendanceAdminBundle',{
-      year:String(now.getFullYear()),
-      month:String(now.getMonth()+1)
-    });
+    if(!adminGrant)throw new Error('請先驗證主管身分');
+    const r=await jsonp('getLeaveManagementBundle',{payload:JSON.stringify({...adminAuth(),year:document.getElementById('balanceYear').value+'學年度'})});
     if(!r||!r.ok)throw new Error((r&&r.message)||'讀取失敗');
     leaves=Array.isArray(r.leaves)?r.leaves:[];
+    management=r;renderSettings();
     localStorage.setItem('heremay.sharedLeaveRecords',JSON.stringify(leaves));
     if(status)status.textContent=`✅ 雲端讀取成功，共 ${leaves.length} 筆請假紀錄`;
   }catch(e){
@@ -115,11 +120,7 @@ async function loadData(){
   }
 }
 
-function isStaffingReviewPending(x){
-  return active(x) &&
-    (x.staffingReview===true || String(x.是否觸發人力覆核||'')==='是') &&
-    String(x.staffingReviewResult||x.人力覆核結果||'待覆核')==='待覆核';
-}
+function isStaffingReviewPending(x){return active(x)&&(x.status==='待審核'||x.staffingReviewResult==='待覆核')}
 function renderReviewQueue(){
   const rows=leaves.filter(isStaffingReviewPending)
     .sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||String(a.created||'').localeCompare(String(b.created||'')));
@@ -180,6 +181,7 @@ async function chooseReview(leaveId,result){
     const payload={
       leaveId:String(leaveId||''),
       decision:result,
+      ...adminAuth(),
       reviewerName:reviewerName(),
       note:note.trim()
     };
@@ -195,7 +197,7 @@ async function chooseReview(leaveId,result){
   }
 }
 function renderList(day,id){const rows=leaves.filter(x=>x.date===day&&active(x)),box=document.getElementById(id);box.innerHTML=rows.length?rows.map(x=>`<div class="item">${esc(x.employeeName||'未具名')}｜${esc(x.period||'全天')}｜${esc(x.type||'請假')}｜${esc(x.status||'')}</div>`).join(''):'<div class="hint">無人請假。</div>'}
-function changeMonth(n){view.setMonth(view.getMonth()+n);renderCalendar()}
+function changeMonth(n){view.setDate(1);view.setMonth(view.getMonth()+n);renderCalendar()}
 function leaveCountClass(count){
   const n=Number(count||0);
   if(n>=4)return 'red';
@@ -208,7 +210,21 @@ function showDay(date,rows){document.getElementById('modal').innerHTML=`<div cla
 function closeModal(){document.getElementById('mask').classList.remove('show')}
 function renderAll(){renderReviewQueue();renderList(dateKey(0),'today');renderList(dateKey(1),'tomorrow');renderCalendar()}
 document.getElementById('refreshBtn').addEventListener('click',loadData);
-loadData();
+
+const adminApi='https://heremay-passkey-backend-943533867342.asia-east1.run.app';
+function adminAuth(){if(!adminGrant||adminGrant.expiresAt<Date.now())throw new Error('主管驗證已逾時，請重新驗證');return {sensitiveToken:adminGrant.token,sensitivePurpose:'attendance_admin',authAccount:adminGrant.account}}
+async function authenticateAdmin(e){e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const account=document.getElementById('adminAccount').value.trim();const response=await fetch(adminApi+'/auth/step-up/password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({account,password:document.getElementById('adminPassword').value,purpose:'attendance_admin'})});const result=await response.json();document.getElementById('adminPassword').value='';if(!response.ok||!result.ok||result.role!=='admin')throw new Error(result.message||'此帳號沒有特休設定權限');adminGrant={token:result.token,expiresAt:result.expiresAt,account};sessionStorage.setItem('heremay.leaveAdminGrant',JSON.stringify(adminGrant));document.getElementById('authStatus').textContent='已驗證：'+(result.employee?.name||account);document.getElementById('settingsCard').hidden=false;document.getElementById('balanceCard').hidden=false;await loadData()}catch(err){document.getElementById('authStatus').textContent=err.message}finally{btn.disabled=false}}
+function renderSettings(){const list=document.getElementById('ruleList');list.innerHTML='';management.rules.forEach(r=>{const row=document.createElement('div');row.className='rule-row';const t=document.createElement('div');t.textContent=`${r.date||'一般每日'}｜${r.pool}｜上午 ${r.amLimit} 人、下午 ${r.pmLimit} 人｜${r.locked?'鎖定特休':'開放特休'}｜${r.note||''}`;const btn=document.createElement('button');btn.className='back';btn.textContent='編輯';btn.onclick=()=>{document.getElementById('rulePool').value=r.pool;document.getElementById('ruleDate').value=r.date;document.getElementById('ruleAm').value=r.amLimit;document.getElementById('rulePm').value=r.pmLimit;document.getElementById('ruleLocked').checked=r.locked;document.getElementById('ruleNote').value=r.note||'';document.getElementById('ruleForm').scrollIntoView({behavior:'smooth'})};row.append(t,btn);list.append(row)});const select=document.getElementById('balanceEmployee'),previous=select.value;select.innerHTML='';management.employees.forEach(e=>{const opt=document.createElement('option');opt.value=e.employeeId;opt.textContent=`${e.employeeName}｜${e.pool}｜${e.employeeId}`;select.append(opt)});if(management.employees.some(e=>e.employeeId===previous))select.value=previous;showBalance()}
+function showBalance(){const e=management.employees.find(e=>e.employeeId===document.getElementById('balanceEmployee').value);document.getElementById('balanceCurrent').textContent=e?(e.balance.configured?`目前剩餘 ${e.balance.remaining} 天；已占用 ${e.balance.used} 天（含已成立及待審核特休）`:'尚未設定餘額'):'目前沒有可管理的員工';document.getElementById('balanceDays').value=e?.balance.configured?e.balance.remaining:''}
+async function saveSetting(action,payload,btn){btn.disabled=true;try{const result=await jsonp(action,{payload:JSON.stringify({...adminAuth(),...payload})});if(!result.ok)throw new Error(result.message||'儲存失敗');document.getElementById('loadStatus').textContent=result.message;await loadData()}catch(err){alert(err.message)}finally{btn.disabled=false}}
+function rulePayload(){return {pool:document.getElementById('rulePool').value,date:document.getElementById('ruleDate').value,amLimit:document.getElementById('ruleAm').value,pmLimit:document.getElementById('rulePm').value,locked:document.getElementById('ruleLocked').checked,note:document.getElementById('ruleNote').value}}
+document.getElementById('authForm').onsubmit=authenticateAdmin;
+document.getElementById('ruleForm').onsubmit=e=>{e.preventDefault();saveSetting('saveAnnualRule',rulePayload(),e.submitter)};
+document.getElementById('removeRule').onclick=e=>saveSetting('saveAnnualRule',{...rulePayload(),remove:true},e.currentTarget);
+document.getElementById('balanceForm').onsubmit=e=>{e.preventDefault();saveSetting('adjustAnnualBalance',{employeeId:document.getElementById('balanceEmployee').value,year:document.getElementById('balanceYear').value+'學年度',remaining:document.getElementById('balanceDays').value,reason:document.getElementById('balanceReason').value},e.submitter)};
+document.getElementById('balanceEmployee').onchange=showBalance;document.getElementById('loadYear').onclick=loadData;
+const now=new Date();document.getElementById('balanceYear').value=now.getMonth()>=7?now.getFullYear():now.getFullYear()-1;
+try{const employee=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}');document.getElementById('adminAccount').value=employee.account||employee.employeeNo||employee.employeeId||localStorage.getItem('heremay.lastFaceAccount')||'';const saved=JSON.parse(sessionStorage.getItem('heremay.leaveAdminGrant')||'null');if(saved&&saved.expiresAt>Date.now()){adminGrant=saved;document.getElementById('settingsCard').hidden=false;document.getElementById('balanceCard').hidden=false;document.getElementById('authStatus').textContent='主管驗證仍有效';loadData()}}catch(_){}
 </script>
 </body>
 </html>
