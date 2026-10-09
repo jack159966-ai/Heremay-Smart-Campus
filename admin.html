@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.65</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.66</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -623,20 +623,19 @@
       
     </header>
 
+    <div class="refreshVersionRow">
+      <div class="versionStamp">主管工作台 v24.66｜2026-10-09</div>
+      <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
+        🔄 檢查並重新整理最新版
+      </button>
+    </div>
+
     <section class="dashCard">
       <button class="homeMessageCenter messageCenterCard" id="messageCenterCard" type="button" onclick="openMessageCenter()">
         <span class="messageUnreadBadge" id="messageUnreadBadge" aria-label="未讀訊息"></span>
         <span class="homeMessageCenterIcon">🔔</span><span><strong>訊息中心</strong><small>公告、投稿、討論、登記與私訊通知</small></span><span class="homeMessageCenterArrow">›</span>
       </button>
     </section>
-
-    <button class="leave-roster-entry" id="leaveRosterEntry" type="button" onclick="location.href='leave_roster.html'"><span class="lr-icon">📋</span><span><strong>今明日請假名單</strong><small>今天、明天誰請假｜查看人力安排</small></span><span class="lr-arrow">›</span></button>
-    <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.65｜2026-10-08</div>
-      <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
-        🔄 檢查並重新整理最新版
-      </button>
-    </div>
 
     <section class="dashCard">
       <button class="patrolButton" type="button" onclick="location.href='patrol.html'">
@@ -645,6 +644,8 @@
         <span class="arrow">›</span>
       </button>
     </section>
+
+    <button class="leave-roster-entry" id="leaveRosterEntry" type="button" onclick="location.href='leave_roster.html'"><span class="lr-icon">📋</span><span><strong>今明日請假名單</strong><small>今天、明天誰請假｜查看人力安排</small></span><span class="lr-arrow">›</span></button>
 
     <section class="dailyQuickLinks" aria-label="每日常用功能">
       <button type="button" onclick="location.href='calendar.html'"><span class="dailyIcon" aria-hidden="true">📅</span><span><strong>行事曆</strong><small>查看與新增行程</small></span><span class="dailyArrow" aria-hidden="true">›</span></button>
