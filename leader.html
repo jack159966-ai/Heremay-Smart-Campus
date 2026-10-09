@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜中階主管首頁 v1.17</title>
+  <title>和美智慧校園｜中階主管首頁 v1.21</title>
   <style>
     :root{
       --bg1:#fff0e6;
@@ -588,12 +588,37 @@
   </style>
 <style>.leave-roster-entry[hidden]{display:none}.leave-roster-entry{display:flex;align-items:center;gap:12px;width:100%;padding:15px 18px;margin:12px 0;border:1px solid #b9d8db;border-radius:18px;background:#edf8f7;color:#225c62;cursor:pointer;text-align:left;font-family:inherit;box-shadow:0 4px 12px #245d6210}.leave-roster-entry .lr-icon{font-size:30px}.leave-roster-entry strong{display:block;font-size:20px}.leave-roster-entry small{display:block;margin-top:4px;font-size:14px}.leave-roster-entry .lr-arrow{margin-left:auto;font-size:27px}</style>
 <style>.top .logo{width:50px;height:50px;flex:0 0 50px;font-size:28px;border-radius:18px}.top .datetime{padding:10px 12px;gap:10px;flex-wrap:wrap}.top .date{font-size:22px;line-height:1.4;font-weight:900}.top .time{font-size:27px}</style>
+<style>
+/* Match teacher home card sizing; keep the compact attendance entry. */
+.top .logo{width:56px;height:56px;flex:0 0 56px;border-radius:18px;overflow:hidden}
+.top .brand>div:not(.logo){flex:1;min-width:0}
+.top .logo{order:2;margin-left:auto}
+.top .logo img{display:block;width:100%;height:100%;object-fit:cover}
+.grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:14px}
+.entry-pair,.schedule-pair{gap:12px;min-width:0}
+.grid .btn{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:0;min-height:108px;min-width:0;padding:16px 12px;border-radius:20px;text-align:left;font-family:inherit}
+.grid .icon{width:42px;height:42px;flex:0 0 42px;display:grid;margin:0 0 10px;border-radius:16px;font-size:30px;overflow:hidden}
+.grid .btn strong{font-size:18px;line-height:1.4;margin:0 0 5px}
+.grid .btn span{display:block;font-size:13px;line-height:1.35}
+#attendanceHomeSection .btn.primary{min-height:68px}
+#attendanceHomeSection .primary .icon{width:36px;height:36px;flex:0 0 36px;margin:0}
+#messageCenterHomeSection .primary .icon{width:42px;height:42px;flex:0 0 42px;font-size:28px}
+@media(max-width:380px){.phone{padding-left:10px;padding-right:10px}.grid,.entry-pair{gap:10px}.grid .btn{padding:14px 10px}.grid .btn strong{font-size:17px}}
+</style>
+<style>
+.grid .btn{align-items:center;text-align:center}
+.grid .icon{place-items:center;background:transparent;color:inherit}
+.grid .icon img{object-fit:contain;border-radius:12px}
+.privateMessageCard .icon{font-size:38px!important}
+.section-title-label{display:flex;align-items:center;gap:8px}
+.section-title-icon{width:32px;height:32px;object-fit:contain;border-radius:8px;flex:0 0 auto}
+</style>
 </head>
 <body>
   <main class="phone">
     <header class="top">
       <div class="brand">
-        <div class="logo">👩‍💼</div>
+        <div class="logo"><img src="assets/leader-comic-20261009.png" alt="中階主管女生插畫"></div>
         <div>
           <h1 id="pageTitle">中階主管首頁</h1>
           <div class="sub" id="userSummary">和美智慧校園｜中階主管工作台</div>
@@ -605,17 +630,17 @@
       </div>
     </header>
 
-    <div class="version-refresh-row"><span class="page-version">中階主管 v1.17</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
+    <div class="version-refresh-row"><span class="page-version">中階主管 v1.21</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
 
     <section class="section" id="messageCenterHomeSection">
       <button class="btn primary" style="width:100%" onclick="openMessageCenter()">
-        <div class="icon">🔔</div>
+        <div class="icon"><img src="assets/announcement.jpg?v=20260906b" alt="訊息中心"></div>
         <div><strong>訊息中心</strong><span>公告、討論、登記與私訊通知</span></div><div class="entry-arrow" aria-hidden="true">›</div>
       </button>
     </section>
     <section class="section" id="attendanceHomeSection">
         <button class="btn primary" style="width:100%" onclick="window.location.href='attendance.html'">
-          <div class="icon">✅</div>
+          <div class="icon"><img src="assets/attendance-statistics.jpg?v=20260906b" alt="打卡與出勤"></div>
           <div>
             <strong>打卡 / 出勤</strong>
             <span>打卡、請假、出勤與查看薪資條</span>
@@ -632,7 +657,7 @@
     </section>
 
     <section class="section board">
-      <div class="section-title"><span>📌 園方公佈欄</span><span class="tag yellow">即時公告</span></div>
+      <div class="section-title"><span class="section-title-label"><img class="section-title-icon" src="assets/announcement.jpg?v=20260906b" alt="">園方公佈欄</span><span class="tag yellow">即時公告</span></div>
       <div id="dynamicNoticeBoard"><div class="announce"><p>正在讀取公告…</p></div></div>
       <button class="board-manage-btn" id="announcementAdminBtn" type="button" onclick="window.location.href='announcement.html'">管理公告 ›</button>
     </section>
@@ -643,7 +668,7 @@
       </div>
       <div class="grid">
 
-<button class="btn" onclick="openPrivateMessage()">
+<button class="btn privateMessageCard" onclick="openPrivateMessage()">
           <div class="icon">💬</div>
           <strong>私訊</strong>
           <span>搜尋同仁並傳送私人訊息</span>
@@ -657,12 +682,12 @@
 
 <div class="entry-pair">
         <button class="btn" onclick="openRegistrationCenter()">
-          <div class="icon">📝</div>
+          <div class="icon"><img src="assets/groupbuy.jpg?v=20260906b" alt="登記中心"></div>
           <strong>登記中心</strong>
           <span>便當、旅遊、活動與用品需求登記</span>
         </button>
         <button class="btn" id="scheduleEntryBtn" onclick="openScheduleEntry()">
-          <div class="icon">🗓️</div><strong>排班管理</strong><span>查看、建立、確認與發布班表</span>
+          <div class="icon"><img src="assets/schedule.jpg?v=20260906b" alt="排班管理"></div><strong>排班管理</strong><span>查看、建立、確認與發布班表</span>
         </button>
         </div>
 
