@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>和美智慧校園｜請假管理 v1.6.0</title>
+<title>和美智慧校園｜請假管理 v1.7.0</title>
 <style>
 :root{--blue:#2f68d8;--deep:#173f75;--line:#dfe8f6;--bg:#f4f8ff}
 *{box-sizing:border-box}
@@ -46,7 +46,7 @@ input,select,textarea{font:inherit;width:100%;padding:10px;border:1px solid #cfe
 <main class="app">
   <header class="header">
     <button class="campus-return" type="button" onclick="location.href='admin.html'" aria-label="返回主管首頁" title="返回主管首頁">← 返回</button>
-    <div><h1>🏖️ 請假管理</h1><small>主管專用｜今天、明天與每月請假總覽</small><span class="header-version">v1.6.0｜2026-10-09</span></div>
+    <div><h1>🏖️ 請假管理</h1><small>主管專用｜今天、明天與每月請假總覽</small><span class="header-version">v1.7.0｜2026-10-12</span></div>
     <div class="headerActions">
       
       <button class="back" id="refreshBtn" type="button">🔄 重新整理</button>
@@ -58,6 +58,7 @@ input,select,textarea{font:inherit;width:100%;padding:10px;border:1px solid #cfe
     <h2 class="title">特休名額與鎖定日期</h2><div class="hint">上午、下午分別計算人數；全天占用兩個時段。日期留白為一般每日上限。特殊日期設定會優先套用，可提高名額或鎖定特休。其他假別仍可送主管審核。</div>
     <form id="ruleForm"><div class="grid2"><label>編組<select id="rulePool"><option>全部</option><option>幼兒部</option><option>安親部</option><option>行政組</option><option>庶務組</option><option>其他人員</option></select></label><label>特殊日期（一般設定請留白）<input type="date" id="ruleDate"></label><label>上午上限<input type="number" id="ruleAm" min="0" max="500" step="1" value="2" required></label><label>下午上限<input type="number" id="rulePm" min="0" max="500" step="1" value="2" required></label></div><label><input type="checkbox" id="ruleLocked"> 鎖定特休</label><label>說明<input id="ruleNote" placeholder="例如：孩子出席較少，鼓勵休假"></label><button class="back" type="submit">儲存設定</button><button class="back" type="button" id="removeRule">移除此設定</button></form><div id="ruleList"></div>
   </section>
+<section class="card" id="personalCard" hidden><h2 class="title">個人假別額度與期限</h2><div class="hint">主管核定總天數與可用期間。事件日期（例如結婚日期）與可開始日分開記錄；待審核先預留，核准後列入已使用。天數與期限請依個案核定。</div><form id="personalForm"><input type="hidden" id="grantId"><label>員工<select id="grantEmployee" required></select></label><label>假別<select id="grantType"><option>婚假</option><option>產假</option><option>陪產檢及陪產假</option><option>喪假</option><option>補休</option><option>考試週補休</option><option>事假</option><option>病假</option><option>公假</option></select></label><label>事件日期（可留白）<input type="date" id="grantEvent"></label><label>可開始請假日<input type="date" id="grantStart" required></label><label>使用截止日<input type="date" id="grantEnd" required></label><label>可用總天數（半天為單位）<input type="number" id="grantTotal" min="0" max="500" step="0.5" required></label><label>備註<input id="grantNote" maxlength="500"></label><button class="back" type="submit">儲存個人假別</button> <button class="back" type="button" onclick="newPersonalGrant()">新增另一筆</button><div id="grantSaveStatus" role="status"></div></form><div id="personalList"></div></section>
   <section class="card" id="balanceCard" hidden><h2 class="title">調整剩餘特休</h2><form id="balanceForm"><label>學年度（8 月 1 日～次年 7 月 31 日）<input type="number" id="balanceYear" min="2000" max="2100" required></label><button class="back" type="button" id="loadYear">查看該學年度</button><label>員工<select id="balanceEmployee" required></select></label><div id="balanceCurrent" class="hint"></div><label>調整後剩餘天數<input type="number" id="balanceDays" min="0" max="500" step="0.5" required></label><label>調整理由<input id="balanceReason" placeholder="例如：中途導入系統，補登實際餘額" required></label><button class="back" type="submit">儲存剩餘天數</button></form></section>
   <section class="card">
     <h2 class="title">近期請假</h2>
@@ -82,7 +83,7 @@ input,select,textarea{font:inherit;width:100%;padding:10px;border:1px solid #cfe
   </section>
 
   <div id="loadStatus" class="hint" style="margin-bottom:12px;text-align:center">準備讀取請假資料…</div>
-  <div class="version">請假管理 v1.6.0｜2026-10-09｜統一右上返回鍵</div>
+  <div class="version">請假管理 v1.7.0｜2026-10-12｜統一右上返回鍵</div>
 </main>
 
 <div class="mask" id="mask" onclick="if(event.target.id==='mask')closeModal()"><section class="modal" id="modal"></section></div>
@@ -105,7 +106,7 @@ async function loadData(){
     const r=await jsonp('getLeaveManagementBundle',{payload:JSON.stringify({...adminAuth(),year:document.getElementById('balanceYear').value+'學年度'})});
     if(!r||!r.ok)throw new Error((r&&r.message)||'讀取失敗');
     leaves=Array.isArray(r.leaves)?r.leaves:[];
-    management=r;renderSettings();
+    management=r;renderSettings();renderPersonalSettings();
     localStorage.setItem('heremay.sharedLeaveRecords',JSON.stringify(leaves));
     if(status)status.textContent=`✅ 雲端讀取成功，共 ${leaves.length} 筆請假紀錄`;
   }catch(e){
@@ -213,7 +214,7 @@ document.getElementById('refreshBtn').addEventListener('click',loadData);
 
 const adminApi='https://heremay-passkey-backend-943533867342.asia-east1.run.app';
 function adminAuth(){if(!adminGrant||adminGrant.expiresAt<Date.now())throw new Error('主管驗證已逾時，請重新驗證');return {sensitiveToken:adminGrant.token,sensitivePurpose:'attendance_admin',authAccount:adminGrant.account}}
-async function authenticateAdmin(e){e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const account=document.getElementById('adminAccount').value.trim();const response=await fetch(adminApi+'/auth/step-up/password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({account,password:document.getElementById('adminPassword').value,purpose:'attendance_admin'})});const result=await response.json();document.getElementById('adminPassword').value='';if(!response.ok||!result.ok||result.role!=='admin')throw new Error(result.message||'此帳號沒有特休設定權限');adminGrant={token:result.token,expiresAt:result.expiresAt,account};sessionStorage.setItem('heremay.leaveAdminGrant',JSON.stringify(adminGrant));document.getElementById('authStatus').textContent='已驗證：'+(result.employee?.name||account);document.getElementById('settingsCard').hidden=false;document.getElementById('balanceCard').hidden=false;await loadData()}catch(err){document.getElementById('authStatus').textContent=err.message}finally{btn.disabled=false}}
+async function authenticateAdmin(e){e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const account=document.getElementById('adminAccount').value.trim();const response=await fetch(adminApi+'/auth/step-up/password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({account,password:document.getElementById('adminPassword').value,purpose:'attendance_admin'})});const result=await response.json();document.getElementById('adminPassword').value='';if(!response.ok||!result.ok||result.role!=='admin')throw new Error(result.message||'此帳號沒有特休設定權限');adminGrant={token:result.token,expiresAt:result.expiresAt,account};sessionStorage.setItem('heremay.leaveAdminGrant',JSON.stringify(adminGrant));document.getElementById('authStatus').textContent='已驗證：'+(result.employee?.name||account);document.getElementById('settingsCard').hidden=false;document.getElementById('balanceCard').hidden=false;document.getElementById('personalCard').hidden=false;await loadData()}catch(err){document.getElementById('authStatus').textContent=err.message}finally{btn.disabled=false}}
 function renderSettings(){const list=document.getElementById('ruleList');list.innerHTML='';management.rules.forEach(r=>{const row=document.createElement('div');row.className='rule-row';const t=document.createElement('div');t.textContent=`${r.date||'一般每日'}｜${r.pool}｜上午 ${r.amLimit} 人、下午 ${r.pmLimit} 人｜${r.locked?'鎖定特休':'開放特休'}｜${r.note||''}`;const btn=document.createElement('button');btn.className='back';btn.textContent='編輯';btn.onclick=()=>{document.getElementById('rulePool').value=r.pool;document.getElementById('ruleDate').value=r.date;document.getElementById('ruleAm').value=r.amLimit;document.getElementById('rulePm').value=r.pmLimit;document.getElementById('ruleLocked').checked=r.locked;document.getElementById('ruleNote').value=r.note||'';document.getElementById('ruleForm').scrollIntoView({behavior:'smooth'})};row.append(t,btn);list.append(row)});const select=document.getElementById('balanceEmployee'),previous=select.value;select.innerHTML='';management.employees.forEach(e=>{const opt=document.createElement('option');opt.value=e.employeeId;opt.textContent=`${e.employeeName}｜${e.pool}｜${e.employeeId}`;select.append(opt)});if(management.employees.some(e=>e.employeeId===previous))select.value=previous;showBalance()}
 function showBalance(){const e=management.employees.find(e=>e.employeeId===document.getElementById('balanceEmployee').value);document.getElementById('balanceCurrent').textContent=e?(e.balance.configured?`目前剩餘 ${e.balance.remaining} 天；已占用 ${e.balance.used} 天（含已成立及待審核特休）`:'尚未設定餘額'):'目前沒有可管理的員工';document.getElementById('balanceDays').value=e?.balance.configured?e.balance.remaining:''}
 async function saveSetting(action,payload,btn){btn.disabled=true;try{const result=await jsonp(action,{payload:JSON.stringify({...adminAuth(),...payload})});if(!result.ok)throw new Error(result.message||'儲存失敗');document.getElementById('loadStatus').textContent=result.message;await loadData()}catch(err){alert(err.message)}finally{btn.disabled=false}}
@@ -223,8 +224,20 @@ document.getElementById('ruleForm').onsubmit=e=>{e.preventDefault();saveSetting(
 document.getElementById('removeRule').onclick=e=>saveSetting('saveAnnualRule',{...rulePayload(),remove:true},e.currentTarget);
 document.getElementById('balanceForm').onsubmit=e=>{e.preventDefault();saveSetting('adjustAnnualBalance',{employeeId:document.getElementById('balanceEmployee').value,year:document.getElementById('balanceYear').value+'學年度',remaining:document.getElementById('balanceDays').value,reason:document.getElementById('balanceReason').value},e.submitter)};
 document.getElementById('balanceEmployee').onchange=showBalance;document.getElementById('loadYear').onclick=loadData;
+
+function newPersonalGrant(){document.getElementById('personalForm').reset();document.getElementById('grantId').value='';document.getElementById('grantEmployee').disabled=false;document.getElementById('grantType').disabled=false;document.getElementById('grantSaveStatus').textContent='';}
+function renderPersonalSettings(){
+ const select=document.getElementById('grantEmployee'),previous=select.value;
+ select.innerHTML=(management.employees||[]).map(e=>`<option value="${esc(e.employeeId)}">${esc(e.employeeName)}｜${esc(e.pool)}</option>`).join('');if([...select.options].some(o=>o.value===previous))select.value=previous;
+ const list=document.getElementById('personalList');list.innerHTML='';
+ if(!Array.isArray(management.personalGrants)){list.textContent='後端尚未更新，請先部署新版 Code.gs 與 attendance_api.gs';return;}
+ management.personalGrants.forEach(g=>{const row=document.createElement('div');row.className='rule-row';const t=document.createElement('div');t.textContent=`${g.employeeName}｜${g.type}｜${g.start}～${g.end}｜總額 ${g.total} 天／已用 ${g.used}／待審 ${g.pending}／可申請 ${g.available}${g.eventDate?'｜事件日 '+g.eventDate:''}${g.note?'｜'+g.note:''}`;const btn=document.createElement('button');btn.className='back';btn.textContent='編輯';btn.onclick=()=>{document.getElementById('grantId').value=g.id;document.getElementById('grantEmployee').value=g.employeeId;document.getElementById('grantType').value=g.type;document.getElementById('grantEmployee').disabled=true;document.getElementById('grantType').disabled=true;document.getElementById('grantEvent').value=g.eventDate||'';document.getElementById('grantStart').value=g.start;document.getElementById('grantEnd').value=g.end;document.getElementById('grantTotal').value=g.total;document.getElementById('grantNote').value=g.note||'';document.getElementById('personalForm').scrollIntoView({behavior:'smooth'});};row.append(t,btn);list.append(row);});
+ if(!management.personalGrants.length)list.textContent='尚未設定個人假別。';
+}
+document.getElementById('personalForm').onsubmit=async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;document.getElementById('grantSaveStatus').textContent='正在儲存…';try{const payload={...adminAuth(),id:document.getElementById('grantId').value,employeeId:document.getElementById('grantEmployee').value,type:document.getElementById('grantType').value,eventDate:document.getElementById('grantEvent').value,start:document.getElementById('grantStart').value,end:document.getElementById('grantEnd').value,total:document.getElementById('grantTotal').value,note:document.getElementById('grantNote').value};const r=await jsonp('savePersonalLeaveGrant',{payload:JSON.stringify(payload)});if(!r.ok)throw new Error(r.message||'儲存失敗');document.getElementById('grantSaveStatus').textContent=r.message;await loadData();}catch(err){document.getElementById('grantSaveStatus').textContent=err.message;}finally{btn.disabled=false;}};
+
 const now=new Date();document.getElementById('balanceYear').value=now.getMonth()>=7?now.getFullYear():now.getFullYear()-1;
-try{const employee=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}');document.getElementById('adminAccount').value=employee.account||employee.employeeNo||employee.employeeId||localStorage.getItem('heremay.lastFaceAccount')||'';const saved=JSON.parse(sessionStorage.getItem('heremay.leaveAdminGrant')||'null');if(saved&&saved.expiresAt>Date.now()){adminGrant=saved;document.getElementById('settingsCard').hidden=false;document.getElementById('balanceCard').hidden=false;document.getElementById('authStatus').textContent='主管驗證仍有效';loadData()}}catch(_){}
+try{const employee=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}');document.getElementById('adminAccount').value=employee.account||employee.employeeNo||employee.employeeId||localStorage.getItem('heremay.lastFaceAccount')||'';const saved=JSON.parse(sessionStorage.getItem('heremay.leaveAdminGrant')||'null');if(saved&&saved.expiresAt>Date.now()){adminGrant=saved;document.getElementById('settingsCard').hidden=false;document.getElementById('balanceCard').hidden=false;document.getElementById('personalCard').hidden=false;document.getElementById('authStatus').textContent='主管驗證仍有效';loadData()}}catch(_){}
 </script>
 </body>
 </html>
