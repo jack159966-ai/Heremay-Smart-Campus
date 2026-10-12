@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜差勤管理 v2.12.0</title>
+  <title>和美智慧校園｜差勤管理 v2.12.1</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -81,7 +81,7 @@
   <header class="top">
     <div class="title"><h1>差勤管理</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.12.0 個人假別與期限</span>
+    <span class="version">v2.12.1 個人假別與期限</span>
   </header>
 
   <div id="attendanceDataStatus" role="status" style="padding:10px;color:#995319;font-weight:850">尚未同步，畫面可能是手機暫存資料</div>
@@ -95,7 +95,7 @@
   </section>
 
   <section class="card" id="leaveOverview"><div class="section-title"><h2>📋 今、明兩天請假人員</h2></div><div id="overviewStatus" class="hint">正在同步請假名單…</div><div class="overview-grid" id="overviewPeople"></div></section>
-  <section class="card" id="adminLeaveEntry" hidden><button class="sync-btn" onclick="location.href='leave_admin.html'">主管請假審核／假別額度設定</button></section><section class="card dashboard-nav"><button onclick="openDashboardTab('leave')">🗓️ 請假表</button><button onclick="openDashboardTab('balance')">📊 查看剩餘假別</button><button onclick="openSalarySlip()">💰 薪資條</button><button onclick="openDashboardTab('attendance')">🕒 本月打卡紀錄</button></section>
+  <section class="card" id="adminLeaveEntry" hidden><button class="sync-btn" onclick="openLeaveManagement()">主管請假審核／假別額度設定</button></section><section class="card dashboard-nav"><button onclick="openDashboardTab('leave')">🗓️ 請假表</button><button onclick="openDashboardTab('balance')">📊 查看剩餘假別</button><button onclick="openSalarySlip()">💰 薪資條</button><button onclick="openDashboardTab('attendance')">🕒 本月打卡紀錄</button></section>
   <section class="card">
     <div class="clock"><div class="date" id="dateText"></div><div class="time" id="timeText"></div><div class="status" id="todayStatus">今日尚未打卡</div></div>
     <div class="access-card">
@@ -996,6 +996,7 @@ function renderPersonalBalances(){
  const comp=personalBalances.filter(g=>['補休','考試週補休'].includes(g.type)&&g.start<=todayKey()&&g.end>=todayKey());document.getElementById('compRemain').textContent=comp.length?comp.reduce((n,g)=>n+g.available,0)+' 天':'尚未設定';
 }
 
+  function openLeaveManagement(){preserveGrantForAreaNavigation=true;location.href='leave_admin.html';}
   function openDashboardTab(name){const btn=[...document.querySelectorAll('.tab')].find(x=>x.getAttribute('onclick').includes("'"+name+"'"));if(btn){showTab(name,btn);document.getElementById(name+'Panel').scrollIntoView({behavior:'smooth',block:'start'})}}
   function renderOverview(){
     const box=document.getElementById('overviewPeople');if(!box)return;
