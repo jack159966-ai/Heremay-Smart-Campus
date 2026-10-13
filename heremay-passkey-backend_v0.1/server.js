@@ -17,7 +17,7 @@ app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 8080);
-const SERVICE_VERSION = '1.3.2';
+const SERVICE_VERSION = '1.4.0';
 const RP_NAME = process.env.RP_NAME || '和美智慧校園';
 const RP_ID = process.env.RP_ID || 'jack159966-ai.github.io';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://jack159966-ai.github.io')
@@ -28,7 +28,7 @@ const CHALLENGE_TTL_MS = 5 * 60 * 1000;
 // 通行憑證仍只有 5 分鐘；打卡區保持在前景時才可安全續期。
 const SENSITIVE_TOKEN_TTL_MS = 5 * 60 * 1000;
 const ADMIN_SENSITIVE_TOKEN_TTL_MS = 8 * 60 * 60 * 1000;
-const SENSITIVE_PURPOSES = new Set(['attendance','attendance_admin','salary','salary_admin']);
+const SENSITIVE_PURPOSES = new Set(['attendance','attendance_admin','salary','salary_admin','monthly_self_eval']);
 
 app.use(cors({
   origin(origin, cb) {
@@ -230,7 +230,7 @@ async function issueSensitiveToken(employee, purpose, options = {}) {
   const token = randomBytes(32).toString('base64url');
   const ttlMs = purpose.endsWith('_admin') ? ADMIN_SENSITIVE_TOKEN_TTL_MS : SENSITIVE_TOKEN_TTL_MS;
   // Only the verified homepage admin login may request a grant without a time limit.
-  const persistent = options.persistent === true && employee.role === 'admin' && purpose === 'attendance_admin';
+  const persistent = options.persistent === true && ((employee.role === 'admin' && purpose === 'attendance_admin') || purpose === 'monthly_self_eval');
   const expiresAt = persistent ? Number.MAX_SAFE_INTEGER : Date.now() + ttlMs;
   await db.collection('sensitiveTokens').doc(sensitiveTokenHash(token)).set({
     userId: userDocId(employee),
@@ -253,12 +253,16 @@ function accountMatchesToken(account, tokenData) {
 
 // Reuse the verified homepage login for leave administration only.
 async function homepageAdminGrant(employee) {
-  if (employee.role !== 'admin') return {};
-  return { leaveAdminGrant: {
+  const grants = {};
+  if (employee.role === 'admin') grants.leaveAdminGrant = {
     ...await issueSensitiveToken(employee, 'attendance_admin', { persistent:true }),
-    account: employee.account || employee.employeeNo,
-    purpose: 'attendance_admin',
-  }};
+    account:employee.account || employee.employeeNo, purpose:'attendance_admin'
+  };
+  if (['admin','teacher','leader'].includes(employee.role)) grants.selfEvalGrant = {
+    ...await issueSensitiveToken(employee, 'monthly_self_eval', { persistent:true }),
+    account:employee.account || employee.employeeNo, employeeNo:employee.employeeNo, purpose:'monthly_self_eval'
+  };
+  return grants;
 }
 
 app.post('/auth/login/password', async (req, res) => {

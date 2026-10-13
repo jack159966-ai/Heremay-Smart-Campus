@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜Heremay Smart Campus v1.5.3</title>
+  <title>和美智慧校園｜Heremay Smart Campus v1.5.4</title>
 
   <!-- 手機桌面圖示與 PWA 設定 -->
   <meta name="theme-color" content="#eef9ff" />
@@ -334,7 +334,7 @@
 
     <footer>
       資料安全・隱私保護・安心使用<br />
-      <span id="versionText">Heremay Smart Campus v1.5.3｜2026/10/08</span>
+      <span id="versionText">Heremay Smart Campus v1.5.4｜2026/10/13</span>
     </footer>
   </main>
 
@@ -361,8 +361,8 @@
 
 
   <script>
-    const APP_VERSION = '1.5.2';
-    const APP_UPDATED = '2026/10/08';
+    const APP_VERSION = '1.5.4';
+    const APP_UPDATED = '2026/10/13';
     let installPrompt = null;
     const standaloneQuery = window.matchMedia('(display-mode: standalone)');
     function isDesktopApp(){ return standaloneQuery.matches || navigator.standalone === true; }
@@ -745,6 +745,11 @@
     }
 
     function saveHomepageGrant(result){
+      sessionStorage.removeItem('heremay.selfEvalGrant');
+      const selfGrant=result.selfEvalGrant;
+      if(selfGrant?.token && selfGrant.account && selfGrant.purpose==='monthly_self_eval')
+        sessionStorage.setItem('heremay.selfEvalGrant',JSON.stringify(selfGrant));
+
       // Remove previous-account grants even when the next login is a teacher.
       sessionStorage.removeItem('heremay.leaveAdminGrant');
       const grant = result.leaveAdminGrant;
