@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>和美智慧校園｜請假管理 v1.8.1</title>
+<title>和美智慧校園｜請假管理 v1.8.2</title>
 <style>
 [hidden]{display:none!important}body[data-view="management"] #settingsCard,body[data-view="management"] #personalCard,body[data-view="management"] #balanceCard{display:none!important}body[data-view="settings"] .daily-management{display:none!important}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.tabs button{flex:1}.tab-active{background:#245fc2!important;color:white!important}.status{position:sticky;top:0;z-index:2;background:#edf4ff;padding:12px;border-radius:12px;margin:12px 0;white-space:pre-wrap}.daily-form{padding:12px;border:1px solid #dfe8f6;border-radius:16px;margin-bottom:14px}
 
@@ -44,13 +44,14 @@ body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",Arial,sans-serif;b
 input,select,textarea{font:inherit;width:100%;padding:10px;border:1px solid #cfe2ff;border-radius:12px;margin:6px 0 12px}label{font-weight:800}input[type=checkbox]{width:auto}form button{margin:5px}.rule-row{padding:12px;border-bottom:1px solid #dfe8f6}
 .quota-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.quota-grid label{min-width:0}.quota-grid input{min-width:0}.daily-settings{margin-top:24px;padding-top:20px;border-top:2px solid var(--line)}
 .quota-grid label{display:flex;align-items:center;gap:4px;white-space:nowrap;font-size:16px}.quota-grid input{flex:1;width:0;margin:6px 0 12px;padding:10px 4px;text-align:center}.quota-grid label span{font-weight:800}.quota-grid{gap:8px}
+.date-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.date-grid label{min-width:0}.date-grid input{display:block;min-width:0;max-width:100%;width:100%;padding:10px 4px;font-size:14px;-webkit-appearance:none;appearance:none}
 </style>
 </head>
 <body data-view="settings">
 <main class="app">
   <header class="header">
     <button class="campus-return" type="button" onclick="location.href='leave_admin.html'" aria-label="返回請假管理" title="返回請假管理">← 返回</button>
-    <div><h1>⚙️ 請假設定</h1><small>主管專用｜平常名額、特殊期間與個人額度</small><span class="header-version">v1.8.1｜2026-10-13</span></div>
+    <div><h1>⚙️ 請假設定</h1><small>主管專用｜平常名額、特殊期間與個人額度</small><span class="header-version">v1.8.2｜2026-10-13</span></div>
     <div class="headerActions"><button class="back" type="button" onclick="location.href='leave_admin.html'">📋 請假管理</button>
       
       <button class="back" id="refreshBtn" type="button">🔄 重新整理</button>
@@ -62,7 +63,7 @@ input,select,textarea{font:inherit;width:100%;padding:10px;border:1px solid #cfe
   <nav class="tabs" id="settingTabs" hidden><button class="back tab-active" onclick="showSettingTab('rules',this)">名額規定</button><button class="back" onclick="showSettingTab('personal',this)">個人假別</button><button class="back" onclick="showSettingTab('balance',this)">特休餘額</button></nav>
   <section class="card" id="settingsCard">
     <h2 class="title">特殊期間規定（優先套用）</h2><div class="hint">可選單一部門或兩部共同套用。起日、迄日均包含在內；相同日期可設定單日。期間重疊會拒絕儲存。鎖定只影響特休。</div>
-    <form id="ruleForm"><input type="hidden" id="ruleId"><input type="hidden" id="ruleRevision"><div class="grid2"><label>套用單位<select id="rulePool"><option value="幼兒部">幼兒部</option><option value="安親部">安親部</option><option value="兩部">幼兒部與安親部</option><option value="全部">全部單位（既有設定）</option><option>行政組</option><option>庶務組</option><option>其他人員</option></select></label><label>開始日期<input type="date" id="ruleDate" required></label><label>結束日期<input type="date" id="ruleEnd" required></label></div><div class="grid2 quota-grid"><label>上午：<input type="number" id="ruleAm" min="0" max="500" value="2" required><span>人</span></label><label>下午：<input type="number" id="rulePm" min="0" max="500" value="2" required><span>人</span></label></div><label><input type="checkbox" id="ruleLocked"> 鎖定特休</label><label>說明<input id="ruleNote" placeholder="例如：暑假、園內活動"></label><button class="back" type="submit">儲存期間規定</button><button class="back" type="button" id="removeRule">移除此設定</button><button class="back" type="button" onclick="newRule()">新增另一筆</button></form><div id="ruleList"></div>
+    <form id="ruleForm"><input type="hidden" id="ruleId"><input type="hidden" id="ruleRevision"><div class="grid2"><label>套用單位<select id="rulePool"><option value="幼兒部">幼兒部</option><option value="安親部">安親部</option><option value="兩部">幼兒部與安親部</option><option value="全部">全部單位（既有設定）</option><option>行政組</option><option>庶務組</option><option>其他人員</option></select></label></div><div class="grid2 date-grid"><label>起日<input type="date" id="ruleDate" required></label><label>迄日<input type="date" id="ruleEnd" required></label></div><div class="grid2 quota-grid"><label>上午：<input type="number" id="ruleAm" min="0" max="500" value="2" required><span>人</span></label><label>下午：<input type="number" id="rulePm" min="0" max="500" value="2" required><span>人</span></label></div><label><input type="checkbox" id="ruleLocked"> 鎖定特休</label><label>說明<input id="ruleNote" placeholder="例如：暑假、園內活動"></label><button class="back" type="submit">儲存期間規定</button><button class="back" type="button" id="removeRule">移除此設定</button><button class="back" type="button" onclick="newRule()">新增另一筆</button></form><div id="ruleList"></div>
     <div class="daily-settings"><h2 class="title">平常名額</h2><div class="hint">幼兒部與安親部分別設定上午、下午名額。特殊期間優先；期間以外沿用平常名額。全天占用兩個時段。</div><div id="dailyRules"></div></div>
   </section>
 <section class="card" id="personalCard" style="display:none"><h2 class="title">個人假別額度與期限</h2><div class="hint">主管核定總天數與可用期間。事件日期（例如結婚日期）與可開始日分開記錄；待審核先預留，核准後列入已使用。天數與期限請依個案核定。</div><form id="personalForm"><input type="hidden" id="grantId"><label>員工<select id="grantEmployee" required></select></label><label>假別<select id="grantType"><option>婚假</option><option>產假</option><option>陪產檢及陪產假</option><option>喪假</option><option>補休</option><option>考試週補休</option><option>事假</option><option>病假</option><option>公假</option></select></label><label>事件日期（可留白）<input type="date" id="grantEvent"></label><label>可開始請假日<input type="date" id="grantStart" required></label><label>使用截止日<input type="date" id="grantEnd" required></label><label>可用總天數（半天為單位）<input type="number" id="grantTotal" min="0" max="500" step="0.5" required></label><label>備註<input id="grantNote" maxlength="500"></label><button class="back" type="submit">儲存個人假別</button> <button class="back" type="button" onclick="newPersonalGrant()">新增另一筆</button><div id="grantSaveStatus" role="status"></div></form><div id="personalList"></div></section>
@@ -89,7 +90,7 @@ input,select,textarea{font:inherit;width:100%;padding:10px;border:1px solid #cfe
     <div class="calendar" id="calendar"></div>
   </section>
 
-  <div class="version">請假管理 v1.8.1｜2026-10-13｜統一右上返回鍵</div>
+  <div class="version">請假管理 v1.8.2｜2026-10-13｜統一右上返回鍵</div>
 </main>
 
 <div class="mask" id="mask" onclick="if(event.target.id==='mask')closeModal()"><section class="modal" id="modal"></section></div>
