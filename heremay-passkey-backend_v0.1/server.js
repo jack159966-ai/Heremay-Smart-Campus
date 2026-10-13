@@ -17,7 +17,7 @@ app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 8080);
-const SERVICE_VERSION = '1.3.1';
+const SERVICE_VERSION = '1.3.2';
 const RP_NAME = process.env.RP_NAME || '和美智慧校園';
 const RP_ID = process.env.RP_ID || 'jack159966-ai.github.io';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://jack159966-ai.github.io')
@@ -224,12 +224,14 @@ function sensitiveTokenHash(token) {
   return createHash('sha256').update(clean(token)).digest('hex');
 }
 
-async function issueSensitiveToken(employee, purpose) {
+async function issueSensitiveToken(employee, purpose, options = {}) {
   purpose = normalizeSensitivePurpose(purpose);
   assertSensitivePurposeAllowed(employee, purpose);
   const token = randomBytes(32).toString('base64url');
   const ttlMs = purpose.endsWith('_admin') ? ADMIN_SENSITIVE_TOKEN_TTL_MS : SENSITIVE_TOKEN_TTL_MS;
-  const expiresAt = Date.now() + ttlMs;
+  // Only the verified homepage admin login may request a grant without a time limit.
+  const persistent = options.persistent === true && employee.role === 'admin' && purpose === 'attendance_admin';
+  const expiresAt = persistent ? Number.MAX_SAFE_INTEGER : Date.now() + ttlMs;
   await db.collection('sensitiveTokens').doc(sensitiveTokenHash(token)).set({
     userId: userDocId(employee),
     employeeNo: employee.employeeNo,
@@ -237,6 +239,7 @@ async function issueSensitiveToken(employee, purpose) {
     role: employee.role,
     purpose,
     createdAt: Date.now(),
+    persistent,
     expiresAt,
   });
   return { token, expiresAt, expiresInSeconds: Math.floor(ttlMs / 1000) };
@@ -252,7 +255,7 @@ function accountMatchesToken(account, tokenData) {
 async function homepageAdminGrant(employee) {
   if (employee.role !== 'admin') return {};
   return { leaveAdminGrant: {
-    ...await issueSensitiveToken(employee, 'attendance_admin'),
+    ...await issueSensitiveToken(employee, 'attendance_admin', { persistent:true }),
     account: employee.account || employee.employeeNo,
     purpose: 'attendance_admin',
   }};
@@ -551,7 +554,7 @@ app.post('/auth/step-up/refresh', async (req,res) => {
       return res.status(403).json({ ok:false, message:'驗證帳號或用途不符' });
     }
     const ttlMs = purpose.endsWith('_admin') ? ADMIN_SENSITIVE_TOKEN_TTL_MS : SENSITIVE_TOKEN_TTL_MS;
-    const expiresAt = Date.now() + ttlMs;
+    const expiresAt = grant.persistent === true ? Number.MAX_SAFE_INTEGER : Date.now() + ttlMs;
     await ref.set({ expiresAt, lastRefreshedAt:Date.now() }, { merge:true });
     res.json({ ok:true, token, expiresAt, expiresInSeconds:Math.floor(ttlMs / 1000) });
   } catch (err) {
