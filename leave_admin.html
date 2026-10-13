@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>和美智慧校園｜請假管理 v1.7.1</title>
+<title>和美智慧校園｜請假管理 v1.7.2</title>
 <style>
 :root{--blue:#2f68d8;--deep:#173f75;--line:#dfe8f6;--bg:#f4f8ff}
 *{box-sizing:border-box}
@@ -46,14 +46,14 @@ input,select,textarea{font:inherit;width:100%;padding:10px;border:1px solid #cfe
 <main class="app">
   <header class="header">
     <button class="campus-return" type="button" onclick="location.href='admin.html'" aria-label="返回主管首頁" title="返回主管首頁">← 返回</button>
-    <div><h1>🏖️ 請假管理</h1><small>主管專用｜今天、明天與每月請假總覽</small><span class="header-version">v1.7.1｜2026-10-12</span></div>
+    <div><h1>🏖️ 請假管理</h1><small>主管專用｜今天、明天與每月請假總覽</small><span class="header-version">v1.7.2｜2026-10-12</span></div>
     <div class="headerActions">
       
       <button class="back" id="refreshBtn" type="button">🔄 重新整理</button>
     </div>
   </header>
 
-  <section class="card" id="authCard"><h2 class="title">主管身分驗證</h2><button class="back" type="button" id="adminPasskeyBtn" onclick="authenticateAdminPasskey()">快速登入／Face ID</button><form id="authForm"><label>帳號<input id="adminAccount" autocomplete="username" required></label><label>本人 6 位數登入密碼<input id="adminPassword" type="password" inputmode="numeric" autocomplete="current-password" required></label><button class="back" type="submit">驗證並開啟管理</button></form><div id="authStatus" role="status">僅負責人、園長、主任可設定與審核。</div></section>
+  <section class="card" id="authCard" hidden><h2 class="title">登入狀態</h2><div id="authStatus" role="status"></div><button class="back" type="button" onclick="location.href='index.html'">返回登入頁</button></section>
   <section class="card" id="settingsCard">
     <h2 class="title">特休名額與鎖定日期</h2><div class="hint">上午、下午分別計算人數；全天占用兩個時段。日期留白為一般每日上限。特殊日期設定會優先套用，可提高名額或鎖定特休。其他假別仍可送主管審核。</div>
     <form id="ruleForm"><div class="grid2"><label>編組<select id="rulePool"><option>全部</option><option>幼兒部</option><option>安親部</option><option>行政組</option><option>庶務組</option><option>其他人員</option></select></label><label>特殊日期（一般設定請留白）<input type="date" id="ruleDate"></label><label>上午上限<input type="number" id="ruleAm" min="0" max="500" step="1" value="2" required></label><label>下午上限<input type="number" id="rulePm" min="0" max="500" step="1" value="2" required></label></div><label><input type="checkbox" id="ruleLocked"> 鎖定特休</label><label>說明<input id="ruleNote" placeholder="例如：孩子出席較少，鼓勵休假"></label><button class="back" type="submit">儲存設定</button><button class="back" type="button" id="removeRule">移除此設定</button></form><div id="ruleList"></div>
@@ -83,7 +83,7 @@ input,select,textarea{font:inherit;width:100%;padding:10px;border:1px solid #cfe
   </section>
 
   <div id="loadStatus" class="hint" style="margin-bottom:12px;text-align:center">尚未通過主管驗證，請假資料尚未載入。</div>
-  <div class="version">請假管理 v1.7.1｜2026-10-12｜統一右上返回鍵</div>
+  <div class="version">請假管理 v1.7.2｜2026-10-12｜統一右上返回鍵</div>
 </main>
 
 <div class="mask" id="mask" onclick="if(event.target.id==='mask')closeModal()"><section class="modal" id="modal"></section></div>
@@ -111,7 +111,9 @@ async function loadData(){
     localStorage.setItem('heremay.sharedLeaveRecords',JSON.stringify(leaves));
     if(status)status.textContent=`✅ 雲端讀取成功，共 ${leaves.length} 筆請假紀錄`;
   }catch(e){
-    authFailed('無法完成主管驗證或讀取資料：'+e.message);
+    managementVerified=false;lockManagement(true);
+    if(!adminGrant||Number(adminGrant.expiresAt)<=Date.now())authFailed('登入已失效，請返回登入頁重新登入。');
+    else document.getElementById('authCard').hidden=true;
     let cached=[];
     try{cached=JSON.parse(localStorage.getItem('heremay.sharedLeaveRecords')||'[]')}catch(_){}
     leaves=[];
@@ -214,24 +216,13 @@ function closeModal(){document.getElementById('mask').classList.remove('show')}
 function renderAll(){renderReviewQueue();renderList(dateKey(0),'today');renderList(dateKey(1),'tomorrow');renderCalendar()}
 document.getElementById('refreshBtn').addEventListener('click',loadData);
 
-const adminApi='https://heremay-passkey-backend-943533867342.asia-east1.run.app';
 function lockManagement(locked){['settingsCard','balanceCard','personalCard'].forEach(id=>{document.getElementById(id).hidden=false;document.getElementById(id).querySelectorAll('input,select,button').forEach(el=>el.disabled=locked);});}
-function authFailed(message){managementVerified=false;adminGrant=null;lockManagement(true);document.getElementById('authCard').hidden=false;document.getElementById('authStatus').textContent=message;document.getElementById('loadStatus').textContent='主管驗證未完成，尚未讀取請假資料。';}
-function adminAuth(){if(!adminGrant||Number(adminGrant.expiresAt)<=Date.now())throw new Error('主管驗證已逾時，請重新驗證');return {sensitiveToken:adminGrant.token,sensitivePurpose:adminGrant.purpose||'attendance_admin',authAccount:adminGrant.account};}
-async function adminPost(path,body){const c=new AbortController(),t=setTimeout(()=>c.abort(),15000);try{const response=await fetch(adminApi+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:c.signal});const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.message||'驗證失敗');return result;}catch(e){if(e.name==='AbortError')throw new Error('驗證連線逾時，請重試');throw e;}finally{clearTimeout(t);}}
-async function acceptAdminGrant(result,account,purpose='attendance_admin'){if(!result.token||!Number(result.expiresAt))throw new Error('驗證服務未回傳有效憑證');if(result.role&&result.role!=='admin')throw new Error('此帳號沒有主管管理權限');adminGrant={token:result.token,expiresAt:Number(result.expiresAt),account,purpose};sessionStorage.setItem('heremay.leaveAdminGrant',JSON.stringify(adminGrant));document.getElementById('authStatus').textContent='正在確認主管權限…';await loadData();}
-async function authenticateAdmin(e){e.preventDefault();const btn=e.submitter;btn.disabled=true;try{const account=document.getElementById('adminAccount').value.trim(),input=document.getElementById('adminPassword');const password=String(input.value).normalize('NFKC').trim();if(!/^\d{6}$/.test(password))throw new Error('請輸入首頁登入使用的本人 6 位數密碼');const result=await adminPost('/auth/step-up/password',{account,password,purpose:'attendance_admin'});input.value='';await acceptAdminGrant(result,account);}catch(err){authFailed(err.message);}finally{btn.disabled=false;}}
-function bytesToBase64url(bytes){let binary='';bytes.forEach(b=>binary+=String.fromCharCode(b));return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
-function base64urlToBytes(value){const padding='='.repeat((4-value.length%4)%4),binary=atob((value+padding).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(binary,c=>c.charCodeAt(0))}
-function normalizePublicKeyOptions(options){const copy=typeof structuredClone==='function'?structuredClone(options):JSON.parse(JSON.stringify(options));if(copy.challenge)copy.challenge=base64urlToBytes(copy.challenge);if(Array.isArray(copy.allowCredentials))copy.allowCredentials=copy.allowCredentials.map(x=>({...x,id:base64urlToBytes(x.id)}));return copy}
-function credentialToJSON(credential){const r=credential.response,j={id:credential.id,rawId:bytesToBase64url(new Uint8Array(credential.rawId)),type:credential.type,clientExtensionResults:credential.getClientExtensionResults(),response:{}};if(r.clientDataJSON)j.response.clientDataJSON=bytesToBase64url(new Uint8Array(r.clientDataJSON));if(r.authenticatorData)j.response.authenticatorData=bytesToBase64url(new Uint8Array(r.authenticatorData));if(r.signature)j.response.signature=bytesToBase64url(new Uint8Array(r.signature));if(r.userHandle)j.response.userHandle=bytesToBase64url(new Uint8Array(r.userHandle));return j}
-
-async function authenticateAdminPasskey(){const btn=document.getElementById('adminPasskeyBtn');btn.disabled=true;try{const account=document.getElementById('adminAccount').value.trim();if(!account)throw new Error('尚未取得帳號，請由主管首頁重新進入');if(!navigator.credentials)throw new Error('此裝置不支援快速登入');const options=await adminPost('/auth/step-up/passkey/options',{account,purpose:'attendance_admin'});const publicKey=normalizePublicKeyOptions(options.publicKey);publicKey.hints=['client-device'];publicKey.userVerification='required';publicKey.timeout=30000;const credential=await navigator.credentials.get({publicKey});if(!credential)throw new Error('未完成快速登入');const result=await adminPost('/auth/step-up/passkey/verify',{account,purpose:'attendance_admin',credential:credentialToJSON(credential)});await acceptAdminGrant(result,account);}catch(err){authFailed(err.message);}finally{btn.disabled=false;}}
+function authFailed(message){managementVerified=false;lockManagement(true);document.getElementById('authCard').hidden=false;document.getElementById('authStatus').textContent=message;document.getElementById('loadStatus').textContent=message;}
+function adminAuth(){if(!adminGrant||!Number.isFinite(Number(adminGrant.expiresAt))||Number(adminGrant.expiresAt)<=Date.now())throw new Error('登入已失效，請返回登入頁重新登入');return {sensitiveToken:adminGrant.token,sensitivePurpose:adminGrant.purpose||'attendance_admin',authAccount:adminGrant.account};}
 function renderSettings(){const list=document.getElementById('ruleList');list.innerHTML='';management.rules.forEach(r=>{const row=document.createElement('div');row.className='rule-row';const t=document.createElement('div');t.textContent=`${r.date||'一般每日'}｜${r.pool}｜上午 ${r.amLimit} 人、下午 ${r.pmLimit} 人｜${r.locked?'鎖定特休':'開放特休'}｜${r.note||''}`;const btn=document.createElement('button');btn.className='back';btn.textContent='編輯';btn.onclick=()=>{document.getElementById('rulePool').value=r.pool;document.getElementById('ruleDate').value=r.date;document.getElementById('ruleAm').value=r.amLimit;document.getElementById('rulePm').value=r.pmLimit;document.getElementById('ruleLocked').checked=r.locked;document.getElementById('ruleNote').value=r.note||'';document.getElementById('ruleForm').scrollIntoView({behavior:'smooth'})};row.append(t,btn);list.append(row)});const select=document.getElementById('balanceEmployee'),previous=select.value;select.innerHTML='';management.employees.forEach(e=>{const opt=document.createElement('option');opt.value=e.employeeId;opt.textContent=`${e.employeeName}｜${e.pool}｜${e.employeeId}`;select.append(opt)});if(management.employees.some(e=>e.employeeId===previous))select.value=previous;showBalance()}
 function showBalance(){const e=management.employees.find(e=>e.employeeId===document.getElementById('balanceEmployee').value);document.getElementById('balanceCurrent').textContent=e?(e.balance.configured?`目前剩餘 ${e.balance.remaining} 天；已占用 ${e.balance.used} 天（含已成立及待審核特休）`:'尚未設定餘額'):'目前沒有可管理的員工';document.getElementById('balanceDays').value=e?.balance.configured?e.balance.remaining:''}
 async function saveSetting(action,payload,btn){btn.disabled=true;try{const result=await jsonp(action,{payload:JSON.stringify({...adminAuth(),...payload})});if(!result.ok)throw new Error(result.message||'儲存失敗');document.getElementById('loadStatus').textContent=result.message;await loadData()}catch(err){alert(err.message)}finally{btn.disabled=false}}
 function rulePayload(){return {pool:document.getElementById('rulePool').value,date:document.getElementById('ruleDate').value,amLimit:document.getElementById('ruleAm').value,pmLimit:document.getElementById('rulePm').value,locked:document.getElementById('ruleLocked').checked,note:document.getElementById('ruleNote').value}}
-document.getElementById('authForm').onsubmit=authenticateAdmin;
 document.getElementById('ruleForm').onsubmit=e=>{e.preventDefault();saveSetting('saveAnnualRule',rulePayload(),e.submitter)};
 document.getElementById('removeRule').onclick=e=>saveSetting('saveAnnualRule',{...rulePayload(),remove:true},e.currentTarget);
 document.getElementById('balanceForm').onsubmit=e=>{e.preventDefault();saveSetting('adjustAnnualBalance',{employeeId:document.getElementById('balanceEmployee').value,year:document.getElementById('balanceYear').value+'學年度',remaining:document.getElementById('balanceDays').value,reason:document.getElementById('balanceReason').value},e.submitter)};
@@ -251,7 +242,21 @@ document.getElementById('personalForm').onsubmit=async e=>{e.preventDefault();co
 const now=new Date();document.getElementById('balanceYear').value=now.getMonth()>=7?now.getFullYear():now.getFullYear()-1;
 lockManagement(true);
 ['today','tomorrow','reviewList'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='尚未載入，請先完成主管驗證。';});
-try{const employee=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}');const account=employee.account||employee.employeeNo||employee.employeeId||localStorage.getItem('heremay.lastFaceAccount')||'';document.getElementById('adminAccount').value=account;const saved=JSON.parse(sessionStorage.getItem('heremay.leaveAdminGrant')||'null'),area=JSON.parse(sessionStorage.getItem('heremay.attendanceAreaGrant')||'null');const matching=g=>g&&g.token&&Number(g.expiresAt)>Date.now()+3000&&[account,employee.employeeNo,employee.employeeId].filter(Boolean).includes(g.account);if(matching(saved)){adminGrant=saved;loadData();}else if(matching(area)){adminGrant={...area,purpose:'attendance'};loadData();}else{document.getElementById('authStatus').textContent='目前沒有可沿用的有效驗證。可使用快速登入，或本人6位數登入密碼。';}}catch(err){authFailed(err.message);}
+try {
+  const employee=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}');
+  const grant=JSON.parse(sessionStorage.getItem('heremay.leaveAdminGrant')||'null');
+  const accounts=[employee.account,employee.employeeNo,employee.employeeId].filter(Boolean).map(v=>String(v).trim().toLowerCase());
+  if(localStorage.getItem('heremay.currentRole')==='admin' && grant?.token &&
+     Number.isFinite(Number(grant.expiresAt)) && Number(grant.expiresAt)>Date.now() &&
+     grant.purpose==='attendance_admin' && accounts.includes(String(grant.account||'').trim().toLowerCase())){
+    adminGrant=grant;
+    document.getElementById('authCard').hidden=true;
+    loadData();
+  }else{
+    sessionStorage.removeItem('heremay.leaveAdminGrant');
+    authFailed('登入已失效或尚未登入，請返回登入頁登入後再進入。');
+  }
+}catch(err){authFailed('無法讀取登入狀態，請返回登入頁重新登入。');}
 </script>
 </body>
 </html>

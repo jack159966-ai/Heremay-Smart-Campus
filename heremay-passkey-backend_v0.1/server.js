@@ -17,7 +17,7 @@ app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 8080);
-const SERVICE_VERSION = '1.3.0';
+const SERVICE_VERSION = '1.3.1';
 const RP_NAME = process.env.RP_NAME || '和美智慧校園';
 const RP_ID = process.env.RP_ID || 'jack159966-ai.github.io';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://jack159966-ai.github.io')
@@ -248,6 +248,33 @@ function accountMatchesToken(account, tokenData) {
     .map(v => clean(v).toLowerCase()).filter(Boolean).includes(wanted);
 }
 
+// Reuse the verified homepage login for leave administration only.
+async function homepageAdminGrant(employee) {
+  if (employee.role !== 'admin') return {};
+  return { leaveAdminGrant: {
+    ...await issueSensitiveToken(employee, 'attendance_admin'),
+    account: employee.account || employee.employeeNo,
+    purpose: 'attendance_admin',
+  }};
+}
+
+app.post('/auth/login/password', async (req, res) => {
+  try {
+    const account = clean(req.body?.account);
+    const password = clean(req.body?.password);
+    if (!account || !/^\d{6}$/.test(password)) return res.status(400).json({ok:false, message:'請輸入帳號與本人 6 位數密碼'});
+    const employee = await lookupEmployee(account);
+    if (!employee || !employee.canLogin || !employee.role || employee.password !== password) {
+      return res.status(401).json({ok:false, message:'帳號或密碼錯誤，或此帳號不可登入'});
+    }
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({ok:true, role:employee.role, employee:publicEmployee(employee), ...await homepageAdminGrant(employee)});
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ok:false, message:'登入服務暫時無法連線，請稍後重試'});
+  }
+});
+
 app.get('/health', (_req,res) => res.json({ ok:true, service:'heremay-passkey', version:SERVICE_VERSION }));
 
 app.post('/auth/passkey/register/options', async (req,res) => {
@@ -380,7 +407,8 @@ app.post('/auth/passkey/login/verify', async (req,res) => {
       lastUsedAt: Date.now(),
     }, { merge:true });
     await challenge.ref.delete();
-    res.json({ ok:true, role:employee.role, employee:publicEmployee(employee) });
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({ ok:true, role:employee.role, employee:publicEmployee(employee), ...await homepageAdminGrant(employee) });
   } catch (err) {
     console.error(err);
     res.status(400).json({ ok:false, message:err?.message || '快速登入失敗' });
