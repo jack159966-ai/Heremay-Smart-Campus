@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.70</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.71</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -624,7 +624,7 @@
     </header>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.70｜2026-10-13</div>
+      <div class="versionStamp">主管工作台 v24.71｜2026-10-14</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -672,13 +672,13 @@
 
     <section class="bottomToolGrid" aria-label="投稿與每月自評">
       <button class="bottomSquareBtn" type="button" onclick="openMediaAdminInbox()"><span class="sqIcon"><img src="assets/media-submission.jpg?v=20260906b" alt="粉專投稿"></span><strong>粉專素材收件匣</strong></button>
-      <button class="bottomSquareBtn selfEvalCard" id="selfEvalAdminEntry" type="button" onclick="location.href='monthly_self_eval.html?v=1.0.3'"><span class="sqIcon" aria-hidden="true">📝</span><strong>每月自評</strong></button>
+      <button class="bottomSquareBtn privateMessageCard" id="privateMessageCard" type="button" onclick="openPrivateMessage()"><span class="privateUnreadBadge" id="privateUnreadBadge" hidden></span><span class="sqIcon">💬</span><strong>私訊</strong><span>一對一聯繫與快捷回覆</span></button>
     </section>
 
 
     <section class="bottomToolGrid">
       <button class="bottomSquareBtn positiveDisciplineCard" id="positiveDisciplineAdminEntry" type="button" onclick="location.href='positive_discipline.html?v=1.0.0'"><span class="sqIcon" aria-hidden="true">🌱</span><strong>正向管教</strong><span>教師檢核與園長已閱</span></button>
-      <button class="bottomSquareBtn privateMessageCard" id="privateMessageCard" type="button" onclick="openPrivateMessage()"><span class="privateUnreadBadge" id="privateUnreadBadge" hidden></span><span class="sqIcon">💬</span><strong>私訊</strong><span>一對一聯繫與快捷回覆</span></button>
+      <button class="bottomSquareBtn selfEvalCard" id="selfEvalAdminEntry" type="button" onclick="location.href='monthly_self_eval.html?v=1.0.3'"><span class="sqIcon" aria-hidden="true">📝</span><strong>每月自評</strong></button>
       <button class="bottomSquareBtn" type="button" onclick="location.href='leave_admin.html'">
         <span class="sqIcon"><img src="assets/leave-management.jpg?v=20260906b" alt="請假管理"></span><strong>請假管理</strong><span>近期與每月請假</span>
       </button>
