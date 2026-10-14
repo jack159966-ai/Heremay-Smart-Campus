@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.69</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.70</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -599,7 +599,7 @@
 #adminNoticeList .item>div:last-child{min-width:0}
 </style>
 <style>.leave-roster-entry[hidden]{display:none}.leave-roster-entry{display:flex;align-items:center;gap:12px;width:100%;padding:15px 18px;margin:12px 0;border:1px solid #b9d8db;border-radius:18px;background:#edf8f7;color:#225c62;cursor:pointer;text-align:left;font-family:inherit;box-shadow:0 4px 12px #245d6210}.leave-roster-entry .lr-icon{font-size:30px}.leave-roster-entry strong{display:block;font-size:20px}.leave-roster-entry small{display:block;margin-top:4px;font-size:14px}.leave-roster-entry .lr-arrow{margin-left:auto;font-size:27px}</style>
-<style>.selfEvalCard .sqIcon{display:grid!important;place-items:center;font-size:54px!important;line-height:1}</style></head>
+<style>.selfEvalCard .sqIcon{display:grid!important;place-items:center;font-size:54px!important;line-height:1}</style><style>.positiveDisciplineCard .sqIcon{font-size:54px!important;line-height:1}</style></head>
 <body class="auth-pending">
   <div class="toast" id="toast"></div>
   <main class="app" id="home">
@@ -624,7 +624,7 @@
     </header>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.69｜2026-10-13</div>
+      <div class="versionStamp">主管工作台 v24.70｜2026-10-13</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -677,6 +677,7 @@
 
 
     <section class="bottomToolGrid">
+      <button class="bottomSquareBtn positiveDisciplineCard" id="positiveDisciplineAdminEntry" type="button" onclick="location.href='positive_discipline.html?v=1.0.0'"><span class="sqIcon" aria-hidden="true">🌱</span><strong>正向管教</strong><span>教師檢核與園長已閱</span></button>
       <button class="bottomSquareBtn privateMessageCard" id="privateMessageCard" type="button" onclick="openPrivateMessage()"><span class="privateUnreadBadge" id="privateUnreadBadge" hidden></span><span class="sqIcon">💬</span><strong>私訊</strong><span>一對一聯繫與快捷回覆</span></button>
       <button class="bottomSquareBtn" type="button" onclick="location.href='leave_admin.html'">
         <span class="sqIcon"><img src="assets/leave-management.jpg?v=20260906b" alt="請假管理"></span><strong>請假管理</strong><span>近期與每月請假</span>
