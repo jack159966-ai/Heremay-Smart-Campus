@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜教保人員首頁 v15.38</title>
+  <title>和美智慧校園｜教保人員首頁 v15.39</title>
   <style>
     :root{
       --bg1:#fff5f9;
@@ -624,7 +624,7 @@ body.personal-settings-open{overflow:hidden}
 <body>
   <main class="phone">
     <div class="version-refresh-row">
-      <div class="page-version">教保人員首頁 v15.38</div>
+      <div class="page-version">教保人員首頁 v15.39</div>
       <button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button>
     </div>
 
@@ -668,10 +668,10 @@ body.personal-settings-open{overflow:hidden}
       <div id="dynamicNoticeBoard"><div class="announce"><p>正在讀取公告…</p></div></div>
     </section>
 
-<section class="section" aria-label="投稿與每月自評">
+<section class="section" aria-label="教師自評表">
       <div class="grid teacherToolGrid teacherSubmissionGrid">
-        <button class="btn" type="button" onclick="openMediaSubmission()"><div class="icon"><img src="assets/media-submission.jpg?v=20260906b" alt="班級素材投稿"></div><strong>班級素材投稿</strong></button>
-        <button class="btn" type="button" id="selfEvalEntry" onclick="location.href='monthly_self_eval.html?v=1.0.4'"><div class="icon selfEvalIcon" aria-hidden="true">📝</div><strong>每月自評</strong></button>
+        <button class="btn" type="button" id="selfEvalEntry" onclick="location.href='monthly_self_eval.html?v=1.1.1'"><div class="icon selfEvalIcon" aria-hidden="true">📝</div><strong>每月自評</strong></button>
+        <button class="btn" id="positiveDisciplineEntry" type="button" onclick="location.href='positive_discipline.html?v=1.1.0'"><div class="icon" aria-hidden="true">🌱</div><strong>正向管教</strong><span>自我檢核與已閱紀錄</span></button>
       </div>
     </section>
 
@@ -681,7 +681,7 @@ body.personal-settings-open{overflow:hidden}
         <span class="tag">粉紅版</span>
       </div>
       <div class="grid teacherToolGrid">
-        <button class="btn" id="positiveDisciplineEntry" type="button" onclick="location.href='positive_discipline.html?v=1.0.0'"><div class="icon" aria-hidden="true">🌱</div><strong>正向管教</strong><span>自我檢核與已閱紀錄</span></button>
+        <button class="btn" type="button" onclick="openMediaSubmission()"><div class="icon"><img src="assets/media-submission.jpg?v=20260906b" alt="班級素材投稿"></div><strong>班級素材投稿</strong></button>
         <button class="btn privateMessageCard" id="privateMessageCard" onclick="openPrivateMessage()"><span class="privateUnreadBadge" id="privateUnreadBadge" hidden></span><div class="icon">💬</div><strong>私訊</strong><span>一對一聯繫與快捷回覆</span></button>
 
 
@@ -731,7 +731,7 @@ body.personal-settings-open{overflow:hidden}
     </section>
 
     <div class="groupbuyNotice" id="groupbuyNotice">🛒 有新的團購／登記事項</div>
-<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.38｜NAS 高速投稿入口</div>
+<div class="footer">🔔 重要公告請點選「我已收到」；確認狀態由主管端統一查看。<br>教保人員首頁 v15.39｜NAS 高速投稿入口</div>
   </main>
 
   <div class="toast" id="toast">功能測試</div>
@@ -755,7 +755,7 @@ body.personal-settings-open{overflow:hidden}
 
   <div class="modal" id="personalModal" onclick="closePersonalSettings(event)">
     <div class="sheet" onclick="event.stopPropagation()">
-      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v15.38｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回教保人員首頁" title="返回教保人員首頁">← 返回</button></div>
+      <div class="personal-header"><div><h2>⚙️ 個人設定</h2><div class="personal-version">v15.39｜2026-10-02</div></div><button class="campus-return" type="button" onclick="hidePersonalSettings()" aria-label="返回教保人員首頁" title="返回教保人員首頁">← 返回</button></div>
 
       <div class="listbox">
         <h3>個人資料</h3>
