@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.3.2</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.3.3</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -139,11 +139,16 @@ button{display:none!important}
 .patrol-return{background:#245a86;color:#fff;border:1px solid #245a86;width:auto;min-height:48px;padding:12px 16px;white-space:nowrap}
 .patrol-return:hover{background:#194463;border-color:#194463}
 .patrol-return:focus-visible{outline:3px solid #86b5df;outline-offset:3px}
+/* v1.3.3：右側方形結束／同步按鍵，沿用目前時段同步。 */
+.finish-sync-row{display:flex;justify-content:flex-end;margin-top:16px}
+.finish-sync-button{width:124px;height:124px;min-width:124px;min-height:124px;flex:0 0 124px;flex-direction:column;gap:8px;padding:12px;border-radius:20px;font-size:18px;line-height:1.45;box-shadow:0 5px 14px rgba(37,99,235,.2);text-align:center}
+.finish-sync-icon{font-size:30px;line-height:1}
+.finish-sync-button:focus-visible{outline:3px solid #f59e0b;outline-offset:4px}
 </style>
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.3.2｜2026-10-14｜10天按需讀取＋不適用狀態</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.3.3｜2026-10-15｜右側方形結束同步按鍵</p></div></header>
 
 <section id="screenHome" class="screen active">
   <div class="patrol-return-row no-print"><button class="patrol-return" type="button" onclick="returnToPreviousPage()">← 返回主管首頁</button></div>
@@ -157,10 +162,7 @@ button{display:none!important}
     <div class="progress"><div class="bar" id="homeBar"></div></div>
     <div id="unfinishedList" class="unfinished-box no-print"></div>
     <div id="cloudStatus" class="cloud-box no-print">☁️ 巡堂時先儲存在本機；同步時同一天、同時段、同班級會更新原紀錄，不會重複新增。</div>
-    <div class="grid2 no-print" style="margin-top:12px">
-      <button class="gray" style="grid-column:1 / -1" onclick="finishAndSave()">☁️ 結束／確認同步目前時段</button>
-      <button class="light" style="grid-column:1 / -1" onclick="syncTodayToCloud(true)">🔄 重新確認同步今天全部紀錄</button>
-    </div>
+    <div class="finish-sync-row no-print"><button class="primary finish-sync-button" type="button" onclick="finishAndSave()" aria-label="結束巡堂並確認同步目前時段"><span class="finish-sync-icon" aria-hidden="true">☁️</span><span>結束巡堂<br>確認同步</span></button></div>
   </div>
   <div class="card">
     <h3>避免卡住的修正</h3>
@@ -200,7 +202,7 @@ button{display:none!important}
   <div class="card no-print">
 <button class="light full" onclick="shareCurrent()">📤 分享這筆巡堂紀錄</button>
 <button class="primary full" style="margin-top:10px" onclick="savePatrolRecordAndNext()">💾 儲存本班巡堂紀錄並前往下一班</button>
-<button class="gray full" style="margin-top:10px" onclick="finishAndSave()">☁️ 結束／確認同步目前時段</button>
+<div class="finish-sync-row no-print"><button class="primary finish-sync-button" type="button" onclick="finishAndSave()" aria-label="結束巡堂並確認同步目前時段"><span class="finish-sync-icon" aria-hidden="true">☁️</span><span>結束巡堂<br>確認同步</span></button></div>
 <div class="patrol-return-row no-print"><button class="patrol-return" onclick="show('Home')">← 返回巡堂首頁</button></div>
 </div>
 </section>
