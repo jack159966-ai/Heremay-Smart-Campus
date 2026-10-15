@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜差勤管理 v2.12.1</title>
+  <title>和美智慧校園｜差勤管理 v2.12.2</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -81,29 +81,16 @@
   <header class="top">
     <div class="title"><h1>差勤管理</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.12.1 個人假別與期限</span>
+    <span class="version">v2.12.2 打卡操作優先</span>
   </header>
-
-  <div id="attendanceDataStatus" role="status" style="padding:10px;color:#995319;font-weight:850">尚未同步，畫面可能是手機暫存資料</div>
-  <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
-    🔄 同步出勤資料／檢查最新版
-  </button>
 
   <section class="card who">
     <div class="avatar" id="avatar">👩‍🏫</div>
     <div><strong id="employeeName">測試員工</strong><span id="employeeInfo">尚未取得登入資料</span></div>
   </section>
 
-  <section class="card" id="leaveOverview"><div class="section-title"><h2>📋 今、明兩天請假人員</h2></div><div id="overviewStatus" class="hint">正在同步請假名單…</div><div class="overview-grid" id="overviewPeople"></div></section>
-  <section class="card" id="adminLeaveEntry" hidden><button class="sync-btn" onclick="openLeaveManagement()">主管請假審核／假別額度設定</button></section><section class="card dashboard-nav"><button onclick="openDashboardTab('leave')">🗓️ 請假表</button><button onclick="openDashboardTab('balance')">📊 查看剩餘假別</button><button onclick="openSalarySlip()">💰 薪資條</button><button onclick="openDashboardTab('attendance')">🕒 本月打卡紀錄</button></section>
   <section class="card">
     <div class="clock"><div class="date" id="dateText"></div><div class="time" id="timeText"></div><div class="status" id="todayStatus">今日尚未打卡</div></div>
-    <div class="access-card">
-      <div class="access-head"><strong>📍 打卡範圍確認</strong><span class="access-badge" id="accessBadge">尚未檢查</span></div>
-      <div class="access-detail" id="accessDetail">按下打卡時會自動確認：距離幼兒園 100 公尺內，或可連上校內 NAS。</div>
-      <div class="access-actions"><button class="access-btn" type="button" onclick="checkPunchAccess(true)">重新定位</button><button class="access-btn" type="button" onclick="syncOfflinePunches(true)">補傳離線紀錄</button></div>
-      <div class="offline-note" id="offlineQueueNote">目前沒有待補傳的打卡紀錄。</div>
-    </div>
     <div id="attendanceModeBox"></div>
     <div class="punch-grid"><button class="punch in" id="clockInBtn" onclick="confirmPunch('in')">☀️ 上班打卡</button><button class="punch out" id="clockOutBtn" onclick="confirmPunch('out')">🌙 下班打卡</button></div>
     <div class="duty-grid" id="dutyGrid">
@@ -111,6 +98,12 @@
       <button class="duty-btn duty-out" id="dutyOutBtn" onclick="confirmPunch('dutyOut')">🟠 下值班</button>
     </div>
     <div class="shift-info" id="shiftInfo">正在判斷今日出勤規則…</div>
+    <div class="access-card">
+      <div class="access-head"><strong>📍 打卡範圍確認</strong><span class="access-badge" id="accessBadge">尚未檢查</span></div>
+      <div class="access-detail" id="accessDetail">按下打卡時會自動確認：距離幼兒園 100 公尺內，或可連上校內 NAS。</div>
+      <div class="access-actions"><button class="access-btn" type="button" onclick="checkPunchAccess(true)">重新定位</button><button class="access-btn" type="button" onclick="syncOfflinePunches(true)">補傳離線紀錄</button></div>
+      <div class="offline-note" id="offlineQueueNote">目前沒有待補傳的打卡紀錄。</div>
+    </div>
     <div class="report-card">
       <strong>⚠️ 今天出勤有狀況？</strong>
       <div class="hint">可先回報會遲到、臨時請假、忘記打卡或臨時換班；回報不等於完成請假或打卡。</div>
@@ -121,6 +114,17 @@
     <div class="shift-info" id="dutyHint">班別選定後，只需使用上方兩個打卡按鈕。</div>
     <div class="mini-grid"><div class="mini"><b id="inTime">--:--</b><span>上班時間</span></div><div class="mini"><b id="outTime">--:--</b><span>下班時間</span></div><div class="mini"><b id="lateMinutes">0</b><span>遲到分鐘</span></div></div>
   </section>
+
+  <div id="attendanceDataStatus" role="status" style="padding:10px;color:#995319;font-weight:850">尚未同步，畫面可能是手機暫存資料</div>
+  <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
+    🔄 同步出勤資料／檢查最新版
+  </button>
+
+
+
+  <section class="card" id="leaveOverview"><div class="section-title"><h2>📋 今、明兩天請假人員</h2></div><div id="overviewStatus" class="hint">正在同步請假名單…</div><div class="overview-grid" id="overviewPeople"></div></section>
+  <section class="card" id="adminLeaveEntry" hidden><button class="sync-btn" onclick="openLeaveManagement()">主管請假審核／假別額度設定</button></section><section class="card dashboard-nav"><button onclick="openDashboardTab('leave')">🗓️ 請假表</button><button onclick="openDashboardTab('balance')">📊 查看剩餘假別</button><button onclick="openSalarySlip()">💰 薪資條</button><button onclick="openDashboardTab('attendance')">🕒 本月打卡紀錄</button></section>
+
 
   <section class="card">
     <div class="tabs"><button class="tab active" onclick="showTab('leave',this)">請假</button><button class="tab" onclick="showTab('attendance',this)">出勤</button><button class="tab" onclick="showTab('balance',this)">剩餘假別</button><button class="tab" onclick="showTab('records',this)">紀錄</button></div>
