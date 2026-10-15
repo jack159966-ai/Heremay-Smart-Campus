@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.3.3</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.3.4</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -139,7 +139,11 @@ button{display:none!important}
 .patrol-return{background:#245a86;color:#fff;border:1px solid #245a86;width:auto;min-height:48px;padding:12px 16px;white-space:nowrap}
 .patrol-return:hover{background:#194463;border-color:#194463}
 .patrol-return:focus-visible{outline:3px solid #86b5df;outline-offset:3px}
-/* v1.3.3：右側方形結束／同步按鍵，沿用目前時段同步。 */
+/* v1.3.4：右側方形結束／同步按鍵，沿用目前時段同步。 */
+.sync-status-row{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:12px;align-items:center;margin-top:12px}
+.sync-status-row .cloud-box{margin-top:0;min-width:0;overflow-wrap:anywhere}
+.sync-status-row .finish-sync-row{margin-top:0}
+.sync-status-row .finish-sync-button{width:112px;height:112px;min-width:112px;min-height:112px;flex-basis:112px}
 .finish-sync-row{display:flex;justify-content:flex-end;margin-top:16px}
 .finish-sync-button{width:124px;height:124px;min-width:124px;min-height:124px;flex:0 0 124px;flex-direction:column;gap:8px;padding:12px;border-radius:20px;font-size:18px;line-height:1.45;box-shadow:0 5px 14px rgba(37,99,235,.2);text-align:center}
 .finish-sync-icon{font-size:30px;line-height:1}
@@ -148,7 +152,7 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.3.3｜2026-10-15｜右側方形結束同步按鍵</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.3.4｜2026-10-15｜同步提示與按鍵並排</p></div></header>
 
 <section id="screenHome" class="screen active">
   <div class="patrol-return-row no-print"><button class="patrol-return" type="button" onclick="returnToPreviousPage()">← 返回主管首頁</button></div>
@@ -161,8 +165,10 @@ button{display:none!important}
     <div class="big" id="homeProgressText">0 / 0 班完成</div>
     <div class="progress"><div class="bar" id="homeBar"></div></div>
     <div id="unfinishedList" class="unfinished-box no-print"></div>
+    <div class="sync-status-row no-print">
     <div id="cloudStatus" class="cloud-box no-print">☁️ 巡堂時先儲存在本機；同步時同一天、同時段、同班級會更新原紀錄，不會重複新增。</div>
     <div class="finish-sync-row no-print"><button class="primary finish-sync-button" type="button" onclick="finishAndSave()" aria-label="結束巡堂並確認同步目前時段"><span class="finish-sync-icon" aria-hidden="true">☁️</span><span>結束巡堂<br>確認同步</span></button></div>
+    </div>
   </div>
   <div class="card">
     <h3>避免卡住的修正</h3>
@@ -2058,7 +2064,7 @@ function initializeCloud(){
     setCloudStatus('⚠️ 目前離線；巡堂資料會先保存在本機。需要時再按同步按鈕。','error');
     return;
   }
-  setCloudStatus('☁️ 已關閉開啟網頁時的自動雲端連線，避免權限視窗反覆出現。巡堂後請手動按「結束／同步本時段」。');
+  setCloudStatus('☁️ 巡堂紀錄先存本機，完成後請按右側「確認同步」。');
 }
 setTimeout(initializeCloud,300);
 window.addEventListener('online',initializeCloud);
