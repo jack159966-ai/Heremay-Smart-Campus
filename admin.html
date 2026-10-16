@@ -733,6 +733,7 @@
     <section class="modal" id="modal"></section>
   </div>
 
+<script src="announcement-photos.js?v=1.0.0"></script>
 <script>
 const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
 const MESSAGE_CENTER_URL = 'https://script.google.com/macros/s/AKfycbwhJsU-5QiZ3uDd9UCnECd16jpHG_LoweHRIC7TrSf_AH-bDLPUFVeAGB2urQo25zzoVg/exec';
@@ -997,7 +998,8 @@ function renderAdminNotices(){
  const list=cloudAnnouncements;
  const box=document.getElementById('adminNoticeList'),count=document.getElementById('adminNoticeCount');
  if(count)count.textContent=`${list.length} 則`;if(!box)return;
- box.innerHTML=list.length?list.map(x=>`<div class="item"><div class="time">公告</div><div><h5>${adminEsc(x.title)}</h5><p>${adminEsc(x.content)}<br>對象：${adminNoticeTargets(x).join('、')}</p></div></div>`).join(''):'<div class="hintBox">目前沒有公告。</div>';
+ box.innerHTML=list.length?list.map(x=>`<div class="item"><div class="time">公告</div><div><h5>${adminEsc(x.title)}</h5><p>${adminEsc(x.content)}<br>對象：${adminNoticeTargets(x).join('、')}</p>${HMNoticePhotos.render(x)}</div></div>`).join(''):'<div class="hintBox">目前沒有公告。</div>';
+ HMNoticePhotos.hydrate(box);
 }
 function getSharedLeaves(){
   if(cloudLeaves.length) return cloudLeaves;
@@ -1899,6 +1901,7 @@ setInterval(refreshAdminPrivateUnread,60000);
 <script>(()=>{let e={};try{e=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}')||{}}catch(_){}const kind=[e.category,e.identity,e.identityType,e.jobTitle,e.title,e.group,e.department,e.homeType,e['身分類別'],e['職稱']].filter(Boolean).join(' ');if(/鐘點|庶務/.test(kind))document.getElementById('leaveRosterEntry').hidden=true})();</script>
 </body>
 </html>
+
 
 
 

@@ -770,7 +770,8 @@
     </div>
   </div>
 
-  <script>
+  <script src="announcement-photos.js?v=1.0.0"></script>
+<script>
     const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
     // Google 雲端投稿頁部署完成後，只需更換這個網址。
     const MEDIA_SUBMISSION_URL = 'https://heremay-8t.myqnapcloud.com:9444/';
@@ -862,7 +863,8 @@
     }
     function renderDynamicNotices(){
       const box=document.getElementById('dynamicNoticeBoard');if(!box)return;
-      box.innerHTML=cloudAnnouncements.length?cloudAnnouncements.map(x=>`<div class="pin-row"><div class="pin">📍</div><div class="announce"><strong>${safeHtml(x.title)}</strong><p>${safeHtml(x.content).replace(/\n/g,'<br>')}</p><div class="meta">發布：${safeHtml(x.createdBy||'智慧秘書')}｜對象：${normalizedTargets(x).join('、')}</div></div></div>`).join(''):'<div class="announce"><p>目前沒有公告。</p></div>';
+      box.innerHTML=cloudAnnouncements.length?cloudAnnouncements.map(x=>`<div class="pin-row"><div class="pin">📍</div><div class="announce"><strong>${safeHtml(x.title)}</strong><p>${safeHtml(x.content).replace(/\n/g,'<br>')}</p>${HMNoticePhotos.render(x)}<div class="meta">發布：${safeHtml(x.createdBy||'智慧秘書')}｜對象：${normalizedTargets(x).join('、')}</div></div></div>`).join(''):'<div class="announce"><p>目前沒有公告。</p></div>';
+      HMNoticePhotos.hydrate(box);
     }
     function openReportCenter(){document.getElementById('reportCenterModal').classList.add('show');resetStaffReport();renderMyReports()}
     function hideReportCenter(){document.getElementById('reportCenterModal').classList.remove('show')}
@@ -1395,5 +1397,6 @@
 <script>(()=>{let e={};try{e=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}')||{}}catch(_){}const kind=[e.category,e.identity,e.identityType,e.jobTitle,e.title,e.group,e.department,e.homeType,e['身分類別'],e['職稱']].filter(Boolean).join(' ');if(/鐘點|庶務/.test(kind))document.getElementById('leaveRosterEntry').hidden=true})();</script>
 </body>
 </html>
+
 
 

@@ -795,6 +795,7 @@ body.personal-settings-open{overflow:hidden}
   </div>
 
   <script src="./notification-read-sync.js?v=1.1.0"></script>
+<script src="announcement-photos.js?v=1.0.0"></script>
 <script>
     function openAttendanceArea(){
       sessionStorage.removeItem('heremay.attendanceAreaGrant');
@@ -999,7 +1000,8 @@ body.personal-settings-open{overflow:hidden}
     }
     function renderDynamicNotices(){
       const box=document.getElementById('dynamicNoticeBoard');if(!box)return;
-      box.innerHTML=cloudAnnouncements.length?cloudAnnouncements.map(x=>`<div class="pin-row"><div class="pin">📍</div><div class="announce"><strong>${safeHtml(x.title)}</strong><p>${safeHtml(x.content).replace(/\n/g,'<br>')}</p><div class="meta">發布：${safeHtml(x.createdBy||'智慧秘書')}｜對象：${normalizedTargets(x).join('、')}</div></div></div>`).join(''):'<div class="announce"><p>目前沒有公告。</p></div>';
+      box.innerHTML=cloudAnnouncements.length?cloudAnnouncements.map(x=>`<div class="pin-row"><div class="pin">📍</div><div class="announce"><strong>${safeHtml(x.title)}</strong><p>${safeHtml(x.content).replace(/\n/g,'<br>')}</p>${HMNoticePhotos.render(x)}<div class="meta">發布：${safeHtml(x.createdBy||'智慧秘書')}｜對象：${normalizedTargets(x).join('、')}</div></div></div>`).join(''):'<div class="announce"><p>目前沒有公告。</p></div>';
+      HMNoticePhotos.hydrate(box);
     }
     function openReportCenter(){document.getElementById('reportCenterModal').classList.add('show');resetStaffReport();renderMyReports()}
     function hideReportCenter(){document.getElementById('reportCenterModal').classList.remove('show')}
@@ -1875,5 +1877,6 @@ window.addEventListener('pageshow',()=>{
 <script src="positive_discipline_home.js?v=1.0.0"></script>
 </body>
 </html>
+
 
 

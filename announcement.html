@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#dceeff">
-<title>和美智慧校園｜公布欄管理 v1.1.9</title>
+<title>和美智慧校園｜公布欄管理 v1.2.0</title>
 <style>
 :root{--bg:#eef7ff;--card:#fff;--primary:#4f86c6;--deep:#356ba9;--text:#23364d;--muted:#6d7d90;--line:#d9e7f3;--danger:#d65b5b;--shadow:0 10px 28px rgba(49,91,133,.13)}
 *{box-sizing:border-box}body.auth-pending .app{visibility:hidden}body{margin:0;font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:linear-gradient(180deg,#eaf5ff,#f8fbff);color:var(--text);min-height:100vh}
@@ -37,6 +37,11 @@ button,input,textarea,select{font:inherit}.app{width:min(850px,100%);margin:auto
   <div class="grid">
     <div class="full"><label>公告標題</label><input id="noticeTitle" placeholder="例如：今天下午三點停水"></div>
     <div class="full"><label>公告內容</label><textarea id="noticeContent" placeholder="簡短說明需要大家知道的事情"></textarea></div>
+    <div class="full"><label for="noticeAttachments">照片與附件（選填）</label>
+      <input id="noticeAttachments" type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip" disabled>
+      <p class="hm-photo-hint" id="attachmentHint">正在確認附件服務…</p>
+      <div id="attachmentPreview" class="hm-photo-preview" aria-live="polite"></div>
+    </div>
     <div class="full"><label>推播對象（可複選）</label><div class="targets">
       <label class="check"><input type="checkbox" name="target" value="主管">主管</label>
       <label class="check"><input type="checkbox" name="target" value="幼兒部">幼兒部</label>
@@ -49,8 +54,9 @@ button,input,textarea,select{font:inherit}.app{width:min(850px,100%);margin:auto
   <div class="actions"><button class="btn primary" id="saveNoticeBtn" onclick="saveNotice()">儲存公告</button><button class="btn" id="clearNoticeBtn" onclick="resetForm()">清除</button></div>
 </section>
 <section class="panel"><h2>目前公告</h2><div id="noticeList"></div></section>
-<div class="version">公布欄管理 v1.1.9｜返回對應角色首頁</div>
+<div class="version">公布欄管理 v1.2.0｜返回對應角色首頁</div>
 </main>
+<script src="announcement-photos.js?v=1.0.0"></script>
 <script>
 const SERVICE_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
 const LOCAL_KEY='heremay.announcements';
@@ -143,9 +149,73 @@ async function postAction(action,payload){
   return await res.json();
 }
 function toggleExpire(){expiresAt.disabled=expireMode.value!=='scheduled';if(expiresAt.disabled)expiresAt.value=''}
-function resetForm(){noticeId.value='';noticeTitle.value='';noticeContent.value='';document.querySelectorAll('[name=target]').forEach(x=>x.checked=false);expireMode.value='manual';toggleExpire();formTitle.textContent='新增公告'}
+function resetForm(){resetAttachments();noticeId.value='';noticeTitle.value='';noticeContent.value='';document.querySelectorAll('[name=target]').forEach(x=>x.checked=false);expireMode.value='manual';toggleExpire();formTitle.textContent='新增公告'}
 let cloudNotices=[];
 let noticeSaveBusy=false;
+let attachmentServiceReady=false,attachmentBusy=false;
+let keptAttachments=[],newAttachments=[];
+const attachmentInput=document.getElementById('noticeAttachments');
+function resetAttachments(){keptAttachments=[];newAttachments=[];attachmentInput.value='';renderAttachmentPreview()}
+function renderAttachmentPreview(){
+ const box=document.getElementById('attachmentPreview');box.replaceChildren();
+ [...keptAttachments,...newAttachments].forEach((item,index)=>{
+  const figure=document.createElement('figure');
+  if(item.preview){const img=document.createElement('img');img.src=item.preview;img.alt=item.name;figure.append(img)}
+  else if(item.kind==='announcement-photo'){
+   const img=document.createElement('img');img.alt=item.name;figure.append(img);
+   const id=noticeId.value;
+   HMNoticePhotos.request(id,item.fileId).then(url=>{if(img.isConnected)img.src=url}).catch(()=>{img.alt='照片暫時無法讀取'});
+  }
+  const title=document.createElement('div');title.textContent=item.name||(typeof item==='string'?item:'原附件');title.style.cssText='font-size:13px;overflow-wrap:anywhere;margin-top:4px';figure.append(title);
+  const remove=document.createElement('button');remove.type='button';remove.textContent='移除';remove.disabled=noticeSaveBusy||attachmentBusy;remove.onclick=()=>{if(noticeSaveBusy||attachmentBusy)return;if(index<keptAttachments.length)keptAttachments.splice(index,1);else newAttachments.splice(index-keptAttachments.length,1);renderAttachmentPreview()};figure.append(remove);box.append(figure);
+ });
+}
+function readAsDataURL(file){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('無法讀取檔案：'+file.name));reader.readAsDataURL(file)})}
+async function prepareAttachment(file){
+ const isImage=file.type.startsWith('image/')||/\.(jpe?g|png|webp|gif|heic|heif)$/i.test(file.name);
+ if(!isImage){
+  if(!/\.(pdf|docx?|xlsx?|pptx?|txt|csv|zip)$/i.test(file.name))throw new Error('不支援的檔案格式：'+file.name);
+  if(file.size>5*1024*1024)throw new Error(file.name+' 超過 5 MB');
+  if(!file.size)throw new Error(file.name+' 是空白檔案');
+  const data=await readAsDataURL(file);return {name:file.name,base64:data.split(',')[1],size:file.size,kind:'announcement-file'};
+ }
+ const url=URL.createObjectURL(file);
+ try{
+  const img=await new Promise((resolve,reject)=>{const x=new Image();x.onload=()=>resolve(x);x.onerror=()=>reject(new Error('這張照片無法讀取，請改選 JPG 或 PNG：'+file.name));x.src=url});
+  let scale=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight));
+  const canvas=document.createElement('canvas');let data;
+  for(let pass=0;pass<4;pass++){
+   canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+   const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+   data=canvas.toDataURL('image/jpeg',pass?0.72:0.84);if(data.length<460000)break;scale*=0.8;
+  }
+  if(data.length>=460000)throw new Error('照片過大，請換一張較小的照片');
+  return {name:file.name.replace(/\.[^.]+$/,'')+'.jpg',base64:data.split(',')[1],preview:data,size:Math.floor(data.split(',')[1].length*3/4),kind:'announcement-photo'};
+ }finally{URL.revokeObjectURL(url)}
+}
+attachmentInput.addEventListener('change',async()=>{
+ if(attachmentBusy||noticeSaveBusy||!attachmentServiceReady)return;
+ const files=[...attachmentInput.files];if(!files.length)return;
+ if(files.length+keptAttachments.length+newAttachments.length>5){alert('每則公告最多 5 個附件');attachmentInput.value='';return}
+ attachmentBusy=true;setAttachmentBusy(true);renderAttachmentPreview();
+ try{
+  const prepared=[];for(const file of files)prepared.push(await prepareAttachment(file));
+  if([...keptAttachments,...newAttachments,...prepared].reduce((sum,x)=>sum+(x.size||0),0)>12*1024*1024)throw new Error('附件合計最多 12 MB');
+  newAttachments.push(...prepared);
+ }catch(error){alert(error.message)}
+ finally{attachmentBusy=false;attachmentInput.value='';setAttachmentBusy(false);renderAttachmentPreview()}
+});
+function setAttachmentBusy(busy){
+ attachmentInput.disabled=busy||!attachmentServiceReady;
+ document.querySelector('.grid').inert=busy;
+ document.getElementById('saveNoticeBtn').disabled=busy;
+ document.getElementById('clearNoticeBtn').disabled=busy;
+}
+async function checkAttachmentService(){
+ try{const r=await jsonp('announcementAttachmentSupport');if(!r.ok||r.version!=='1.0.0')throw new Error('附件服務尚未啟用');attachmentServiceReady=true;attachmentInput.disabled=false;document.getElementById('attachmentHint').textContent='可選照片、PDF、Word、Excel、PowerPoint、文字或 ZIP。每則最多 5 個附件，單檔 5 MB、合計 12 MB；照片自動縮圖。'}
+ catch(error){document.getElementById('attachmentHint').textContent='附件功能尚未啟用，請先更新公告後端；文字公告仍可使用。'}
+}
+
 
 async function loadNotices(showMessage=false){
   noticeList.innerHTML='<div class="empty">正在讀取雲端公告…</div>';
@@ -181,11 +251,11 @@ async function migrateLocalNotices(){
   await loadNotices(false);
 }
 async function saveNotice(){
- if(noticeSaveBusy)return;
+ if(noticeSaveBusy||attachmentBusy)return;
 
  const title=noticeTitle.value.trim(),content=noticeContent.value.trim(),targets=[...document.querySelectorAll('[name=target]:checked')].map(x=>x.value);
  if(!title)return alert('請輸入公告標題');
- if(!content)return alert('請輸入公告內容');
+ if(!content&&!keptAttachments.length&&!newAttachments.length)return alert('請輸入公告內容或加入附件');
  if(!targets.length)return alert('請至少選擇一個推播對象');
  if(expireMode.value==='scheduled'&&!expiresAt.value)return alert('請設定自動下架時間');
 
@@ -196,6 +266,7 @@ async function saveNotice(){
  const originalText=saveBtn?.textContent||'儲存公告';
 
  noticeSaveBusy=true;
+ setAttachmentBusy(true);renderAttachmentPreview();
  if(saveBtn){
    saveBtn.disabled=true;
    saveBtn.textContent='⏳ 儲存公告中……';
@@ -204,11 +275,12 @@ async function saveNotice(){
  if(clearBtn)clearBtn.disabled=true;
 
  try{
-   const result=await postAction(old?'updateAnnouncement':'saveAnnouncement',{
+   const result=await postAction(attachmentServiceReady?'saveAnnouncementWithAttachments':(old?'updateAnnouncement':'saveAnnouncement'),{
      id,title,content,targets,createdBy:old?.createdBy||currentName(),
      createdAt:old?.createdAt||new Date().toISOString(),
      expiresAt:expireMode.value==='scheduled'?expiresAt.value:'',
-     status:'發布中'
+     status:'發布中',
+     attachments:keptAttachments,newAttachments:newAttachments.map(({name,base64})=>({name,base64}))
    });
 
    if(!result.ok)throw new Error(result.message||'儲存失敗');
@@ -228,17 +300,21 @@ async function saveNotice(){
      saveBtn.textContent=originalText;
    }
    if(clearBtn)clearBtn.disabled=false;
+   setAttachmentBusy(false);renderAttachmentPreview();
  }
 }
 
 function editNotice(id){
+ if(noticeSaveBusy||attachmentBusy)return;
  const x=cloudNotices.find(n=>String(n.id)===String(id));if(!x)return;
- noticeId.value=x.id;noticeTitle.value=x.title;noticeContent.value=x.content;
+ resetAttachments();keptAttachments=Array.isArray(x.attachments)?x.attachments:[];
+ noticeId.value=x.id;renderAttachmentPreview();noticeTitle.value=x.title;noticeContent.value=x.content;
  document.querySelectorAll('[name=target]').forEach(c=>c.checked=(x.targets||[]).includes(c.value));
  expireMode.value=x.expiresAt?'scheduled':'manual';expiresAt.value=x.expiresAt?String(x.expiresAt).slice(0,16):'';
  toggleExpire();formTitle.textContent='修改公告';scrollTo({top:0,behavior:'smooth'});
 }
 async function deleteNotice(id){
+ if(noticeSaveBusy||attachmentBusy)return;
  const x=cloudNotices.find(n=>String(n.id)===String(id));
  if(!x||!confirm(`確定刪除「${x.title}」嗎？刪除後無法復原。`))return;
  try{
@@ -249,13 +325,16 @@ async function deleteNotice(id){
 }
 function render(){
  const box=document.getElementById('noticeList');
- box.innerHTML=cloudNotices.length?cloudNotices.map(x=>`<article class="item"><h3>${esc(x.title)}</h3><div>${esc(x.content).replace(/\n/g,'<br>')}</div><div class="meta">對象：${(x.targets||[]).join('、')}｜發布：${x.createdAt?new Date(x.createdAt).toLocaleString('zh-TW',{hour12:false}):''}${x.expiresAt?'｜下架：'+String(x.expiresAt).replace('T',' '):'｜手動下架'}</div><div class="actions"><button class="btn" onclick="editNotice('${x.id}')">修改</button><button class="btn danger" onclick="deleteNotice('${x.id}')">刪除</button></div></article>`).join(''):'<div class="empty">目前沒有公告</div>';
+ box.innerHTML=cloudNotices.length?cloudNotices.map(x=>`<article class="item"><h3>${esc(x.title)}</h3><div>${esc(x.content).replace(/\n/g,'<br>')}</div>${HMNoticePhotos.render(x)}<div class="meta">對象：${(x.targets||[]).join('、')}｜發布：${x.createdAt?new Date(x.createdAt).toLocaleString('zh-TW',{hour12:false}):''}${x.expiresAt?'｜下架：'+String(x.expiresAt).replace('T',' '):'｜手動下架'}</div><div class="actions"><button class="btn" onclick="editNotice('${x.id}')">修改</button><button class="btn danger" onclick="deleteNotice('${x.id}')">刪除</button></div></article>`).join(''):'<div class="empty">目前沒有公告</div>';
+ HMNoticePhotos.hydrate(box);
 }
 if(requireAnnouncementAccess()){
+  checkAttachmentService();
   toggleExpire();
   (async()=>{await loadNotices(false);await migrateLocalNotices();})();
 }
 </script>
 </body></html>
+
 
 
