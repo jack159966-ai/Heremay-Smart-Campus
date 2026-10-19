@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.9.18</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.9.19</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -332,13 +332,24 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
 .campaignSummary>.summaryActions{grid-column:2;grid-row:1 / span 3;align-self:center;display:flex;flex-direction:column;margin-top:0;max-width:110px}
 .summaryActions .btn{min-height:44px;padding:10px 12px;font-size:15px}
 @media(max-width:760px){.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.tab{min-height:48px;padding:10px 8px;font-size:18px}.card h2{font-size:21px}.campaignSummary{column-gap:10px}}
+
+/* Use a fixed A4 layout so mobile screen width does not enlarge the PDF. */
+body.pdf-export .app{width:794px!important;min-width:794px!important;max-width:794px!important}
+body.pdf-export #stats>.card{padding:0!important}
+body.pdf-export .statsDetailTable{font-size:12px!important}
+body.pdf-export .statsDetailTable th,body.pdf-export .statsDetailTable td{padding:3px 4px!important;line-height:1.25!important}
+body.pdf-export .meta{font-size:12px!important;line-height:1.35!important}
+body.pdf-export h3{font-size:16px!important;margin:8px 0 4px!important}
+body.pdf-export .printOnly h2{font-size:20px!important;margin:0 0 5px!important}
+body.pdf-export .printOnly{font-size:12px!important;margin-bottom:8px!important}
+body.pdf-export .totalBox{font-size:15px!important;padding:5px 8px!important}
 </style>
 </head>
 <body>
 <main class="app">
 <header class="header">
   <div class="logo"><img src="assets/logo.png?v=20260720-groupbuy-v11" alt="和美智慧校園 Logo" onerror="this.parentElement.textContent='🏰'"></div>
-  <div><small>Heremay 和美智慧校園</small><h1>🛒 團購／報名中心</h1><span class="header-version">v1.9.18｜2026-10-19</span></div>
+  <div><small>Heremay 和美智慧校園</small><h1>🛒 團購／報名中心</h1><span class="header-version">v1.9.19｜2026-10-19</span></div>
   <button class="campus-return" type="button" onclick="goBack()" aria-label="返回上一頁" title="返回上一頁">← 返回</button>
 </header>
 
@@ -460,7 +471,7 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.9.18｜2026-10-19｜同步置頂與精簡排版</div>
+<div class="version">團購／報名中心 v1.9.19｜2026-10-19｜同步置頂與精簡排版</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -1495,7 +1506,9 @@ async function printStatsCampaign(){
      backgroundColor:'#ffffff',
      useCORS:true,
      logging:false,
-     windowWidth:target.scrollWidth,
+     windowWidth:794,
+     scrollX:0,
+     scrollY:0,
      windowHeight:target.scrollHeight
    });
 
