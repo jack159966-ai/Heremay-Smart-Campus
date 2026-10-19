@@ -7,7 +7,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Heremay 和美智慧校園｜團購報名中心 v1.9.17</title>
+<title>Heremay 和美智慧校園｜團購報名中心 v1.9.18</title>
 <style>
 :root{
   --bg:#f4f8ff;--card:#fff;--blue:#2f68d8;--deep:#173f75;--line:#dce7f5;
@@ -338,7 +338,7 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
 <main class="app">
 <header class="header">
   <div class="logo"><img src="assets/logo.png?v=20260720-groupbuy-v11" alt="和美智慧校園 Logo" onerror="this.parentElement.textContent='🏰'"></div>
-  <div><small>Heremay 和美智慧校園</small><h1>🛒 團購／報名中心</h1><span class="header-version">v1.9.17｜2026-10-19</span></div>
+  <div><small>Heremay 和美智慧校園</small><h1>🛒 團購／報名中心</h1><span class="header-version">v1.9.18｜2026-10-19</span></div>
   <button class="campus-return" type="button" onclick="goBack()" aria-label="返回上一頁" title="返回上一頁">← 返回</button>
 </header>
 
@@ -460,7 +460,7 @@ body.pdf-export .statsSummaryBox{padding:6px!important}
   <div class="card"><h2>主辦人統計與結單</h2><div id="statsList"></div></div>
 </section>
 
-<div class="version">團購／報名中心 v1.9.17｜2026-10-19｜同步置頂與精簡排版</div>
+<div class="version">團購／報名中心 v1.9.18｜2026-10-19｜同步置頂與精簡排版</div>
 </main>
 <div class="toast" id="toast"></div>
 
@@ -863,7 +863,9 @@ async function cloudWrite(action,payload,successMessage){
    if(cloudLoadPromise)await cloudLoadPromise;
    await postCloud(action,payload);
    // Update the local view only after the server has confirmed the mutation.
-   if(action==='deleteCampaign'){
+   if(action==='deleteOrder'){
+     setO(getO().filter(o=>!(String(o.campaignId)===String(payload.campaignId)&&o.user===payload.user)));
+   }else if(action==='deleteCampaign'){
      setC(getC().filter(c=>String(c.id)!==String(payload.id)));
      setO(getO().filter(o=>String(o.campaignId)!==String(payload.id)));
    }else if(['finishCampaign','reopenCampaign','cancelCampaign'].includes(action)){
@@ -1296,6 +1298,7 @@ function eventCard(c){
 function updateTotal(cid){let total=0;document.querySelectorAll(`[data-campaign="${cid}"]`).forEach(row=>{const qty=Number(row.querySelector('.qty').value||0),spec=row.querySelector('.specChoice:checked'),price=Number(spec?.dataset.price||0),sub=qty*price;row.querySelector('.productSubtotal').textContent='小計：$'+sub;total+=sub});document.getElementById('total_'+cid).textContent='預估總額：$'+total}
 async function submitReply(cid){
  const c=getC().find(x=>x.id===cid);if(!c)return;
+ if(!replyEditable(c))return toast('活動已截止或結束，無法修改');
  if(c.template==='survey'){const answers=surveyAnswersFromCard(c),questions=surveyProduct(c).prefs||[];for(const q of questions){const v=answers[q.name];if(q.type!=='文字'&&(v===undefined||v===''||(Array.isArray(v)&&!v.length)))return toast('請完成：'+q.name)}const old=surveyExistingReply(c),now=new Date().toISOString();await cloudWrite('saveOrder',{id:old?.id||('o_'+Date.now()),campaignId:cid,user:currentName(),status:'accepted',companions:0,surveyAnswers:answers,lines:[{name:'旅遊意願調查',spec:'問卷回答',price:0,qty:1,prefs:answers,subtotal:0}],note:document.getElementById('note_'+cid).value.trim(),createdAt:old?.createdAt||now,updatedAt:now},old?'回答已更新並同步':'意願調查已送出並同步');return;}
  let join='yes';
  if(c.replyRequired){
@@ -1306,7 +1309,7 @@ async function submitReply(cid){
  const companions=Math.min(maxCompanions,Math.max(0,Number(document.getElementById('companions_'+cid)?.value||0)));
  if(join==='no'){
    await cloudWrite('saveOrder',{
-     id:'o_'+Date.now(),campaignId:cid,user:currentName(),status:'not_joining',
+     id:surveyExistingReply(c)?.id||('o_'+Date.now()),campaignId:cid,user:currentName(),status:'not_joining',
      companions:0,lines:[],note:'',createdAt:new Date().toISOString()
    },'已回覆不參加');
    return;
@@ -1337,7 +1340,7 @@ async function submitReply(cid){
  });
  if(!lines.length&&c.template!=='travel'&&c.template!=='training'&&c.template!=='survey')return toast('請至少選擇一個品項');
  await cloudWrite('saveOrder',{
-   id:'o_'+Date.now(),campaignId:cid,user:currentName(),status:'accepted',
+   id:surveyExistingReply(c)?.id||('o_'+Date.now()),campaignId:cid,user:currentName(),status:'accepted',
    companions,lines,note:document.getElementById('note_'+cid).value.trim(),
    createdAt:new Date().toISOString()
  },'回覆已送出並同步');
@@ -1354,7 +1357,19 @@ function renderAvailable(){
  }
  box.innerHTML=cs.length?`<div class="campaignList">${cs.map(c=>`<div class="campaignSummary ${isNewCampaign(c)?'isNewCampaign':''}"><h3>${esc(c.title)} ${isNewCampaign(c)?'<span class="newCampaignBadge">NEW 新活動</span>':''} ${c.cancelled?'<span class="badge no">已取消</span>':''}</h3><div class="meta">主辦人：${esc(c.host)}｜截止：${esc(c.deadline||'未設定')}</div>${c.capacity>0?`<div class="counter">已報名 ${participantCount(c)}／${c.capacity} 人｜剩餘 ${remaining(c)} 人</div>`:''}<div class="summaryActions"><button class="btn" onclick="openedCampaignId='${c.id}';renderAvailable()">進入${c.template==='survey'?'調查':(c.template==='travel'||c.template==='training'?'報名':'訂購')}</button>${isHost(c)?`<button class="btn secondary" onclick="editCampaign('${c.id}')">編輯活動</button><button class="btn secondary" onclick="duplicateCampaign('${c.id}')">複製新活動</button><button class="btn danger" onclick="finishCampaign('${c.id}')">活動結束</button><button class="btn danger" onclick="purgeCampaign('${c.id}')">永久刪除</button>`:''}</div></div>`).join('')}</div>`:'<div class="empty">目前沒有可參加的活動。</div>';
 }
-function renderMine(){const os=getO().filter(o=>o.user===currentName());document.getElementById('myOrders').innerHTML=os.length?os.map(o=>{const c=getC().find(c=>c.id===o.campaignId);if(c?.template==='survey'){const answers=o.surveyAnswers||safeOrderLines(o)[0]?.prefs||{};const questions=surveyProduct(c).prefs||[];const answerRows=questions.map(q=>`<div class="meta"><strong>${esc(q.name)}：</strong>${esc(textValue(answers[q.name])||'—')}</div>`).join('');return `<article class="eventCard"><h3>${esc(c.title)}</h3><div class="meta">最後更新：${new Date(o.updatedAt||o.createdAt).toLocaleString('zh-TW',{hour12:false})}</div>${answerRows}${o.note?`<div class="meta"><strong>備註：</strong>${esc(o.note)}</div>`:''}<div class="actions"><button class="btn secondary" type="button" onclick="openedCampaignId='${c.id}';showPanel('available',document.querySelectorAll('.tab')[0])">查看／修改回答</button></div></article>`;}return `<article class="eventCard"><h3>${esc(c?.title||'活動')}</h3><div class="meta">${new Date(o.createdAt).toLocaleString('zh-TW',{hour12:false})}</div><div class="meta">狀態：${o.status==='accepted'?'正取':o.status==='waitlist'?'候補':'不參加'}</div>${safeOrderLines(o).map(l=>`<div class="meta">${esc(l.name)}｜${esc(l.spec)}｜${esc(Object.entries(l.prefs||{}).map(([k,v])=>k+'：'+(Array.isArray(v)?v.join('、'):v)).join('；'))}｜單價 $${Number(l.price||0)}｜${l.qty} 人／份｜小計 $${l.subtotal}</div>`).join('')}</article>`}).join(''):'<div class="empty">目前沒有回覆紀錄。</div>'}
+
+function replyEditable(c){if(!c||c.deleted||c.closed||c.cancelled)return false;const raw=String(c.deadline||'');const d=new Date(raw.replace(' ','T'));return !raw||!Number.isFinite(d.getTime())||d.getFullYear()<2000||Date.now()<=d.getTime()}
+function myReplyActions(c){return replyEditable(c)?`<div class="actions"><button class="btn secondary" type="button" onclick="editMyReply('${c.id}')">修改訂購／回覆</button><button class="btn danger" type="button" onclick="cancelMyReply('${c.id}')">取消訂購／回覆</button></div>`:'<div class="hint">活動已截止或結束，無法修改或取消。</div>'}
+async function cancelMyReply(cid){const c=getC().find(x=>x.id===cid);if(!replyEditable(c))return toast('活動已截止或結束');if(!confirm('確定取消「'+c.title+'」的訂購／回覆？'))return;await cloudWrite('deleteOrder',{campaignId:cid,user:currentName()},'已取消並同步雲端')}
+function editMyReply(cid){const c=getC().find(x=>x.id===cid);if(!replyEditable(c))return toast('活動已截止或結束');openedCampaignId=cid;showPanel('available',document.querySelectorAll('.tab')[0]);setTimeout(()=>prefillMyReply(c),0)}
+function fillReplyPrefs(box,prefs){box?.querySelectorAll('.prefInput,.prefCheck,.matrixPref').forEach(el=>{const v=prefs?.[el.dataset.pref];if(v===undefined)return;if(el.type==='checkbox')el.checked=Array.isArray(v)&&v.includes(el.value);else if(el.type==='radio')el.checked=String(v)===el.value;else el.value=Array.isArray(v)?v.join('、'):v})}
+function prefillMyReply(c){const o=surveyExistingReply(c);if(!o)return;if(c.template==='survey'){prefillSurveyReply(c);return}const card=document.getElementById('note_'+c.id)?.closest('.eventCard');if(!card)return;const lines=safeOrderLines(o);const join=card.querySelector(`input[name="join_${c.id}"][value="${o.status==='not_joining'?'no':'yes'}"]`);if(join){join.checked=true;join.dispatchEvent(new Event('change'))}const comp=document.getElementById('companions_'+c.id);if(comp)comp.value=String(o.companions||0);
+if(c.template==='travel'){renderTravelCompanions(c.id);card.querySelectorAll('.travelPriceSelect').forEach(el=>{const l=lines.find(x=>x.name===el.dataset.person);if(l)el.value=String(travelMainProduct(c).specs.findIndex(sp=>sp.name===l.spec))});fillReplyPrefs(card.querySelector('.travelPrefs'),lines[0]?.prefs);updateTravelTotal(c.id)}
+else if(quickTypeForCampaign(c)){card.querySelectorAll('.matrixOrderRow').forEach(row=>{const l=lines.find(x=>x.name===row.dataset.name&&x.spec===(row.dataset.kind==='addon'?'加購品項':'基本價格'));if(l){row.querySelector('.matrixQty').value=l.qty;fillReplyPrefs(row,l.prefs)}});updateQuickTotal(c.id)}
+else{card.querySelectorAll('.productCard[data-product]').forEach(row=>{const p=campaignProducts(c).find(x=>String(x.id)===row.dataset.product),l=lines.find(x=>x.name===p?.name);if(!l)return;const qty=row.querySelector('.qty');if(qty)qty.value=l.qty;const idx=p.specs.findIndex(x=>x.name===l.spec);row.querySelectorAll('.specChoice').forEach(el=>el.checked=Number(el.value)===idx);fillReplyPrefs(row,l.prefs)});updateTotal(c.id)}
+document.getElementById('note_'+c.id).value=o.note||'';const btn=card.querySelector('button[onclick^="submitReply"]');if(btn)btn.textContent='確認更新訂購／回覆';}
+
+function renderMine(){const os=getO().filter(o=>o.user===currentName());document.getElementById('myOrders').innerHTML=os.length?os.map(o=>{const c=getC().find(c=>c.id===o.campaignId);if(c?.template==='survey'){const answers=o.surveyAnswers||safeOrderLines(o)[0]?.prefs||{};const questions=surveyProduct(c).prefs||[];const answerRows=questions.map(q=>`<div class="meta"><strong>${esc(q.name)}：</strong>${esc(textValue(answers[q.name])||'—')}</div>`).join('');return `<article class="eventCard"><h3>${esc(c.title)}</h3><div class="meta">最後更新：${new Date(o.updatedAt||o.createdAt).toLocaleString('zh-TW',{hour12:false})}</div>${answerRows}${o.note?`<div class="meta"><strong>備註：</strong>${esc(o.note)}</div>`:''}${myReplyActions(c)}</article>`;}return `<article class="eventCard"><h3>${esc(c?.title||'活動')}</h3><div class="meta">${new Date(o.createdAt).toLocaleString('zh-TW',{hour12:false})}</div><div class="meta">狀態：${o.status==='accepted'?'正取':o.status==='waitlist'?'候補':'不參加'}</div>${safeOrderLines(o).map(l=>`<div class="meta">${esc(l.name)}｜${esc(l.spec)}｜${esc(Object.entries(l.prefs||{}).map(([k,v])=>k+'：'+(Array.isArray(v)?v.join('、'):v)).join('；'))}｜單價 $${Number(l.price||0)}｜${l.qty} 人／份｜小計 $${l.subtotal}</div>`).join('')}${myReplyActions(c)}</article>`}).join(''):'<div class="empty">目前沒有回覆紀錄。</div>'}
 function textValue(v){return Array.isArray(v)?v.join('、'):String(v??'')}
 function statsPreferenceNames(c,list){
  const names=[];
