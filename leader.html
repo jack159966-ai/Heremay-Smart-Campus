@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜中階主管首頁 v1.21</title>
+  <title>和美智慧校園｜中階主管首頁 v1.22</title>
   <style>
     :root{
       --bg1:#fff0e6;
@@ -613,6 +613,13 @@
 .section-title-label{display:flex;align-items:center;gap:8px}
 .section-title-icon{width:32px;height:32px;object-fit:contain;border-radius:8px;flex:0 0 auto}
 </style>
+<style>
+.leaderSelfEvalGrid{margin-top:0}
+.leaderSelfEvalGrid .btn{min-height:150px;justify-content:center}
+.leaderSelfEvalGrid .icon{width:66px;height:66px;flex-basis:66px;font-size:54px;line-height:1}
+.leaderSelfEvalGrid .btn strong{font-size:20px}
+@media(max-width:380px){.leaderSelfEvalGrid .btn{min-height:142px}.leaderSelfEvalGrid .icon{width:60px;height:60px;flex-basis:60px;font-size:50px}.leaderSelfEvalGrid .btn strong{font-size:18px}}
+</style>
 </head>
 <body>
   <main class="phone">
@@ -630,7 +637,7 @@
       </div>
     </header>
 
-    <div class="version-refresh-row"><span class="page-version">中階主管 v1.21</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
+    <div class="version-refresh-row"><span class="page-version">中階主管 v1.22</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
 
     <section class="section" id="messageCenterHomeSection">
       <button class="btn primary" style="width:100%" onclick="openMessageCenter()">
@@ -650,6 +657,13 @@
 
 
     <button class="leave-roster-entry" id="leaveRosterEntry" type="button" onclick="location.href='leave_roster.html'"><span class="lr-icon">📋</span><span><strong>今明日請假名單</strong><small>今天、明天誰請假｜查看人力安排</small></span><span class="lr-arrow">›</span></button>
+
+    <section class="section" aria-label="中階主管自評表">
+      <div class="grid leaderSelfEvalGrid">
+        <button class="btn" type="button" id="selfEvalEntry" onclick="location.href='monthly_self_eval.html?v=1.1.1'"><div class="icon" aria-hidden="true">📝</div><strong>每月自評</strong><span>依所屬部門填寫自評表</span></button>
+        <button class="btn" type="button" id="positiveDisciplineEntry" onclick="location.href='positive_discipline.html?v=1.1.0'"><div class="icon" aria-hidden="true">🌱</div><strong>正向管教自評</strong><span>自我檢核與已閱紀錄</span></button>
+      </div>
+    </section>
 
     <section class="repeat-alert" id="repeatAlert">
       <h2>🔔 主管再次提醒</h2>
@@ -1395,8 +1409,12 @@
     loadReminderRecords();
   </script>
 <script>(()=>{let e={};try{e=JSON.parse(localStorage.getItem('heremay.currentEmployee')||'{}')||{}}catch(_){}const kind=[e.category,e.identity,e.identityType,e.jobTitle,e.title,e.group,e.department,e.homeType,e['身分類別'],e['職稱']].filter(Boolean).join(' ');if(/鐘點|庶務/.test(kind))document.getElementById('leaveRosterEntry').hidden=true})();</script>
+<script src="self_eval_client.js?v=1.0.0"></script>
+<script src="self_eval_home.js?v=1.0.5"></script>
+<script src="positive_discipline_home.js?v=1.0.0"></script>
 </body>
 </html>
+
 
 
 
