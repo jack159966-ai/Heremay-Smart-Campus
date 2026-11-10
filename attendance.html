@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜差勤管理 v2.12.2</title>
+  <title>和美智慧校園｜差勤管理 v2.12.3</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -81,7 +81,7 @@
   <header class="top">
     <div class="title"><h1>差勤管理</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.12.2 打卡操作優先</span>
+    <span class="version">v2.12.3 打卡驗證與狀態</span>
   </header>
 
   <section class="card who">
@@ -93,6 +93,7 @@
     <div class="clock"><div class="date" id="dateText"></div><div class="time" id="timeText"></div><div class="status" id="todayStatus">今日尚未打卡</div></div>
     <div id="attendanceModeBox"></div>
     <div class="punch-grid"><button class="punch in" id="clockInBtn" onclick="confirmPunch('in')">☀️ 上班打卡</button><button class="punch out" id="clockOutBtn" onclick="confirmPunch('out')">🌙 下班打卡</button></div>
+    <div id="punchFeedback" class="shift-info" role="status" hidden></div>
     <div class="duty-grid" id="dutyGrid">
       <button class="duty-btn duty-in" id="dutyInBtn" onclick="confirmPunch('dutyIn')">🟣 上值班</button>
       <button class="duty-btn duty-out" id="dutyOutBtn" onclick="confirmPunch('dutyOut')">🟠 下值班</button>
@@ -190,7 +191,7 @@
     </div>
     <div class="auth-password-box" id="sensitivePasswordBox">
       <input id="sensitivePassword" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" placeholder="••••••" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" onkeydown="if(event.key==='Enter')verifySensitiveWithPassword()">
-      <button class="auth-primary" style="margin-top:9px" type="button" onclick="verifySensitiveWithPassword()">確認密碼</button>
+      <button id="sensitivePasswordSubmit" class="auth-primary" style="margin-top:9px" type="button" onclick="verifySensitiveWithPassword()">確認密碼</button>
     </div>
     <div class="auth-error" id="sensitiveAuthError"></div>
     <div class="auth-note">進入時只驗證一次；通過後可打卡、請假、取消請假與查看薪資條。離開打卡區後即失效。</div>
@@ -231,7 +232,8 @@
     nasTimeoutMs: 2500
   };
   let lastAccessResult = null;
-  let accessChecking = false;
+  let accessCheck = null;
+  let accessHiddenAt = null;
   let employee = readEmployee();
   let cloudSharedLeaves = [];
   let annualRules = [];
@@ -248,6 +250,7 @@
   let pendingDate = '';
   let sensitiveGrant = null;
   let sensitiveAuthPending = null;
+  let sensitiveAuthBusy = false;
   let sensitiveRefreshTimer = null;
   let preserveGrantForAreaNavigation = false;
 
@@ -318,17 +321,23 @@
   }
   async function refreshSensitiveSession(){
     if(!hasSensitiveGrant()||document.visibilityState!=='visible')return;
+    const previousGrant=sensitiveGrant;
     try{
-      const grant=await sensitiveApiPost('/auth/step-up/refresh',{token:sensitiveGrant.token,account:employeeKey(),purpose:'attendance'});
+      const grant=await sensitiveApiPost('/auth/step-up/refresh',{token:previousGrant.token,account:previousGrant.account,purpose:'attendance'});
+      if(sensitiveGrant!==previousGrant||employeeKey()!==previousGrant.account)return;
       sensitiveGrant={token:grant.token,expiresAt:Number(grant.expiresAt||0),account:employeeKey()};
       sessionStorage.setItem(ATTENDANCE_SESSION_KEY,JSON.stringify(sensitiveGrant));
       scheduleSensitiveRefresh();
-    }catch(error){clearAttendanceSession()}
+    }catch(error){
+      if(sensitiveGrant===previousGrant&&hasSensitiveGrant())scheduleSensitiveRefresh();
+    }
   }
   function sensitiveAuthFields(){
     return hasSensitiveGrant()?{sensitiveToken:sensitiveGrant.token,sensitivePurpose:'attendance',authAccount:employeeKey()}:{};
   }
   function setSensitiveAuthBusy(busy,message=''){
+    sensitiveAuthBusy=busy;
+    document.getElementById('sensitivePasswordSubmit').disabled=busy;
     const passkey=document.getElementById('sensitivePasskeyBtn');if(passkey)passkey.disabled=busy;
     const error=document.getElementById('sensitiveAuthError');if(error)error.textContent=message;
   }
@@ -346,13 +355,15 @@
     document.getElementById('sensitiveAuthModal').classList.add('show');
     return promise;
   }
-  function finishSensitiveAuth(grant){
+  function finishSensitiveAuth(grant,pending,account){
+    if(sensitiveAuthPending!==pending||employeeKey()!==account)return;
+    setSensitiveAuthBusy(false);
     sensitiveGrant={token:grant.token,expiresAt:Number(grant.expiresAt||0),account:employeeKey()};
     sessionStorage.setItem(ATTENDANCE_SESSION_KEY,JSON.stringify(sensitiveGrant));
     scheduleSensitiveRefresh();
     document.getElementById('sensitiveAuthModal').classList.remove('show');
-    const pending=sensitiveAuthPending;sensitiveAuthPending=null;
-    if(pending)pending.resolve(true);
+    sensitiveAuthPending=null;
+    pending.resolve(true);
     toastMsg('✅ 本人驗證成功');
   }
   function cancelSensitiveAuth(){
@@ -367,13 +378,18 @@
     setTimeout(()=>document.getElementById('sensitivePassword').focus(),50);
   }
   async function verifySensitiveWithPassword(){
+    if(sensitiveAuthBusy||!sensitiveAuthPending)return;
+    const pending=sensitiveAuthPending,account=employeeKey();
     const password=String(document.getElementById('sensitivePassword').value||'');
     if(!/^\d{6}$/.test(password)){setSensitiveAuthBusy(false,'請輸入本人 6 位數密碼');return}
     setSensitiveAuthBusy(true,'正在確認密碼…');
-    try{finishSensitiveAuth(await sensitiveApiPost('/auth/step-up/password',{account:employeeKey(),password,purpose:'attendance'}))}
-    catch(error){setSensitiveAuthBusy(false,error.message||'驗證失敗')}
+    try{finishSensitiveAuth(await sensitiveApiPost('/auth/step-up/password',{account,password,purpose:'attendance'}),pending,account)}
+    catch(error){if(sensitiveAuthPending===pending)setSensitiveAuthBusy(false,error.message||'驗證失敗')}
+    finally{if(sensitiveAuthPending===pending&&sensitiveAuthBusy)setSensitiveAuthBusy(false)}
   }
   async function verifySensitiveWithPasskey(){
+    if(sensitiveAuthBusy||!sensitiveAuthPending)return;
+    const pending=sensitiveAuthPending,account=employeeKey();
     if(!window.PublicKeyCredential||!navigator.credentials){showSensitivePassword();setSensitiveAuthBusy(false,'此裝置不支援快速登入，請使用 6 位數密碼');return}
     setSensitiveAuthBusy(true,'正在啟動此裝置的快速驗證…');
     try{
@@ -381,7 +397,7 @@
          !await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()){
         throw new Error('此裝置目前無法使用本機快速驗證，請使用 6 位數密碼');
       }
-      const options=await sensitiveApiPost('/auth/step-up/passkey/options',{account:employeeKey(),purpose:'attendance'});
+      const options=await sensitiveApiPost('/auth/step-up/passkey/options',{account,purpose:'attendance'});
       if(!options.publicKey||!Array.isArray(options.publicKey.allowCredentials)||!options.publicKey.allowCredentials.length){
         throw new Error('此帳號尚無可用的快速登入設定，請先用密碼驗證；之後回登入首頁設定快速登入');
       }
@@ -391,16 +407,21 @@
       publicKey.allowCredentials=publicKey.allowCredentials.map(item=>({...item,transports:['internal']}));
       publicKey.userVerification='required';
       publicKey.timeout=30000;
+      if(sensitiveAuthPending!==pending||employeeKey()!==account)return;
       const credential=await navigator.credentials.get({publicKey});
       if(!credential)throw new Error('未完成快速驗證，請使用 6 位數密碼');
-      const grant=await sensitiveApiPost('/auth/step-up/passkey/verify',{account:employeeKey(),purpose:'attendance',credential:credentialToJSON(credential)});
-      finishSensitiveAuth(grant);
+      if(sensitiveAuthPending!==pending||employeeKey()!==account)return;
+      const grant=await sensitiveApiPost('/auth/step-up/passkey/verify',{account,purpose:'attendance',credential:credentialToJSON(credential)});
+      finishSensitiveAuth(grant,pending,account);
     }catch(error){
+      if(sensitiveAuthPending!==pending)return;
       showSensitivePassword();
       const message=error.name==='NotAllowedError'
         ?'快速驗證未完成，或此裝置沒有對應的通行密鑰。請使用 6 位數密碼；之後可回登入首頁設定快速登入'
         :(error.message||'快速驗證失敗，請使用 6 位數密碼');
       setSensitiveAuthBusy(false,message);
+    }finally{
+      if(sensitiveAuthPending===pending&&sensitiveAuthBusy)setSensitiveAuthBusy(false);
     }
   }
 
@@ -426,15 +447,24 @@
     const a=Math.sin(dLat/2)**2+Math.cos(rad(lat1))*Math.cos(rad(lat2))*Math.sin(dLng/2)**2;
     return 2*R*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
   }
-  function getOnePosition(){return new Promise((resolve,reject)=>{
+  function getOnePosition(timeout){return new Promise((resolve,reject)=>{
     if(!navigator.geolocation){reject(new Error('此手機不支援定位'));return}
-    navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:ATTENDANCE_ACCESS.locationTimeoutMs,maximumAge:15000});
+    navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout,maximumAge:15000});
   })}
   async function bestPosition(attempts=3){
     const results=[];
-    for(let i=0;i<attempts;i++){
-      try{results.push(await getOnePosition())}catch(e){if(i===attempts-1&&!results.length)throw e}
-      if(results.length&&Number(results[results.length-1].coords.accuracy||9999)<=30)break;
+    const deadline=Date.now()+ATTENDANCE_ACCESS.locationTimeoutMs;
+    for(let i=0;i<attempts&&Date.now()<deadline;i++){
+      try{
+        const position=await getOnePosition(deadline-Date.now());
+        results.push(position);
+        const {latitude,longitude,accuracy}=position.coords;
+        const distance=distanceMeters(latitude,longitude,ATTENDANCE_ACCESS.schoolLat,ATTENDANCE_ACCESS.schoolLng);
+        if(accuracy<=30||distance+accuracy<=ATTENDANCE_ACCESS.radiusMeters)break;
+      }catch(error){
+        if(!results.length)throw error;
+        break;
+      }
     }
     return results.sort((a,b)=>Number(a.coords.accuracy||9999)-Number(b.coords.accuracy||9999))[0];
   }
@@ -456,8 +486,17 @@
     else detail.textContent=result.reason||'定位與校內網路均未通過，請重新定位或連接學校 Wi-Fi。';
   }
   async function checkPunchAccess(manual=false){
-    if(accessChecking)return lastAccessResult;
-    accessChecking=true;
+    if(!accessCheck){
+      accessCheck=resolvePunchAccess().finally(()=>{
+        accessCheck=null;
+        if(document.visibilityState==='hidden')clearAttendanceSession();
+      });
+    }
+    const result=await accessCheck;
+    if(manual&&!result.allowed)toastMsg('⚠️ '+result.reason);
+    return result;
+  }
+  async function resolvePunchAccess(){
     const badge=document.getElementById('accessBadge'),detail=document.getElementById('accessDetail');
     if(badge){badge.className='access-badge';badge.textContent='檢查中'}if(detail)detail.textContent='正在取得定位並確認打卡範圍…';
     let gpsError='';
@@ -471,10 +510,10 @@
     }catch(e){gpsError=e.code===1?'尚未允許位置權限':'暫時無法取得定位'}
     const nas=await checkNasAccess();
     const result=nas.ok?{allowed:true,method:'NAS',distance:'',accuracy:'',latitude:'',longitude:'',checkedAt:new Date().toISOString()}:{allowed:false,method:'NONE',reason:`${gpsError}；${nas.reason}`,checkedAt:new Date().toISOString()};
-    showAccessResult(result);if(manual&&!result.allowed)toastMsg('⚠️ '+result.reason);return result;
+    showAccessResult(result);return result;
   }
   function localPunchFromFields(kind,fields,access){
-    const now=new Date(),time=`${pad(now.getHours())}:${pad(now.getMinutes())}`,old=JSON.parse(localStorage.getItem(punchKey())||'{}');
+    const now=new Date(fields.clientPunchAt),time=`${pad(now.getHours())}:${pad(now.getMinutes())}`,old=JSON.parse(localStorage.getItem(punchKey())||'{}');
     const row={...old,date:todayKey(),verificationMethod:access.method,syncStatus:'待補傳'};
     if(kind==='clockIn'){row.in=time;row.late=0}
     if(kind==='clockOut')row.out=time;
@@ -483,7 +522,7 @@
     localStorage.setItem(punchKey(),JSON.stringify(row));loadPunch();renderAttendance();return row;
   }
   function enqueueOfflinePunch(action,fields,kind,access){
-    const createdAt=new Date().toISOString(),clientRecordId=uuid();
+    const createdAt=fields.clientPunchAt||new Date().toISOString(),clientRecordId=fields.clientRecordId||uuid();
     const payload={...fields,clientPunchAt:createdAt,clientRecordId,verificationMethod:access.method,geoDistance:access.distance??'',geoAccuracy:access.accuracy??'',geoLatitude:access.latitude??'',geoLongitude:access.longitude??'',syncStatus:'待補傳'};
     const queue=readOfflineQueue();queue.push({action,fields:payload,kind,createdAt,clientRecordId});saveOfflineQueue(queue);localPunchFromFields(kind,payload,access);
   }
@@ -876,14 +915,18 @@
   let pendingPunchType='';
 
   async function confirmPunch(type){
-    if(pendingCloudAction) return;
+    if(pendingCloudAction||accessCheck||document.getElementById('syncBtn').disabled) return;
+    const account=employeeKey();
+    setPunchFeedback('正在確認打卡範圍…');
     // 畫面只保留兩個按鈕；早值／晚值自動轉為值班 API。
     if(!isFlexibleCleaner()&&usesDutyPunch()){
       if(type==='in')type='dutyIn';
       if(type==='out')type='dutyOut';
     }
     const access=await checkPunchAccess(false);
-    if(!access.allowed){toastMsg('⚠️ 尚未通過 100 公尺圍欄或校內 Wi-Fi 驗證');return}
+    if(employeeKey()!==account||document.getElementById('syncBtn').disabled){setPunchFeedback('');return}
+    if(!access.allowed){setPunchFeedback('⚠️ 尚未通過打卡範圍驗證');return}
+    setPunchFeedback('');
     pendingPunchType=type;
     const abnormal=abnormalPunchInfo(type);
     const oldBox=document.getElementById('abnormalPunchBox'); if(oldBox)oldBox.remove();
@@ -944,6 +987,8 @@
     return{reason:s.value,note:''};
   }
   async function submitConfirmedPunch(){
+    if(!pendingPunchType||pendingCloudAction||document.getElementById('syncBtn').disabled)return;
+    const account=employeeKey();
     const type=pendingPunchType, abnormal=abnormalPunchInfo(type);
     if(abnormal.abnormal || abnormal.overtime){
       const r=collectAbnormalReason();
@@ -959,6 +1004,7 @@
     }
     closePunchConfirm();
     if(!await requireSensitiveAuth()){toastMsg('已取消本人驗證，未送出打卡');return}
+    if(employeeKey()!==account||document.getElementById('syncBtn').disabled)return;
     if(type==='in') clockIn();
     if(type==='out') clockOut();
     if(type==='dutyIn') dutyIn();
@@ -1284,23 +1330,33 @@ function renderPersonalBalances(){
       return false;
     }
   }
+  function setPunchFeedback(message){
+    const status=document.getElementById('punchFeedback');
+    status.textContent=message;
+    status.hidden=!message;
+  }
   async function postAttendance(action,fields,kind,options={}){
     if(pendingCloudAction){
       toastMsg('上一項資料正在處理；可按上方同步鍵重新整理狀態');
       return;
     }
 
-    fields={...fields,...sensitiveAuthFields()};
-
+    const isPunch=['clockIn','clockOut','dutyIn','dutyOut'].includes(kind);
+    const account=employeeKey();
+    const access=lastAccessResult;
+    let responseReceived=false;
     pendingCloudAction={kind,options};
     setPunchPending(kind,true);
-    toastMsg('正在寫入雲端…');
+    if(isPunch)setPunchFeedback('已送出，正在等候雲端確認…');
+    else toastMsg('正在寫入雲端…');
 
 
 
     try{
-      const url=`${SERVICE_URL}?action=${encodeURIComponent(action)}&payload=${encodeURIComponent(JSON.stringify(fields))}`;
+      const url=`${SERVICE_URL}?action=${encodeURIComponent(action)}&payload=${encodeURIComponent(JSON.stringify({...fields,...sensitiveAuthFields()}))}`;
       const result=await jsonp(url,60000);
+      responseReceived=true;
+      if(employeeKey()!==account){clearPendingAction();return}
       const current=pendingCloudAction;
 
       if(pendingActionTimer){
@@ -1311,11 +1367,13 @@ function renderPersonalBalances(){
 
       if(!result.ok)throw new Error(result.message||'雲端儲存失敗');
 
+      if(isPunch)setPunchFeedback('✅ 打卡成功');
       if(result.punch){
+        ++attendanceLoadSequence;
         const punch={...result.punch,date:result.punch.date||todayKey()};
         cloudPunches=[punch,...cloudPunches.filter(x=>x.date!==punch.date)];
         cloudReady=true;
-        localStorage.setItem(punchKey(punch.date),JSON.stringify(punch));
+        try{localStorage.setItem(punchKey(punch.date),JSON.stringify(punch))}catch(error){console.warn('打卡資料暫存失敗',error)}
         loadPunch();
         renderAttendance();
       }
@@ -1342,10 +1400,16 @@ function renderPersonalBalances(){
       await loadCloudData(true);
     }catch(error){
       clearPendingAction();
-      const punchKinds=['clockIn','clockOut','dutyIn','dutyOut'];
-      if(punchKinds.includes(kind)&&lastAccessResult&&lastAccessResult.allowed){
-        enqueueOfflinePunch(action,fields,kind,lastAccessResult);
-        toastMsg('📦 網路暫時無法上傳，打卡已安全暫存在手機');
+      if(employeeKey()!==account)return;
+      if(isPunch&&!responseReceived&&access?.allowed){
+        try{
+          enqueueOfflinePunch(action,fields,kind,access);
+          setPunchFeedback('📦 雲端尚未確認，已暫存在手機。請先同步確認紀錄。');
+        }catch(storageError){
+          setPunchFeedback('⚠️ 雲端尚未確認，手機也無法暫存。請先同步確認紀錄。');
+        }
+      }else if(isPunch){
+        setPunchFeedback('⚠️ '+(error.message||'雲端儲存失敗'));
       }else{
         toastMsg('⚠️ '+(error.message||'雲端儲存失敗')+(kind==='submitLeave'?'；未確認的日期與原因已保留，請先同步確認紀錄':''));
       }
@@ -1354,8 +1418,8 @@ function renderPersonalBalances(){
   }
 
   async function refreshAttendancePage(){
+    if(pendingCloudAction){toastMsg('打卡或資料送出中，請等候結果');return}
     const btn=document.getElementById('syncBtn');
-    clearPendingAction();
     if(btn){
       btn.disabled=true;
       btn.textContent='🔄 正在同步並檢查版本…';
@@ -1437,7 +1501,7 @@ function renderPersonalBalances(){
   async function startAttendanceArea(){
     initUser();
     if(!restoreAttendanceSession()&&!await requireSensitiveAuth())return;
-    renderOverview();updateClock();setInterval(updateClock,1000);loadPunch();renderOfflineQueue();renderCalendar();renderMyLeaves();renderRecords();renderAttendance();loadCloudData(false);setTimeout(()=>checkPunchAccess(false),600);setTimeout(()=>syncOfflinePunches(false),1500);
+    renderOverview();updateClock();setInterval(updateClock,1000);loadPunch();renderOfflineQueue();renderCalendar();renderMyLeaves();renderRecords();renderAttendance();loadCloudData(false);setTimeout(()=>syncOfflinePunches(false),1500);
   }
   startAttendanceArea();
   window.addEventListener('pageshow',event=>refreshLoggedInEmployee(Boolean(event.persisted)));
@@ -1447,12 +1511,16 @@ function renderPersonalBalances(){
   });
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='hidden'){
-      if(!preserveGrantForAreaNavigation)clearAttendanceSession();
+      if(accessCheck)accessHiddenAt=Date.now();
+      else if(!preserveGrantForAreaNavigation)clearAttendanceSession();
       return;
     }
+    // 定位提示可能短暫遮住頁面。較長的背景停留仍須重新驗證。
+    if(accessHiddenAt!==null&&Date.now()-accessHiddenAt>2000)clearAttendanceSession();
+    accessHiddenAt=null;
     preserveGrantForAreaNavigation=false;
     refreshLoggedInEmployee(false);
-    if(!restoreAttendanceSession())requireSensitiveAuth();
+    if(!hasSensitiveGrant()&&!restoreAttendanceSession()&&!pendingCloudAction)requireSensitiveAuth();
   });
   window.addEventListener('pagehide',()=>{if(!preserveGrantForAreaNavigation)clearAttendanceSession()});
 </script>
