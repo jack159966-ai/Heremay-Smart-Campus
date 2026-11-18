@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.3.7</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.3.8</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -151,8 +151,9 @@ button{display:none!important}
 </style>
 </head>
 <body>
+<div id="patrolStorageStatus" role="status" style="padding:12px;text-align:center">正在讀取本機巡堂紀錄…</div>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.3.7｜2026-10-15｜同步提示與按鍵並排</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.3.8｜2026-11-18｜巡堂照片暫存修正</p></div></header>
 
 <section id="screenHome" class="screen active">
   <div class="patrol-return-row no-print"><button class="patrol-return" type="button" onclick="returnToPreviousPage()">← 返回主管首頁</button></div>
@@ -1188,7 +1189,7 @@ const classOrderKey='heremay_patrol_class_order_v1';
 const classOrderBackupKey='heremay_patrol_class_order_backup_v1';
 const badClassBackupKey='heremay_patrol_bad_class_backup_20260720';
 
-function repairAndRestoreClassList(x){
+function repairAndRestoreClassList(x, restoreLegacyOrder=true){
   x.classes=Array.isArray(x.classes)?x.classes:[];
   x.inactiveClasses=Array.isArray(x.inactiveClasses)?x.inactiveClasses:[];
 
@@ -1198,6 +1199,8 @@ function repairAndRestoreClassList(x){
     x.classes=defaultClasses.filter(c=>!['Y2','Y3'].includes(c));
     x.inactiveClasses=['Y2','Y3'];
   }
+
+  if(!restoreLegacyOrder)return x;
 
   // 優先套用獨立保存的巡堂順序；只接受至少 6 班的合理清單，避免再次載入示範版。
   try{
@@ -1212,7 +1215,10 @@ function repairAndRestoreClassList(x){
   return x;
 }
 
-let data=loadData();
+let data;
+let patrolDatabase;
+let patrolStorageWrites=0;
+let patrolStorageFailed=false;
 
 function migrateObservationToPass(){
   const fixRecord=rec=>{
@@ -1232,7 +1238,6 @@ function migrateObservationToPass(){
     });
   });
 }
-migrateObservationToPass();
 function migrateItemMarks(){
   const fixRecord=rec=>{
     if(!rec)return;
@@ -1247,15 +1252,12 @@ function migrateItemMarks(){
   ['morning','afternoon'].forEach(session=>Object.values(data.records?.[session]||{}).forEach(fixRecord));
   Object.values(data.history||{}).forEach(day=>['morning','afternoon'].forEach(session=>Object.values(day?.[session]||{}).forEach(fixRecord)));
 }
-migrateItemMarks();
 
-data.history=data.history||{};
-data.selectedWeekStart=data.selectedWeekStart||isoDate(startOfWeek(new Date()));
-let currentSession=data.currentSession||'morning';
-let currentIndex=data.currentIndex?.[currentSession]||0;
+let currentSession;
+let currentIndex;
 let currentPhotos=[];
 let orderDirty=false;
-let orderSavedSnapshot=[...(data.classes||[])];
+let orderSavedSnapshot;
 
 function pad2(n){return String(n).padStart(2,'0')}
 function isoDate(d=new Date()){return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`}
@@ -1321,10 +1323,62 @@ function decodePatrolStorage(saved){
   restore(records);
   return records;
 }
-function loadData(){const saved=localStorage.getItem(storeKey);if(saved){try{const x=decodePatrolStorage(saved);x.records=x.records||{};x.records.morning=x.records.morning||{};x.records.afternoon=x.records.afternoon||{};x.currentIndex=x.currentIndex||{morning:0,afternoon:0};x.history=x.history||{};x.selectedWeekStart=x.selectedWeekStart||isoDate(startOfWeek(new Date()));x.classes=Array.isArray(x.classes)&&x.classes.length?x.classes:[...defaultClasses];x.inactiveClasses=Array.isArray(x.inactiveClasses)?x.inactiveClasses:[];if(!('classPauseInitialized' in x)){['Y2','Y3'].forEach(c=>{x.classes=x.classes.filter(v=>v!==c);if(!x.inactiveClasses.includes(c))x.inactiveClasses.push(c)});x.classPauseInitialized=true}return rollOverIfNeeded(repairAndRestoreClassList(x))}catch(e){}}const fresh=blankData();fresh.classPauseInitialized=true;return repairAndRestoreClassList(fresh);}
+function loadData(saved, restoreLegacyOrder){if(saved){try{const x=decodePatrolStorage(saved);x.records=x.records||{};x.records.morning=x.records.morning||{};x.records.afternoon=x.records.afternoon||{};x.currentIndex=x.currentIndex||{morning:0,afternoon:0};x.history=x.history||{};x.selectedWeekStart=x.selectedWeekStart||isoDate(startOfWeek(new Date()));x.classes=Array.isArray(x.classes)&&x.classes.length?x.classes:[...defaultClasses];x.inactiveClasses=Array.isArray(x.inactiveClasses)?x.inactiveClasses:[];if(!('classPauseInitialized' in x)){['Y2','Y3'].forEach(c=>{x.classes=x.classes.filter(v=>v!==c);if(!x.inactiveClasses.includes(c))x.inactiveClasses.push(c)});x.classPauseInitialized=true}return rollOverIfNeeded(repairAndRestoreClassList(x,restoreLegacyOrder))}catch(e){throw new Error('無法讀取本機巡堂紀錄',{cause:e});}}const fresh=blankData();fresh.classPauseInitialized=true;return repairAndRestoreClassList(fresh);}
 function sessionName(s=currentSession){return s==='morning'?'上午':'下午'}
 function recs(s=currentSession){data.records[s]=data.records[s]||{};return data.records[s]}
-function persist(doUpdate=true){data.activeDate=isoDate();data.currentSession=currentSession;data.currentIndex=data.currentIndex||{};data.currentIndex[currentSession]=currentIndex;localStorage.setItem(storeKey,encodePatrolStorage(data));if(Array.isArray(data.classes)&&data.classes.length>=6){const orderJson=JSON.stringify(data.classes);localStorage.setItem(classOrderKey,orderJson);localStorage.setItem(classOrderBackupKey,orderJson)}if(doUpdate)updateAll()}
+function openPatrolDatabase(){
+  return new Promise((resolve,reject)=>{
+    const request=indexedDB.open('heremay-patrol-storage',1);
+    request.onupgradeneeded=()=>request.result.createObjectStore('snapshots');
+    request.onsuccess=()=>resolve(request.result);
+    request.onerror=()=>reject(request.error);
+    request.onblocked=()=>reject(new Error('巡堂暫存資料庫正由其他頁面使用'));
+  });
+}
+
+function readPatrolSnapshot(){
+  return new Promise((resolve,reject)=>{
+    const request=patrolDatabase.transaction('snapshots').objectStore('snapshots').get(storeKey);
+    request.onsuccess=()=>resolve(request.result);
+    request.onerror=()=>reject(request.error);
+  });
+}
+
+function writePatrolSnapshot(snapshot){
+  return new Promise((resolve,reject)=>{
+    const transaction=patrolDatabase.transaction('snapshots','readwrite');
+    transaction.oncomplete=()=>resolve();
+    transaction.onabort=()=>reject(transaction.error||new Error('巡堂暫存寫入中斷'));
+    transaction.objectStore('snapshots').put(snapshot,storeKey);
+  });
+}
+
+function setPatrolStorageStatus(message){
+  const status=document.getElementById('patrolStorageStatus');
+  status.textContent=message;
+  status.hidden=!message;
+}
+
+function persist(doUpdate=true){
+  data.activeDate=isoDate();
+  data.currentSession=currentSession;
+  data.currentIndex[currentSession]=currentIndex;
+
+  patrolStorageWrites++;
+  const saved=writePatrolSnapshot(encodePatrolStorage(data)).then(()=>{
+    patrolStorageFailed=false;
+    setPatrolStorageStatus('');
+    return true;
+  },error=>{
+    console.error(error);
+    patrolStorageFailed=true;
+    setPatrolStorageStatus('巡堂暫存未能儲存。請保留此頁，並在有網路時嘗試同步已完成的紀錄。');
+    return false;
+  }).finally(()=>{patrolStorageWrites--;});
+  if(doUpdate)updateAll();
+  return saved;
+}
+
 function today(){return new Date().toLocaleDateString('zh-TW')}
 function nowTime(){return new Date().toLocaleString('zh-TW',{hour12:false})}
 function returnToPreviousPage(){
@@ -1711,7 +1765,11 @@ async function addPhotos(e){
 
   if(added){
     try{
-      savePhotoDraft();
+      const saved=await savePhotoDraft();
+      if(!saved){
+        setPhotoStatus('照片尚未寫入本機暫存，請先保留此頁。',true);
+        return;
+      }
       setPhotoStatus(`已加入 ${currentPhotos.length} 張照片`);
     }catch(err){
       const full=err?.name==='QuotaExceededError'||err?.name==='NS_ERROR_DOM_QUOTA_REACHED';
@@ -1742,8 +1800,9 @@ function savePhotoDraft(){
   }
   markRecordChanged(rec);
   archiveRecord(rec);
-  persist();
+  const saved=persist();
   updateCurrentStatus();
+  return saved;
 }
 
 function renderPhotos(){
@@ -2139,9 +2198,6 @@ function saveSettings(){
   data.categories.forEach((cat,ci)=>cat.items=cat.items.map((_,ii)=>document.getElementById(`cat_${ci}_${ii}`).value.trim()||`項目 ${ci+1}-${ii+1}`));
   document.getElementById('classEditor').dataset.rendered='';document.getElementById('categorySettings').dataset.rendered='';persist();alert('班級與設定已儲存。')
 }
-document.querySelector('.title').ondblclick=()=>show('Settings');
-updateAll();
-loadCurrentDraft();
 function initializeCloud(){
   if(!navigator.onLine){
     setCloudStatus('⚠️ 目前離線；巡堂資料會先保存在本機。需要時再按同步按鈕。','error');
@@ -2149,12 +2205,35 @@ function initializeCloud(){
   }
   setCloudStatus('☁️ 巡堂紀錄先存本機，完成後請按右側「確認同步」。');
 }
-setTimeout(initializeCloud,300);
-window.addEventListener('online',initializeCloud);
+async function initializePatrol(){
+  const status=document.getElementById('patrolStorageStatus');
+  const controls=[...document.body.children].filter(element=>element!==status&&element.tagName!=='SCRIPT');
+  controls.forEach(element=>{element.inert=true;});
+  try{
+    patrolDatabase=await openPatrolDatabase();
+    const snapshot=await readPatrolSnapshot();
+    data=loadData(snapshot??localStorage.getItem(storeKey),snapshot==null);
+    migrateObservationToPass();
+    migrateItemMarks();
+    currentSession=data.currentSession||'morning';
+    currentIndex=data.currentIndex?.[currentSession]||0;
+    orderSavedSnapshot=[...data.classes];
+    document.querySelector('.title').ondblclick=()=>show('Settings');
+    updateAll();
+    loadCurrentDraft();
+    renderPatrolUser();
+    setPatrolStorageStatus('');
+    controls.forEach(element=>{element.inert=false;});
+    initializeCloud();
+    window.addEventListener('online',initializeCloud);
+  }catch(error){
+    console.error(error);
+    setPatrolStorageStatus('暫時無法讀取本機巡堂紀錄。請保留網站資料，稍後重新開啟巡堂。');
+  }
+}
+initializePatrol();
 
-renderPatrolUser();
-
-window.addEventListener('beforeunload',event=>{if(orderDirty){event.preventDefault();event.returnValue='';}});
+window.addEventListener('beforeunload',event=>{if(orderDirty||patrolStorageWrites||patrolStorageFailed){event.preventDefault();event.returnValue='';}});
 </script>
 </body>
 </html>
