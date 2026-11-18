@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.3.8</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.3.9</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -153,7 +153,7 @@ button{display:none!important}
 <body>
 <div id="patrolStorageStatus" role="status" style="padding:12px;text-align:center">正在讀取本機巡堂紀錄…</div>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.3.8｜2026-11-18｜巡堂照片暫存修正</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.3.9｜2026-11-18｜校內巡堂通知</p></div></header>
 
 <section id="screenHome" class="screen active">
   <div class="patrol-return-row no-print"><button class="patrol-return" type="button" onclick="returnToPreviousPage()">← 返回主管首頁</button></div>
@@ -207,7 +207,7 @@ button{display:none!important}
 <p class="small">照片會先自動縮小並暫存在本機；按下同步後會上傳到巡堂照片雲端資料夾。</p>
 <div id="photoGrid" class="photo-grid"></div><label class="small">巡堂內容</label><textarea id="note" placeholder="例如：學習區布置很有巧思，值得分享；或記錄需要協助改善的事項。" oninput="saveCurrent(false)"></textarea><label class="small">通知對象，可複選</label><div id="notifyTargets" class="notify-options"></div></div>
   <div class="card no-print">
-<button class="light full" onclick="shareCurrent()">📤 分享這筆巡堂紀錄</button>
+<button class="light full" type="button" onclick="notifyCurrentClass()">📨 傳送本班校內通知</button>
 <button class="primary full" style="margin-top:10px" onclick="savePatrolRecordAndNext()">💾 儲存本班巡堂紀錄並前往下一班</button>
 <div class="finish-sync-row no-print"><button class="primary finish-sync-button" type="button" onclick="finishAndSave()" aria-label="結束巡堂並確認同步目前時段"><span class="finish-sync-icon" aria-hidden="true">☁️</span><span>結束巡堂<br>確認同步</span></button></div>
 <div class="patrol-return-row no-print"><button class="patrol-return" onclick="show('Home')">← 返回巡堂首頁</button></div>
@@ -700,14 +700,14 @@ async function sendPendingPatrolNotices(records,sessionKey){
   return response.count;
 }
 
-async function syncSessionToCloud(sessionKey=currentSession,showAlert=true){
+async function syncSessionToCloud(sessionKey=currentSession,showAlert=true,className=null){
   if(cloudUploading){
     if(showAlert)alert('資料正在同步，請稍候。');
     return false;
   }
 
   const sessionRecords=data.records?.[sessionKey]||{};
-  const completed=data.classes
+  const completed=(className?[className]:data.classes)
     .map(cls=>sessionRecords[cls])
     .filter(rec=>rec && isCompletedRecord(rec));
 
@@ -1902,27 +1902,26 @@ function saveAndNext(){
   goNextClass();
 }
 function defectText(code){const [a,b]=code.split('-').map(n=>parseInt(n,10));return data.categories[a-1]?.items[b-1]||''}
-function messageForCurrent(){
-  const rec=saveCurrent(true);
-  if(!rec)return '尚未有巡堂紀錄';
-  const improveCodes=(rec.defects||[]).map(c=>`${c} ${defectText(c)}`).join('\n');
-  const highlightCodes=(rec.highlights||[]).map(c=>`${c} ${defectText(c)}`).join('\n');
-  return `Heremay 和美智慧校園｜巡堂紀錄
-時段：${sessionName()}
-班級：${rec.className}
-時間：${rec.time}
-紀錄類型：${recordTypeLabel(rec)}
-通知對象：${targetText(rec)}
-亮點項目：
-${highlightCodes||'無'}
-改善提醒項目：
-${improveCodes||'無'}
-巡堂內容：${rec.note||'無'}
-照片：${displayPhotoCount(rec)} 張（同步後存入雲端照片資料夾）`;
+async function notifyCurrentClass(){
+  if(cloudUploading){alert('資料正在同步，請稍候。');return;}
+  const rec=saveCurrent(false);
+  if(!rec||!['highlight','improvement','mixed'].includes(normalizeRecordType(rec))){
+    alert('請先標記這筆巡堂紀錄的亮點或改善項目。');
+    return;
+  }
+  if(!shouldSendPatrolNotice(rec)){
+    alert('請先勾選通知對象。');
+    return;
+  }
+  if((rec.highlights||[]).length&&!displayPhotoCount(rec)&&!(rec.note||'').trim()){
+    alert('有亮點項目時，請至少加入照片或填寫巡堂內容。');
+    return;
+  }
+  if(!confirm(`將 ${rec.className} 的巡堂通知送到校內訊息中心？\n通知對象：${targetText(rec)}`))return;
+  rec.patrolNoticePending=true;
+  await syncSessionToCloud(currentSession,true,rec.className);
 }
-async function shareCurrent(){const text=messageForCurrent();try{if(navigator.share){await navigator.share({title:'和美智慧校園巡堂紀錄',text});alert('已開啟分享／轉發功能')}else if(navigator.clipboard){await navigator.clipboard.writeText(text);alert('瀏覽器不支援直接分享，已複製通知文字，可貼到 LINE 或訊息中。')}else{downloadText('巡堂紀錄.txt',text)}}catch(e){console.log(e)}}
 function downloadText(filename,text){const blob=new Blob([text],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href)}
-function downloadCurrentText(){downloadText(`巡堂紀錄_${sessionName()}_${data.classes[currentIndex]}.txt`,messageForCurrent())}
 function exportAllText(){const lines=['Heremay 和美智慧校園｜今日巡堂紀錄',`日期：${today()}`,`時段：${sessionName()}`,''];const r=recs();data.classes.forEach(c=>{const x=r[c];if(!x){lines.push(`${c}：尚未巡視`);return}lines.push(`${c}｜${recordTypeLabel(x)}｜${x.time}`);lines.push(`亮點項目：${(x.highlights||[]).join(', ')||'無'}`);lines.push(`改善項目：${(x.defects||[]).join(', ')||'無'}`);lines.push(`備註：${x.note||'無'}`);lines.push(`照片：${displayPhotoCount(x)} 張`);lines.push('')});downloadText(`Heremay今日巡堂紀錄_${sessionName()}.txt`,lines.join('\n'))}
 async function syncCurrentSession(){await syncSessionToCloud(currentSession,true)}
 function resetSession(){
