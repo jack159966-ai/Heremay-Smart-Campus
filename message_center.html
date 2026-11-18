@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>訊息中心 v1.5.6｜2026-10-06</title>
+  <title>訊息中心 v1.5.7｜2026-11-18</title>
   <style>
     :root{--blue:#4774b3;--ink:#23344e;--muted:#728096;--line:#d8e4f2;--bg:#edf5fc;--card:#fff;--new:#fff9e9}
     *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif}
     .app{max-width:760px;margin:auto;min-height:100vh;padding:env(safe-area-inset-top) 18px calc(28px + env(safe-area-inset-bottom))}
     header{display:flex;align-items:center;justify-content:space-between;padding:22px 4px 16px}h1{margin:0;font-size:28px}.back,.action{border:0;border-radius:18px;background:#e2edf9;color:var(--blue);font-size:18px;font-weight:700;padding:14px 18px}
-    .person{color:var(--muted);padding:0 5px 15px}.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px}.count{font-weight:800;color:var(--blue)}
+    .person{color:var(--muted);padding:0 5px 15px}.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}.count{font-weight:800;color:var(--blue)}
     .list{display:grid;gap:12px}.item{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 3px 14px #5b789314}.item.new{background:var(--new);border-color:#f1d89d}.top{display:flex;gap:10px;align-items:flex-start}.dot{width:10px;height:10px;border-radius:50%;background:#e39c2e;margin-top:8px;flex:0 0 auto}.item:not(.new) .dot{background:#b8c5d3}.title{font-size:20px;font-weight:800;line-height:1.35;flex:1}.time{font-size:13px;color:var(--muted);white-space:nowrap}.body{margin:10px 0 0 20px;color:#526178;line-height:1.65;white-space:pre-wrap}.meta{margin:10px 0 0 20px;font-size:13px;color:#8794a5}.open{display:inline-block;margin:12px 0 0 20px;color:#fff;background:var(--blue);padding:10px 15px;border-radius:13px;text-decoration:none;font-weight:700}
     .empty,.loading,.error{text-align:center;padding:55px 20px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:22px}.error{color:#b55252}.sound{font-size:14px;color:var(--muted);margin-left:auto}
     @media(max-width:480px){.app{padding-left:12px;padding-right:12px}h1{font-size:25px}.time{display:none}.title{font-size:18px}}
@@ -19,9 +19,9 @@
 <main class="app">
   <header><h1>🔔 訊息中心</h1><button class="back" onclick="goBack()">返回</button></header>
   <div class="person" id="person"></div>
-  <div class="toolbar"><span class="count" id="count">讀取中…</span><button class="action" id="allRead" onclick="markAllRead()" hidden>全部已讀</button></div>
+  <div class="toolbar"><span class="count" id="count">讀取中…</span><button class="action" id="allRead" onclick="markAllRead()" hidden>全部已讀</button><button class="action" id="history" type="button" aria-pressed="false" onclick="toggleReadMessages()">查看已讀</button></div>
   <section class="list" id="list"><div class="loading">正在讀取訊息…</div></section>
-  <div style="text-align:center;color:#728096;font-size:12px;margin-top:20px">v1.5.6｜2026-10-06</div>
+  <div style="text-align:center;color:#728096;font-size:12px;margin-top:20px">v1.5.7｜2026-11-18</div>
 </main>
 <script src="./notification-read-sync.js?v=1.0.0"></script>
 <script>
@@ -32,6 +32,7 @@
     name: String(PARAMS.name || ''), groups: String(PARAMS.groups || PARAMS.group || '')
   };
   let items = [];
+  let showReadMessages = false;
   let generalVerified=false;
   let messageSyncNote='尚未完成同步';
   let privateLoadPromise=null;
@@ -104,8 +105,36 @@
     try{save('.homeUnread',{state:{general:unreadItems.length,...sourceCounts},updatedAt:Date.now()})}catch(error){}
     document.getElementById('allRead').hidden=!unreadItems.length;
     const box=document.getElementById('list');
-    if(!unreadItems.length){box.innerHTML=sourceCards()+(generalVerified?(sourceCards()?'':'<div class="empty">目前沒有未讀訊息</div>'):'<div class="loading">正在更新一般通知；其他入口可先使用。</div>');return;}
-    box.innerHTML=sourceCards()+unreadItems.map(x=>`<article class="item new" onclick="openMessage('${esc(x.id)}')"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${html(x.createdAt)}</time></div>${x.message?`<div class="body">${html(x.message)}</div>`:''}<div class="meta">${html(x.source||'系統')}${x.senderName?'・'+html(x.senderName):''}</div><button class="open" onclick="event.stopPropagation();openMessage('${esc(x.id)}')">${x.link||/粉專|投稿|素材/.test([x.source,x.title].join(' '))?'查看內容':'標記已讀'}</button></article>`).join('');
+    const visible=showReadMessages?items.filter(x=>x.source!=='私訊'):unreadItems;
+    const sources=sourceCards();
+    if(!visible.length){
+      box.innerHTML=sources+(generalVerified?(sources?'':`<div class="empty">${showReadMessages?'目前沒有通知':'目前沒有未讀訊息'}</div>`):'<div class="loading">正在更新一般通知；其他入口可先使用。</div>');
+      return;
+    }
+    box.innerHTML=sources+visible.map(renderNotification).join('');
+  }
+  function toggleReadMessages(){
+    showReadMessages=!showReadMessages;
+    const button=document.getElementById('history');
+    button.textContent=showReadMessages?'只看未讀':'查看已讀';
+    button.setAttribute('aria-pressed',String(showReadMessages));
+    render();
+  }
+  function renderNotification(x){
+    const patrol=x.source==='巡堂';
+    const photos=new Set();
+    const body=String(x.message||'').split(/\r?\n/).filter(line=>{
+      const match=patrol&&line.match(/^照片\s*\d+\s*[：:]\s*(https:\/\/drive\.google\.com\/file\/d\/[A-Za-z0-9_-]+(?:[/?#]\S*)?)\s*$/);
+      if(!match)return true;
+      photos.add(match[1]);
+      return false;
+    }).join('\n');
+    if(patrol&&/^https:\/\/drive\.google\.com\/file\/d\/[A-Za-z0-9_-]+(?:[/?#]\S*)?$/.test(x.link||'')&&!photos.size)photos.add(x.link);
+    const links=[...photos].map((url,i)=>`<a class="open" href="${html(url)}" target="_blank" rel="noopener noreferrer">查看照片 ${i+1}</a>`).join('');
+    const actions=patrol&&links
+      ? links+(x.isRead?'':`<button class="open" onclick="readOne('${esc(x.id)}')">標記已讀</button>`)
+      : `<button class="open" onclick="event.stopPropagation();openMessage('${esc(x.id)}')">${x.link||/粉專|投稿|素材/.test([x.source,x.title].join(' '))?'查看內容':'標記已讀'}</button>`;
+    return `<article ${patrol&&links?'':`onclick="openMessage('${esc(x.id)}')"`} class="item${x.isRead?'':' new'}"><div class="top"><i class="dot"></i><div class="title">${html(x.title)}</div><time class="time">${html(x.createdAt)}</time></div>${body?`<div class="body">${html(body)}</div>`:''}<div class="meta">${html(x.source||'系統')}${x.senderName?'・'+html(x.senderName):''}</div>${actions}</article>`;
   }
   async function readOne(id){
     const x=items.find(v=>v.id===id);if(!x||x.isRead)return;
