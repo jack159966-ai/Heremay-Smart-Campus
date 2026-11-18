@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.3.4</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.3.5</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -152,7 +152,7 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.3.4｜2026-10-15｜同步提示與按鍵並排</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.3.5｜2026-10-15｜同步提示與按鍵並排</p></div></header>
 
 <section id="screenHome" class="screen active">
   <div class="patrol-return-row no-print"><button class="patrol-return" type="button" onclick="returnToPreviousPage()">← 返回主管首頁</button></div>
@@ -636,11 +636,15 @@ function cloudHasRecord(items,rec,sessionKey){
   const wantedDate=String(rec.isoDate||isoDate()).slice(0,10);
   const wantedSession=cloudSessionKey(sessionKey);
   const wantedClass=String(rec.className||'').trim();
+  const expectedPhotos=(rec.photos||[]).length;
   return items.some(item=>{
     const itemDate=String(item.patrolDate||'').slice(0,10);
-    return itemDate===wantedDate &&
-      cloudSessionKey(item.session)===wantedSession &&
-      String(item.className||'').trim()===wantedClass;
+    if(itemDate!==wantedDate ||
+      cloudSessionKey(item.session)!==wantedSession ||
+      String(item.className||'').trim()!==wantedClass)return false;
+    if(!expectedPhotos)return true;
+    const links=Array.isArray(item.photoLinks)?item.photoLinks.filter(Boolean):[];
+    return Number(item.photoCount)>=expectedPhotos && links.length>=expectedPhotos;
   });
 }
 
