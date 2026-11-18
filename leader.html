@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜中階主管首頁 v1.22</title>
+  <title>和美智慧校園｜中階主管首頁 v1.23</title>
   <style>
     :root{
       --bg1:#fff0e6;
@@ -585,7 +585,8 @@
     .board{border-width:1px;background:#fffbed}
     .board:before{display:none}
       .board-manage-btn{display:block;width:100%;border:0;background:transparent;color:#4169d4;font:inherit;font-size:16px;font-weight:900;padding:13px 8px 2px;margin-top:8px;cursor:pointer;text-align:center}
-  </style>
+  .leaderSelfEvalGrid > .btn:only-child{grid-column:1 / -1}
+</style>
 <style>.leave-roster-entry[hidden]{display:none}.leave-roster-entry{display:flex;align-items:center;gap:12px;width:100%;padding:15px 18px;margin:12px 0;border:1px solid #b9d8db;border-radius:18px;background:#edf8f7;color:#225c62;cursor:pointer;text-align:left;font-family:inherit;box-shadow:0 4px 12px #245d6210}.leave-roster-entry .lr-icon{font-size:30px}.leave-roster-entry strong{display:block;font-size:20px}.leave-roster-entry small{display:block;margin-top:4px;font-size:14px}.leave-roster-entry .lr-arrow{margin-left:auto;font-size:27px}</style>
 <style>.top .logo{width:50px;height:50px;flex:0 0 50px;font-size:28px;border-radius:18px}.top .datetime{padding:10px 12px;gap:10px;flex-wrap:wrap}.top .date{font-size:22px;line-height:1.4;font-weight:900}.top .time{font-size:27px}</style>
 <style>
@@ -637,7 +638,7 @@
       </div>
     </header>
 
-    <div class="version-refresh-row"><span class="page-version">中階主管 v1.22</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
+    <div class="version-refresh-row"><span class="page-version">中階主管 v1.23</span><button class="refresh-sync-btn" id="refreshSyncBtn" type="button" onclick="refreshAndSync()">🔄 同步／檢查最新版</button></div>
 
     <section class="section" id="messageCenterHomeSection">
       <button class="btn primary" style="width:100%" onclick="openMessageCenter()">
@@ -658,10 +659,9 @@
 
     <button class="leave-roster-entry" id="leaveRosterEntry" type="button" onclick="location.href='leave_roster.html'"><span class="lr-icon">📋</span><span><strong>今明日請假名單</strong><small>今天、明天誰請假｜查看人力安排</small></span><span class="lr-arrow">›</span></button>
 
-    <section class="section" aria-label="中階主管自評表">
+    <section class="section" aria-label="表單繳交中心">
       <div class="grid leaderSelfEvalGrid">
-        <button class="btn" type="button" id="selfEvalEntry" onclick="location.href='monthly_self_eval.html?v=1.1.1'"><div class="icon" aria-hidden="true">📝</div><strong>每月自評</strong><span>依所屬部門填寫自評表</span></button>
-        <button class="btn" type="button" id="positiveDisciplineEntry" onclick="location.href='positive_discipline.html?v=1.1.0'"><div class="icon" aria-hidden="true">🌱</div><strong>正向管教自評</strong><span>自我檢核與已閱紀錄</span></button>
+        <button class="btn" type="button" onclick="location.href='form_center.html?home=leader'"><div class="icon selfEvalIcon" aria-hidden="true">📝</div><strong>表單繳交中心</strong><span>每月自評、正向管教與歷史紀錄</span></button>
       </div>
     </section>
 

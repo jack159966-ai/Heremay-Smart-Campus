@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>表單繳交中心｜和美智慧校園</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f3f6fc; color: #203955; font: 1rem/1.55 system-ui, sans-serif; }
+    main { max-width: 760px; margin: auto; padding: 20px 16px; }
+    header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    h1, h2 { margin: 0; line-height: 1.25; }
+    h1 { font-size: clamp(1.55rem, 6vw, 2rem); }
+    h2 { font-size: 1.25rem; }
+    .version, .status { color: #435c73; }
+    .version { margin: 4px 0; font-size: .875rem; }
+    .tools { display: flex; gap: 12px; margin: 16px 0; }
+    .cards { display: grid; gap: 12px; }
+    article { background: white; border: 1px solid #d5e0ef; border-radius: 16px; padding: 16px; }
+    .status { min-height: 1.55em; margin: 8px 0 12px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    a, button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px;
+      padding: 8px 12px; border: 1px solid #b7c8e2; border-radius: 12px;
+      background: #eaf2ff; color: #244d84; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+    .back { flex-shrink: 0; }
+    button:disabled { opacity: .6; cursor: wait; }
+    [hidden] { display: none !important; }
+    @media (min-width: 620px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div><h1>表單繳交中心</h1><p class="version">v1.0.0｜2026-11-18</p></div>
+      <a class="back" id="back" href="index.html">← 返回</a>
+    </header>
+    <div class="tools">
+      <button id="refresh" type="button">重新讀取</button>
+      <button id="update" type="button">檢查更新</button>
+      <a id="login" href="index.html" hidden>返回登入</a>
+    </div>
+    <div id="forms" class="cards"></div>
+  </main>
+  <script src="self_eval_client.js?v=1.0.0"></script>
+  <script src="form_center.js?v=1.0.0"></script>
+</body>
+</html>
