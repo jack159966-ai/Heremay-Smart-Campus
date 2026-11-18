@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.3.5</title>
+<title>Heremay 和美智慧校園｜巡堂觀察優化版 v1.3.6</title>
 <meta name="theme-color" content="#fff6fb" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -152,7 +152,7 @@ button{display:none!important}
 </head>
 <body>
 <main class="app">
-<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.3.5｜2026-10-15｜同步提示與按鍵並排</p></div></header>
+<header class="top"><div class="logo"><img src="assets/logo.png?v=20260720-2" alt="和美智慧校園 Logo" style="width:94%;height:94%;object-fit:contain;display:block" onerror="this.remove();this.parentElement.textContent='🏰'"></div><div class="title"><h1>Heremay 和美智慧校園</h1><p>巡堂觀察優化版 v1.3.6｜2026-10-15｜同步提示與按鍵並排</p></div></header>
 
 <section id="screenHome" class="screen active">
   <div class="patrol-return-row no-print"><button class="patrol-return" type="button" onclick="returnToPreviousPage()">← 返回主管首頁</button></div>
@@ -286,6 +286,7 @@ button{display:none!important}
 
 <nav class="nav no-print"><div class="nav-inner"><button id="navHome" class="active" onclick="show('Home')">🏠<span>首頁</span></button><button id="navOrder" onclick="show('Order')">🧭<span>順序</span></button><button id="navRecords" onclick="openRecords()">📋<span>紀錄</span></button><button id="navReport" onclick="openReport()">🖨️<span>週報</span></button></div></nav>
 
+<script src="self_eval_client.js?v=1.0.0"></script>
 <script>
 const SCRIPT_URL='https://script.google.com/macros/s/AKfycbyhDespyR460cvcddLMXE2zTIE3uOb_T6bZqLs5LEvZO-FEVmZcPQ8JULjY4-jfzgZP/exec';
 let cloudUploading=false;
@@ -670,6 +671,34 @@ async function verifyRecordsOnCloud(records,sessionKey,{attempts=3,delay=1100}={
   return {ok:false,missing:records,items};
 }
 
+function shouldSendPatrolNotice(rec){
+  return ['亮點分享','改善提醒','亮點＋改善'].includes(recordTypeLabel(rec)) &&
+    targetText(rec)!=='未指定';
+}
+
+async function sendPendingPatrolNotices(records,sessionKey){
+  const pending=records.filter(rec=>rec.patrolNoticePending && shouldSendPatrolNotice(rec));
+  if(!pending.length)return 0;
+
+  const payload=pending.map(rec=>{
+    const body=cloudPayload(rec,sessionKey);
+    return {
+      id:body.recordId,
+      date:body.patrolDate,
+      className:body.className,
+      result:body.result,
+      defects:body.defectCodes,
+      note:body.notes,
+      targets:body.notifyTargets,
+      photoCount:body.photoCount
+    };
+  });
+  const response=await HeremaySelfEval.call('selfEvalPatrolNotify',{payload});
+  pending.forEach(rec=>{delete rec.patrolNoticePending;});
+  persist(false);
+  return response.count;
+}
+
 async function syncSessionToCloud(sessionKey=currentSession,showAlert=true){
   if(cloudUploading){
     if(showAlert)alert('資料正在同步，請稍候。');
@@ -702,6 +731,11 @@ async function syncSessionToCloud(sessionKey=currentSession,showAlert=true){
   try{
     if(pending.length){
       setCloudStatus(`☁️ 正在送出${sessionName(sessionKey)} ${pending.length} 班，送出後會再向雲端逐班確認……`,'syncing');
+      pending.forEach(rec=>{
+        if(shouldSendPatrolNotice(rec))rec.patrolNoticePending=true;
+        else delete rec.patrolNoticePending;
+      });
+      persist(false);
       await syncRecordsBatchToCloud(pending,sessionKey);
     }else{
       setCloudStatus(`🔎 正在重新確認${sessionName(sessionKey)} ${completed.length} 班是否真的存在雲端……`,'syncing');
@@ -723,8 +757,19 @@ async function syncSessionToCloud(sessionKey=currentSession,showAlert=true){
     persist(false);
 
     if(verified.ok){
-      setCloudStatus(`✅ 雲端已確認：${sessionName(sessionKey)} ${completed.length}/${completed.length} 班同步完成。`,'success');
-      if(showAlert)alert(`✅ 雲端已確認：${sessionName(sessionKey)} ${completed.length}/${completed.length} 班同步完成。`);
+      let count=0;
+      try{
+        count=await sendPendingPatrolNotices(completed,sessionKey);
+      }catch(error){
+        const message='巡堂已存檔，但通知尚未送完：'+error.message+'。請重新確認同步以重試通知。';
+        setCloudStatus(message,'error');
+        if(showAlert)alert(message);
+        return false;
+      }
+      const summary=`✅ 雲端已確認：${sessionName(sessionKey)} ${completed.length}/${completed.length} 班同步完成。`+
+        (count?` 已處理 ${count} 筆收件通知。`:'');
+      setCloudStatus(summary,'success');
+      if(showAlert)alert(summary);
       return true;
     }
 
