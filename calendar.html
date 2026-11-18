@@ -226,7 +226,7 @@
     <div class="status-row">
       <span class="pill" id="todayText">今日</span>
       <span class="pill warn" id="cloudStatus">尚未同步</span>
-      <span class="pill" id="versionStatus">版本 v2.13.9</span>
+      <span class="pill" id="versionStatus">版本 v2.13.10</span>
       <span class="pill" id="timezoneStatus">時區檢查中</span>
     </div>
   </section>
@@ -473,7 +473,7 @@
     </div>
   </section>
 
-  <div class="version">行事曆 v2.13.9｜2026-10-21｜農曆日期文字精簡</div>
+  <div class="version">行事曆 v2.13.10｜2026-11-18｜私人行程可見性修正</div>
 </main>
 
 <div class="modal-mask" id="shareModal" onclick="if(event.target===this)closeShareModal()"><div class="modal-card"><div class="modal-head"><h3 id="shareModalTitle">選擇分享對象</h3><button class="btn" type="button" onclick="closeShareModal()">關閉</button></div><div class="choice-grid" id="shareChoices"></div><div class="actions" id="shareModalActions"></div></div></div>
@@ -482,7 +482,7 @@
 
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbzo-N2eBzT6Qpx5LBWEh4Uam7iQ9hvtSMNZ0Y8fbSnAFp0AsFbBGKuYTI5jfkU9Ftif/exec';
-const APP_VERSION='2.13.9';
+const APP_VERSION='2.13.10';
 const state={events:[],alarmTimer:null,audioCtx:null,currentAlarm:null,shareTargets:[],calendarCursor:new Date(),selectedDate:new Date(),calendarView:'month',currentUser:null,calendarConnection:null};
 let calendarEditing=false;
 let calendarRenderPending=false;
@@ -496,10 +496,10 @@ function readCurrentEmployee(){
   }catch(_){return null}
 }
 function currentActor(){
-  const user=state.currentUser||readCurrentEmployee()||{};
+  const user=readCurrentEmployee()||{};
   const loginAccount=String(localStorage.getItem('heremay.lastFaceAccount')||'').trim();
   return {
-    userId:String(user.employeeId||user.id||user['員工編號']||loginAccount).trim(),
+    userId:String(user.employeeId||user.id||user['員工編號']||(user.name?loginAccount:'')||user.account||user.employeeNo||'').trim(),
     userName:String(user.name||user['姓名']||loginAccount).trim(),
     userTitle:String(user.jobTitle||user.title||user.position||user['職稱']||localStorage.getItem('heremay.currentRole')||'主管').trim()
   };
@@ -608,12 +608,14 @@ async function syncAll(){
   document.getElementById('eventList').innerHTML='<div class="empty">正在連接雲端，最多等待 60 秒…</div>';
   status.className='pill warn';
   try{
-    const data=await jsonp('syncAll',currentActor());
+    const actor=currentActor();
+    const data=await jsonp('syncAll',actor);
     if(!data.ok) throw new Error(data.message||'同步失敗');
-    state.events=Array.isArray(data.events)?data.events:[];
+    const visible=Array.isArray(data.events)?data.events:[];
+    state.events=visible.filter(item=>isPublicCalendarEvent(item)||isOwnedByCurrentUser(item,actor));
     state.calendarConnection=data.calendarConnection||null;
     renderCalendarConnection();
-    localStorage.setItem('heremay.calendar.sharedEvents',JSON.stringify(state.events));
+    localStorage.setItem('heremay.calendar.sharedEvents',JSON.stringify(state.events.filter(isPublicCalendarEvent)));
     renderEvents();
     status.textContent='雲端已同步';
     status.className='pill ok';
@@ -829,16 +831,18 @@ function applyRepeatDefaults(showMessage=true){
 function getEventById(id){
   return state.events.find(item=>String(item.行程ID)===String(id));
 }
-function isOwnedByCurrentUser(item){
-  const actor=currentActor();
-  const ownerId=String(item.建立者ID||'').trim();
-  const ownerName=String(item.建立者||'').trim();
-  if(!ownerId&&!ownerName)return true;
-  if(ownerId&&actor.userId)return ownerId===actor.userId;
-  return !!ownerName&&ownerName===actor.userName;
+function isPublicCalendarEvent(item){
+  return String(item?.['私人／公務']||'').trim()==='公務';
+}
+function isOwnedByCurrentUser(item,actor=currentActor()){
+  const ownerId=String(item?.建立者ID||'').trim().toLowerCase();
+  const ownerName=String(item?.建立者||'').trim();
+  if(!actor.userName||!actor.userId||(ownerName&&ownerName!==actor.userName))return false;
+  if(ownerId)return ownerId===actor.userId.toLowerCase();
+  return !!ownerName;
 }
 function canManageEvent(item){
-  return String(item['私人／公務']||'公務')!=='私人'||isOwnedByCurrentUser(item);
+  return isPublicCalendarEvent(item)||isOwnedByCurrentUser(item);
 }
 function editEvent(id){
   const item=getEventById(id);
@@ -865,8 +869,6 @@ function editEvent(id){
   set('主管分類',item.主管分類||'');
   set('指定分享對象',item.指定分享對象||'');
   set('分享路徑',item.分享路徑||'');
-  const savedTargets=Array.isArray(item.分享對象JSON)?item.分享對象JSON:normalizeShareTargets(item.分享對象JSON||item.分享對象||'');
-  setShareTargets(savedTargets);
   updateVisibilityUI();
   form.elements['手機靜音提醒'].checked=String(item.手機靜音提醒)==='是'||item.手機靜音提醒===true;
   form.elements['強提醒'].checked=String(item.強提醒)==='是'||item.強提醒===true;
@@ -1374,10 +1376,9 @@ function updateVisibilityUI(){
   const isPrivate=form.elements['私人／公務'].value==='私人';
   const button=document.getElementById('shareSelectBtn');
   const hint=document.getElementById('shareHint');
-  if(button)button.style.display=isPrivate?'':'none';
-  if(hint)hint.textContent=isPrivate?'私人行程只有自己看得到；需要時可另分享給園長或主任（謝秉儒）。':'公務行程由負責人、園長與主任共同查看。';
-  if(!isPrivate)setShareTargets([]);
-  else document.getElementById('shareSummaryText').textContent=state.shareTargets.length?'另分享給：'+state.shareTargets.join('、'):'僅自己';
+  if(button)button.hidden=true;
+  if(hint)hint.textContent=isPrivate?'私人行程僅供本人查看。':'公務行程由負責人、園長與主任共同查看。';
+  setShareTargets([]);
   const syncHint=document.getElementById('calendarSyncHint');
   if(syncHint)syncHint.textContent=isPrivate
     ?(state.calendarConnection?.connected?`私人行程將同步到「${state.calendarConnection.calendarName||'我的 Google 日曆'}」。`:'尚未連結私人 Google 日曆；行程仍會保存在 APP 內。')
@@ -1460,7 +1461,7 @@ document.getElementById('eventForm').addEventListener('submit',async e=>{
   }
   data.重複規則=repeatRuleValue(data.重複單位,data.重複間隔,data.農曆日期JSON);
   data.固定巡檢=data.重複單位!=='none';
-  data.分享對象JSON=[...state.shareTargets];
+  data.分享對象JSON=[];
   const actor=currentActor();
   data.建立者ID=actor.userId;
   data.建立者=actor.userName;

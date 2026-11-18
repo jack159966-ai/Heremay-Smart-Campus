@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heremay 和美智慧校園｜主管工作台 v24.72</title>
+  <title>Heremay 和美智慧校園｜主管工作台 v24.73</title>
   <style>
     :root{
       --bg1:#eaf7ff;
@@ -624,7 +624,7 @@
     </header>
 
     <div class="refreshVersionRow">
-      <div class="versionStamp">主管工作台 v24.72｜2026-11-18</div>
+      <div class="versionStamp">主管工作台 v24.73｜2026-11-18</div>
       <button class="refreshVersionBtn refreshVersionWide" type="button" onclick="refreshLatestVersion()">
         🔄 檢查並重新整理最新版
       </button>
@@ -968,7 +968,7 @@ function adminNoticeTargets(x){
 function adminEsc(v){return String(v??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
 function dateKey(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
 function loadSharedCalendar(){
-  let events=[];try{events=JSON.parse(localStorage.getItem('heremay.calendar.sharedEvents')||'[]')}catch(e){}
+  let events=[];try{events=JSON.parse(localStorage.getItem('heremay.calendar.sharedEvents')||'[]').filter(item=>String(item?.['私人／公務']||'').trim()==='公務')}catch(e){}
   const make=(day)=>events.filter(x=>x.開始日期===day).sort((a,b)=>String(a.開始時間||'').localeCompare(String(b.開始時間||''))).map(x=>({id:x.行程ID||x.標題,time:x.開始時間||'全天',title:x.標題||'未命名行程',text:[x.地點,x.說明].filter(Boolean).join('｜')}));
   reminders=make(dateKey(0));tomorrowItems=make(dateKey(1));afterTomorrowItems=make(dateKey(2));renderToday();renderFuture();
 }
