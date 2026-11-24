@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜差勤管理 v2.12.3</title>
+  <title>和美智慧校園｜差勤管理 v2.12.4</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -81,7 +81,7 @@
   <header class="top">
     <div class="title"><h1>差勤管理</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.12.3 打卡驗證與狀態</span>
+    <span class="version">v2.12.4｜2026-11-24｜驗證重試</span>
   </header>
 
   <section class="card who">
@@ -195,7 +195,8 @@
     </div>
     <div class="auth-error" id="sensitiveAuthError"></div>
     <div class="auth-note">進入時只驗證一次；通過後可打卡、請假、取消請假與查看薪資條。離開打卡區後即失效。</div>
-    <button class="close" type="button" onclick="cancelSensitiveAuth()">取消並返回首頁</button>
+    <button class="close" type="button" onclick="cancelSensitiveAuth()">取消本次驗證／重試</button>
+    <button class="close" type="button" onclick="goBack()">返回首頁</button>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -290,7 +291,8 @@
       if(!response.ok||!data.ok)throw new Error(data.message||`驗證服務錯誤 HTTP ${response.status}`);
       return data;
     }catch(error){
-      if(error&&error.name==='AbortError')throw new Error('驗證連線逾時，請稍後再試');
+      if(error&&error.name==='AbortError')throw new Error('本人驗證服務連線逾時，請稍後再試');
+      if(error instanceof TypeError)throw new Error('無法連接本人驗證服務，請檢查網路後重試');
       throw error;
     }finally{clearTimeout(timer)}
   }
@@ -367,11 +369,11 @@
     toastMsg('✅ 本人驗證成功');
   }
   function cancelSensitiveAuth(){
-    document.getElementById('sensitiveAuthModal').classList.remove('show');
-    const pending=sensitiveAuthPending;sensitiveAuthPending=null;
-    if(pending)pending.resolve(false);
+    // 使尚在進行的驗證結果失效，保留等待驗證的原始操作。
+    if(sensitiveAuthPending)sensitiveAuthPending={...sensitiveAuthPending};
     clearAttendanceSession();
-    location.href=attendanceHomePage();
+    document.getElementById('sensitivePassword').value='';
+    setSensitiveAuthBusy(false,'驗證尚未完成。請重新刷臉，或改用本人 6 位數密碼。');
   }
   function showSensitivePassword(){
     document.getElementById('sensitivePasswordBox').classList.add('show');
@@ -417,7 +419,8 @@
       if(sensitiveAuthPending!==pending)return;
       showSensitivePassword();
       const message=error.name==='NotAllowedError'
-        ?'快速驗證未完成，或此裝置沒有對應的通行密鑰。請使用 6 位數密碼；之後可回登入首頁設定快速登入'
+        ?'手機回報快速驗證未完成（可能取消、逾時或無可用通行密鑰）。請重試或使用 6 位數密碼。'
+        :error.name==='AbortError'?'手機中斷快速驗證，請重新刷臉或使用 6 位數密碼。'
         :(error.message||'快速驗證失敗，請使用 6 位數密碼');
       setSensitiveAuthBusy(false,message);
     }finally{
@@ -915,7 +918,10 @@
   let pendingPunchType='';
 
   async function confirmPunch(type){
-    if(pendingCloudAction||accessCheck||document.getElementById('syncBtn').disabled) return;
+    if(pendingCloudAction||accessCheck||document.getElementById('syncBtn').disabled){
+      setPunchFeedback(pendingCloudAction?'上一筆資料仍在送出，請等候雲端確認。':accessCheck?'正在確認打卡範圍，請稍候。':'正在同步出勤資料，請稍候再打卡。');
+      return;
+    }
     const account=employeeKey();
     setPunchFeedback('正在確認打卡範圍…');
     // 畫面只保留兩個按鈕；早值／晚值自動轉為值班 API。
@@ -925,7 +931,7 @@
     }
     const access=await checkPunchAccess(false);
     if(employeeKey()!==account||document.getElementById('syncBtn').disabled){setPunchFeedback('');return}
-    if(!access.allowed){setPunchFeedback('⚠️ 尚未通過打卡範圍驗證');return}
+    if(!access.allowed){setPunchFeedback('⚠️ 打卡範圍驗證未通過：'+(access.reason||'請重新定位'));return}
     setPunchFeedback('');
     pendingPunchType=type;
     const abnormal=abnormalPunchInfo(type);
@@ -1004,7 +1010,10 @@
     }
     closePunchConfirm();
     if(!await requireSensitiveAuth()){toastMsg('已取消本人驗證，未送出打卡');return}
-    if(employeeKey()!==account||document.getElementById('syncBtn').disabled)return;
+    if(employeeKey()!==account||document.getElementById('syncBtn').disabled){
+      setPunchFeedback('⚠️ 登入身分已變更或資料正在同步，本次打卡尚未送出，請重新確認。');
+      return;
+    }
     if(type==='in') clockIn();
     if(type==='out') clockOut();
     if(type==='dutyIn') dutyIn();
@@ -1404,7 +1413,7 @@ function renderPersonalBalances(){
       if(isPunch&&!responseReceived&&access?.allowed){
         try{
           enqueueOfflinePunch(action,fields,kind,access);
-          setPunchFeedback('📦 雲端尚未確認，已暫存在手機。請先同步確認紀錄。');
+          setPunchFeedback('📦 '+(error.message||'雲端尚未確認')+'；打卡已暫存在手機，請先同步確認紀錄。');
         }catch(storageError){
           setPunchFeedback('⚠️ 雲端尚未確認，手機也無法暫存。請先同步確認紀錄。');
         }
