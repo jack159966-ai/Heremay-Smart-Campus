@@ -17,7 +17,7 @@ app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 
 const PORT = Number(process.env.PORT || 8080);
-const SERVICE_VERSION = '1.4.0';
+const SERVICE_VERSION = '1.4.1';
 const RP_NAME = process.env.RP_NAME || '和美智慧校園';
 const RP_ID = process.env.RP_ID || 'jack159966-ai.github.io';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://jack159966-ai.github.io')
@@ -29,6 +29,17 @@ const CHALLENGE_TTL_MS = 5 * 60 * 1000;
 const SENSITIVE_TOKEN_TTL_MS = 5 * 60 * 1000;
 const ADMIN_SENSITIVE_TOKEN_TTL_MS = 8 * 60 * 60 * 1000;
 const SENSITIVE_PURPOSES = new Set(['attendance','attendance_admin','salary','salary_admin','monthly_self_eval']);
+const ATTENDANCE_LOGIN_TTL_MS = 12 * 60 * 60 * 1000;
+const ATTENDANCE_API_URL = process.env.ATTENDANCE_API_URL ||
+  'https://script.google.com/macros/s/AKfycbzQIkRS3hLLiDMQj6WV6SyeEmFHO80f_Sl9qHciPkWpXZfuzggmfdTRLjtbvhhMZ624Zw/exec';
+const ATTENDANCE_PUNCH_ACTIONS = new Set(['attendanceClockIn','attendanceClockOut','attendanceDutyIn','attendanceDutyOut']);
+const ATTENDANCE_PUNCH_FIELDS = [
+  'date','shift','attendanceMode','dutyType','scheduledIn','scheduledOut','requiredMinutes',
+  'isSupplemental','isTest','dutyEndReason','clientPunchAt','clientRecordId','verificationMethod',
+  'geoDistance','geoAccuracy','geoLatitude','geoLongitude','syncStatus','uploadedAt','employeeType',
+  'actualShift','actualDutyType','abnormalType','abnormalReason','abnormalNote','scheduledTime',
+  'overtimeCandidate','overtimeMinutes','note','source','device'
+];
 
 app.use(cors({
   origin(origin, cb) {
@@ -251,9 +262,14 @@ function accountMatchesToken(account, tokenData) {
     .map(v => clean(v).toLowerCase()).filter(Boolean).includes(wanted);
 }
 
-// Reuse the verified homepage login for leave administration only.
-async function homepageAdminGrant(employee) {
-  const grants = {};
+async function homepageGrants(employee) {
+  const token = randomBytes(32).toString('base64url');
+  const expiresAt = Date.now() + ATTENDANCE_LOGIN_TTL_MS;
+  const attendanceLoginGrant = {token,expiresAt,account:employee.account,employeeNo:employee.employeeNo};
+  await db.collection('attendanceLoginTokens').doc(sensitiveTokenHash(token)).set({
+    account:employee.account, employeeNo:employee.employeeNo, expiresAt
+  });
+  const grants = {attendanceLoginGrant};
   if (employee.role === 'admin') grants.leaveAdminGrant = {
     ...await issueSensitiveToken(employee, 'attendance_admin', { persistent:true }),
     account:employee.account || employee.employeeNo, purpose:'attendance_admin'
@@ -275,7 +291,7 @@ app.post('/auth/login/password', async (req, res) => {
       return res.status(401).json({ok:false, message:'帳號或密碼錯誤，或此帳號不可登入'});
     }
     res.setHeader('Cache-Control', 'no-store');
-    res.json({ok:true, role:employee.role, employee:publicEmployee(employee), ...await homepageAdminGrant(employee)});
+    res.json({ok:true, role:employee.role, employee:publicEmployee(employee), ...await homepageGrants(employee)});
   } catch (err) {
     console.error(err);
     res.status(500).json({ok:false, message:'登入服務暫時無法連線，請稍後重試'});
@@ -415,7 +431,7 @@ app.post('/auth/passkey/login/verify', async (req,res) => {
     }, { merge:true });
     await challenge.ref.delete();
     res.setHeader('Cache-Control', 'no-store');
-    res.json({ ok:true, role:employee.role, employee:publicEmployee(employee), ...await homepageAdminGrant(employee) });
+    res.json({ ok:true, role:employee.role, employee:publicEmployee(employee), ...await homepageGrants(employee) });
   } catch (err) {
     console.error(err);
     res.status(400).json({ ok:false, message:err?.message || '快速登入失敗' });
@@ -564,6 +580,63 @@ app.post('/auth/step-up/refresh', async (req,res) => {
   } catch (err) {
     console.error(err);
     res.status(400).json({ ok:false, message:err?.message || '無法續用打卡區驗證' });
+  }
+});
+
+app.post('/api/attendance', async (req,res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  const {action,token,month,punchMonth,payload} = req.body || {};
+  const isPunch = ATTENDANCE_PUNCH_ACTIONS.has(action);
+  if (!isPunch && action !== 'getAttendanceBundle') {
+    return res.status(400).json({ok:false,message:'不支援的出勤操作'});
+  }
+  const validMonth = value => typeof value === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+  if (isPunch ? !/^\d{4}-\d{2}-\d{2}$/.test(clean(payload?.date)) : !validMonth(month) || !validMonth(punchMonth)) {
+    return res.status(400).json({ok:false,message:'出勤日期格式不正確'});
+  }
+  const loginRequired = () => res.status(401).json({ok:false,loginRequired:true,message:'登入已逾時，請返回登入首頁重新登入'});
+  if (typeof token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(token)) return loginRequired();
+
+  let internalGrant;
+  try {
+    const sessionRef = db.collection('attendanceLoginTokens').doc(sensitiveTokenHash(token));
+    const session = (await sessionRef.get()).data();
+    if (!(Number(session?.expiresAt) > Date.now())) return loginRequired();
+    const employee = await lookupEmployee(session.employeeNo || session.account);
+    if (!employee?.canLogin || !employee.role || employee.account !== session.account) return loginRequired();
+
+    const url = new URL(ATTENDANCE_API_URL);
+    url.searchParams.set('action', action);
+    internalGrant = await issueSensitiveToken(employee, 'attendance');
+    const auth = {sensitiveToken:internalGrant.token,sensitivePurpose:'attendance',authAccount:employee.account || employee.employeeNo};
+    if (isPunch) {
+      // 跟隨當日既有紀錄的識別值，以相同身分補齊上、下班打卡。
+      const aliases = [employee.employeeNo,employee.account].filter(Boolean);
+      const recordId = clean(payload.employeeId);
+      const employeeId = aliases.some(alias => alias.toLowerCase() === recordId.toLowerCase())
+        ? recordId
+        : employee.account || employee.employeeNo;
+      const punchFields = Object.fromEntries(ATTENDANCE_PUNCH_FIELDS.map(key => [key,payload[key]]));
+      url.searchParams.set('payload', JSON.stringify({
+        ...punchFields, employeeId, employeeName:employee.name, pool:employee.department,
+        identity:employee.category, ...auth
+      }));
+    } else {
+      const query = {employeeId:employee.employeeNo,pool:employee.department,month,punchMonth,...auth};
+      for (const [key,value] of Object.entries(query)) url.searchParams.set(key, value);
+    }
+    const response = await fetch(url, {signal:AbortSignal.timeout(45000)});
+    if (!response.ok) throw new Error('Attendance upstream returned HTTP ' + response.status);
+    const result = await response.json();
+    if (typeof result?.ok !== 'boolean') throw new Error('Attendance upstream returned an invalid response');
+    return res.json(result);
+  } catch (error) {
+    console.error('Attendance request failed', error.name);
+    return res.status(502).json({ok:false,message:'暫時無法連接出勤服務，請稍後再試'});
+  } finally {
+    if (internalGrant) {
+      await db.collection('sensitiveTokens').doc(sensitiveTokenHash(internalGrant.token)).delete().catch(() => {});
+    }
   }
 });
 
