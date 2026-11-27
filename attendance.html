@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜差勤管理 v2.12.4</title>
+  <title>和美智慧校園｜差勤管理 v2.12.6</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -81,7 +81,7 @@
   <header class="top">
     <div class="title"><h1>差勤管理</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.12.4｜2026-11-24｜驗證重試</span>
+    <span class="version">v2.12.6｜2026-11-27｜直接打卡與本月紀錄</span>
   </header>
 
   <section class="card who">
@@ -117,6 +117,7 @@
   </section>
 
   <div id="attendanceDataStatus" role="status" style="padding:10px;color:#995319;font-weight:850">尚未同步，畫面可能是手機暫存資料</div>
+  <div class="warning" id="attendanceLoginNotice" hidden>請返回登入首頁重新登入，登入後可直接打卡與查看紀錄。 <a href="index.html">返回登入首頁</a></div>
   <button class="sync-btn" id="syncBtn" type="button" onclick="refreshAttendancePage()">
     🔄 同步出勤資料／檢查最新版
   </button>
@@ -128,7 +129,7 @@
 
 
   <section class="card">
-    <div class="tabs"><button class="tab active" onclick="showTab('leave',this)">請假</button><button class="tab" onclick="showTab('attendance',this)">出勤</button><button class="tab" onclick="showTab('balance',this)">剩餘假別</button><button class="tab" onclick="showTab('records',this)">紀錄</button></div>
+    <div class="tabs"><button class="tab active" onclick="showTab('leave',this)">請假</button><button class="tab" onclick="showTab('attendance',this)">打卡紀錄</button><button class="tab" onclick="showTab('balance',this)">剩餘假別</button><button class="tab" onclick="showTab('records',this)">請假紀錄</button></div>
   </section>
 
   <section class="card panel active" id="leavePanel">
@@ -152,13 +153,15 @@
 
 
   <section class="card panel" id="attendancePanel">
-    <div class="section-title"><h2>📊 我的出勤狀況</h2><span class="tag" id="attendanceMonthTag">本月</span></div>
+    <div class="section-title"><h2>我的本月打卡紀錄</h2><span class="tag" id="attendanceMonthTag">本月</span></div>
     <div class="attendance-summary">
       <div class="attendance-box"><b id="workDaysCount">0</b><span>已出勤日</span></div>
       <div class="attendance-box"><b id="lateCount">0</b><span>遲到次數</span></div>
       <div class="attendance-box"><b id="lateTotal">0</b><span>遲到分鐘</span></div>
       <div class="attendance-box"><b id="leaveDaysCount">0</b><span>請假天數</span></div>
     </div>
+    <div id="attendanceHistoryStatus" class="hint" role="status"></div>
+    <button class="access-btn" type="button" onclick="loadCloudData(true)">重新讀取打卡紀錄</button>
     <div class="month-list" id="attendanceMonthList"></div>
   </section>
 
@@ -183,7 +186,7 @@
 <div class="modal" id="periodModal" onclick="closePeriodModal(event)"><div class="sheet" onclick="event.stopPropagation()"><h3 id="modalDate">選擇請假時段</h3><div class="leave-people"><h4 id="leavePoolTitle">當日請假狀況</h4><div id="dayLeavePeople"></div><div class="quota-line"><span id="amQuota"></span><span id="pmQuota"></span></div></div><div id="alreadyLeaveNote" class="warning" style="display:none;margin-top:10px"></div><div class="choice" id="periodChoiceBox"><button id="fullDayChoice" onclick="setDatePeriod('全天')">全天</button><button id="amChoice" onclick="setDatePeriod('上午')">上午</button><button id="pmChoice" onclick="setDatePeriod('下午')">下午</button></div><button class="close" onclick="hidePeriodModal()">取消</button></div></div>
 <div class="modal" id="sensitiveAuthModal">
   <div class="sheet" onclick="event.stopPropagation()">
-    <h2>🔐 請驗證後進入打卡區</h2>
+    <h2>🔐 請確認本人操作</h2>
     <div class="auth-account">目前登入：<strong id="sensitiveAuthName">—</strong><br>帳號：<span id="sensitiveAuthAccount">—</span></div>
     <div class="auth-actions">
       <button class="auth-primary" id="sensitivePasskeyBtn" type="button" onclick="verifySensitiveWithPasskey()">使用 Face ID／快速登入</button>
@@ -194,7 +197,7 @@
       <button id="sensitivePasswordSubmit" class="auth-primary" style="margin-top:9px" type="button" onclick="verifySensitiveWithPassword()">確認密碼</button>
     </div>
     <div class="auth-error" id="sensitiveAuthError"></div>
-    <div class="auth-note">進入時只驗證一次；通過後可打卡、請假、取消請假與查看薪資條。離開打卡區後即失效。</div>
+    <div class="auth-note">請假、取消請假或出勤回報須確認本人身分。</div>
     <button class="close" type="button" onclick="cancelSensitiveAuth()">取消本次驗證／重試</button>
     <button class="close" type="button" onclick="goBack()">返回首頁</button>
   </div>
@@ -204,6 +207,7 @@
   const SERVICE_URL = 'https://script.google.com/macros/s/AKfycbzQIkRS3hLLiDMQj6WV6SyeEmFHO80f_Sl9qHciPkWpXZfuzggmfdTRLjtbvhhMZ624Zw/exec';
   const PASSKEY_API_BASE = 'https://heremay-passkey-backend-943533867342.asia-east1.run.app';
   const ATTENDANCE_SESSION_KEY = 'heremay.attendanceAreaGrant';
+  const ATTENDANCE_LOGIN_KEY = 'heremay.attendanceLoginGrant';
   const ATTENDANCE_RULES = {
     earlyToleranceMinutes: 30,
     lateToleranceMinutes: 30,
@@ -236,6 +240,7 @@
   let accessCheck = null;
   let accessHiddenAt = null;
   let employee = readEmployee();
+  let activeAttendanceAccount = employeeKey();
   let cloudSharedLeaves = [];
   let annualRules = [];
   let personalBalances=null;
@@ -243,7 +248,13 @@
   let overviewReady = false;
   let cloudMyLeaves = [];
   let cloudPunches = [];
+  const recentPunches = new Map();
+  const PUNCH_FIELDS = {clockIn:'in',clockOut:'out',dutyIn:'dutyIn',dutyOut:'dutyOut'};
+  const PUNCH_LABELS = {clockIn:'上班',clockOut:'下班',dutyIn:'上值班',dutyOut:'下值班'};
+  let punchToConfirm = null;
+  let offlineSyncInProgress = false;
   let cloudReady = false;
+  let attendanceHistoryState = 'idle';
   let pendingCloudAction = null;
   let pendingActionTimer = null;
   let viewDate = new Date(); viewDate.setDate(1);
@@ -299,6 +310,20 @@
   function hasSensitiveGrant(){
     return !!(sensitiveGrant&&sensitiveGrant.token&&sensitiveGrant.account===employeeKey()&&Number(sensitiveGrant.expiresAt||0)>Date.now()+3000);
   }
+  function homepageAttendanceGrant(){
+    try{
+      const grant=JSON.parse(sessionStorage.getItem(ATTENDANCE_LOGIN_KEY)||'null');
+      const login=employeeKey().toLowerCase();
+      const identities=[grant?.account,grant?.employeeNo].map(value=>String(value||'').trim().toLowerCase()).filter(Boolean);
+      if(grant?.token&&Number(grant.expiresAt)>Date.now()&&identities.includes(login))return grant;
+    }catch(error){}
+    return null;
+  }
+  function requireHomepageAttendance(){
+    const grant=homepageAttendanceGrant();
+    document.getElementById('attendanceLoginNotice').hidden=Boolean(grant);
+    return grant;
+  }
   function restoreAttendanceSession(){
     try{
       const saved=JSON.parse(sessionStorage.getItem(ATTENDANCE_SESSION_KEY)||'null');
@@ -344,7 +369,7 @@
     const error=document.getElementById('sensitiveAuthError');if(error)error.textContent=message;
   }
   function requireSensitiveAuth(){
-    if(hasSensitiveGrant())return Promise.resolve(true);
+    if(hasSensitiveGrant()||restoreAttendanceSession())return Promise.resolve(true);
     if(sensitiveAuthPending)return sensitiveAuthPending.promise;
     let resolvePromise;
     const promise=new Promise(resolve=>{resolvePromise=resolve});
@@ -515,33 +540,52 @@
     const result=nas.ok?{allowed:true,method:'NAS',distance:'',accuracy:'',latitude:'',longitude:'',checkedAt:new Date().toISOString()}:{allowed:false,method:'NONE',reason:`${gpsError}；${nas.reason}`,checkedAt:new Date().toISOString()};
     showAccessResult(result);return result;
   }
-  function localPunchFromFields(kind,fields,access){
-    const now=new Date(fields.clientPunchAt),time=`${pad(now.getHours())}:${pad(now.getMinutes())}`,old=JSON.parse(localStorage.getItem(punchKey())||'{}');
-    const row={...old,date:todayKey(),verificationMethod:access.method,syncStatus:'待補傳'};
-    if(kind==='clockIn'){row.in=time;row.late=0}
-    if(kind==='clockOut')row.out=time;
-    if(kind==='dutyIn'){row.in=time;row.dutyIn=time}
-    if(kind==='dutyOut'){row.out=time;row.dutyOut=time}
-    localStorage.setItem(punchKey(),JSON.stringify(row));loadPunch();renderAttendance();return row;
-  }
   function enqueueOfflinePunch(action,fields,kind,access){
     const createdAt=fields.clientPunchAt||new Date().toISOString(),clientRecordId=fields.clientRecordId||uuid();
     const payload={...fields,clientPunchAt:createdAt,clientRecordId,verificationMethod:access.method,geoDistance:access.distance??'',geoAccuracy:access.accuracy??'',geoLatitude:access.latitude??'',geoLongitude:access.longitude??'',syncStatus:'待補傳'};
-    const queue=readOfflineQueue();queue.push({action,fields:payload,kind,createdAt,clientRecordId});saveOfflineQueue(queue);localPunchFromFields(kind,payload,access);
+    const queue=readOfflineQueue();
+    if(!queue.some(item=>item.clientRecordId===clientRecordId)){
+      saveOfflineQueue([...queue,{action,fields:payload,kind,createdAt,clientRecordId}]);
+    }
   }
   async function syncOfflinePunches(manual=false){
+    if(offlineSyncInProgress||pendingCloudAction){if(manual)toastMsg('正在處理上一筆資料，請稍候');return}
     const queue=readOfflineQueue();if(!queue.length){if(manual)toastMsg('目前沒有待補傳的打卡紀錄');renderOfflineQueue();return}
     if(!navigator.onLine){if(manual)toastMsg('目前仍未連上網路');return}
-    if(!manual){renderOfflineQueue();return}
-    if(!await requireSensitiveAuth()){if(manual)toastMsg('已取消本人驗證，尚未補傳');return}
-    const remaining=[];let done=0;
-    for(const item of queue){
-      try{
-        const url=`${SERVICE_URL}?action=${encodeURIComponent(item.action)}&payload=${encodeURIComponent(JSON.stringify({...item.fields,...sensitiveAuthFields(),syncStatus:'離線補傳',uploadedAt:new Date().toISOString()}))}`;
-        const result=await jsonp(url);if(!result.ok)throw new Error(result.message||'補傳失敗');done++;
-      }catch(e){remaining.push(item)}
+    if(!requireHomepageAttendance())return;
+    const account=employeeKey();
+    offlineSyncInProgress=true;
+    let done=0;
+    try{
+      for(const item of queue){
+        if(employeeKey()!==account||!homepageAttendanceGrant())break;
+        const date=item.fields.date;
+        let punch=cloudPunches.find(row=>row.date===date&&punchTime(row,item.kind));
+        if(!punch){
+          try{
+            const result=await homepageAttendanceRequest(item.action,{payload:{...item.fields,syncStatus:'離線補傳',uploadedAt:new Date().toISOString()}},55000);
+            if(result.ok||isDuplicatePunch(result.message)){
+              punch=punchFromResult(result,date,item.kind)||await verifyCloudPunch(account,date,item.kind);
+            }
+          }catch(error){
+            punch=await verifyCloudPunch(account,date,item.kind);
+          }
+        }
+        if(employeeKey()!==account)return;
+        if(!punch)continue;
+        rememberConfirmedPunch(punch,item.kind);
+        saveOfflineQueue(readOfflineQueue().filter(row=>row.clientRecordId!==item.clientRecordId));
+        done++;
+        if(date===todayKey())showConfirmedPunch(punch,item.kind);
+      }
+      const remaining=readOfflineQueue().length;
+      if(manual||done)toastMsg(remaining?`已確認 ${done} 筆，仍有 ${remaining} 筆待補傳`:`✅ 已確認 ${done} 筆離線打卡`);
+    }catch(error){
+      if(employeeKey()===account)toastMsg('⚠️ 補傳作業未完成，請稍後再試');
+    }finally{
+      offlineSyncInProgress=false;
+      if(employeeKey()===account){loadPunch();renderAttendance()}
     }
-    saveOfflineQueue(remaining);await loadCloudData(true);if(manual||done)toastMsg(remaining.length?`已補傳 ${done} 筆，仍有 ${remaining.length} 筆待處理`:`✅ 已補傳 ${done} 筆離線打卡`);
   }
   function readEmployee(){try{return JSON.parse(localStorage.getItem('heremay.currentEmployee')||'null')||{}}catch(e){return{}}}
   function employeeKey(){
@@ -601,7 +645,7 @@
   }
   async function refreshLoggedInEmployee(force=false){
     const latest=readEmployee();
-    const oldId=employeeKey();
+    const oldId=activeAttendanceAccount;
     employee=latest;
     const loginAccount=String(localStorage.getItem('heremay.lastFaceAccount')||'').trim();
     const objectAccount=String(
@@ -609,7 +653,14 @@
       latest.employeeId||latest.id||latest['員工編號']||''
     ).trim();
     const newId=employeeKey();
-    if(oldId!==newId)clearAttendanceSession()
+    activeAttendanceAccount=newId;
+    if(oldId!==newId){
+      clearAttendanceSession();
+      recentPunches.clear();
+      punchToConfirm=null;
+      attendanceHistoryState='idle';
+      setPunchFeedback('');
+    }
     if(loginAccount && objectAccount && loginAccount!==objectAccount){
       console.warn('登入帳號與 currentEmployee 不一致，改以登入帳號為準：',loginAccount,objectAccount);
     }
@@ -668,8 +719,15 @@
     if(dep==='幼兒部')return document.getElementById('kindergartenShift')?.value||'正常班';
     return document.getElementById('afterSchoolDuty')?.value||'一般班';
   }
+  function cachedPunch(key){
+    try{
+      const punch=JSON.parse(localStorage.getItem(key)||'null');
+      // 舊版把待補傳時間寫進本機紀錄。正式時間須由雲端確認。
+      return punch&&punch.syncStatus!=='待補傳'?punch:null;
+    }catch(error){return null}
+  }
   function todayPunchRecord(){
-    return cloudPunches.find(p=>String(p.date||'')===todayKey())||JSON.parse(localStorage.getItem(punchKey())||'{}');
+    return cloudPunches.find(p=>p.date===todayKey())||(!cloudReady&&cachedPunch(punchKey()))||{};
   }
   function hasStartedToday(){
     const x=todayPunchRecord();
@@ -865,11 +923,18 @@
 
   function loadPunch(){
     applyEmployeePunchLayout();
-    const x=(cloudPunches.find(p=>String(p.date||'')===todayKey())||JSON.parse(localStorage.getItem(punchKey())||'{}'));
-    const hi=Boolean(String(x.in||'').trim()),ho=Boolean(String(x.out||'').trim());
+    const record=todayPunchRecord();
+    const x={...record,in:punchTime(record,'clockIn')||punchTime(record,'dutyIn'),out:punchTime(record,'clockOut')||punchTime(record,'dutyOut')};
+    const hi=Boolean(x.in),ho=Boolean(x.out);
     const hdi=Boolean(String(x.dutyIn||'').trim()),hdo=Boolean(String(x.dutyOut||'').trim());
     const recordedDuty=hdi||hdo;
-    lockAttendanceSelectors(hi||hdi);
+    const queuedToday=readOfflineQueue().filter(item=>item.fields?.date===todayKey());
+    const pendingIn=!hi&&queuedToday.some(item=>['clockIn','dutyIn'].includes(item.kind));
+    const pendingOut=!ho&&queuedToday.some(item=>['clockOut','dutyOut'].includes(item.kind));
+    const needsConfirmation=punchToConfirm?.date===todayKey()&&!punchToConfirm.confirmed;
+    const checkingIn=needsConfirmation&&['clockIn','dutyIn'].includes(punchToConfirm.kind);
+    const checkingOut=needsConfirmation&&['clockOut','dutyOut'].includes(punchToConfirm.kind);
+    lockAttendanceSelectors(hi||hdi||pendingIn);
 
     inTime.textContent=hi?x.in:'--:--';
     outTime.textContent=ho?x.out:'--:--';
@@ -878,10 +943,10 @@
     clockOutBtn.classList.remove('done-state','wait-state','ready-state');
 
     if(isFlexibleCleaner()){
-      clockInBtn.disabled=hi;clockOutBtn.disabled=!hi||ho;
-      clockInBtn.textContent=hi?`✅ 已開始 ${x.in}`:'🌿 開始工作';
-      clockOutBtn.textContent=ho?`✅ 已完成 ${x.out}`:'✅ 完成工作';
-      todayStatus.textContent=ho?`今日工作完成｜${x.in}～${x.out}`:(hi?`已於 ${x.in} 開始工作`:'今日尚未開始工作');
+      clockInBtn.disabled=hi||pendingIn;clockOutBtn.disabled=!hi||ho||pendingOut;
+      clockInBtn.textContent=pendingIn?'📦 開始時間待補傳':hi?`✅ 已開始 ${x.in}`:'🌿 開始工作';
+      clockOutBtn.textContent=pendingOut?'📦 結束時間待補傳':ho?`✅ 已完成 ${x.out}`:'✅ 完成工作';
+      todayStatus.textContent=(pendingIn||pendingOut||checkingIn||checkingOut)?'工作打卡待雲端確認':ho?`今日工作完成｜${x.in}～${x.out}`:hi?`已於 ${x.in} 開始工作`:'今日尚未開始工作';
       renderWorkStatus(x);return;
     }
 
@@ -890,12 +955,12 @@
     const label=recordedDuty?(String(x.dutyType||x.shift||activeShiftLabel()).includes('早值')?'早值':String(x.dutyType||x.shift||'').includes('晚值')?'晚值':activeShiftLabel()):activeShiftLabel();
 
     if(!hi){
-      clockInBtn.disabled=false;
+      clockInBtn.disabled=pendingIn;
       clockOutBtn.disabled=true;
-      clockInBtn.textContent=dutyMode?`☀️ ${label}上班`:'☀️ 上班打卡';
+      clockInBtn.textContent=pendingIn?'📦 上班卡待補傳':dutyMode?`☀️ ${label}上班`:'☀️ 上班打卡';
       clockOutBtn.textContent=dutyMode?`🌙 請先${label}上班`:'🌙 請先上班打卡';
       clockInBtn.classList.add('ready-state');clockOutBtn.classList.add('wait-state');
-      todayStatus.textContent=`今日尚未打卡｜目前班別：${label}`;
+      todayStatus.textContent=pendingIn||pendingOut||checkingIn||checkingOut?'打卡待雲端確認':`今日尚未打卡｜目前班別：${label}`;
       renderWorkStatus(x);return;
     }
 
@@ -903,10 +968,11 @@
     clockInBtn.textContent=dutyMode?`✅ ${label}上班 ${x.dutyIn||x.in}`:`✅ 已上班 ${x.in}`;
     clockInBtn.classList.add('done-state');
     if(!ho){
-      clockOutBtn.disabled=false;
-      clockOutBtn.textContent=dutyMode?`🌙 ${label}下班`:'🌙 下班打卡';
+      clockOutBtn.disabled=pendingOut;
+      clockOutBtn.textContent=pendingOut?'📦 下班卡待補傳':dutyMode?`🌙 ${label}下班`:'🌙 下班打卡';
       clockOutBtn.classList.add('ready-state');
-      todayStatus.textContent=dutyMode?`${label}已於 ${x.dutyIn||x.in} 上班｜尚未下班`:`一般班已於 ${x.in} 上班｜尚未下班`;
+      const shift=dutyMode?label:'一般班';
+      todayStatus.textContent=`${shift}已於 ${x.dutyIn||x.in} 上班｜${pendingOut||checkingOut?'下班卡待雲端確認':'尚未下班'}`;
     }else{
       clockOutBtn.disabled=true;
       clockOutBtn.textContent=dutyMode?`✅ ${label}下班 ${x.dutyOut||x.out}`:`✅ 已下班 ${x.out}`;
@@ -918,8 +984,10 @@
   let pendingPunchType='';
 
   async function confirmPunch(type){
-    if(pendingCloudAction||accessCheck||document.getElementById('syncBtn').disabled){
-      setPunchFeedback(pendingCloudAction?'上一筆資料仍在送出，請等候雲端確認。':accessCheck?'正在確認打卡範圍，請稍候。':'正在同步出勤資料，請稍候再打卡。');
+    if(!requireHomepageAttendance()){setPunchFeedback('請先回登入首頁重新登入。');return}
+    if(pendingCloudAction||offlineSyncInProgress||accessCheck||document.getElementById('syncBtn').disabled){
+      const message=accessCheck?'正在確認打卡範圍，請稍候。':'正在處理出勤資料，請稍候。';
+      toastMsg(message);
       return;
     }
     const account=employeeKey();
@@ -930,7 +998,7 @@
       if(type==='out')type='dutyOut';
     }
     const access=await checkPunchAccess(false);
-    if(employeeKey()!==account||document.getElementById('syncBtn').disabled){setPunchFeedback('');return}
+    if(employeeKey()!==account||offlineSyncInProgress||document.getElementById('syncBtn').disabled){setPunchFeedback('');return}
     if(!access.allowed){setPunchFeedback('⚠️ 打卡範圍驗證未通過：'+(access.reason||'請重新定位'));return}
     setPunchFeedback('');
     pendingPunchType=type;
@@ -993,7 +1061,7 @@
     return{reason:s.value,note:''};
   }
   async function submitConfirmedPunch(){
-    if(!pendingPunchType||pendingCloudAction||document.getElementById('syncBtn').disabled)return;
+    if(!pendingPunchType||pendingCloudAction||offlineSyncInProgress||document.getElementById('syncBtn').disabled)return;
     const account=employeeKey();
     const type=pendingPunchType, abnormal=abnormalPunchInfo(type);
     if(abnormal.abnormal || abnormal.overtime){
@@ -1009,8 +1077,8 @@
       pendingAbnormalReason={reason:'',note:'',abnormalType:'',scheduledTime:'',overtimeMinutes:0};
     }
     closePunchConfirm();
-    if(!await requireSensitiveAuth()){toastMsg('已取消本人驗證，未送出打卡');return}
-    if(employeeKey()!==account||document.getElementById('syncBtn').disabled){
+    if(!requireHomepageAttendance()){setPunchFeedback('登入已逾時，請回登入首頁重新登入。');return}
+    if(employeeKey()!==account||offlineSyncInProgress||document.getElementById('syncBtn').disabled){
       setPunchFeedback('⚠️ 登入身分已變更或資料正在同步，本次打卡尚未送出，請重新確認。');
       return;
     }
@@ -1066,7 +1134,18 @@ function renderPersonalBalances(){
     }).join('');
   }
 
-  function showTab(name,btn){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));document.getElementById(name+'Panel').classList.add('active');if(name==='records')renderRecords();if(name==='attendance')renderAttendance();if(name==='leave')renderMyLeaves()}
+  function showTab(name,btn){
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    document.getElementById(name+'Panel').classList.add('active');
+    if(name==='records')renderRecords();
+    if(name==='attendance'){
+      renderAttendance();
+      if(attendanceHistoryState==='idle'||attendanceHistoryState==='error')loadCloudData(true);
+    }
+    if(name==='leave')renderMyLeaves();
+  }
   function changeMonth(n){viewDate.setDate(1);viewDate.setMonth(viewDate.getMonth()+n);cloudReady=false;cloudSharedLeaves=[];renderCalendar();loadCloudData(true)}
   function baseQuotaFor(date){
     const day=date.getDay();if(day===0||day===6)return {off:true,text:'休'};
@@ -1272,8 +1351,46 @@ function renderPersonalBalances(){
     },'submitLeave',{next:(result)=>submitLeaveQueue(items,type,reasonText,index+1,[...(results||[]),result])});
   }
   function addRecord(title,note){const key=`heremay.activityRecords.${employeeKey()}`,arr=JSON.parse(localStorage.getItem(key)||'[]');arr.unshift({title,note,time:new Date().toLocaleString('zh-TW',{hour12:false})});localStorage.setItem(key,JSON.stringify(arr.slice(0,30)))}
-  function allPunches(){if(cloudReady)return cloudPunches;const prefix=`heremay.attendance.${employeeKey()}.`;const rows=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(prefix)){try{const x=JSON.parse(localStorage.getItem(k)||'{}');x.date=x.date||k.slice(prefix.length);rows.push(x)}catch(e){}}}return rows}
-  function renderAttendance(){const now=new Date(),ym=`${now.getFullYear()}-${pad(now.getMonth()+1)}`;attendanceMonthTag.textContent=`${now.getFullYear()} 年 ${now.getMonth()+1} 月`;const punches=allPunches().filter(x=>String(x.date||'').startsWith(ym)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));const leaves=(cloudReady?cloudMyLeaves:JSON.parse(localStorage.getItem(leaveKey())||'[]')).filter(x=>String(x.date||'').startsWith(ym)&&['已核准','自動成立'].includes(x.status));workDaysCount.textContent=punches.filter(x=>x.in).length;lateCount.textContent=punches.filter(x=>Number(x.late)>0).length;lateTotal.textContent=punches.reduce((s,x)=>s+Number(x.late||0),0);leaveDaysCount.textContent=leaves.reduce((s,x)=>s+(x.period==='全天'?1:.5),0);const rows=[...punches.map(x=>({date:x.date,title:'出勤',note:`上班 ${x.in||'--:--'}｜下班 ${x.out||'--:--'}${x.late?`｜遲到 ${x.late} 分鐘`:''}`})),...leaves.map(x=>({date:x.date,title:x.type,note:`${x.period}｜${x.status}`}))].sort((a,b)=>b.date.localeCompare(a.date));attendanceMonthList.innerHTML=rows.length?rows.map(x=>`<div class="month-row"><strong>${x.date}</strong><span>${x.title}</span><span>${x.note}</span></div>`).join(''):'<div class="empty-note">本月尚無出勤或請假資料</div>'}
+  function allPunches(){
+    if(cloudReady)return cloudPunches;
+    const prefix=`heremay.attendance.${employeeKey()}.`;
+    const rows=new Map(cloudPunches.map(row=>[row.date,row]));
+    for(let i=0;i<localStorage.length;i++){
+      const key=localStorage.key(i);
+      if(!key?.startsWith(prefix))continue;
+      const punch=cachedPunch(key),date=punch?.date||key.slice(prefix.length);
+      if(punch&&!rows.has(date))rows.set(date,{...punch,date});
+    }
+    return [...rows.values()];
+  }
+  function renderAttendance(){
+    const month=todayKey().slice(0,7);
+    const [year,monthNumber]=month.split('-');
+    attendanceMonthTag.textContent=`${year} 年 ${Number(monthNumber)} 月`;
+    const punches=allPunches().filter(row=>String(row.date||'').startsWith(month));
+    const leaves=(cloudReady?cloudMyLeaves:JSON.parse(localStorage.getItem(leaveKey())||'[]'))
+      .filter(row=>String(row.date||'').startsWith(month)&&['已核准','自動成立'].includes(row.status));
+    workDaysCount.textContent=punches.filter(row=>punchTime(row,'clockIn')||punchTime(row,'dutyIn')).length;
+    lateCount.textContent=punches.filter(row=>Number(row.late)>0).length;
+    lateTotal.textContent=punches.reduce((total,row)=>total+Number(row.late||0),0);
+    leaveDaysCount.textContent=leaves.reduce((total,row)=>total+(row.period==='全天'?1:.5),0);
+    const punchRows=punches.map(row=>{
+      const start=punchTime(row,'clockIn')||punchTime(row,'dutyIn')||'未登記';
+      const end=punchTime(row,'clockOut')||punchTime(row,'dutyOut')||'未登記';
+      return {date:row.date,title:'打卡',note:`上班 ${start}｜下班 ${end}${Number(row.late)>0?`｜遲到 ${Number(row.late)} 分鐘`:''}`};
+    });
+    const leaveRows=leaves.map(row=>({date:row.date,title:row.type,note:`${row.period}｜${row.status}`}));
+    const rows=[...punchRows,...leaveRows].sort((a,b)=>b.date.localeCompare(a.date));
+    const states={
+      idle:'尚未讀取本月打卡紀錄。',
+      loading:'正在讀取本月打卡紀錄…',
+      error:'目前無法讀取最新紀錄，請按「重新讀取打卡紀錄」。',
+      login:'請返回登入首頁重新登入後查看。',
+      ready:punchRows.length?'':'本月尚無打卡紀錄。'
+    };
+    document.getElementById('attendanceHistoryStatus').textContent=states[attendanceHistoryState];
+    attendanceMonthList.innerHTML=rows.map(row=>`<div class="month-row"><strong>${escapeOverview(row.date)}</strong><span>${escapeOverview(row.title)}</span><span>${escapeOverview(row.note)}</span></div>`).join('');
+  }
   function canCancelLeave(row){
     const status=String(row.status||'');
     const leaveDate=String(row.date||'').slice(0,10);
@@ -1309,22 +1426,139 @@ function renderPersonalBalances(){
     recordList.innerHTML=html||'<div class="salary">尚無紀錄</div>'
   }
   function jsonp(url,timeoutMs=15000){return new Promise((resolve,reject)=>{const cb='heremayCb_'+Date.now()+'_'+Math.random().toString(36).slice(2);const script=document.createElement('script');const timer=setTimeout(()=>{cleanup();reject(new Error('雲端回應逾時，尚未確認結果'))},timeoutMs);function cleanup(){clearTimeout(timer);delete window[cb];script.remove()}window[cb]=data=>{cleanup();resolve(data)};script.onerror=()=>{cleanup();reject(new Error('雲端連線失敗'))};script.src=url+(url.includes('?')?'&':'?')+'callback='+encodeURIComponent(cb)+'&_='+Date.now();document.head.append(script)})}
+  async function homepageAttendanceRequest(action,fields,timeoutMs){
+    const grant=requireHomepageAttendance();
+    if(!grant)return{ok:false,loginRequired:true,message:'請返回登入首頁重新登入'};
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),timeoutMs);
+    try{
+      const response=await fetch(`${PASSKEY_API_BASE}/api/attendance`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({...fields,action,token:grant.token}),signal:controller.signal
+      });
+      const result=await response.json();
+      if(response.status>=500)throw new Error(result.message||'出勤服務暫時無法連線');
+      if(result.loginRequired&&homepageAttendanceGrant()?.token===grant.token){
+        sessionStorage.removeItem(ATTENDANCE_LOGIN_KEY);
+        requireHomepageAttendance();
+      }
+      return result;
+    }catch(error){
+      if(error.name==='AbortError')throw new Error('雲端回應逾時，尚未確認結果');
+      throw error;
+    }finally{clearTimeout(timer)}
+  }
+  function fetchAttendanceBundle(month,punchMonth,timeoutMs){
+    return homepageAttendanceRequest('getAttendanceBundle',{month,punchMonth},timeoutMs);
+  }
+  function sendAttendance(action,fields,timeoutMs){
+    const payload=encodeURIComponent(JSON.stringify({...fields,...sensitiveAuthFields()}));
+    return jsonp(`${SERVICE_URL}?action=${encodeURIComponent(action)}&payload=${payload}`,timeoutMs);
+  }
+  function punchTime(punch,kind){
+    if(!punch)return '';
+    const time=String(punch[PUNCH_FIELDS[kind]]||'').trim();
+    if(time&&time!=='--:--')return time;
+    const recordedDuty=punch.dutyIn||punch.dutyOut||/早值|晚值|輪值/.test(punch.dutyType||punch.shift||'');
+    if(recordedDuty&&kind==='dutyIn')return punchTime(punch,'clockIn');
+    if(recordedDuty&&kind==='dutyOut')return punchTime(punch,'clockOut');
+    return '';
+  }
+  function punchFromResult(result,date,kind){
+    const punch=result.punch;
+    if(!punch||!punchTime(punch,kind)||(punch.date&&punch.date!==date))return null;
+    return {...punch,date};
+  }
+  function isDuplicatePunch(message){
+    return /已(?:經|完成)?\s*(?:上班|下班|上值班|下值班|打卡)|(?:上班|下班|值班|打卡).*(?:已存在|重複)|重複打卡/.test(String(message||''));
+  }
+  async function verifyCloudPunch(account,date,kind){
+    if(employeeKey()!==account||!date||!homepageAttendanceGrant()||!navigator.onLine)return null;
+    try{
+      const month=date.slice(0,7);
+      const result=await fetchAttendanceBundle(month,month,15000);
+      if(employeeKey()!==account||!result.ok||!Array.isArray(result.punches))return null;
+      return result.punches.find(row=>row.date===date&&punchTime(row,kind))||null;
+    }catch(error){return null}
+  }
+  function cacheTodayPunch(){
+    const key=punchKey();
+    const punch=cloudPunches.find(row=>row.date===todayKey());
+    try{
+      if(punch)localStorage.setItem(key,JSON.stringify(punch));
+      else localStorage.removeItem(key);
+    }catch(error){console.warn('打卡資料暫存失敗',error)}
+  }
+  function rememberConfirmedPunch(punch,kind){
+    const previous=cloudPunches.find(row=>row.date===punch.date);
+    const updated={...previous,...punch};
+    const kinds=recentPunches.get(punch.date)?.kinds||new Set();
+    kinds.add(kind);
+    recentPunches.set(punch.date,{punch:updated,kinds,savedAt:Date.now()});
+    cloudPunches=[updated,...cloudPunches.filter(row=>row.date!==punch.date)];
+    if(punch.date===todayKey())cacheTodayPunch();
+  }
+  function mergeCloudPunches(punches){
+    const rows=new Map(punches.map(row=>[row.date,row]));
+    for(const [date,recent] of recentPunches){
+      const current=rows.get(date);
+      const acknowledged=[...recent.kinds].every(kind=>punchTime(current,kind));
+      if(acknowledged||Date.now()-recent.savedAt>120000){
+        recentPunches.delete(date);
+        continue;
+      }
+      // 寫入已確認，保留最近的打卡時間，直到出勤查詢也回傳該時間。
+      const merged={...recent.punch,...current};
+      for(const field of Object.values(PUNCH_FIELDS)){
+        if(!current?.[field]&&recent.punch[field])merged[field]=recent.punch[field];
+      }
+      rows.set(date,merged);
+    }
+    return [...rows.values()];
+  }
+  function showConfirmedPunch(punch,kind){
+    if(punch.date===todayKey()){
+      punchToConfirm={date:punch.date,kind,confirmed:true};
+      setPunchFeedback(`✅ ${PUNCH_LABELS[kind]}打卡已登記 ${punchTime(punch,kind)}`);
+    }
+  }
   async function loadCloudData(silent=false){
     const sequence=++attendanceLoadSequence;
+    const account=employeeKey();
     const month=`${viewDate.getFullYear()}-${pad(viewDate.getMonth()+1)}`;
     const cacheKey=sharedLeaveKey();
+    if(!requireHomepageAttendance()){
+      attendanceHistoryState='login';
+      renderAttendance();
+      setDataStatus('請返回登入首頁重新登入後同步出勤資料');
+      return false;
+    }
+    attendanceHistoryState='loading';
+    renderAttendance();
     setDataStatus('正在同步；完成前請假名單可能尚未更新');
     try{
       const currentMonth=todayKey().slice(0,7);
-      const url=`${SERVICE_URL}?`+new URLSearchParams({action:'getAttendanceBundle',employeeId:employeeKey(),pool:leavePool(),month,punchMonth:currentMonth,...sensitiveAuthFields()});
-      const result=await jsonp(url,45000);
-      if(sequence!==attendanceLoadSequence)return false;
+      const result=await fetchAttendanceBundle(month,currentMonth,55000);
+      if(sequence!==attendanceLoadSequence||employeeKey()!==account)return false;
       if(!result.ok)throw new Error(result.message||'讀取失敗');
       annualRules=Array.isArray(result.annualRules)?result.annualRules:[];personalBalances=Array.isArray(result.personalBalances)?result.personalBalances:null;renderPersonalBalances();
       document.getElementById('annualRemain').textContent=result.annualBalance?.configured?result.annualBalance.remaining+' 天':'尚未設定';
       cloudSharedLeaves=Array.isArray(result.sharedLeaves)?result.sharedLeaves:[];
       cloudMyLeaves=Array.isArray(result.myLeaves)?result.myLeaves:[];
-      cloudPunches=Array.isArray(result.punches)?result.punches:[];
+      if(Array.isArray(result.punches)){
+        attendanceHistoryState='ready';
+        cloudPunches=mergeCloudPunches(result.punches);
+        cacheTodayPunch();
+        if(punchToConfirm?.date===todayKey()){
+          const {date,kind,confirmed}=punchToConfirm;
+          const punch=cloudPunches.find(row=>row.date===date&&punchTime(row,kind));
+          if(punch)showConfirmedPunch(punch,kind);
+          else if(confirmed){
+            punchToConfirm={date,kind,confirmed:false};
+            setPunchFeedback('⚠️ 目前查不到這筆雲端打卡時間，請按「同步出勤資料」確認。');
+          }
+        }
+      }else attendanceHistoryState='error';
       overviewLeaves=Array.isArray(result.overviewLeaves)?result.overviewLeaves:[];overviewReady=Array.isArray(result.overviewLeaves);renderOverview();document.getElementById('overviewStatus').textContent=overviewReady?'已同步｜包含待審核申請，請留意狀態':'請先更新後端 attendance_api.gs 並重新部署';
       cloudReady=true;
       try{localStorage.setItem(cacheKey,JSON.stringify(cloudSharedLeaves));localStorage.setItem(leaveKey(),JSON.stringify(cloudMyLeaves))}catch(error){console.warn('手機暫存失敗',error)}
@@ -1333,7 +1567,9 @@ function renderPersonalBalances(){
       if(!silent)toastMsg('☁️ 已同步雲端出勤與請假資料');
       return true;
     }catch(err){
-      if(sequence!==attendanceLoadSequence)return false;
+      if(sequence!==attendanceLoadSequence||employeeKey()!==account)return false;
+      attendanceHistoryState=homepageAttendanceGrant()?'error':'login';
+      renderAttendance();
       document.getElementById('overviewStatus').textContent='同步未完成，名單可能不是最新';console.warn(err);setDataStatus('⚠️ 同步未完成：目前名單可能不是最新，請勿據此判斷剩餘名額');
       if(!silent)toastMsg('⚠️ 暫時無法同步，畫面資料尚未確認');
       return false;
@@ -1344,27 +1580,73 @@ function renderPersonalBalances(){
     status.textContent=message;
     status.hidden=!message;
   }
+  async function postPunch(action,fields,kind){
+    if(pendingCloudAction||offlineSyncInProgress)return;
+    const account=employeeKey(),date=fields.date,access=lastAccessResult;
+    const recordedEmployeeId=cloudPunches.find(row=>row.date===date)?.employeeId;
+    if(recordedEmployeeId)fields={...fields,employeeId:recordedEmployeeId};
+    const pending={kind};
+    pendingCloudAction=pending;
+    punchToConfirm=null;
+    setPunchPending(kind,true);
+    setPunchFeedback('已送出，正在等候雲端確認…');
+    let queued=false;
+    let connectionError='';
+    let result;
+    try{
+      try{
+        result=await homepageAttendanceRequest(action,{payload:fields},55000);
+      }catch(error){
+        if(employeeKey()!==account)return;
+        connectionError=error.message||'雲端連線未完成';
+        if(access?.allowed){
+          try{
+            enqueueOfflinePunch(action,fields,kind,access);
+            queued=true;
+          }catch(storageError){console.warn('離線打卡暫存失敗',storageError)}
+        }
+      }
+      if(employeeKey()!==account)return;
+      if(result&&!result.ok&&!isDuplicatePunch(result.message)){
+        setPunchFeedback(`⚠️ ${result.message||'雲端拒絕本次打卡，請重新確認後再試。'}`);
+        return;
+      }
+      let punch=result&&punchFromResult(result,date,kind);
+      if(!punch){
+        setPunchFeedback('正在查詢雲端打卡時間…');
+        punch=await verifyCloudPunch(account,date,kind);
+      }
+      if(employeeKey()!==account)return;
+      if(punch){
+        rememberConfirmedPunch(punch,kind);
+        if(queued){
+          try{saveOfflineQueue(readOfflineQueue().filter(item=>item.clientRecordId!==fields.clientRecordId))}
+          catch(error){console.warn('離線打卡佇列更新失敗',error)}
+        }
+        showConfirmedPunch(punch,kind);
+      }else{
+        punchToConfirm={date,kind,confirmed:false};
+        const message=queued?`📦 ${connectionError}。已暫存在手機，等待補傳或雲端確認。`:'⚠️ 尚未查到雲端打卡時間，請按「同步出勤資料」確認。';
+        setPunchFeedback(message);
+      }
+    }finally{
+      if(pendingCloudAction===pending)pendingCloudAction=null;
+      if(employeeKey()===account){loadPunch();renderAttendance()}
+    }
+  }
   async function postAttendance(action,fields,kind,options={}){
+    if(PUNCH_FIELDS[kind])return postPunch(action,fields,kind);
     if(pendingCloudAction){
       toastMsg('上一項資料正在處理；可按上方同步鍵重新整理狀態');
       return;
     }
 
-    const isPunch=['clockIn','clockOut','dutyIn','dutyOut'].includes(kind);
     const account=employeeKey();
-    const access=lastAccessResult;
-    let responseReceived=false;
     pendingCloudAction={kind,options};
-    setPunchPending(kind,true);
-    if(isPunch)setPunchFeedback('已送出，正在等候雲端確認…');
-    else toastMsg('正在寫入雲端…');
-
-
+    toastMsg('正在寫入雲端…');
 
     try{
-      const url=`${SERVICE_URL}?action=${encodeURIComponent(action)}&payload=${encodeURIComponent(JSON.stringify({...fields,...sensitiveAuthFields()}))}`;
-      const result=await jsonp(url,60000);
-      responseReceived=true;
+      const result=await sendAttendance(action,fields,60000);
       if(employeeKey()!==account){clearPendingAction();return}
       const current=pendingCloudAction;
 
@@ -1375,17 +1657,6 @@ function renderPersonalBalances(){
       pendingCloudAction=null;
 
       if(!result.ok)throw new Error(result.message||'雲端儲存失敗');
-
-      if(isPunch)setPunchFeedback('✅ 打卡成功');
-      if(result.punch){
-        ++attendanceLoadSequence;
-        const punch={...result.punch,date:result.punch.date||todayKey()};
-        cloudPunches=[punch,...cloudPunches.filter(x=>x.date!==punch.date)];
-        cloudReady=true;
-        try{localStorage.setItem(punchKey(punch.date),JSON.stringify(punch))}catch(error){console.warn('打卡資料暫存失敗',error)}
-        loadPunch();
-        renderAttendance();
-      }
 
       if(result.leave){
         cloudMyLeaves=[result.leave,...cloudMyLeaves.filter(x=>String(x.leaveId)!==String(result.leave.leaveId))];
@@ -1410,24 +1681,13 @@ function renderPersonalBalances(){
     }catch(error){
       clearPendingAction();
       if(employeeKey()!==account)return;
-      if(isPunch&&!responseReceived&&access?.allowed){
-        try{
-          enqueueOfflinePunch(action,fields,kind,access);
-          setPunchFeedback('📦 '+(error.message||'雲端尚未確認')+'；打卡已暫存在手機，請先同步確認紀錄。');
-        }catch(storageError){
-          setPunchFeedback('⚠️ 雲端尚未確認，手機也無法暫存。請先同步確認紀錄。');
-        }
-      }else if(isPunch){
-        setPunchFeedback('⚠️ '+(error.message||'雲端儲存失敗'));
-      }else{
-        toastMsg('⚠️ '+(error.message||'雲端儲存失敗')+(kind==='submitLeave'?'；未確認的日期與原因已保留，請先同步確認紀錄':''));
-      }
+      toastMsg('⚠️ '+(error.message||'雲端儲存失敗')+(kind==='submitLeave'?'；未確認的日期與原因已保留，請先同步確認紀錄':''));
       await loadCloudData(true);
     }
   }
 
   async function refreshAttendancePage(){
-    if(pendingCloudAction){toastMsg('打卡或資料送出中，請等候結果');return}
+    if(pendingCloudAction||offlineSyncInProgress){toastMsg('打卡或資料送出中，請等候結果');return}
     const btn=document.getElementById('syncBtn');
     if(btn){
       btn.disabled=true;
@@ -1436,7 +1696,7 @@ function renderPersonalBalances(){
     toastMsg('正在同步最新出勤資料…');
 
     try{
-      await refreshLoggedInEmployee(true);
+      await refreshLoggedInEmployee(false);
       if(!await loadCloudData(true))throw new Error('出勤資料同步未完成');
 
       if('serviceWorker' in navigator){
@@ -1496,7 +1756,7 @@ function renderPersonalBalances(){
   }
 
   function toastMsg(t){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2800)}
-  function openSalarySlip(){preserveGrantForAreaNavigation=true;location.href='salary_slip.html?from=attendance'}
+  function openSalarySlip(){clearAttendanceSession();location.href='salary_slip.html?from=attendance'}
   function attendanceHomePage(){
     const home=String(employee.homeType||employee.home||employee['首頁類型']||'').trim();
     const role=String(employee.role||localStorage.getItem('heremay.currentRole')||'').trim();
@@ -1509,8 +1769,14 @@ function renderPersonalBalances(){
   function goBack(){clearAttendanceSession();location.href=attendanceHomePage()}
   async function startAttendanceArea(){
     initUser();
-    if(!restoreAttendanceSession()&&!await requireSensitiveAuth())return;
-    renderOverview();updateClock();setInterval(updateClock,1000);loadPunch();renderOfflineQueue();renderCalendar();renderMyLeaves();renderRecords();renderAttendance();loadCloudData(false);setTimeout(()=>syncOfflinePunches(false),1500);
+    if(!requireHomepageAttendance()){
+      attendanceHistoryState='login';
+      renderAttendance();
+      return;
+    }
+    renderOverview();updateClock();setInterval(updateClock,1000);loadPunch();renderOfflineQueue();renderCalendar();renderMyLeaves();renderRecords();renderAttendance();
+    await loadCloudData(false);
+    await syncOfflinePunches(false);
   }
   startAttendanceArea();
   window.addEventListener('pageshow',event=>refreshLoggedInEmployee(Boolean(event.persisted)));
@@ -1529,7 +1795,7 @@ function renderPersonalBalances(){
     accessHiddenAt=null;
     preserveGrantForAreaNavigation=false;
     refreshLoggedInEmployee(false);
-    if(!hasSensitiveGrant()&&!restoreAttendanceSession()&&!pendingCloudAction)requireSensitiveAuth();
+    requireHomepageAttendance();
   });
   window.addEventListener('pagehide',()=>{if(!preserveGrantForAreaNavigation)clearAttendanceSession()});
 </script>
