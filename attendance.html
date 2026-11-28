@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>和美智慧校園｜差勤管理 v2.12.6</title>
+  <title>和美智慧校園｜差勤管理 v2.12.7</title>
   <style>
     :root{
       --bg:#f4f9ff;--card:#fff;--blue:#438fd1;--blue2:#75b9e8;--ink:#2f3f4b;
@@ -81,7 +81,7 @@
   <header class="top">
     <div class="title"><h1>差勤管理</h1><p>和美智慧校園｜員工個人頁面</p></div>
     <button class="back" onclick="goBack()">← 返回</button>
-    <span class="version">v2.12.6｜2026-11-27｜直接打卡與本月紀錄</span>
+    <span class="version">v2.12.7｜2026-11-28｜打卡結果與離線補傳</span>
   </header>
 
   <section class="card who">
@@ -463,10 +463,10 @@
   function offlineQueueKey(){return `heremay.offlinePunchQueue.${employeeKey()}`}
   function readOfflineQueue(){try{const rows=JSON.parse(localStorage.getItem(offlineQueueKey())||'[]');return Array.isArray(rows)?rows:[]}catch(e){return[]}}
   function saveOfflineQueue(rows){localStorage.setItem(offlineQueueKey(),JSON.stringify(rows));renderOfflineQueue()}
-  function renderOfflineQueue(){
+  function renderOfflineQueue(message=''){
     const box=document.getElementById('offlineQueueNote');if(!box)return;
     const count=readOfflineQueue().length;
-    box.textContent=count?`📦 尚有 ${count} 筆離線打卡等待補傳；網路恢復或再次開啟頁面時會自動處理。`:'目前沒有待補傳的打卡紀錄。';
+    box.textContent=count?`📦 尚有 ${count} 筆離線打卡等待補傳。${message || '網路恢復或再次開啟頁面時會自動處理。'}`:'目前沒有待補傳的打卡紀錄。';
   }
   function uuid(){return (crypto&&crypto.randomUUID)?crypto.randomUUID():`p_${Date.now()}_${Math.random().toString(36).slice(2)}`}
   function distanceMeters(lat1,lng1,lat2,lng2){
@@ -497,7 +497,7 @@
     return results.sort((a,b)=>Number(a.coords.accuracy||9999)-Number(b.coords.accuracy||9999))[0];
   }
   async function checkNasAccess(){
-    if(!ATTENDANCE_ACCESS.nasCheckUrl)return{ok:false,reason:'NAS 驗證網址尚未設定'};
+    if(!ATTENDANCE_ACCESS.nasCheckUrl)return{ok:false,reason:'校內 Wi-Fi 備援尚未啟用'};
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),ATTENDANCE_ACCESS.nasTimeoutMs);
     try{
       const response=await fetch(ATTENDANCE_ACCESS.nasCheckUrl,{method:'GET',cache:'no-store',mode:'cors',signal:controller.signal});
@@ -535,7 +535,11 @@
         const result={allowed:true,method:'GPS',distance,accuracy:Number(c.accuracy||0),latitude:c.latitude,longitude:c.longitude,checkedAt:new Date().toISOString()};showAccessResult(result);return result;
       }
       gpsError=`目前距離約 ${Math.round(distance)} 公尺，超過 100 公尺`;
-    }catch(e){gpsError=e.code===1?'尚未允許位置權限':'暫時無法取得定位'}
+    }catch(error){
+      if(error.code===1)gpsError='尚未允許位置權限，請開啟後重新定位';
+      else if(error.code===3)gpsError='取得定位逾時，請到訊號較好的位置重新定位';
+      else gpsError='暫時無法取得定位，請重新定位';
+    }
     const nas=await checkNasAccess();
     const result=nas.ok?{allowed:true,method:'NAS',distance:'',accuracy:'',latitude:'',longitude:'',checkedAt:new Date().toISOString()}:{allowed:false,method:'NONE',reason:`${gpsError}；${nas.reason}`,checkedAt:new Date().toISOString()};
     showAccessResult(result);return result;
@@ -551,11 +555,12 @@
   async function syncOfflinePunches(manual=false){
     if(offlineSyncInProgress||pendingCloudAction){if(manual)toastMsg('正在處理上一筆資料，請稍候');return}
     const queue=readOfflineQueue();if(!queue.length){if(manual)toastMsg('目前沒有待補傳的打卡紀錄');renderOfflineQueue();return}
-    if(!navigator.onLine){if(manual)toastMsg('目前仍未連上網路');return}
-    if(!requireHomepageAttendance())return;
+    if(!navigator.onLine){renderOfflineQueue('手機尚未連線，待連線後再補傳。');return}
+    if(!requireHomepageAttendance()){renderOfflineQueue('請回登入首頁重新登入，再補傳。');return}
     const account=employeeKey();
     offlineSyncInProgress=true;
     let done=0;
+    let failure='';
     try{
       for(const item of queue){
         if(employeeKey()!==account||!homepageAttendanceGrant())break;
@@ -566,22 +571,30 @@
             const result=await homepageAttendanceRequest(item.action,{payload:{...item.fields,syncStatus:'離線補傳',uploadedAt:new Date().toISOString()}},55000);
             if(result.ok||isDuplicatePunch(result.message)){
               punch=punchFromResult(result,date,item.kind)||await verifyCloudPunch(account,date,item.kind);
+            }else{
+              failure=result.message||'雲端尚未接受這筆補傳';
             }
           }catch(error){
+            failure=error.message||'暫時無法連到出勤服務';
             punch=await verifyCloudPunch(account,date,item.kind);
           }
         }
         if(employeeKey()!==account)return;
-        if(!punch)continue;
+        if(!punch){
+          failure=failure||'雲端尚未回傳登記時間';
+          if(!homepageAttendanceGrant())break;
+          continue;
+        }
         rememberConfirmedPunch(punch,item.kind);
         saveOfflineQueue(readOfflineQueue().filter(row=>row.clientRecordId!==item.clientRecordId));
         done++;
         if(date===todayKey())showConfirmedPunch(punch,item.kind);
       }
       const remaining=readOfflineQueue().length;
+      if(remaining)renderOfflineQueue('尚未完成補傳：'+(failure||'雲端尚未確認。'));
       if(manual||done)toastMsg(remaining?`已確認 ${done} 筆，仍有 ${remaining} 筆待補傳`:`✅ 已確認 ${done} 筆離線打卡`);
     }catch(error){
-      if(employeeKey()===account)toastMsg('⚠️ 補傳作業未完成，請稍後再試');
+      if(employeeKey()===account)renderOfflineQueue('補傳作業未完成，請稍後再試。');
     }finally{
       offlineSyncInProgress=false;
       if(employeeKey()===account){loadPunch();renderAttendance()}
@@ -693,12 +706,14 @@
   }
   function usesDutyPunch(){
     if(isFlexibleCleaner())return false;
+    const recorded=todayPunchRecord();
+    if(punchTime(recorded,'clockIn')||punchTime(recorded,'dutyIn'))return Boolean(recorded.dutyIn);
     const duty=selectedDutyType();
     return duty==='07:00早值'||duty==='07:30輪值'||duty==='晚值';
   }
   function activeShiftLabel(){
     if(isFlexibleCleaner())return '工作';
-    const duty=selectedDutyType();
+    const duty=workSchedule().dutyType;
     return duty==='07:00早值'?'07:00早值':duty==='07:30輪值'?'07:30輪值':duty==='晚值'?'晚值':'正常班';
   }
   function attendanceDepartment(){
@@ -837,7 +852,11 @@
   }
 
   function workSchedule(){
-    const department=attendanceDepartment(),mode=selectedAttendanceMode(),duty=selectedDutyType();
+    const department=attendanceDepartment();
+    const recorded=todayPunchRecord();
+    const started=Boolean(recorded.in||recorded.dutyIn);
+    const duty=started?(recorded.dutyType||(department==='幼兒部'?'正常班':'一般班')):selectedDutyType();
+    const mode=started?(department==='幼兒部'?duty:(recorded.attendanceMode||selectedAttendanceMode())):selectedAttendanceMode();
     if(isFlexibleCleaner())return{department:'庶務組',mode:'責任制',dutyType:'戶外清潔',name:'戶外清潔責任制',scheduledIn:'',scheduledOut:'',requiredMinutes:0,flexibleCleaner:true};
 
     if(department==='庶務組'){
@@ -923,6 +942,7 @@
 
   function loadPunch(){
     applyEmployeePunchLayout();
+    renderShiftInfo();
     const record=todayPunchRecord();
     const x={...record,in:punchTime(record,'clockIn')||punchTime(record,'dutyIn'),out:punchTime(record,'clockOut')||punchTime(record,'dutyOut')};
     const hi=Boolean(x.in),ho=Boolean(x.out);
@@ -984,10 +1004,10 @@
   let pendingPunchType='';
 
   async function confirmPunch(type){
-    if(!requireHomepageAttendance()){setPunchFeedback('請先回登入首頁重新登入。');return}
+    if(!requireHomepageAttendance()){setPunchFeedback('⚠️ 登入已逾時，本次尚未送出。請回登入首頁重新登入。');return}
     if(pendingCloudAction||offlineSyncInProgress||accessCheck||document.getElementById('syncBtn').disabled){
       const message=accessCheck?'正在確認打卡範圍，請稍候。':'正在處理出勤資料，請稍候。';
-      toastMsg(message);
+      setPunchFeedback(message);
       return;
     }
     const account=employeeKey();
@@ -997,10 +1017,20 @@
       if(type==='in')type='dutyIn';
       if(type==='out')type='dutyOut';
     }
-    const access=await checkPunchAccess(false);
-    if(employeeKey()!==account||offlineSyncInProgress||document.getElementById('syncBtn').disabled){setPunchFeedback('');return}
-    if(!access.allowed){setPunchFeedback('⚠️ 打卡範圍驗證未通過：'+(access.reason||'請重新定位'));return}
-    setPunchFeedback('');
+    let access;
+    try{
+      access=await checkPunchAccess(false);
+    }catch(error){
+      console.warn('打卡範圍驗證未完成',error);
+      setPunchFeedback('⚠️ 無法完成打卡範圍驗證，本次尚未送出。請重新定位。');
+      return;
+    }
+    if(employeeKey()!==account||offlineSyncInProgress||document.getElementById('syncBtn').disabled){
+      setPunchFeedback('⚠️ 登入身分已變更或資料正在同步，本次打卡尚未送出，請重新確認。');
+      return;
+    }
+    if(!access.allowed){setPunchFeedback('⚠️ 打卡範圍驗證未通過，本次尚未送出。'+(access.reason||'請重新定位'));return}
+    setPunchFeedback('打卡範圍已通過，請確認送出。');
     pendingPunchType=type;
     const abnormal=abnormalPunchInfo(type);
     const oldBox=document.getElementById('abnormalPunchBox'); if(oldBox)oldBox.remove();
@@ -1040,7 +1070,8 @@
     document.getElementById('punchConfirmModal').classList.add('show');
   }
 
-  function closePunchConfirm(){
+  function closePunchConfirm(submitting=false){
+    if(pendingPunchType&&!submitting)setPunchFeedback('已取消，本次打卡尚未送出。');
     pendingPunchType='';
     document.getElementById('punchConfirmModal').classList.remove('show');
   }
@@ -1061,7 +1092,13 @@
     return{reason:s.value,note:''};
   }
   async function submitConfirmedPunch(){
-    if(!pendingPunchType||pendingCloudAction||offlineSyncInProgress||document.getElementById('syncBtn').disabled)return;
+    if(!pendingPunchType)return;
+    if(pendingCloudAction||offlineSyncInProgress||document.getElementById('syncBtn').disabled){
+      const message='正在處理出勤資料，本次打卡尚未送出。請稍候再確認。';
+      setPunchFeedback(message);
+      toastMsg(message);
+      return;
+    }
     const account=employeeKey();
     const type=pendingPunchType, abnormal=abnormalPunchInfo(type);
     if(abnormal.abnormal || abnormal.overtime){
@@ -1076,8 +1113,8 @@
     }else{
       pendingAbnormalReason={reason:'',note:'',abnormalType:'',scheduledTime:'',overtimeMinutes:0};
     }
-    closePunchConfirm();
-    if(!requireHomepageAttendance()){setPunchFeedback('登入已逾時，請回登入首頁重新登入。');return}
+    closePunchConfirm(true);
+    if(!requireHomepageAttendance()){setPunchFeedback('⚠️ 登入已逾時，本次尚未送出。請回登入首頁重新登入。');return}
     if(employeeKey()!==account||offlineSyncInProgress||document.getElementById('syncBtn').disabled){
       setPunchFeedback('⚠️ 登入身分已變更或資料正在同步，本次打卡尚未送出，請重新確認。');
       return;
@@ -1436,8 +1473,9 @@ function renderPersonalBalances(){
         method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({...fields,action,token:grant.token}),signal:controller.signal
       });
-      const result=await response.json();
-      if(response.status>=500)throw new Error(result.message||'出勤服務暫時無法連線');
+      const result=await response.json().catch(()=>null);
+      if(response.status>=500)throw new Error(result?.message||'出勤服務暫時無法連線');
+      if(!result||typeof result.ok!=='boolean')throw new Error('出勤服務回傳異常，尚未確認結果');
       if(result.loginRequired&&homepageAttendanceGrant()?.token===grant.token){
         sessionStorage.removeItem(ATTENDANCE_LOGIN_KEY);
         requireHomepageAttendance();
@@ -1445,6 +1483,7 @@ function renderPersonalBalances(){
       return result;
     }catch(error){
       if(error.name==='AbortError')throw new Error('雲端回應逾時，尚未確認結果');
+      if(error instanceof TypeError)throw new Error('與出勤服務的連線中斷，尚未確認結果');
       throw error;
     }finally{clearTimeout(timer)}
   }
@@ -1595,6 +1634,7 @@ function renderPersonalBalances(){
     let result;
     try{
       try{
+        if(!navigator.onLine)throw new Error('手機目前離線');
         result=await homepageAttendanceRequest(action,{payload:fields},55000);
       }catch(error){
         if(employeeKey()!==account)return;
@@ -1608,7 +1648,9 @@ function renderPersonalBalances(){
       }
       if(employeeKey()!==account)return;
       if(result&&!result.ok&&!isDuplicatePunch(result.message)){
-        setPunchFeedback(`⚠️ ${result.message||'雲端拒絕本次打卡，請重新確認後再試。'}`);
+        const reason=result.loginRequired?'登入已逾時，請回登入首頁重新登入。':
+          (result.message||'雲端未接受本次打卡，請重新確認後再試。');
+        setPunchFeedback('⚠️ 本次打卡未登記：'+reason);
         return;
       }
       let punch=result&&punchFromResult(result,date,kind);
